@@ -1,0 +1,46 @@
+// Schéma de la base de données Get iT.
+// Conventions : modèles en PascalCase, tables et colonnes en snake_case (@@map / @map),
+// dates avec fuseau horaire (timestamptz).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Langues de l'interface. Doit rester aligné avec src/i18n/routing.ts.
+enum Locale {
+  fr
+  en
+}
+
+/// Profil d'un utilisateur. L'id est celui du compte Supabase Auth (auth.users.id).
+model Profile {
+  id          String   @id @db.Uuid
+  username    String?  @unique
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  settings UserSettings?
+
+  @@map("profiles")
+}
+
+/// Préférences personnelles, séparées du profil public.
+model UserSettings {
+  userId    String   @id @map("user_id") @db.Uuid
+  /// Langue choisie : suit l'utilisateur sur tous ses appareils (web et future app mobile).
+  locale    Locale   @default(fr)
+  /// Fuseau IANA (ex. « America/Toronto ») : sert à calculer « aujourd'hui » et les séries.
+  timeZone  String   @default("America/Toronto") @map("time_zone")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}

@@ -1,0 +1,9 @@
+.next
+src/generated
+prisma/migrations
+package-lock.json
+messages/*.d.json.ts
+# Document fondateur conservé tel quel
+docs/PRODUCT.md
+# Réécrit automatiquement par `next dev`
+AGENTS.md

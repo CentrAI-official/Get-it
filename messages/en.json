@@ -1,0 +1,190 @@
+{
+  "Metadata": {
+    "title": "Get iT — If you want it, you can get it",
+    "description": "The personal growth platform that turns your goals into plans, daily actions and measurable progress: physical, mental, social and financial."
+  },
+  "Common": {
+    "brand": "Get iT",
+    "slogan": "If you want it, you can get it.",
+    "skipToContent": "Skip to main content",
+    "loading": "Loading…",
+    "homeLink": "Get iT — home"
+  },
+  "LocaleSwitcher": {
+    "label": "Language",
+    "change": "Change language",
+    "locale": "{locale, select, fr {Français} en {English} other {{locale}}}"
+  },
+  "Pillars": {
+    "physical": {
+      "name": "Physical",
+      "description": "Training, nutrition, sleep and energy. Build a body that keeps up with you."
+    },
+    "mental": {
+      "name": "Mental",
+      "description": "Discipline, focus, confidence and stress management. Strengthen your mind."
+    },
+    "social": {
+      "name": "Social",
+      "description": "Communication, relationships, networking and leadership. Grow your circle."
+    },
+    "financial": {
+      "name": "Financial",
+      "description": "Budgeting, saving, career and entrepreneurship. Take control of your money."
+    }
+  },
+  "Marketing": {
+    "nav": {
+      "label": "Site navigation",
+      "pillars": "The 4 pillars",
+      "how": "How it works",
+      "features": "Features",
+      "getStarted": "Get started"
+    },
+    "hero": {
+      "eyebrow": "Physical · Mental · Social · Financial",
+      "title": "If you want it, <accent>you can get it.</accent>",
+      "subtitle": "Get iT turns what you want into a concrete plan, daily actions and measurable progress. One platform to level up your whole life.",
+      "primaryCta": "Get started",
+      "secondaryCta": "See how it works"
+    },
+    "preview": {
+      "label": "App preview (example)",
+      "example": "Example",
+      "level": "Level {level, number}",
+      "xp": "{xp, number} XP",
+      "nextLevel": "{remaining, number} XP to level {level, number}",
+      "streak": "{days, plural, one {# day streak} other {# day streak}}",
+      "today": "Today",
+      "tasks": {
+        "workout": "Workout — upper body",
+        "meditation": "10-minute meditation",
+        "budget": "Review this week’s budget"
+      },
+      "pillars": "Your pillars"
+    },
+    "pillars": {
+      "title": "Four pillars. One life.",
+      "subtitle": "Everything is connected: your body, your mind, your relationships and your finances. Get iT helps you grow in all of them at once."
+    },
+    "how": {
+      "title": "Your progress, step by step",
+      "subtitle": "The Get iT loop: decide, plan, act and progress. Then do it again, one level higher.",
+      "steps": {
+        "want": {
+          "title": "Choose what you want",
+          "description": "A clear goal: gain 20 lb, save $10,000, launch your business or build confidence."
+        },
+        "plan": {
+          "title": "Get your plan",
+          "description": "Get iT breaks your goal down into milestones, habits and concrete actions."
+        },
+        "act": {
+          "title": "Take action",
+          "description": "Every day, you know exactly what to do. Check it off, move forward."
+        },
+        "progress": {
+          "title": "Level up",
+          "description": "XP, streaks and stats show your real progress, in every pillar of your life."
+        }
+      }
+    },
+    "features": {
+      "title": "Everything you need to move forward",
+      "subtitle": "One place for your goals, your plan, your tracking and your motivation.",
+      "items": {
+        "today": {
+          "title": "Today",
+          "description": "Your daily plan at a glance: habits, tasks and priorities."
+        },
+        "ai": {
+          "title": "Get iT AI",
+          "description": "A coach that knows your goals and your progress. It helps you choose your next action and adjusts your plan."
+        },
+        "progress": {
+          "title": "Progress",
+          "description": "Earn XP, level up and keep your streaks, all based on your real actions."
+        },
+        "community": {
+          "title": "Get iT Center",
+          "description": "A community that wants to grow, just like you. Share your wins, inspire and get inspired."
+        }
+      }
+    },
+    "cta": {
+      "title": "Your best self starts today.",
+      "subtitle": "Choose your goals and get your first plan in minutes.",
+      "button": "Get started"
+    },
+    "footer": {
+      "tagline": "Level up your life: physically, mentally, socially and financially.",
+      "rights": "All rights reserved."
+    }
+  },
+  "App": {
+    "nav": {
+      "label": "Main navigation",
+      "today": "Today",
+      "goals": "Goals",
+      "habits": "Habits",
+      "coach": "Get iT AI",
+      "community": "Community",
+      "profile": "Profile",
+      "settings": "Settings"
+    },
+    "today": {
+      "title": "Today",
+      "question": "What should I do today?",
+      "emptyTitle": "Your daily plan will appear here",
+      "emptyDescription": "As soon as you have a goal, Get iT will suggest the actions that bring you closer to it, every day."
+    },
+    "goals": {
+      "title": "Goals",
+      "question": "What am I trying to achieve?",
+      "emptyTitle": "You haven’t created a goal yet",
+      "emptyDescription": "Turn something you want into a plan."
+    },
+    "habits": {
+      "title": "Habits",
+      "question": "Which actions do I repeat to move forward?",
+      "emptyTitle": "No habits yet",
+      "emptyDescription": "Small repeated actions create big changes. Your habits will appear here."
+    },
+    "coach": {
+      "title": "Get iT AI",
+      "question": "What should I do next?",
+      "emptyTitle": "Your personal coach",
+      "emptyDescription": "Get iT AI will use your goals and your progress to help you decide on your next step."
+    },
+    "community": {
+      "title": "Get iT Center",
+      "question": "Who can help or inspire me?",
+      "emptyTitle": "The community feed will appear here",
+      "emptyDescription": "You’ll be able to share your progress, ask questions and follow the people who inspire you."
+    },
+    "profile": {
+      "title": "Profile",
+      "question": "Who am I becoming?",
+      "emptyTitle": "Your Get iT profile",
+      "emptyDescription": "Your level, badges and achievements will appear here."
+    },
+    "settings": {
+      "title": "Settings",
+      "question": "How does Get iT work for me?",
+      "language": {
+        "title": "Language",
+        "description": "Choose the interface language. Your choice is remembered on this device."
+      }
+    }
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "This page doesn’t exist or has been moved.",
+    "backHome": "Back to home"
+  },
+  "Error": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred. You can try again.",
+    "retry": "Try again"
+  }
+}
