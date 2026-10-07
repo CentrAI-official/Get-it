@@ -39,7 +39,8 @@
       "pillars": "The 4 pillars",
       "how": "How it works",
       "features": "Features",
-      "getStarted": "Get started"
+      "getStarted": "Get started",
+      "login": "Log in"
     },
     "hero": {
       "eyebrow": "Physical · Mental · Social · Financial",
@@ -173,8 +174,89 @@
       "question": "How does Get iT work for me?",
       "language": {
         "title": "Language",
-        "description": "Choose the interface language. Your choice is remembered on this device."
+        "description": "Choose the interface language. It’s saved to your account and follows you on all your devices."
+      },
+      "account": {
+        "title": "Account",
+        "description": "The email address you log in with.",
+        "email": "Email"
       }
+    }
+  },
+  "Auth": {
+    "brand": {
+      "title": "Become the person you want to be.",
+      "subtitle": "Your goals, your plan and your progress in one place, across the four pillars of your life."
+    },
+    "fields": {
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "passwordHint": "{min, number} characters minimum.",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "login": {
+      "metaTitle": "Log in",
+      "title": "Welcome back",
+      "description": "Log in to pick up where you left off.",
+      "submit": "Log in",
+      "pending": "Logging in…",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don’t have an account?",
+      "signupLink": "Create an account"
+    },
+    "signup": {
+      "metaTitle": "Create an account",
+      "title": "Create your account",
+      "description": "Your first plan is just a few minutes away.",
+      "submit": "Create my account",
+      "pending": "Creating your account…",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "successTitle": "Check your inbox",
+      "successDescription": "We sent a confirmation link to {email}. Open it to activate your account.",
+      "successHint": "Nothing yet? Check your spam folder."
+    },
+    "forgotPassword": {
+      "metaTitle": "Forgot password",
+      "title": "Forgot your password?",
+      "description": "Enter your email address and we’ll send you a link to choose a new password.",
+      "submit": "Send link",
+      "pending": "Sending…",
+      "successTitle": "Check your inbox",
+      "successDescription": "If an account exists for {email}, you’ll receive a link shortly.",
+      "backToLogin": "Back to log in"
+    },
+    "resetPassword": {
+      "metaTitle": "New password",
+      "title": "Choose a new password",
+      "description": "You’ll be signed in as soon as it’s saved.",
+      "submit": "Save",
+      "pending": "Saving…"
+    },
+    "signOut": {
+      "label": "Log out",
+      "pending": "Logging out…"
+    },
+    "errors": {
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Enter your password.",
+      "passwordTooShort": "Your password must be at least 8 characters.",
+      "passwordTooLong": "Your password must be at most 72 characters.",
+      "passwordMismatch": "The two passwords don’t match.",
+      "invalidCredentials": "Incorrect email or password.",
+      "emailNotConfirmed": "Confirm your address first with the link we emailed you.",
+      "emailTaken": "An account already exists with this address. Log in instead.",
+      "weakPassword": "This password is too easy to guess. Choose a stronger one.",
+      "samePassword": "Choose a password different from your current one.",
+      "rateLimited": "Too many attempts. Try again in a few minutes.",
+      "emailNotAuthorized": "This address can’t receive our emails yet. Try again later.",
+      "sessionExpired": "Your session has expired. Request a new link.",
+      "linkInvalid": "This link is no longer valid or has already been used. If your address is confirmed, just log in.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   },
   "NotFound": {

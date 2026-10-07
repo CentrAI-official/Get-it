@@ -34,11 +34,13 @@ export function SiteHeader() {
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <LocaleSwitcher />
-          {/* Étape Auth : ce bouton mènera à l'inscription (/signup) */}
+          <Button asChild size="sm" variant="ghost">
+            <Link href="/login">{t("login")}</Link>
+          </Button>
           <Button asChild size="sm">
-            <Link href="/today">{t("getStarted")}</Link>
+            <Link href="/signup">{t("getStarted")}</Link>
           </Button>
         </div>
       </div>

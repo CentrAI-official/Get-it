@@ -29,6 +29,7 @@ npm run check        # lint + typecheck + tests (à lancer avant de conclure une
 npm run build        # build de production (vérifie aussi le prérendu)
 npm run format       # Prettier
 npm run db:migrate   # nouvelle migration Prisma (nécessite DIRECT_URL)
+npm run db:deploy    # applique les migrations existantes
 npm run db:generate  # régénère le client Prisma
 ```
 
@@ -37,7 +38,8 @@ npm run db:generate  # régénère le client Prisma
 | Dossier                        | Rôle                                                                                        |
 | ------------------------------ | ------------------------------------------------------------------------------------------- |
 | `src/app/[locale]/(marketing)` | Site public                                                                                 |
-| `src/app/[locale]/(app)`       | Application (sera protégée à l'étape Auth)                                                  |
+| `src/app/[locale]/(app)`       | Application, réservée aux utilisateurs connectés (voir `src/features/auth/access.ts`)       |
+| `src/app/[locale]/(auth)`      | Connexion, inscription, mot de passe oublié (écran divisé)                                  |
 | `src/components/ui`            | Primitives shadcn                                                                           |
 | `src/components`               | Composants partagés (layout, brand, empty-state, locale-switcher)                           |
 | `src/features/<domaine>`       | Composants et schémas Zod d'un domaine                                                      |
@@ -54,6 +56,7 @@ La logique métier ne vit jamais dans les composants : le web et la future app m
 - **Liens internes** : utiliser `Link`, `redirect` et `useRouter` de `@/i18n/navigation`, pas ceux de `next/link`, pour conserver la langue.
 - **Composants** : Server Components par défaut ; `"use client"` uniquement pour l'interactivité.
 - **Cache Components** : pas de `new Date()`, `Date.now()` ni `Math.random()` dans un Server Component sans `connection()` ou `"use cache"`. Les données propres à l'utilisateur vont dans un `<Suspense>`. `error.tsx` reçoit `retry()`.
-- **Sécurité** : valider toute entrée côté serveur avec Zod, vérifier l'autorisation sur chaque ressource et ne jamais faire confiance au client. Les données passent uniquement par `src/server/db.ts`, jamais du navigateur vers Supabase. Activer le RLS (sans policy) sur toutes les tables pour que la clé publique Supabase n'expose rien.
+- **Sécurité** : valider toute entrée côté serveur avec Zod, vérifier l'autorisation sur chaque ressource et ne jamais faire confiance au client. Les données passent uniquement par `src/server/db.ts`, jamais du navigateur vers Supabase. Activer le RLS (sans policy) sur toutes les tables pour que la clé publique Supabase n'expose rien : chaque migration qui crée une table ajoute `ALTER TABLE … ENABLE ROW LEVEL SECURITY` (un test le vérifie).
+- **Authentification** : Supabase Auth sert uniquement à la session (`src/server/supabase`). Le proxy ne fait qu'une redirection rapide ; chaque service et chaque Server Action revérifie la session avec `requireUser()` (`src/server/auth/session.ts`). Une nouvelle section de l'app s'ajoute à `PROTECTED_PATHS`. `next/root-params` est indisponible dans les Server Actions : les formulaires envoient la langue dans un champ caché `locale`.
 - **Base de données** : modèles en PascalCase, tables et colonnes en snake_case (`@@map`/`@map`), dates en `timestamptz`. Les champs « jour » (habitudes, séries) dépendent du fuseau de l'utilisateur (`UserSettings.timeZone`).
 - **Design** : les tokens sont dans `src/app/globals.css`. L'orange (`--primary`) est réservé aux actions, à la progression, à la sélection et au focus. Chaque écran gère les états chargement, vide, erreur et succès, est responsive (sans défilement horizontal à 390 px) et accessible au clavier.

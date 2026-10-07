@@ -33,9 +33,8 @@ export function Hero() {
             {t("subtitle")}
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            {/* Étape Auth : ce bouton mènera à l'inscription (/signup) */}
             <Button asChild size="lg" className="h-11 px-5 text-base">
-              <Link href="/today">
+              <Link href="/signup">
                 {t("primaryCta")}
                 <ArrowRight data-icon="inline-end" aria-hidden="true" />
               </Link>

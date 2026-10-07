@@ -23,9 +23,8 @@ export function FinalCta() {
           <p className="text-lg text-pretty text-muted-foreground">
             {t("subtitle")}
           </p>
-          {/* Étape Auth : ce bouton mènera à l'inscription (/signup) */}
           <Button asChild size="lg" className="mt-2 h-11 px-6 text-base">
-            <Link href="/today">
+            <Link href="/signup">
               {t("button")}
               <ArrowRight data-icon="inline-end" aria-hidden="true" />
             </Link>

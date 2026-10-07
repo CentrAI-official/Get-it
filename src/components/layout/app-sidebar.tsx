@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
+import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -50,6 +51,10 @@ export function AppSidebar() {
       </nav>
       <div className="flex flex-col gap-2 border-t border-sidebar-border pt-4">
         {renderItem(settingsNavItem)}
+        <SignOutButton
+          variant="ghost"
+          className="h-auto w-full justify-start gap-3 px-3 py-2 font-medium text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+        />
         <div className="px-1">
           <LocaleSwitcher align="start" />
         </div>

@@ -6,6 +6,18 @@ const serverEnvSchema = z.object({
     protocol: /^postgres(ql)?$/,
     error: "doit être une URL PostgreSQL (postgresql://…)",
   }),
+  NEXT_PUBLIC_SUPABASE_URL: z.url({
+    protocol: /^https?$/,
+    error: "doit être l'URL du projet Supabase (https://…supabase.co)",
+  }),
+  // Les variables NEXT_PUBLIC_ sont envoyées au navigateur : la clé secrète
+  // (sb_secret_…) contourne le RLS et ne doit jamais s'y trouver.
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z
+    .string()
+    .startsWith("sb_publishable_", {
+      error:
+        "doit être la clé publiable (sb_publishable_…), jamais la clé secrète",
+    }),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

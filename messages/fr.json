@@ -39,7 +39,8 @@
       "pillars": "Les 4 piliers",
       "how": "Comment ça marche",
       "features": "Fonctionnalités",
-      "getStarted": "Commencer"
+      "getStarted": "Commencer",
+      "login": "Se connecter"
     },
     "hero": {
       "eyebrow": "Physique · Mental · Social · Financier",
@@ -173,8 +174,89 @@
       "question": "Comment Get iT fonctionne pour moi?",
       "language": {
         "title": "Langue",
-        "description": "Choisis la langue de l’interface. Ton choix est mémorisé sur cet appareil."
+        "description": "Choisis la langue de l’interface. Elle est enregistrée dans ton compte et te suit sur tous tes appareils."
+      },
+      "account": {
+        "title": "Compte",
+        "description": "L’adresse courriel avec laquelle tu te connectes.",
+        "email": "Courriel"
       }
+    }
+  },
+  "Auth": {
+    "brand": {
+      "title": "Deviens la personne que tu veux être.",
+      "subtitle": "Tes objectifs, ton plan et tes progrès au même endroit, dans les quatre piliers de ta vie."
+    },
+    "fields": {
+      "email": "Courriel",
+      "emailPlaceholder": "toi@exemple.com",
+      "password": "Mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirme le mot de passe",
+      "passwordHint": "{min, number} caractères minimum.",
+      "showPassword": "Afficher le mot de passe",
+      "hidePassword": "Masquer le mot de passe"
+    },
+    "login": {
+      "metaTitle": "Connexion",
+      "title": "Bon retour",
+      "description": "Connecte-toi pour reprendre ta progression.",
+      "submit": "Se connecter",
+      "pending": "Connexion…",
+      "forgotPassword": "Mot de passe oublié?",
+      "noAccount": "Pas encore de compte?",
+      "signupLink": "Créer un compte"
+    },
+    "signup": {
+      "metaTitle": "Créer un compte",
+      "title": "Crée ton compte",
+      "description": "Ton premier plan est à quelques minutes.",
+      "submit": "Créer mon compte",
+      "pending": "Création du compte…",
+      "hasAccount": "Déjà un compte?",
+      "loginLink": "Se connecter",
+      "successTitle": "Vérifie ta boîte de réception",
+      "successDescription": "Nous avons envoyé un lien de confirmation à {email}. Ouvre-le pour activer ton compte.",
+      "successHint": "Rien reçu? Regarde dans tes courriels indésirables."
+    },
+    "forgotPassword": {
+      "metaTitle": "Mot de passe oublié",
+      "title": "Mot de passe oublié?",
+      "description": "Entre ton adresse courriel. Nous t’enverrons un lien pour choisir un nouveau mot de passe.",
+      "submit": "Envoyer le lien",
+      "pending": "Envoi…",
+      "successTitle": "Vérifie ta boîte de réception",
+      "successDescription": "Si un compte existe pour {email}, tu recevras un lien dans quelques instants.",
+      "backToLogin": "Retour à la connexion"
+    },
+    "resetPassword": {
+      "metaTitle": "Nouveau mot de passe",
+      "title": "Choisis un nouveau mot de passe",
+      "description": "Ta session s’ouvrira dès qu’il sera enregistré.",
+      "submit": "Enregistrer",
+      "pending": "Enregistrement…"
+    },
+    "signOut": {
+      "label": "Se déconnecter",
+      "pending": "Déconnexion…"
+    },
+    "errors": {
+      "emailInvalid": "Entre une adresse courriel valide.",
+      "passwordRequired": "Entre ton mot de passe.",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+      "passwordTooLong": "Le mot de passe doit contenir au plus 72 caractères.",
+      "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+      "invalidCredentials": "Courriel ou mot de passe incorrect.",
+      "emailNotConfirmed": "Confirme d’abord ton adresse avec le lien reçu par courriel.",
+      "emailTaken": "Un compte existe déjà avec cette adresse. Connecte-toi plutôt.",
+      "weakPassword": "Ce mot de passe est trop facile à deviner. Choisis-en un plus robuste.",
+      "samePassword": "Choisis un mot de passe différent de l’ancien.",
+      "rateLimited": "Trop de tentatives. Réessaie dans quelques minutes.",
+      "emailNotAuthorized": "Cette adresse ne peut pas encore recevoir nos courriels. Réessaie plus tard.",
+      "sessionExpired": "Ta session a expiré. Demande un nouveau lien.",
+      "linkInvalid": "Ce lien n’est plus valide ou a déjà servi. Si ton adresse est confirmée, connecte-toi simplement.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },
   "NotFound": {

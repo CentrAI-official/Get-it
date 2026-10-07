@@ -5,8 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { routing } from "@/i18n/routing";
 import { useSwitchLocale } from "@/i18n/use-switch-locale";
 
-// Étape Auth : le choix sera aussi enregistré dans UserSettings.locale
-// pour suivre l'utilisateur sur tous ses appareils.
+// Le choix est aussi enregistré dans UserSettings.locale (voir useSwitchLocale)
 export function LanguageSettings({ labelledBy }: { labelledBy: string }) {
   const t = useTranslations("LocaleSwitcher");
   const locale = useLocale();

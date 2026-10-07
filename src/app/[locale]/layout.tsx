@@ -38,7 +38,12 @@ export default async function LocaleLayout({
   const t = await getTranslations("Common");
 
   return (
-    <html lang={locale} className={cn("dark", geist.variable)}>
+    <html
+      lang={locale}
+      className={cn("dark", geist.variable)}
+      // Défilement doux (globals.css) désactivé pendant les changements de page
+      data-scroll-behavior="smooth"
+    >
       <body className="min-h-dvh">
         <a
           href="#main"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   Card,
@@ -9,6 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { AccountEmail } from "@/features/settings/components/account-email";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,6 +26,25 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader title={t("title")} description={t("question")} />
+      <Card className="max-w-2xl">
+        <CardHeader>
+          <CardTitle>{t("account.title")}</CardTitle>
+          <CardDescription>{t("account.description")}</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Suspense
+            fallback={
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-5 w-56 max-w-full" />
+              </div>
+            }
+          >
+            <AccountEmail />
+          </Suspense>
+          <SignOutButton />
+        </CardContent>
+      </Card>
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle id="language-settings-title">
