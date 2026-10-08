@@ -23,3 +23,22 @@ export function fromDbDate(date: Date): string {
 export function toDbDate(day: string): Date {
   return new Date(`${day}T00:00:00.000Z`);
 }
+
+/** Jour décalé de `amount` jours (négatif pour reculer). */
+export function addDays(day: string, amount: number): string {
+  const date = toDbDate(day);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return fromDbDate(date);
+}
+
+/** Jour de la semaine ISO : 1 (lundi) à 7 (dimanche). */
+export function isoWeekday(day: string): number {
+  return toDbDate(day).getUTCDay() || 7;
+}
+
+/** Les `count` derniers jours, du plus ancien à `today` inclus. */
+export function lastDays(today: string, count: number): string[] {
+  return Array.from({ length: count }, (_, index) =>
+    addDays(today, index - count + 1),
+  );
+}

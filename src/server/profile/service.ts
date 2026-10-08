@@ -52,6 +52,15 @@ export async function updateLocale(userId: string, locale: Locale) {
   await db.userSettings.updateMany({ where: { userId }, data: { locale } });
 }
 
+/** Fuseau de l'utilisateur (Server Actions : getCurrentProfile y est indisponible). */
+export async function getUserTimeZone(userId: string) {
+  const settings = await db.userSettings.findUnique({
+    where: { userId },
+    select: { timeZone: true },
+  });
+  return settings?.timeZone ?? "America/Toronto";
+}
+
 export type CurrentProfile = {
   id: string;
   email: string | null;

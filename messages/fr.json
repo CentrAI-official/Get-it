@@ -153,8 +153,8 @@
     "habits": {
       "title": "Habitudes",
       "question": "Quelles actions je répète pour avancer?",
-      "emptyTitle": "Aucune habitude pour l’instant",
-      "emptyDescription": "Les petites actions répétées créent les grands changements. Tes habitudes apparaîtront ici."
+      "emptyTitle": "Tu n’as pas encore d’habitude",
+      "emptyDescription": "Les petites actions répétées créent les grands changements. Commence par une seule."
     },
     "coach": {
       "title": "Get iT AI",
@@ -470,6 +470,72 @@
       "pillarRequired": "Choisis un pilier.",
       "dateInvalid": "Cette date n’est pas valide.",
       "notFound": "Cet objectif n’existe plus.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Habits": {
+    "new": "Nouvelle habitude",
+    "createFirst": "Créer ma première habitude",
+    "backToList": "Toutes les habitudes",
+    "sections": {
+      "active": "En cours",
+      "archived": "En pause ({count, number})"
+    },
+    "noActive": "Aucune habitude en cours pour l’instant.",
+    "schedule": {
+      "daily": "Tous les jours",
+      "workweek": "En semaine",
+      "weekend": "La fin de semaine"
+    },
+    "streak": "{count, plural, =0 {Pas encore de série} one {Série de # jour} other {Série de # jours}}",
+    "best": "Record : {count, plural, one {# jour} other {# jours}}",
+    "linkedGoal": "Objectif : {goal}",
+    "weekLabel": "Les 7 derniers jours",
+    "dayLabel": "{date}, {scheduled, select, yes {prévu} other {non prévu}}",
+    "edit": "Modifier",
+    "resume": "Reprendre",
+    "form": {
+      "newTitle": "Nouvelle habitude",
+      "newDescription": "Une petite action, répétée régulièrement. Commence simple : tu pourras l’ajuster.",
+      "editTitle": "Modifier l’habitude",
+      "editDescription": "Ajuste ton habitude pour qu’elle tienne dans ta vie.",
+      "titleLabel": "Ton habitude",
+      "titlePlaceholder": "Méditer 10 minutes",
+      "pillarLabel": "Pilier",
+      "weekdaysLabel": "Quels jours?",
+      "presets": {
+        "daily": "Tous les jours",
+        "workweek": "En semaine",
+        "weekend": "La fin de semaine"
+      },
+      "goalLabel": "Objectif lié",
+      "optional": "facultatif",
+      "noGoal": "Aucun",
+      "create": "Créer l’habitude",
+      "creating": "Création…",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "manage": {
+      "title": "Gérer l’habitude",
+      "pause": "Mettre en pause",
+      "resume": "Reprendre",
+      "pausedNote": "Cette habitude est en pause : elle n’apparaît plus dans ton suivi.",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer cette habitude?",
+      "deleteDescription": "L’habitude et tout son historique seront effacés définitivement. Pour la garder sans la suivre, mets-la plutôt en pause.",
+      "deleteConfirm": "Supprimer définitivement",
+      "deleting": "Suppression…",
+      "deleteError": "La suppression a échoué. Réessaie dans un instant.",
+      "cancel": "Annuler"
+    },
+    "errors": {
+      "titleRequired": "Écris un titre.",
+      "titleTooLong": "Ce titre est trop long.",
+      "pillarRequired": "Choisis un pilier.",
+      "weekdaysRequired": "Choisis au moins un jour.",
+      "notFound": "Cette habitude n’existe plus.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },

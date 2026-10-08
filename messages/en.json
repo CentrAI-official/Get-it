@@ -153,8 +153,8 @@
     "habits": {
       "title": "Habits",
       "question": "Which actions do I repeat to move forward?",
-      "emptyTitle": "No habits yet",
-      "emptyDescription": "Small repeated actions create big changes. Your habits will appear here."
+      "emptyTitle": "You don’t have a habit yet",
+      "emptyDescription": "Small repeated actions create big changes. Start with just one."
     },
     "coach": {
       "title": "Get iT AI",
@@ -470,6 +470,72 @@
       "pillarRequired": "Choose a pillar.",
       "dateInvalid": "This date isn’t valid.",
       "notFound": "This goal no longer exists.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Habits": {
+    "new": "New habit",
+    "createFirst": "Create my first habit",
+    "backToList": "All habits",
+    "sections": {
+      "active": "In progress",
+      "archived": "Paused ({count, number})"
+    },
+    "noActive": "No habit in progress right now.",
+    "schedule": {
+      "daily": "Every day",
+      "workweek": "Weekdays",
+      "weekend": "Weekends"
+    },
+    "streak": "{count, plural, =0 {No streak yet} one {# day streak} other {# day streak}}",
+    "best": "Best: {count, plural, one {# day} other {# days}}",
+    "linkedGoal": "Goal: {goal}",
+    "weekLabel": "Last 7 days",
+    "dayLabel": "{date}, {scheduled, select, yes {scheduled} other {not scheduled}}",
+    "edit": "Edit",
+    "resume": "Resume",
+    "form": {
+      "newTitle": "New habit",
+      "newDescription": "A small action, repeated regularly. Start simple: you can adjust it later.",
+      "editTitle": "Edit habit",
+      "editDescription": "Adjust your habit so it fits your life.",
+      "titleLabel": "Your habit",
+      "titlePlaceholder": "Meditate 10 minutes",
+      "pillarLabel": "Pillar",
+      "weekdaysLabel": "Which days?",
+      "presets": {
+        "daily": "Every day",
+        "workweek": "Weekdays",
+        "weekend": "Weekends"
+      },
+      "goalLabel": "Linked goal",
+      "optional": "optional",
+      "noGoal": "None",
+      "create": "Create habit",
+      "creating": "Creating…",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "manage": {
+      "title": "Manage habit",
+      "pause": "Pause",
+      "resume": "Resume",
+      "pausedNote": "This habit is paused: it no longer appears in your tracking.",
+      "delete": "Delete",
+      "deleteTitle": "Delete this habit?",
+      "deleteDescription": "The habit and its whole history will be permanently erased. To keep it without tracking it, pause it instead.",
+      "deleteConfirm": "Delete permanently",
+      "deleting": "Deleting…",
+      "deleteError": "The deletion failed. Try again in a moment.",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "titleRequired": "Write a title.",
+      "titleTooLong": "This title is too long.",
+      "pillarRequired": "Choose a pillar.",
+      "weekdaysRequired": "Choose at least one day.",
+      "notFound": "This habit no longer exists.",
       "unexpected": "Something went wrong. Try again in a moment."
     }
   },

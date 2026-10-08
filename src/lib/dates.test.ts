@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { fromDbDate, toCalendarDay, toDbDate } from "./dates";
+import {
+  addDays,
+  fromDbDate,
+  isoWeekday,
+  lastDays,
+  toCalendarDay,
+  toDbDate,
+} from "./dates";
 
 describe("jours du calendrier", () => {
   it("dépendent du fuseau de l'utilisateur", () => {
@@ -15,5 +22,25 @@ describe("jours du calendrier", () => {
 
   it("se comparent dans l'ordre chronologique", () => {
     expect("2026-09-30" < "2026-10-01").toBe(true);
+  });
+});
+
+describe("arithmétique des jours", () => {
+  it("avance et recule en traversant les mois et les années", () => {
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("donne le jour de la semaine ISO", () => {
+    expect(isoWeekday("2026-10-05")).toBe(1); // lundi
+    expect(isoWeekday("2026-10-11")).toBe(7); // dimanche
+  });
+
+  it("liste les derniers jours jusqu'à aujourd'hui", () => {
+    expect(lastDays("2026-10-08", 3)).toEqual([
+      "2026-10-06",
+      "2026-10-07",
+      "2026-10-08",
+    ]);
   });
 });

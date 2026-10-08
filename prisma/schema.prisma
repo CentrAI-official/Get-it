@@ -58,6 +58,7 @@ model Profile {
   settings    UserSettings?
   goals       Goal[]
   tasks       Task[]
+  habits      Habit[]
   assessments PillarAssessment[]
 
   @@map("profiles")
@@ -97,6 +98,7 @@ model Goal {
   profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
   milestones GoalMilestone[]
   tasks      Task[]
+  habits     Habit[]
 
   @@index([userId, status])
   @@map("goals")
@@ -151,4 +153,41 @@ model PillarAssessment {
 
   @@index([userId, pillar, createdAt])
   @@map("pillar_assessments")
+}
+
+/// Habitude à répéter certains jours de la semaine.
+model Habit {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  /// Objectif soutenu par l'habitude ; détaché si l'objectif est supprimé.
+  goalId     String?   @map("goal_id") @db.Uuid
+  title      String
+  pillar     Pillar
+  /// Jours prévus, de 1 (lundi) à 7 (dimanche). Les sept : tous les jours.
+  weekdays   Int[]
+  /// Habitude mise en pause : elle n'apparaît plus dans le suivi.
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile     Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal        Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  completions HabitCompletion[]
+
+  @@index([userId, archivedAt])
+  @@index([goalId])
+  @@map("habits")
+}
+
+/// Jour où une habitude a été faite (jour du calendrier dans le fuseau de l'utilisateur).
+model HabitCompletion {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  habitId   String   @map("habit_id") @db.Uuid
+  day       DateTime @db.Date
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, day])
+  @@map("habit_completions")
 }
