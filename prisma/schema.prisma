@@ -57,6 +57,7 @@ model Profile {
 
   settings    UserSettings?
   goals       Goal[]
+  tasks       Task[]
   assessments PillarAssessment[]
 
   @@map("profiles")
@@ -79,20 +80,63 @@ model UserSettings {
   @@map("user_settings")
 }
 
-/// Objectif de l'utilisateur. Étape 4 : description, date cible, jalons et tâches.
+/// Objectif de l'utilisateur, découpé en jalons et en tâches.
 model Goal {
-  id        String     @id @default(uuid(7)) @db.Uuid
-  userId    String     @map("user_id") @db.Uuid
-  title     String
-  pillar    Pillar
-  status    GoalStatus @default(active)
-  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id          String     @id @default(uuid(7)) @db.Uuid
+  userId      String     @map("user_id") @db.Uuid
+  title       String
+  description String?
+  pillar      Pillar
+  status      GoalStatus @default(active)
+  /// Jour visé : une date du calendrier, sans heure ni fuseau.
+  targetDate  DateTime?  @map("target_date") @db.Date
+  completedAt DateTime?  @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  milestones GoalMilestone[]
+  tasks      Task[]
 
   @@index([userId, status])
   @@map("goals")
+}
+
+/// Grande étape d'un objectif. L'avancement de l'objectif se calcule sur ses jalons.
+model GoalMilestone {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  goalId      String    @map("goal_id") @db.Uuid
+  title       String
+  /// Ordre d'affichage dans l'objectif.
+  position    Int
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, position])
+  @@map("goal_milestones")
+}
+
+/// Action concrète, rattachée à un objectif ou indépendante (étape 6 : page Aujourd'hui).
+model Task {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  goalId      String?   @map("goal_id") @db.Uuid
+  title       String
+  /// Jour d'échéance : une date du calendrier, sans heure ni fuseau.
+  dueDate     DateTime? @map("due_date") @db.Date
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal    Goal?   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([userId, completedAt])
+  @@index([goalId])
+  @@map("tasks")
 }
 
 /// Autoévaluation d'un pilier (1 à 5). Une ligne par évaluation : l'historique montre l'évolution.

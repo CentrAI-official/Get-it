@@ -30,7 +30,7 @@ npm run build        # build de production (vérifie aussi le prérendu)
 npm run format       # Prettier
 npm run db:migrate   # nouvelle migration Prisma (nécessite DIRECT_URL)
 npm run db:deploy    # applique les migrations existantes
-npm run db:generate  # régénère le client Prisma
+npm run db:generate  # régénère le client Prisma (puis redémarrer npm run dev : le client est conservé entre les rechargements)
 ```
 
 ## Architecture
@@ -54,10 +54,10 @@ La logique métier ne vit jamais dans les composants : le web et la future app m
 
 - **Textes** : aucun texte en dur dans les composants. Chaque clé existe dans `messages/fr.json` **et** `messages/en.json` (un test vérifie la parité). Les arguments numériques s'écrivent `{n, number}`, les pluriels `{n, plural, …}`. En français, utiliser l'apostrophe typographique ’ et une espace insécable avant « : ».
 - **Liens internes** : utiliser `Link`, `redirect` et `useRouter` de `@/i18n/navigation`, pas ceux de `next/link`, pour conserver la langue.
-- **Composants** : Server Components par défaut ; `"use client"` uniquement pour l'interactivité.
-- **Cache Components** : pas de `new Date()`, `Date.now()` ni `Math.random()` dans un Server Component sans `io()` (de `next/cache`) ou `"use cache"`. Les données propres à l'utilisateur vont dans un `<Suspense>`. `error.tsx` reçoit `retry()`.
+- **Composants** : Server Components par défaut ; `"use client"` uniquement pour l'interactivité. Les `id` de formulaire passent par `useId()` : Next garde la page précédente cachée dans le DOM, des `id` fixes y seraient dupliqués.
+- **Cache Components** : pas de `new Date()`, `Date.now()` ni `Math.random()` dans un Server Component sans `io()` (de `next/cache`) ou `"use cache"`. Les données propres à l'utilisateur vont dans un `<Suspense>`. `error.tsx` reçoit `retry()`. `usePathname`, `useSearchParams` et `params` suspendent sur les routes à paramètre dynamique (ex. `/goals/[id]`) : les isoler dans un `<Suspense>` (voir la barre latérale), ou lire l'adresse au moment de l'action.
 - **Sécurité** : valider toute entrée côté serveur avec Zod, vérifier l'autorisation sur chaque ressource et ne jamais faire confiance au client. Les données passent uniquement par `src/server/db.ts`, jamais du navigateur vers Supabase. Activer le RLS (sans policy) sur toutes les tables pour que la clé publique Supabase n'expose rien : chaque migration qui crée une table ajoute `ALTER TABLE … ENABLE ROW LEVEL SECURITY` (un test le vérifie).
 - **Authentification** : Supabase Auth sert uniquement à la session (`src/server/supabase`). Le proxy ne fait qu'une redirection rapide ; chaque service et chaque Server Action revérifie la session avec `requireUser()` (`src/server/auth/session.ts`). Une nouvelle section de l'app s'ajoute à `PROTECTED_PATHS`. `next/root-params` est indisponible dans les Server Actions : les formulaires envoient la langue dans un champ caché `locale`.
 - **Utilisateur courant** : les pages lisent le profil avec `getCurrentProfile()` (`src/server/profile/service.ts`), dans un `<Suspense>`. Les services reçoivent toujours l'`userId` de la session, jamais du client. Tant que `onboardedAt` est vide, l'utilisateur est renvoyé vers `/onboarding`. Toute nouvelle table liée à l'utilisateur référence `profiles` avec `onDelete: Cascade`, pour que la suppression de compte (`src/server/account/service.ts`) efface tout.
-- **Base de données** : modèles en PascalCase, tables et colonnes en snake_case (`@@map`/`@map`), dates en `timestamptz`. Les champs « jour » (habitudes, séries) dépendent du fuseau de l'utilisateur (`UserSettings.timeZone`).
+- **Base de données** : modèles en PascalCase, tables et colonnes en snake_case (`@@map`/`@map`), dates en `timestamptz`, jours du calendrier (échéance, date cible) en `@db.Date` via `src/lib/dates.ts`, formatés avec `timeZone: "UTC"`. Les champs « jour » (habitudes, séries) dépendent du fuseau de l'utilisateur (`UserSettings.timeZone`).
 - **Design** : les tokens sont dans `src/app/globals.css`. L'orange (`--primary`) est réservé aux actions, à la progression, à la sélection et au focus. Chaque écran gère les états chargement, vide, erreur et succès, est responsive (sans défilement horizontal à 390 px) et accessible au clavier.

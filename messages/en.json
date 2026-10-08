@@ -388,6 +388,91 @@
       "edit": "Edit: {section}"
     }
   },
+  "Goals": {
+    "new": "New goal",
+    "createFirst": "Create my first goal",
+    "backToList": "All goals",
+    "sections": {
+      "active": "In progress",
+      "completed": "Achieved",
+      "archived": "Archived ({count, number})"
+    },
+    "noActive": "No goal in progress right now.",
+    "status": {
+      "active": "In progress",
+      "completed": "Achieved",
+      "archived": "Archived"
+    },
+    "targetDate": "By {date}",
+    "progressLabel": "Progress: {done, number} of {total, plural, one {# milestone} other {# milestones}}",
+    "form": {
+      "newTitle": "New goal",
+      "newDescription": "Describe what you want to achieve. You’ll then break it down into milestones and tasks.",
+      "editTitle": "Edit goal",
+      "editDescription": "Adjust your goal as you make progress.",
+      "titleLabel": "Your goal",
+      "titlePlaceholder": "Run a half marathon",
+      "descriptionLabel": "Why it matters",
+      "descriptionPlaceholder": "What it will change for you, how you’ll know you’ve succeeded.",
+      "optional": "optional",
+      "pillarLabel": "Pillar",
+      "targetDateLabel": "Target date",
+      "create": "Create goal",
+      "creating": "Creating…",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel"
+    },
+    "detail": {
+      "metaTitle": "Goal",
+      "actionsLabel": "Goal actions",
+      "edit": "Edit",
+      "complete": "Goal achieved",
+      "reopen": "Reopen",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "delete": "Delete",
+      "deleteTitle": "Delete this goal?",
+      "deleteDescription": "The goal, its milestones and its tasks will be permanently erased.",
+      "deleteConfirm": "Delete permanently",
+      "deleting": "Deleting…",
+      "deleteError": "The deletion failed. Try again in a moment.",
+      "cancel": "Cancel",
+      "completedOn": "Achieved on {date}"
+    },
+    "milestones": {
+      "title": "Milestones",
+      "description": "The big steps to get there.",
+      "empty": "Break your goal down into a few big steps.",
+      "addLabel": "New milestone",
+      "placeholder": "E.g. run 5 km without stopping",
+      "add": "Add",
+      "delete": "Delete “{title}”",
+      "progress": "{done, number} of {total, number}"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "description": "Your next concrete actions.",
+      "empty": "Add the next action to move forward.",
+      "addLabel": "New task",
+      "placeholder": "E.g. join a running club",
+      "dueDateLabel": "Due date (optional)",
+      "add": "Add",
+      "due": "Due {date}",
+      "overdue": "Overdue",
+      "delete": "Delete “{title}”",
+      "doneCount": "{count, plural, one {# task done} other {# tasks done}}"
+    },
+    "errors": {
+      "titleRequired": "Write a title.",
+      "titleTooLong": "This title is too long.",
+      "descriptionTooLong": "The description can’t exceed 1,000 characters.",
+      "pillarRequired": "Choose a pillar.",
+      "dateInvalid": "This date isn’t valid.",
+      "notFound": "This goal no longer exists.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
   "NotFound": {
     "title": "Page not found",
     "description": "This page doesn’t exist or has been moved.",

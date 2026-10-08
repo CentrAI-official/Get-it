@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { PILLARS, type Pillar } from "@/config/pillars";
+import {
+  GOAL_TITLE_MAX_LENGTH,
+  GOAL_TITLE_MIN_LENGTH,
+} from "@/features/goals/schemas";
+
+export { GOAL_TITLE_MAX_LENGTH, GOAL_TITLE_MIN_LENGTH };
 
 /** Doit rester aligné avec l'enum Occupation de prisma/schema.prisma (un test le vérifie). */
 export const OCCUPATIONS = [
@@ -31,8 +37,6 @@ export const ASSESSMENT_LEVELS = [
 ] as const;
 
 export const DISPLAY_NAME_MAX_LENGTH = 50;
-export const GOAL_TITLE_MIN_LENGTH = 2;
-export const GOAL_TITLE_MAX_LENGTH = 120;
 /** Peu d'objectifs à la fois : mieux vaut avancer sur l'essentiel. */
 export const MAX_GOALS = 5;
 

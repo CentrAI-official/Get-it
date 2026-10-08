@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { PILLARS } from "@/config/pillars";
+import { GOAL_STATUSES } from "@/features/goals/schemas";
 import { OCCUPATIONS } from "@/features/onboarding/schemas";
 
 const schema = readFileSync("prisma/schema.prisma", "utf8");
@@ -19,5 +20,9 @@ describe("enums de la base de données", () => {
 
   it("Occupation correspond aux choix de l'onboarding", () => {
     expect(enumValues("Occupation")).toEqual([...OCCUPATIONS]);
+  });
+
+  it("GoalStatus correspond aux statuts des objectifs", () => {
+    expect(enumValues("GoalStatus")).toEqual([...GOAL_STATUSES]);
   });
 });

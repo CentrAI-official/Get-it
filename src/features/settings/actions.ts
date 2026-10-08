@@ -1,6 +1,7 @@
 "use server";
 
 import { hasLocale } from "next-intl";
+import type { ConfirmState } from "@/components/confirm-dialog";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { deleteAccount } from "@/server/account/service";
@@ -15,13 +16,11 @@ export async function saveLocalePreferenceAction(locale: unknown) {
   if (user) await updateLocale(user.id, locale);
 }
 
-export type DeleteAccountState = { status: "idle" | "error" };
-
 /** Supprime définitivement le compte connecté, ferme la session et renvoie vers la connexion. */
 export async function deleteAccountAction(
-  _previous: DeleteAccountState,
+  _previous: ConfirmState,
   formData: FormData,
-): Promise<DeleteAccountState> {
+): Promise<ConfirmState> {
   const user = await requireUser();
   const value = formData.get("locale");
   const locale = hasLocale(routing.locales, value)

@@ -1,7 +1,9 @@
 import type { z } from "zod";
+import { fieldErrorsFrom } from "@/lib/form-errors";
 import { isAuthErrorKey, type AuthErrorKey } from "./errors";
 
-export type AuthField = "email" | "password" | "confirmPassword";
+const AUTH_FIELDS = ["email", "password", "confirmPassword"] as const;
+export type AuthField = (typeof AUTH_FIELDS)[number];
 
 /** État renvoyé par les Server Actions d'authentification à leur formulaire. */
 export type AuthFormState = {
@@ -19,19 +21,5 @@ export const initialAuthFormState: AuthFormState = { status: "idle" };
 export function toFieldErrors(
   error: z.ZodError,
 ): Partial<Record<AuthField, AuthErrorKey>> {
-  const fieldErrors: Partial<Record<AuthField, AuthErrorKey>> = {};
-  for (const issue of error.issues) {
-    const field = issue.path[0];
-    if (
-      field !== "email" &&
-      field !== "password" &&
-      field !== "confirmPassword"
-    ) {
-      continue;
-    }
-    fieldErrors[field] ??= isAuthErrorKey(issue.message)
-      ? issue.message
-      : "unexpected";
-  }
-  return fieldErrors;
+  return fieldErrorsFrom(error, AUTH_FIELDS, isAuthErrorKey, "unexpected");
 }

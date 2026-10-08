@@ -388,6 +388,91 @@
       "edit": "Modifier : {section}"
     }
   },
+  "Goals": {
+    "new": "Nouvel objectif",
+    "createFirst": "Créer mon premier objectif",
+    "backToList": "Tous les objectifs",
+    "sections": {
+      "active": "En cours",
+      "completed": "Atteints",
+      "archived": "Archivés ({count, number})"
+    },
+    "noActive": "Aucun objectif en cours pour l’instant.",
+    "status": {
+      "active": "En cours",
+      "completed": "Atteint",
+      "archived": "Archivé"
+    },
+    "targetDate": "D’ici le {date}",
+    "progressLabel": "Avancement : {done, number} sur {total, plural, one {# jalon} other {# jalons}}",
+    "form": {
+      "newTitle": "Nouvel objectif",
+      "newDescription": "Décris ce que tu veux accomplir. Tu le découperas ensuite en jalons et en tâches.",
+      "editTitle": "Modifier l’objectif",
+      "editDescription": "Ajuste ton objectif à mesure que tu avances.",
+      "titleLabel": "Ton objectif",
+      "titlePlaceholder": "Courir un demi-marathon",
+      "descriptionLabel": "Pourquoi c’est important",
+      "descriptionPlaceholder": "Ce que ça va changer pour toi, à quoi tu reconnaîtras la réussite.",
+      "optional": "facultatif",
+      "pillarLabel": "Pilier",
+      "targetDateLabel": "Date cible",
+      "create": "Créer l’objectif",
+      "creating": "Création…",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "cancel": "Annuler"
+    },
+    "detail": {
+      "metaTitle": "Objectif",
+      "actionsLabel": "Actions sur l’objectif",
+      "edit": "Modifier",
+      "complete": "Objectif atteint",
+      "reopen": "Reprendre",
+      "archive": "Archiver",
+      "unarchive": "Désarchiver",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer cet objectif?",
+      "deleteDescription": "L’objectif, ses jalons et ses tâches seront effacés définitivement.",
+      "deleteConfirm": "Supprimer définitivement",
+      "deleting": "Suppression…",
+      "deleteError": "La suppression a échoué. Réessaie dans un instant.",
+      "cancel": "Annuler",
+      "completedOn": "Atteint le {date}"
+    },
+    "milestones": {
+      "title": "Jalons",
+      "description": "Les grandes étapes pour y arriver.",
+      "empty": "Découpe ton objectif en quelques grandes étapes.",
+      "addLabel": "Nouveau jalon",
+      "placeholder": "Ex. courir 5 km sans m’arrêter",
+      "add": "Ajouter",
+      "delete": "Supprimer « {title} »",
+      "progress": "{done, number} sur {total, number}"
+    },
+    "tasks": {
+      "title": "Tâches",
+      "description": "Les prochaines actions concrètes.",
+      "empty": "Ajoute la prochaine action pour avancer.",
+      "addLabel": "Nouvelle tâche",
+      "placeholder": "Ex. m’inscrire à un club de course",
+      "dueDateLabel": "Échéance (facultative)",
+      "add": "Ajouter",
+      "due": "Pour le {date}",
+      "overdue": "En retard",
+      "delete": "Supprimer « {title} »",
+      "doneCount": "{count, plural, one {# tâche terminée} other {# tâches terminées}}"
+    },
+    "errors": {
+      "titleRequired": "Écris un titre.",
+      "titleTooLong": "Ce titre est trop long.",
+      "descriptionTooLong": "La description ne peut pas dépasser 1 000 caractères.",
+      "pillarRequired": "Choisis un pilier.",
+      "dateInvalid": "Cette date n’est pas valide.",
+      "notFound": "Cet objectif n’existe plus.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
   "NotFound": {
     "title": "Page introuvable",
     "description": "Cette page n’existe pas ou a été déplacée.",
