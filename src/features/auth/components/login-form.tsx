@@ -1,8 +1,10 @@
 "use client";
 
+import { CircleCheck } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useActionState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FieldGroup } from "@/components/ui/field";
 import { Link } from "@/i18n/navigation";
 import { signInAction } from "../actions";
@@ -61,18 +63,27 @@ export function LoginForm() {
 }
 
 /**
- * Lit l'URL : la page à rouvrir après la connexion (`next`) et l'erreur
- * d'un lien reçu par courriel (`error`). Isolé dans un Suspense pour que le
- * reste du formulaire reste dans la page prérendue.
+ * Lit l'URL : la page à rouvrir après la connexion (`next`), l'erreur d'un
+ * lien reçu par courriel (`error`) et la confirmation d'une suppression de
+ * compte. Isolé dans un Suspense pour que le reste du formulaire reste dans la
+ * page prérendue.
  */
 function UrlParams({ showLinkError }: { showLinkError: boolean }) {
+  const t = useTranslations("Auth.login");
   const searchParams = useSearchParams();
   const next = searchParams.get("next");
   const error = searchParams.get("error");
+  const accountDeleted = searchParams.has("accountDeleted");
 
   return (
     <>
       {next ? <input type="hidden" name="next" value={next} /> : null}
+      {accountDeleted && showLinkError ? (
+        <Alert role="status">
+          <CircleCheck aria-hidden="true" />
+          <AlertDescription>{t("accountDeleted")}</AlertDescription>
+        </Alert>
+      ) : null}
       {showLinkError && isAuthErrorKey(error) ? (
         <FormAlert error={error} />
       ) : null}

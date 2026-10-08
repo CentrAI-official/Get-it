@@ -64,7 +64,7 @@ src/i18n/                 configuration des langues
 
 - [x] 1. Fondation : stack, design system, langues, mises en page, base de données
 - [x] 2. Authentification (Supabase)
-- [ ] 3. Onboarding et profil
+- [x] 3. Onboarding et profil
 - [ ] 4. Objectifs, jalons et tâches
 - [ ] 5. Habitudes et séries
 - [ ] 6. Page Aujourd’hui et check-in quotidien

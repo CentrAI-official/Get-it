@@ -1,6 +1,6 @@
 import { hasLocale } from "next-intl";
 import { NextResponse, type NextRequest } from "next/server";
-import { APP_HOME_PATH } from "@/features/auth/access";
+import { getPostLoginPath } from "@/features/auth/access";
 import { safeNextPath } from "@/features/auth/redirect";
 import { routing } from "@/i18n/routing";
 import { completeEmailLink } from "@/server/auth/service";
@@ -30,7 +30,10 @@ export async function GET(
   }
 
   // La langue enregistrée dans le compte l'emporte sur celle du lien
-  const next = safeNextPath(searchParams.get("next")) ?? APP_HOME_PATH;
+  const next = getPostLoginPath(
+    result.data.onboarded,
+    safeNextPath(searchParams.get("next")),
+  );
   return NextResponse.redirect(
     new URL(`/${result.data.locale}${next}`, request.url),
   );

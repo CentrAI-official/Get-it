@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { AccountEmail } from "@/features/settings/components/account-email";
+import { DeleteAccountDialog } from "@/features/settings/components/delete-account-dialog";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -54,6 +55,15 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <LanguageSettings labelledBy="language-settings-title" />
+        </CardContent>
+      </Card>
+      <Card className="max-w-2xl border-destructive/30">
+        <CardHeader>
+          <CardTitle>{t("deleteAccount.title")}</CardTitle>
+          <CardDescription>{t("deleteAccount.description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccountDialog />
         </CardContent>
       </Card>
     </div>

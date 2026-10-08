@@ -137,13 +137,18 @@
       "title": "Today",
       "question": "What should I do today?",
       "emptyTitle": "Your daily plan will appear here",
-      "emptyDescription": "As soon as you have a goal, Get iT will suggest the actions that bring you closer to it, every day."
+      "emptyDescription": "Soon, Get iT will suggest here, every day, the actions that bring you closer to your goals.",
+      "greeting": "{period, select, morning {Good morning} afternoon {Good afternoon} other {Good evening}}, {name}.",
+      "goalsTitle": "Your goals",
+      "goalsLink": "See all your goals",
+      "planTitle": "Your plan for today"
     },
     "goals": {
       "title": "Goals",
       "question": "What am I trying to achieve?",
       "emptyTitle": "You haven’t created a goal yet",
-      "emptyDescription": "Turn something you want into a plan."
+      "emptyDescription": "Turn something you want into a plan.",
+      "listTitle": "In progress"
     },
     "habits": {
       "title": "Habits",
@@ -166,8 +171,14 @@
     "profile": {
       "title": "Profile",
       "question": "Who am I becoming?",
-      "emptyTitle": "Your Get iT profile",
-      "emptyDescription": "Your level, badges and achievements will appear here."
+      "emptyTitle": "Your level and badges",
+      "emptyDescription": "Your achievements will appear here as you progress.",
+      "memberSince": "Member since {date, date, long}",
+      "pillarsTitle": "Your priority pillars",
+      "dailyTime": "Time per day",
+      "startingPointTitle": "Your starting point",
+      "startingPointDescription": "Your self-assessment at the start of your journey, out of 5.",
+      "score": "{score, number}/5"
     },
     "settings": {
       "title": "Settings",
@@ -180,6 +191,17 @@
         "title": "Account",
         "description": "The email address you log in with.",
         "email": "Email"
+      },
+      "deleteAccount": {
+        "title": "Delete my account",
+        "description": "Permanently erase your account and all your data: profile, goals and settings.",
+        "button": "Delete my account",
+        "confirmTitle": "Delete your account?",
+        "confirmDescription": "All your data will be erased. This action can’t be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete permanently",
+        "pending": "Deleting…",
+        "error": "The deletion failed. Try again in a moment."
       }
     }
   },
@@ -206,7 +228,8 @@
       "pending": "Logging in…",
       "forgotPassword": "Forgot password?",
       "noAccount": "Don’t have an account?",
-      "signupLink": "Create an account"
+      "signupLink": "Create an account",
+      "accountDeleted": "Your account and all your data have been deleted."
     },
     "signup": {
       "metaTitle": "Create an account",
@@ -257,6 +280,112 @@
       "sessionExpired": "Your session has expired. Request a new link.",
       "linkInvalid": "This link is no longer valid or has already been used. If your address is confirmed, just log in.",
       "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Onboarding": {
+    "metaTitle": "Welcome",
+    "stepLabel": "Step {current, number} of {total, number}",
+    "back": "Back",
+    "next": "Continue",
+    "finish": "Let’s go",
+    "finishing": "Getting ready…",
+    "errors": {
+      "invalid": "Some answers are incomplete. Check each step.",
+      "unexpected": "We couldn’t save your answers. Try again in a moment."
+    },
+    "about": {
+      "title": "Welcome to Get iT",
+      "description": "A few questions to tailor your journey. It takes two minutes.",
+      "nameLabel": "What should we call you?",
+      "namePlaceholder": "Your first name",
+      "occupationLabel": "Your situation",
+      "optional": "Optional",
+      "occupations": {
+        "student": "Student",
+        "employee": "Employed",
+        "self_employed": "Self-employed",
+        "entrepreneur": "Business owner",
+        "job_seeker": "Looking for work",
+        "other": "Other"
+      }
+    },
+    "pillars": {
+      "title": "What do you want to improve?",
+      "description": "Choose the pillars you want to focus on first."
+    },
+    "goals": {
+      "title": "What are your goals?",
+      "description": "Pick from these ideas or write your own. {max, number} at most, to stay focused on what matters.",
+      "count": "{count, plural, =0 {No goal selected} one {# goal selected} other {# goals selected}} out of {max, number}",
+      "customTitle": "Your own goal",
+      "customLabel": "Goal",
+      "customPlaceholder": "Run a half marathon",
+      "customPillar": "Pillar",
+      "add": "Add",
+      "chosenTitle": "Your goals",
+      "remove": "Remove “{title}”",
+      "suggestions": {
+        "physical": {
+          "workout": "Work out 3 times a week",
+          "run5k": "Run 5 km without stopping",
+          "sleep": "Sleep 7 hours a night"
+        },
+        "mental": {
+          "meditate": "Meditate 10 minutes a day",
+          "read": "Read 12 books this year",
+          "stress": "Manage my stress better"
+        },
+        "social": {
+          "confidence": "Speak up with confidence",
+          "meetPeople": "Meet new people",
+          "communication": "Communicate better with my loved ones"
+        },
+        "financial": {
+          "save": "Save $1,000",
+          "budget": "Make a budget and stick to it",
+          "business": "Launch my business project"
+        }
+      }
+    },
+    "situation": {
+      "title": "Where are you today?",
+      "description": "Rate each pillar honestly. This is your starting point: it will be used to measure your progress.",
+      "levels": {
+        "start": "Starting from scratch",
+        "beginner": "Just getting started",
+        "progressing": "Making progress",
+        "solid": "Solid",
+        "excellent": "Excelling"
+      },
+      "scoreLabel": "{score, number} out of 5: {level}"
+    },
+    "time": {
+      "title": "How much time do you want to invest?",
+      "description": "Per day, on average. A little every day beats a lot once in a while.",
+      "options": {
+        "min15": "15 minutes",
+        "min30": "30 minutes",
+        "min60": "1 hour",
+        "min120": "2 hours or more"
+      },
+      "hints": {
+        "min15": "An easy start",
+        "min30": "A good balance",
+        "min60": "To move fast",
+        "min120": "Intensive mode"
+      }
+    },
+    "summary": {
+      "title": "Your starting point",
+      "description": "Review your answers, then take action.",
+      "name": "First name",
+      "occupation": "Situation",
+      "pillars": "Pillars",
+      "goals": "Goals",
+      "assessments": "Current level",
+      "time": "Time per day",
+      "notProvided": "Not specified",
+      "edit": "Edit: {section}"
     }
   },
   "NotFound": {

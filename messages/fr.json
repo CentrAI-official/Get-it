@@ -137,13 +137,18 @@
       "title": "Aujourd’hui",
       "question": "Que dois-je faire aujourd’hui?",
       "emptyTitle": "Ton plan du jour apparaîtra ici",
-      "emptyDescription": "Dès que tu auras un objectif, Get iT te proposera chaque jour les actions qui te rapprochent de ton but."
+      "emptyDescription": "Bientôt, Get iT te proposera ici chaque jour les actions qui te rapprochent de tes objectifs.",
+      "greeting": "{period, select, morning {Bonjour} afternoon {Bon après-midi} other {Bonsoir}}, {name}.",
+      "goalsTitle": "Tes objectifs",
+      "goalsLink": "Voir tous tes objectifs",
+      "planTitle": "Ton plan du jour"
     },
     "goals": {
       "title": "Objectifs",
       "question": "Qu’est-ce que je veux accomplir?",
       "emptyTitle": "Tu n’as pas encore créé d’objectif",
-      "emptyDescription": "Transforme quelque chose que tu veux en plan concret."
+      "emptyDescription": "Transforme quelque chose que tu veux en plan concret.",
+      "listTitle": "En cours"
     },
     "habits": {
       "title": "Habitudes",
@@ -166,8 +171,14 @@
     "profile": {
       "title": "Profil",
       "question": "Qui suis-je en train de devenir?",
-      "emptyTitle": "Ton profil Get iT",
-      "emptyDescription": "Ton niveau, tes badges et tes accomplissements apparaîtront ici."
+      "emptyTitle": "Ton niveau et tes badges",
+      "emptyDescription": "Tes accomplissements apparaîtront ici à mesure que tu progresses.",
+      "memberSince": "Membre depuis {date, date, long}",
+      "pillarsTitle": "Tes piliers prioritaires",
+      "dailyTime": "Temps par jour",
+      "startingPointTitle": "Ton point de départ",
+      "startingPointDescription": "Ton autoévaluation au début de ton parcours, sur 5.",
+      "score": "{score, number}/5"
     },
     "settings": {
       "title": "Réglages",
@@ -180,6 +191,17 @@
         "title": "Compte",
         "description": "L’adresse courriel avec laquelle tu te connectes.",
         "email": "Courriel"
+      },
+      "deleteAccount": {
+        "title": "Supprimer mon compte",
+        "description": "Efface définitivement ton compte et toutes tes données : profil, objectifs et réglages.",
+        "button": "Supprimer mon compte",
+        "confirmTitle": "Supprimer ton compte?",
+        "confirmDescription": "Toutes tes données seront effacées. Cette action est irréversible.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer définitivement",
+        "pending": "Suppression…",
+        "error": "La suppression a échoué. Réessaie dans un instant."
       }
     }
   },
@@ -206,7 +228,8 @@
       "pending": "Connexion…",
       "forgotPassword": "Mot de passe oublié?",
       "noAccount": "Pas encore de compte?",
-      "signupLink": "Créer un compte"
+      "signupLink": "Créer un compte",
+      "accountDeleted": "Ton compte et toutes tes données ont été supprimés."
     },
     "signup": {
       "metaTitle": "Créer un compte",
@@ -257,6 +280,112 @@
       "sessionExpired": "Ta session a expiré. Demande un nouveau lien.",
       "linkInvalid": "Ce lien n’est plus valide ou a déjà servi. Si ton adresse est confirmée, connecte-toi simplement.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Onboarding": {
+    "metaTitle": "Bienvenue",
+    "stepLabel": "Étape {current, number} sur {total, number}",
+    "back": "Retour",
+    "next": "Continuer",
+    "finish": "C’est parti",
+    "finishing": "Préparation…",
+    "errors": {
+      "invalid": "Certaines réponses sont incomplètes. Vérifie chaque étape.",
+      "unexpected": "Impossible d’enregistrer tes réponses. Réessaie dans un instant."
+    },
+    "about": {
+      "title": "Bienvenue dans Get iT",
+      "description": "Quelques questions pour adapter ton parcours. Ça prend deux minutes.",
+      "nameLabel": "Comment veux-tu qu’on t’appelle?",
+      "namePlaceholder": "Ton prénom",
+      "occupationLabel": "Ta situation",
+      "optional": "Facultatif",
+      "occupations": {
+        "student": "Aux études",
+        "employee": "En emploi",
+        "self_employed": "À mon compte",
+        "entrepreneur": "En affaires",
+        "job_seeker": "En recherche d’emploi",
+        "other": "Autre"
+      }
+    },
+    "pillars": {
+      "title": "Qu’est-ce que tu veux améliorer?",
+      "description": "Choisis les piliers sur lesquels tu veux travailler en priorité."
+    },
+    "goals": {
+      "title": "Quels sont tes objectifs?",
+      "description": "Choisis parmi ces idées ou écris les tiens. {max, number} au maximum, pour rester sur l’essentiel.",
+      "count": "{count, plural, =0 {Aucun objectif choisi} one {# objectif choisi} other {# objectifs choisis}} sur {max, number}",
+      "customTitle": "Ton propre objectif",
+      "customLabel": "Objectif",
+      "customPlaceholder": "Courir un demi-marathon",
+      "customPillar": "Pilier",
+      "add": "Ajouter",
+      "chosenTitle": "Tes objectifs",
+      "remove": "Retirer « {title} »",
+      "suggestions": {
+        "physical": {
+          "workout": "M’entraîner 3 fois par semaine",
+          "run5k": "Courir 5 km sans m’arrêter",
+          "sleep": "Dormir 7 heures par nuit"
+        },
+        "mental": {
+          "meditate": "Méditer 10 minutes par jour",
+          "read": "Lire 12 livres cette année",
+          "stress": "Mieux gérer mon stress"
+        },
+        "social": {
+          "confidence": "Prendre la parole avec assurance",
+          "meetPeople": "Rencontrer de nouvelles personnes",
+          "communication": "Mieux communiquer avec mes proches"
+        },
+        "financial": {
+          "save": "Économiser 1 000 $",
+          "budget": "Faire un budget et le respecter",
+          "business": "Lancer mon projet d’entreprise"
+        }
+      }
+    },
+    "situation": {
+      "title": "Où en es-tu aujourd’hui?",
+      "description": "Évalue chaque pilier honnêtement. C’est ton point de départ : il servira à mesurer tes progrès.",
+      "levels": {
+        "start": "Je pars de zéro",
+        "beginner": "Je débute",
+        "progressing": "Ça avance",
+        "solid": "Je suis solide",
+        "excellent": "J’excelle"
+      },
+      "scoreLabel": "{score, number} sur 5 : {level}"
+    },
+    "time": {
+      "title": "Combien de temps veux-tu y consacrer?",
+      "description": "Par jour, en moyenne. Mieux vaut peu, mais chaque jour.",
+      "options": {
+        "min15": "15 minutes",
+        "min30": "30 minutes",
+        "min60": "1 heure",
+        "min120": "2 heures ou plus"
+      },
+      "hints": {
+        "min15": "Pour démarrer en douceur",
+        "min30": "Un bon équilibre",
+        "min60": "Pour avancer vite",
+        "min120": "Mode intensif"
+      }
+    },
+    "summary": {
+      "title": "Ton point de départ",
+      "description": "Vérifie tes réponses, puis passe à l’action.",
+      "name": "Prénom",
+      "occupation": "Situation",
+      "pillars": "Piliers",
+      "goals": "Objectifs",
+      "assessments": "Niveau actuel",
+      "time": "Temps par jour",
+      "notProvided": "Non précisé",
+      "edit": "Modifier : {section}"
     }
   },
   "NotFound": {

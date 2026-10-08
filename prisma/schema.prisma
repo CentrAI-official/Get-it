@@ -17,30 +17,94 @@ enum Locale {
   en
 }
 
+/// Les quatre piliers. Doit rester aligné avec src/config/pillars.ts.
+enum Pillar {
+  physical
+  mental
+  social
+  financial
+}
+
+/// Situation professionnelle déclarée à l'onboarding. Alignée avec src/features/onboarding/schemas.ts.
+enum Occupation {
+  student
+  employee
+  self_employed
+  entrepreneur
+  job_seeker
+  other
+}
+
+enum GoalStatus {
+  active
+  completed
+  archived
+}
+
 /// Profil d'un utilisateur. L'id est celui du compte Supabase Auth (auth.users.id).
 model Profile {
-  id          String   @id @db.Uuid
-  username    String?  @unique
-  displayName String?  @map("display_name")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id           String      @id @db.Uuid
+  username     String?     @unique
+  /// Prénom ou nom affiché, demandé à l'onboarding.
+  displayName  String?     @map("display_name")
+  occupation   Occupation?
+  /// Piliers que l'utilisateur veut améliorer en priorité.
+  focusPillars Pillar[]    @default([]) @map("focus_pillars")
+  /// Fin de l'onboarding ; null tant qu'il n'est pas terminé.
+  onboardedAt  DateTime?   @map("onboarded_at") @db.Timestamptz(3)
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  settings UserSettings?
+  settings    UserSettings?
+  goals       Goal[]
+  assessments PillarAssessment[]
 
   @@map("profiles")
 }
 
 /// Préférences personnelles, séparées du profil public.
 model UserSettings {
-  userId    String   @id @map("user_id") @db.Uuid
+  userId       String   @id @map("user_id") @db.Uuid
   /// Langue choisie : suit l'utilisateur sur tous ses appareils (web et future app mobile).
-  locale    Locale   @default(fr)
+  locale       Locale   @default(fr)
   /// Fuseau IANA (ex. « America/Toronto ») : sert à calculer « aujourd'hui » et les séries.
-  timeZone  String   @default("America/Toronto") @map("time_zone")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  timeZone     String   @default("America/Toronto") @map("time_zone")
+  /// Temps que l'utilisateur veut investir chaque jour, en minutes.
+  dailyMinutes Int?     @map("daily_minutes")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
+}
+
+/// Objectif de l'utilisateur. Étape 4 : description, date cible, jalons et tâches.
+model Goal {
+  id        String     @id @default(uuid(7)) @db.Uuid
+  userId    String     @map("user_id") @db.Uuid
+  title     String
+  pillar    Pillar
+  status    GoalStatus @default(active)
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("goals")
+}
+
+/// Autoévaluation d'un pilier (1 à 5). Une ligne par évaluation : l'historique montre l'évolution.
+model PillarAssessment {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  pillar    Pillar
+  score     Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, pillar, createdAt])
+  @@map("pillar_assessments")
 }

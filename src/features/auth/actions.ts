@@ -11,7 +11,7 @@ import {
   signUpWithPassword,
   updatePassword,
 } from "@/server/auth/service";
-import { APP_HOME_PATH } from "./access";
+import { APP_HOME_PATH, getPostLoginPath } from "./access";
 import { toFieldErrors, type AuthFormState } from "./form-state";
 import { safeNextPath } from "./redirect";
 import {
@@ -52,7 +52,10 @@ export async function signInAction(
     return { status: "error", error: result.error, email: parsed.data.email };
   }
   return redirect({
-    href: safeNextPath(parsed.data.next) ?? APP_HOME_PATH,
+    href: getPostLoginPath(
+      result.data.onboarded,
+      safeNextPath(parsed.data.next),
+    ),
     locale: result.data.locale,
   });
 }
@@ -71,7 +74,10 @@ export async function signUpAction(
   if (result.data.needsConfirmation) {
     return { status: "success", email: parsed.data.email };
   }
-  return redirect({ href: APP_HOME_PATH, locale: result.data.locale });
+  return redirect({
+    href: getPostLoginPath(result.data.onboarded, null),
+    locale: result.data.locale,
+  });
 }
 
 export async function forgotPasswordAction(

@@ -2,7 +2,7 @@ import "server-only";
 import type { AuthError, EmailOtpType, User } from "@supabase/supabase-js";
 import type { Locale } from "next-intl";
 import { siteConfig } from "@/config/site";
-import { APP_HOME_PATH } from "@/features/auth/access";
+import { APP_HOME_PATH, RESET_PASSWORD_PATH } from "@/features/auth/access";
 import { toAuthErrorKey, type AuthErrorKey } from "@/features/auth/errors";
 import { getSessionUser } from "@/server/auth/session";
 import { ensureProfile } from "@/server/profile/service";
@@ -25,17 +25,20 @@ function emailLinkUrl(locale: Locale, next: string) {
   return url.toString();
 }
 
-/** Ouvre la session dans Get iT : crée le profil au besoin et renvoie la langue enregistrée. */
+/** Session ouverte : langue enregistrée dans le compte et état de l'onboarding. */
+export type OpenedSession = { locale: Locale; onboarded: boolean };
+
+/** Ouvre la session dans Get iT : crée le profil au besoin. */
 async function openSession(
   user: User,
   fallbackLocale: Locale,
-): Promise<AuthResult<{ locale: Locale }>> {
+): Promise<AuthResult<OpenedSession>> {
   try {
-    const { locale } = await ensureProfile(user.id, {
+    const session = await ensureProfile(user.id, {
       locale: user.user_metadata["locale"] ?? fallbackLocale,
       timeZone: user.user_metadata["time_zone"],
     });
-    return { ok: true, data: { locale } };
+    return { ok: true, data: session };
   } catch (error) {
     console.error("Création du profil impossible", error);
     return { ok: false, error: "unexpected" };
@@ -46,7 +49,7 @@ export async function signInWithPassword(input: {
   email: string;
   password: string;
   locale: Locale;
-}): Promise<AuthResult<{ locale: Locale }>> {
+}): Promise<AuthResult<OpenedSession>> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: input.email,
@@ -63,7 +66,7 @@ export async function signUpWithPassword(input: {
   timeZone?: string;
 }): Promise<
   AuthResult<
-    { needsConfirmation: true } | { needsConfirmation: false; locale: Locale }
+    { needsConfirmation: true } | ({ needsConfirmation: false } & OpenedSession)
   >
 > {
   const supabase = await createSupabaseServerClient();
@@ -86,7 +89,7 @@ export async function signUpWithPassword(input: {
   return session.ok
     ? {
         ok: true,
-        data: { needsConfirmation: false, locale: session.data.locale },
+        data: { needsConfirmation: false, ...session.data },
       }
     : session;
 }
@@ -98,7 +101,7 @@ export async function sendPasswordResetEmail(input: {
 }): Promise<AuthResult> {
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.resetPasswordForEmail(input.email, {
-    redirectTo: emailLinkUrl(input.locale, "/reset-password"),
+    redirectTo: emailLinkUrl(input.locale, RESET_PASSWORD_PATH),
   });
   const key = error ? toAuthErrorKey(error.code) : null;
   if (key === "rateLimited" || key === "emailInvalid") {
@@ -147,7 +150,7 @@ export async function completeEmailLink(input: {
   type: string | null;
   code: string | null;
   locale: Locale;
-}): Promise<AuthResult<{ locale: Locale }>> {
+}): Promise<AuthResult<OpenedSession>> {
   const supabase = await createSupabaseServerClient();
 
   let result;
