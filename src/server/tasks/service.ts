@@ -1,4 +1,5 @@
 import "server-only";
+import type { Pillar } from "@/config/pillars";
 import { fromDbDate, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
 
@@ -10,7 +11,8 @@ export type DayTask = {
   /** « AAAA-MM-JJ » */
   dueDate: string | null;
   done: boolean;
-  goal: { id: string; title: string } | null;
+  /** Objectif de la tâche : il lui donne son pilier. */
+  goal: { id: string; title: string; pillar: Pillar } | null;
 };
 
 /**
@@ -33,7 +35,7 @@ export async function listDayTasks(
       title: true,
       dueDate: true,
       completedAt: true,
-      goal: { select: { id: true, title: true } },
+      goal: { select: { id: true, title: true, pillar: true } },
     },
   });
 
@@ -44,6 +46,41 @@ export async function listDayTasks(
     done: task.completedAt !== null,
     goal: task.goal,
   }));
+}
+
+/**
+ * Tâches d'objectifs dues entre `from` et `to` inclus, faites ou non :
+ * la régularité de chaque pilier (score de la page Aujourd'hui).
+ */
+export async function listGoalTasksDueBetween(
+  userId: string,
+  from: string,
+  to: string,
+): Promise<{ dueDate: string; done: boolean; pillar: Pillar }[]> {
+  const tasks = await db.task.findMany({
+    where: {
+      userId,
+      dueDate: { gte: toDbDate(from), lte: toDbDate(to) },
+      goal: { isNot: null },
+    },
+    select: {
+      dueDate: true,
+      completedAt: true,
+      goal: { select: { pillar: true } },
+    },
+  });
+
+  return tasks.flatMap((task) =>
+    task.dueDate && task.goal
+      ? [
+          {
+            dueDate: fromDbDate(task.dueDate),
+            done: task.completedAt !== null,
+            pillar: task.goal.pillar,
+          },
+        ]
+      : [],
+  );
 }
 
 /**

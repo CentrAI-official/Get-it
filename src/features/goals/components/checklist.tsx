@@ -126,9 +126,15 @@ export function AddItemForm({
       action={formAction}
       noValidate
       aria-label={label}
-      className="flex flex-col gap-2"
+      className="@container flex flex-col gap-2"
     >
-      <div className="flex flex-col gap-2 sm:flex-row">
+      {/* Une ligne si la place le permet ; sinon la date et le bouton passent dessous */}
+      <div
+        className={cn(
+          "flex gap-2",
+          dateLabel ? "flex-col @lg:flex-row" : "flex-row",
+        )}
+      >
         <label htmlFor={`${idPrefix}-title`} className="sr-only">
           {label}
         </label>
@@ -142,30 +148,32 @@ export function AddItemForm({
           aria-describedby={error ? errorId : undefined}
           className="h-10 flex-1"
         />
-        {dateLabel ? (
-          <>
-            <label htmlFor={`${idPrefix}-date`} className="sr-only">
-              {dateLabel}
-            </label>
-            <Input
-              id={`${idPrefix}-date`}
-              name="dueDate"
-              type="date"
-              title={dateLabel}
-              defaultValue={state.values?.dueDate ?? defaultDate}
-              className="h-10 sm:w-44"
-            />
-          </>
-        ) : null}
-        <Button
-          type="submit"
-          variant="secondary"
-          disabled={pending}
-          className="h-10"
-        >
-          <Plus aria-hidden="true" />
-          {submitLabel}
-        </Button>
+        <div className="flex gap-2">
+          {dateLabel ? (
+            <>
+              <label htmlFor={`${idPrefix}-date`} className="sr-only">
+                {dateLabel}
+              </label>
+              <Input
+                id={`${idPrefix}-date`}
+                name="dueDate"
+                type="date"
+                title={dateLabel}
+                defaultValue={state.values?.dueDate ?? defaultDate}
+                className="h-10 min-w-0 flex-1 @lg:w-44 @lg:flex-none"
+              />
+            </>
+          ) : null}
+          <Button
+            type="submit"
+            variant="secondary"
+            disabled={pending}
+            className="h-10"
+          >
+            <Plus aria-hidden="true" />
+            {submitLabel}
+          </Button>
+        </div>
       </div>
       {error ? (
         <p id={errorId} role="alert" className="text-sm text-destructive">

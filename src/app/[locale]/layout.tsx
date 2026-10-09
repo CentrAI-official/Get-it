@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist } from "next/font/google";
+import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { siteConfig } from "@/config/site";
@@ -7,7 +7,15 @@ import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import "../globals.css";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
+// Identité « Command Center » : Space Grotesk pour le texte, JetBrains Mono pour les chiffres
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+});
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
 
 // Requis par Cache Components : chaque langue est prérendue au build
 export function generateStaticParams() {
@@ -40,7 +48,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={cn("dark", geist.variable)}
+      className={cn("dark", spaceGrotesk.variable, jetbrainsMono.variable)}
       // Défilement doux (globals.css) désactivé pendant les changements de page
       data-scroll-behavior="smooth"
     >

@@ -34,9 +34,12 @@ export const settingsNavItem = {
   icon: Settings,
 } as const satisfies AppNavItem;
 
-/** Onglets de la barre mobile : le coach est accessible depuis la barre du haut. */
+/**
+ * Onglets de la barre mobile (§61), de part et d'autre du bouton « + » :
+ * le coach et la communauté sont dans la barre du haut.
+ */
 export const mobileNavItems: readonly AppNavItem[] = appNavItems.filter(
-  (item) => item.key !== "coach",
+  (item) => item.key !== "coach" && item.key !== "community",
 );
 
 /** Vrai si `href` correspond à la page courante ou à l'une de ses sous-pages. */

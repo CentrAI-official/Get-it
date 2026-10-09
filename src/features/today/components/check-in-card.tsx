@@ -22,8 +22,9 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
 
   return (
     <section
+      id="check-in"
       aria-labelledby="check-in-title"
-      className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:p-5"
+      className="glass flex scroll-mt-24 flex-col gap-4 rounded-3xl p-4 sm:p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
@@ -57,12 +58,12 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
           {CHECK_IN_METRICS.map((metric) => (
             <div
               key={metric}
-              className="flex flex-col gap-0.5 rounded-lg bg-secondary/60 px-3 py-2"
+              className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2"
             >
               <dt className="text-xs text-muted-foreground">
                 {t(`metrics.${metric}`)}
               </dt>
-              <dd className="font-heading text-lg font-semibold tabular-nums">
+              <dd className="font-mono text-lg font-bold">
                 {t("score", { score: saved[metric] })}
               </dd>
             </div>
@@ -137,7 +138,7 @@ function CheckInForm({ saved, onSaved, onCancel }: CheckInFormProps) {
                     metric: t(`metrics.${metric}`),
                     score,
                   })}
-                  className="h-10 rounded-lg border border-input bg-input/30 font-heading font-semibold text-muted-foreground transition-colors outline-none hover:bg-input/60 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
+                  className="h-10 rounded-xl border border-white/10 bg-white/[0.03] font-mono font-bold text-muted-foreground transition-colors outline-none hover:bg-white/[0.08] hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
                 >
                   {score}
                 </RadioGroupPrimitive.Item>

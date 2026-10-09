@@ -133,6 +133,12 @@
       "profile": "Profile",
       "settings": "Settings"
     },
+    "quickAdd": {
+      "label": "Add",
+      "task": "New task",
+      "habit": "New habit",
+      "goal": "New goal"
+    },
     "today": {
       "title": "Today",
       "question": "What should I do today?",
@@ -538,11 +544,40 @@
     }
   },
   "Today": {
-    "progress": {
-      "title": "Your day",
-      "label": "{done, number} of {total, plural, one {# action} other {# actions}}",
+    "system": {
+      "title": "Your system",
+      "dayLabel": "Today",
+      "daySummary": "Your day: {done, number} of {total, plural, one {# quest done} other {# quests done}}.",
+      "clearFilter": "{pillar} · show all",
+      "bubble": "{pillar}: {score}. Today: {done, number} of {total, number}.",
+      "noScore": "no score yet",
+      "hint": "Tap a pillar to see its quests. The ring fills up with what you do today.",
+      "howTitle": "How the score works",
+      "how": "It combines your self-assessment (40%) and your consistency over the last 7 days (60%): the planned habits you did and the goal tasks you finished."
+    },
+    "tiles": {
+      "label": "At a glance",
+      "streak": "{count, number} d",
+      "streakLabel": "Best current streak",
+      "energyLabel": "Today’s energy",
+      "checkIn": "Check-in",
+      "checkInLabel": "Take stock in 30 seconds"
+    },
+    "quests": {
+      "title": "Today’s quests",
+      "titleFiltered": "Quests · {pillar}",
+      "count": "{done, number}/{total, number}",
+      "countLabel": "{done, number} of {total, number} done",
+      "habit": "Habit · {pillar}",
+      "taskToday": "Task · today",
+      "taskOverdue": "Overdue · {date}",
+      "withGoal": "{meta} · {goal}",
+      "saving": "Saving…",
       "allDone": "Everything is done for today. Well done!",
-      "nothing": "Nothing planned today. Add a task or a habit to get started."
+      "empty": "Nothing planned today. Add a task below or create a habit to get started.",
+      "emptyFiltered": "No {pillar} quests today.",
+      "showAll": "Show all quests",
+      "createHabit": "Create a habit"
     },
     "checkIn": {
       "title": "Daily check-in",
@@ -576,17 +611,6 @@
         "incomplete": "Rate each item from 1 to 5.",
         "unexpected": "Something went wrong. Try again in a moment."
       }
-    },
-    "habits": {
-      "title": "Today’s habits",
-      "link": "All habits",
-      "nonePlanned": "No habit planned today.",
-      "noHabits": "Create a habit to find it here every day.",
-      "create": "Create a habit"
-    },
-    "tasks": {
-      "title": "Today’s tasks",
-      "empty": "No task for today. Add the next action to take."
     }
   },
   "NotFound": {

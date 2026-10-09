@@ -133,6 +133,12 @@
       "profile": "Profil",
       "settings": "Réglages"
     },
+    "quickAdd": {
+      "label": "Ajouter",
+      "task": "Nouvelle tâche",
+      "habit": "Nouvelle habitude",
+      "goal": "Nouvel objectif"
+    },
     "today": {
       "title": "Aujourd’hui",
       "question": "Que dois-je faire aujourd’hui?",
@@ -538,11 +544,40 @@
     }
   },
   "Today": {
-    "progress": {
-      "title": "Ta journée",
-      "label": "{done, number} sur {total, plural, one {# action} other {# actions}}",
+    "system": {
+      "title": "Ton système",
+      "dayLabel": "Aujourd’hui",
+      "daySummary": "Ta journée : {done, number} sur {total, plural, one {# quête faite} other {# quêtes faites}}.",
+      "clearFilter": "{pillar} · tout voir",
+      "bubble": "{pillar} : {score}. Aujourd’hui : {done, number} sur {total, number}.",
+      "noScore": "pas encore de score",
+      "hint": "Touche un pilier pour voir ses quêtes. L’anneau se remplit avec ce que tu fais aujourd’hui.",
+      "howTitle": "Comment le score est calculé",
+      "how": "Il combine ton autoévaluation (40 %) et ta régularité des 7 derniers jours (60 %) : les habitudes prévues que tu as faites et les tâches de tes objectifs terminées."
+    },
+    "tiles": {
+      "label": "En bref",
+      "streak": "{count, number} j",
+      "streakLabel": "Meilleure série en cours",
+      "energyLabel": "Énergie du jour",
+      "checkIn": "Check-in",
+      "checkInLabel": "Fais le point en 30 secondes"
+    },
+    "quests": {
+      "title": "Quêtes du jour",
+      "titleFiltered": "Quêtes · {pillar}",
+      "count": "{done, number}/{total, number}",
+      "countLabel": "{done, number} sur {total, number} faites",
+      "habit": "Habitude · {pillar}",
+      "taskToday": "Tâche · aujourd’hui",
+      "taskOverdue": "En retard · {date}",
+      "withGoal": "{meta} · {goal}",
+      "saving": "Enregistrement…",
       "allDone": "Tout est fait pour aujourd’hui. Bravo!",
-      "nothing": "Rien de prévu aujourd’hui. Ajoute une tâche ou une habitude pour te lancer."
+      "empty": "Rien de prévu aujourd’hui. Ajoute une tâche ci-dessous ou crée une habitude pour te lancer.",
+      "emptyFiltered": "Aucune quête du pilier {pillar} aujourd’hui.",
+      "showAll": "Voir toutes les quêtes",
+      "createHabit": "Créer une habitude"
     },
     "checkIn": {
       "title": "Check-in du jour",
@@ -576,17 +611,6 @@
         "incomplete": "Note chaque élément de 1 à 5.",
         "unexpected": "Une erreur est survenue. Réessaie dans un instant."
       }
-    },
-    "habits": {
-      "title": "Habitudes du jour",
-      "link": "Toutes les habitudes",
-      "nonePlanned": "Aucune habitude prévue aujourd’hui.",
-      "noHabits": "Crée une habitude pour la retrouver ici chaque jour.",
-      "create": "Créer une habitude"
-    },
-    "tasks": {
-      "title": "Tâches du jour",
-      "empty": "Aucune tâche pour aujourd’hui. Ajoute la prochaine action à faire."
     }
   },
   "NotFound": {

@@ -1,102 +1,88 @@
-import { Plus } from "lucide-react";
-import { getTranslations } from "next-intl/server";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TaskList } from "@/features/tasks/components/task-list";
-import { Link } from "@/i18n/navigation";
+import { computeStreaks } from "@/features/habits/streak";
 import { toCalendarDay } from "@/lib/dates";
 import { getCheckIn } from "@/server/check-ins/service";
 import { listHabits } from "@/server/habits/service";
-import { getCurrentProfile } from "@/server/profile/service";
-import { listDayTasks } from "@/server/tasks/service";
-import { getDayPlan } from "../day-plan";
+import {
+  getCurrentProfile,
+  getLatestAssessments,
+} from "@/server/profile/service";
+import { listDayTasks, listGoalTasksDueBetween } from "@/server/tasks/service";
+import { selectHabitsToday } from "../day-plan";
+import { computePillarScores, scoreWindow } from "../pillar-scores";
 import { CheckInCard } from "./check-in-card";
-import { DayProgress } from "./day-progress";
-import { TodayHabits } from "./today-habits";
+import { TodayBoard } from "./today-board";
 
 /**
- * Le plan du jour : avancement, check-in, habitudes prévues et tâches.
+ * Le plan du jour : orbite des piliers, quêtes (habitudes et tâches) et check-in.
  * Lit la session : à placer dans un <Suspense>.
  */
 export async function TodayDashboard() {
   const profile = await getCurrentProfile();
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const today = toCalendarDay(new Date(), profile.timeZone);
-  const [habits, tasks, checkIn, t] = await Promise.all([
+  const scoreDays = scoreWindow(today);
+  const [habits, tasks, recentTasks, assessments, checkIn] = await Promise.all([
     listHabits(profile.id, profile.timeZone),
     listDayTasks(profile.id, today),
+    listGoalTasksDueBetween(profile.id, scoreDays.from, scoreDays.to),
+    getLatestAssessments(profile.id),
     getCheckIn(profile.id, today),
-    getTranslations("Today"),
   ]);
-  const { habitsToday, progress } = getDayPlan({ habits, tasks, today });
+
+  const habitsToday = selectHabitsToday(habits, today);
+  const plannedToday = new Set(habitsToday.map((habit) => habit.id));
+  const active = habits.filter((habit) => !habit.archived);
+  // Les séries des habitudes du jour sont recalculées à chaque clic, côté client
+  const otherStreak = Math.max(
+    0,
+    ...active
+      .filter((habit) => !plannedToday.has(habit.id))
+      .map(
+        (habit) =>
+          computeStreaks({
+            weekdays: habit.weekdays,
+            completions: new Set(habit.completions),
+            startDay: habit.startDay,
+            today,
+          }).current,
+      ),
+  );
 
   return (
-    <div className="flex flex-col gap-8">
-      <DayProgress {...progress} />
-      <CheckInCard saved={checkIn} />
-
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section aria-labelledby="today-habits" className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2
-              id="today-habits"
-              className="font-heading text-lg font-semibold"
-            >
-              {t("habits.title")}
-            </h2>
-            <Link
-              href="/habits"
-              className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              {t("habits.link")}
-            </Link>
-          </div>
-          {habitsToday.length > 0 ? (
-            <TodayHabits habits={habitsToday} today={today} />
-          ) : habits.some((habit) => !habit.archived) ? (
-            <p className="text-sm text-muted-foreground">
-              {t("habits.nonePlanned")}
-            </p>
-          ) : (
-            <div className="flex flex-col items-start gap-3">
-              <p className="text-sm text-muted-foreground">
-                {t("habits.noHabits")}
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/habits/new">
-                  <Plus aria-hidden="true" />
-                  {t("habits.create")}
-                </Link>
-              </Button>
-            </div>
-          )}
-        </section>
-
-        <section aria-labelledby="today-tasks" className="flex flex-col gap-4">
-          <h2 id="today-tasks" className="font-heading text-lg font-semibold">
-            {t("tasks.title")}
-          </h2>
-          <TaskList
-            goalId={null}
-            tasks={tasks}
-            today={today}
-            emptyMessage={t("tasks.empty")}
-            defaultDueDate={today}
-          />
-        </section>
-      </div>
-    </div>
+    <TodayBoard
+      today={today}
+      habits={habitsToday}
+      tasks={tasks}
+      scores={computePillarScores({
+        habits,
+        tasks: recentTasks,
+        assessments,
+        today,
+      })}
+      otherStreak={otherStreak}
+      energy={checkIn?.energy ?? null}
+      hasHabits={active.length > 0}
+      checkIn={<CheckInCard saved={checkIn} />}
+    />
   );
 }
 
 export function TodayDashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-8">
-      <Skeleton className="h-24 rounded-xl" />
-      <Skeleton className="h-40 rounded-xl" />
-      <div className="grid gap-8 lg:grid-cols-2">
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
+    <div className="grid gap-5 lg:grid-cols-[5fr_6fr] lg:gap-6">
+      <div className="flex flex-col gap-5">
+        <Skeleton className="aspect-[322/360] w-full rounded-3xl" />
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-[74px] rounded-2xl" />
+          <Skeleton className="h-[74px] rounded-2xl" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-7 w-40" />
+        {[0, 1, 2, 3].map((index) => (
+          <Skeleton key={index} className="h-[62px] rounded-2xl" />
+        ))}
       </div>
     </div>
   );
