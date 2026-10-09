@@ -1,14 +1,16 @@
-import { Sun } from "lucide-react";
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ONBOARDING_PATH } from "@/features/auth/access";
 import { ActiveGoals } from "@/features/goals/components/active-goals";
 import { GoalListSkeleton } from "@/features/goals/components/goal-list";
+import {
+  TodayDashboard,
+  TodayDashboardSkeleton,
+} from "@/features/today/components/today-dashboard";
 import { Link, redirect } from "@/i18n/navigation";
 import { getDayPeriod } from "@/lib/day-period";
 import { getCurrentProfile } from "@/server/profile/service";
@@ -27,6 +29,10 @@ export default function TodayPage() {
         <Greeting />
       </Suspense>
 
+      <Suspense fallback={<TodayDashboardSkeleton />}>
+        <TodayDashboard />
+      </Suspense>
+
       <section aria-labelledby="today-goals" className="flex flex-col gap-4">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="today-goals" className="font-heading text-lg font-semibold">
@@ -42,17 +48,6 @@ export default function TodayPage() {
         <Suspense fallback={<GoalListSkeleton />}>
           <ActiveGoals />
         </Suspense>
-      </section>
-
-      <section aria-labelledby="today-plan" className="flex flex-col gap-4">
-        <h2 id="today-plan" className="font-heading text-lg font-semibold">
-          {t("planTitle")}
-        </h2>
-        <EmptyState
-          icon={Sun}
-          title={t("emptyTitle")}
-          description={t("emptyDescription")}
-        />
       </section>
     </div>
   );

@@ -15,6 +15,8 @@ type Task = {
   title: string;
   dueDate: string | null;
   done: boolean;
+  /** Objectif de la tâche, affiché quand la liste mélange plusieurs objectifs. */
+  goal?: { id: string; title: string } | null;
 };
 
 type TaskListProps = {
@@ -23,9 +25,19 @@ type TaskListProps = {
   tasks: Task[];
   /** Aujourd'hui dans le fuseau de l'utilisateur, « AAAA-MM-JJ ». */
   today: string;
+  /** Message quand il n'y a rien à faire (par défaut : celui d'un objectif). */
+  emptyMessage?: string;
+  /** Échéance proposée pour une nouvelle tâche (ex. aujourd'hui). */
+  defaultDueDate?: string;
 };
 
-export function TaskList({ goalId, tasks, today }: TaskListProps) {
+export function TaskList({
+  goalId,
+  tasks,
+  today,
+  emptyMessage,
+  defaultDueDate,
+}: TaskListProps) {
   const t = useTranslations("Goals.tasks");
   const open = tasks.filter((task) => !task.done);
   const done = tasks.filter((task) => task.done);
@@ -38,11 +50,17 @@ export function TaskList({ goalId, tasks, today }: TaskListProps) {
         title={task.title}
         done={task.done}
         meta={
-          task.dueDate ? (
-            <DueDate
-              day={task.dueDate}
-              overdue={!task.done && task.dueDate < today}
-            />
+          task.dueDate || task.goal ? (
+            <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              {task.dueDate ? (
+                <DueDate day={task.dueDate} today={today} done={task.done} />
+              ) : null}
+              {task.goal ? (
+                <span className="text-xs text-muted-foreground">
+                  {task.goal.title}
+                </span>
+              ) : null}
+            </span>
           ) : null
         }
         onToggle={(value) => setTaskDoneAction(task.id, value)}
@@ -57,7 +75,9 @@ export function TaskList({ goalId, tasks, today }: TaskListProps) {
       {open.length > 0 ? (
         <ul className="flex flex-col gap-2">{open.map(renderTask)}</ul>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("empty")}</p>
+        <p className="text-sm text-muted-foreground">
+          {emptyMessage ?? t("empty")}
+        </p>
       )}
       <AddItemForm
         action={addTaskAction.bind(null, goalId)}
@@ -65,6 +85,7 @@ export function TaskList({ goalId, tasks, today }: TaskListProps) {
         placeholder={t("placeholder")}
         submitLabel={t("add")}
         dateLabel={t("dueDateLabel")}
+        defaultDate={defaultDueDate}
       />
       {done.length > 0 ? (
         <details className="group">
@@ -82,9 +103,18 @@ export function TaskList({ goalId, tasks, today }: TaskListProps) {
   );
 }
 
-function DueDate({ day, overdue }: { day: string; overdue: boolean }) {
+function DueDate({
+  day,
+  today,
+  done,
+}: {
+  day: string;
+  today: string;
+  done: boolean;
+}) {
   const t = useTranslations("Goals.tasks");
   const format = useFormatter();
+  const overdue = !done && day < today;
   // Jour du calendrier : formaté en UTC pour ne pas glisser d'un jour
   const date = format.dateTime(toDbDate(day), {
     day: "numeric",
@@ -100,7 +130,7 @@ function DueDate({ day, overdue }: { day: string; overdue: boolean }) {
       )}
     >
       <CalendarDays aria-hidden="true" className="size-3" />
-      {t("due", { date })}
+      {day === today ? t("dueToday") : t("due", { date })}
       {overdue ? ` · ${t("overdue")}` : null}
     </span>
   );

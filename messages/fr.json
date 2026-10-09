@@ -136,12 +136,9 @@
     "today": {
       "title": "Aujourd’hui",
       "question": "Que dois-je faire aujourd’hui?",
-      "emptyTitle": "Ton plan du jour apparaîtra ici",
-      "emptyDescription": "Bientôt, Get iT te proposera ici chaque jour les actions qui te rapprochent de tes objectifs.",
       "greeting": "{period, select, morning {Bonjour} afternoon {Bon après-midi} other {Bonsoir}}, {name}.",
       "goalsTitle": "Tes objectifs",
-      "goalsLink": "Voir tous tes objectifs",
-      "planTitle": "Ton plan du jour"
+      "goalsLink": "Voir tous tes objectifs"
     },
     "goals": {
       "title": "Objectifs",
@@ -459,6 +456,7 @@
       "dueDateLabel": "Échéance (facultative)",
       "add": "Ajouter",
       "due": "Pour le {date}",
+      "dueToday": "Aujourd’hui",
       "overdue": "En retard",
       "delete": "Supprimer « {title} »",
       "doneCount": "{count, plural, one {# tâche terminée} other {# tâches terminées}}"
@@ -537,6 +535,58 @@
       "weekdaysRequired": "Choisis au moins un jour.",
       "notFound": "Cette habitude n’existe plus.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Today": {
+    "progress": {
+      "title": "Ta journée",
+      "label": "{done, number} sur {total, plural, one {# action} other {# actions}}",
+      "allDone": "Tout est fait pour aujourd’hui. Bravo!",
+      "nothing": "Rien de prévu aujourd’hui. Ajoute une tâche ou une habitude pour te lancer."
+    },
+    "checkIn": {
+      "title": "Check-in du jour",
+      "question": "Comment ça va aujourd’hui?",
+      "metrics": {
+        "mood": "Humeur",
+        "energy": "Énergie",
+        "stress": "Stress",
+        "sleep": "Sommeil"
+      },
+      "low": {
+        "mood": "Difficile",
+        "energy": "À plat",
+        "stress": "Aucun",
+        "sleep": "Mauvais"
+      },
+      "high": {
+        "mood": "Excellente",
+        "energy": "Au top",
+        "stress": "Très élevé",
+        "sleep": "Excellent"
+      },
+      "scoreLabel": "{metric} : {score, number} sur 5",
+      "score": "{score, number}/5",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…",
+      "edit": "Modifier",
+      "cancel": "Annuler",
+      "done": "Check-in fait",
+      "errors": {
+        "incomplete": "Note chaque élément de 1 à 5.",
+        "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      }
+    },
+    "habits": {
+      "title": "Habitudes du jour",
+      "link": "Toutes les habitudes",
+      "nonePlanned": "Aucune habitude prévue aujourd’hui.",
+      "noHabits": "Crée une habitude pour la retrouver ici chaque jour.",
+      "create": "Créer une habitude"
+    },
+    "tasks": {
+      "title": "Tâches du jour",
+      "empty": "Aucune tâche pour aujourd’hui. Ajoute la prochaine action à faire."
     }
   },
   "NotFound": {

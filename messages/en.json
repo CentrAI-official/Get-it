@@ -136,12 +136,9 @@
     "today": {
       "title": "Today",
       "question": "What should I do today?",
-      "emptyTitle": "Your daily plan will appear here",
-      "emptyDescription": "Soon, Get iT will suggest here, every day, the actions that bring you closer to your goals.",
       "greeting": "{period, select, morning {Good morning} afternoon {Good afternoon} other {Good evening}}, {name}.",
       "goalsTitle": "Your goals",
-      "goalsLink": "See all your goals",
-      "planTitle": "Your plan for today"
+      "goalsLink": "See all your goals"
     },
     "goals": {
       "title": "Goals",
@@ -459,6 +456,7 @@
       "dueDateLabel": "Due date (optional)",
       "add": "Add",
       "due": "Due {date}",
+      "dueToday": "Today",
       "overdue": "Overdue",
       "delete": "Delete “{title}”",
       "doneCount": "{count, plural, one {# task done} other {# tasks done}}"
@@ -537,6 +535,58 @@
       "weekdaysRequired": "Choose at least one day.",
       "notFound": "This habit no longer exists.",
       "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Today": {
+    "progress": {
+      "title": "Your day",
+      "label": "{done, number} of {total, plural, one {# action} other {# actions}}",
+      "allDone": "Everything is done for today. Well done!",
+      "nothing": "Nothing planned today. Add a task or a habit to get started."
+    },
+    "checkIn": {
+      "title": "Daily check-in",
+      "question": "How are you today?",
+      "metrics": {
+        "mood": "Mood",
+        "energy": "Energy",
+        "stress": "Stress",
+        "sleep": "Sleep"
+      },
+      "low": {
+        "mood": "Tough",
+        "energy": "Drained",
+        "stress": "None",
+        "sleep": "Poor"
+      },
+      "high": {
+        "mood": "Great",
+        "energy": "Full of energy",
+        "stress": "Very high",
+        "sleep": "Excellent"
+      },
+      "scoreLabel": "{metric}: {score, number} out of 5",
+      "score": "{score, number}/5",
+      "save": "Save",
+      "saving": "Saving…",
+      "edit": "Edit",
+      "cancel": "Cancel",
+      "done": "Check-in done",
+      "errors": {
+        "incomplete": "Rate each item from 1 to 5.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "habits": {
+      "title": "Today’s habits",
+      "link": "All habits",
+      "nonePlanned": "No habit planned today.",
+      "noHabits": "Create a habit to find it here every day.",
+      "create": "Create a habit"
+    },
+    "tasks": {
+      "title": "Today’s tasks",
+      "empty": "No task for today. Add the next action to take."
     }
   },
   "NotFound": {

@@ -98,6 +98,8 @@ type AddItemFormProps = {
   submitLabel: string;
   /** Affiche un champ d'échéance facultatif. */
   dateLabel?: string;
+  /** Échéance proposée par défaut (« AAAA-MM-JJ »). */
+  defaultDate?: string;
 };
 
 /** Petit formulaire d'ajout en une ligne (jalon, tâche). */
@@ -107,6 +109,7 @@ export function AddItemForm({
   placeholder,
   submitLabel,
   dateLabel,
+  defaultDate,
 }: AddItemFormProps) {
   const t = useTranslations("Goals.errors");
   // Id uniques : Next garde la page précédente cachée dans le DOM
@@ -149,7 +152,7 @@ export function AddItemForm({
               name="dueDate"
               type="date"
               title={dateLabel}
-              defaultValue={state.values?.dueDate}
+              defaultValue={state.values?.dueDate ?? defaultDate}
               className="h-10 sm:w-44"
             />
           </>

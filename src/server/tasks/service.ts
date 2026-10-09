@@ -1,8 +1,50 @@
 import "server-only";
-import { toDbDate } from "@/lib/dates";
+import { fromDbDate, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus.
+
+export type DayTask = {
+  id: string;
+  title: string;
+  /** « AAAA-MM-JJ » */
+  dueDate: string | null;
+  done: boolean;
+  goal: { id: string; title: string } | null;
+};
+
+/**
+ * Tâches de la page Aujourd'hui : celles dues aujourd'hui (faites ou non) et
+ * celles en retard encore à faire, les plus anciennes d'abord.
+ */
+export async function listDayTasks(
+  userId: string,
+  today: string,
+): Promise<DayTask[]> {
+  const day = toDbDate(today);
+  const tasks = await db.task.findMany({
+    where: {
+      userId,
+      OR: [{ dueDate: day }, { dueDate: { lt: day }, completedAt: null }],
+    },
+    orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
+    select: {
+      id: true,
+      title: true,
+      dueDate: true,
+      completedAt: true,
+      goal: { select: { id: true, title: true } },
+    },
+  });
+
+  return tasks.map((task) => ({
+    id: task.id,
+    title: task.title,
+    dueDate: task.dueDate ? fromDbDate(task.dueDate) : null,
+    done: task.completedAt !== null,
+    goal: task.goal,
+  }));
+}
 
 /**
  * Ajoute une tâche, rattachée à un objectif ou non. Faux si l'objectif

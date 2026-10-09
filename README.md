@@ -67,7 +67,7 @@ src/i18n/                 configuration des langues
 - [x] 3. Onboarding et profil
 - [x] 4. Objectifs, jalons et tâches
 - [x] 5. Habitudes et séries
-- [ ] 6. Page Aujourd’hui et check-in quotidien
+- [x] 6. Page Aujourd’hui et check-in quotidien
 - [ ] 7. XP, niveaux et progression
 - [ ] 8. Get iT AI
 - [ ] 9. Fil social de base et modération

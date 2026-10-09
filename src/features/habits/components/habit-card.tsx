@@ -2,16 +2,14 @@
 
 import { Check, Flame, Pencil } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useMemo, useOptimistic, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { pillarIcons } from "@/config/pillars";
 import { Link } from "@/i18n/navigation";
 import { isoWeekday, lastDays, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { HabitSummary } from "@/server/habits/service";
-import { setHabitDayAction } from "../actions";
 import { EDITABLE_DAYS } from "../schemas";
-import { computeStreaks } from "../streak";
+import { useHabitCompletions } from "../use-habit-completions";
 import { ScheduleLabel } from "./schedule-label";
 
 type HabitCardProps = {
@@ -27,33 +25,11 @@ export function HabitCard({ habit, today }: HabitCardProps) {
   const format = useFormatter();
   const Icon = pillarIcons[habit.pillar];
 
-  const saved = useMemo(() => new Set(habit.completions), [habit.completions]);
   // La case réagit tout de suite ; le serveur confirme ensuite
-  const [completions, setCompletion] = useOptimistic(
-    saved,
-    (current, change: { day: string; done: boolean }) => {
-      const next = new Set(current);
-      if (change.done) next.add(change.day);
-      else next.delete(change.day);
-      return next;
-    },
-  );
-  const [, startTransition] = useTransition();
-
-  const { current, best } = computeStreaks({
-    weekdays: habit.weekdays,
-    completions,
-    startDay: habit.startDay,
+  const { completions, toggle, current, best } = useHabitCompletions(
+    habit,
     today,
-  });
-
-  function toggle(day: string) {
-    const done = !completions.has(day);
-    startTransition(async () => {
-      setCompletion({ day, done });
-      await setHabitDayAction(habit.id, day, done);
-    });
-  }
+  );
 
   return (
     <article className="flex flex-col gap-4 rounded-xl border bg-card p-4">

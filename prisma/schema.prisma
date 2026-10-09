@@ -59,6 +59,7 @@ model Profile {
   goals       Goal[]
   tasks       Task[]
   habits      Habit[]
+  checkIns    DailyCheckIn[]
   assessments PillarAssessment[]
 
   @@map("profiles")
@@ -190,4 +191,24 @@ model HabitCompletion {
 
   @@unique([habitId, day])
   @@map("habit_completions")
+}
+
+/// Check-in quotidien : comment l'utilisateur se sent, une fois par jour (§29).
+model DailyCheckIn {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// Jour du calendrier dans le fuseau de l'utilisateur.
+  day       DateTime @db.Date
+  /// Notes de 1 à 5 (5 : au mieux, sauf le stress où 5 est le plus élevé).
+  mood      Int      @db.SmallInt
+  energy    Int      @db.SmallInt
+  stress    Int      @db.SmallInt
+  sleep     Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day])
+  @@map("daily_check_ins")
 }
