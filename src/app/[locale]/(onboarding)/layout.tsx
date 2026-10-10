@@ -13,7 +13,12 @@ export default function OnboardingLayout({
 }: LayoutProps<"/[locale]">) {
   return (
     <div className="flex min-h-dvh flex-col">
-      <header className="flex h-16 items-center justify-between gap-2 border-b border-border/60 px-4 sm:px-6">
+      {/* Même fond que l'application : halos orange et quadrillage */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-app"
+      />
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-2 border-b border-white/5 bg-background/70 px-4 backdrop-blur-xl sm:px-6">
         <Logo />
         <div className="flex items-center gap-1">
           <LocaleSwitcher />

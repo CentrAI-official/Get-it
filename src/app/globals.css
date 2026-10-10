@@ -203,6 +203,19 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  /*
+   * Focus clavier, ancres et scrollIntoView gardent l'élément visible :
+   * hors de la barre du haut et de la barre flottante du bas (mobile).
+   */
+  html {
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 7rem;
+  }
+  @media (width >= 64rem) {
+    html {
+      scroll-padding-bottom: 1rem;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

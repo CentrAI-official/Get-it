@@ -56,13 +56,12 @@
       "xp": "{xp, number} XP",
       "nextLevel": "{remaining, number} XP avant le niveau {level, number}",
       "streak": "{days, plural, one {Série de # jour} other {Série de # jours}}",
-      "today": "Aujourd’hui",
       "tasks": {
         "workout": "Entraînement — haut du corps",
         "meditation": "10 minutes de méditation",
-        "budget": "Revoir mon budget de la semaine"
-      },
-      "pillars": "Tes piliers"
+        "budget": "Revoir mon budget de la semaine",
+        "friend": "Écrire à un ami perdu de vue"
+      }
     },
     "pillars": {
       "title": "Quatre piliers. Une seule vie.",
@@ -492,6 +491,8 @@
       "weekend": "La fin de semaine"
     },
     "streak": "{count, plural, =0 {Pas encore de série} one {Série de # jour} other {Série de # jours}}",
+    "streakValue": "{count, number} j",
+    "streakCaption": "Série en cours",
     "best": "Record : {count, plural, one {# jour} other {# jours}}",
     "linkedGoal": "Objectif : {goal}",
     "weekLabel": "Les 7 derniers jours",

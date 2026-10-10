@@ -27,7 +27,7 @@ export async function HabitsOverview() {
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="habits-active" className="flex flex-col gap-4">
-        <h2 id="habits-active" className="font-heading text-lg font-semibold">
+        <h2 id="habits-active" className="font-heading text-lg font-bold">
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
@@ -45,7 +45,7 @@ export async function HabitsOverview() {
 
       {archived.length > 0 ? (
         <details className="group">
-          <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md font-heading text-lg font-semibold outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+          <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-md font-heading text-lg font-bold outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
             <ChevronRight
               aria-hidden="true"
               className="size-4 text-muted-foreground transition-transform group-open:rotate-90"
@@ -58,7 +58,7 @@ export async function HabitsOverview() {
               return (
                 <li
                   key={habit.id}
-                  className="flex flex-wrap items-center gap-3 rounded-lg border bg-card/60 p-3"
+                  className="flex flex-wrap items-center gap-3 rounded-2xl glass p-3"
                 >
                   <Icon aria-hidden="true" className="size-4 text-silver" />
                   <div className="min-w-0 flex-1">
@@ -89,7 +89,7 @@ export function HabitsOverviewSkeleton() {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {[0, 1].map((index) => (
-        <Skeleton key={index} className="h-[210px] rounded-xl" />
+        <Skeleton key={index} className="h-[230px] rounded-3xl" />
       ))}
     </div>
   );

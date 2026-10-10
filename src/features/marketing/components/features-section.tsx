@@ -23,7 +23,7 @@ export function FeaturesSection() {
     <section
       id="features"
       aria-labelledby="features-title"
-      className="scroll-mt-20 border-t border-border/60"
+      className="scroll-mt-20 border-t border-white/5"
     >
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
         <SectionHeading
@@ -35,7 +35,7 @@ export function FeaturesSection() {
           {FEATURES.map(({ key, icon: Icon }) => (
             <li key={key}>
               <Card className="h-full flex-row items-start gap-4 p-6">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb text-silver">
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
                 <div className="flex flex-col gap-1.5">

@@ -41,9 +41,9 @@ export function GoalActions({ goalId, status }: GoalActionsProps) {
         />
       ) : null}
       <Button asChild variant="outline">
-        <Link href={`/goals/${goalId}/edit`}>
+        <Link href={`/goals/${goalId}/edit`} title={t("edit")}>
           <Pencil aria-hidden="true" />
-          {t("edit")}
+          <span className="sr-only sm:not-sr-only">{t("edit")}</span>
         </Link>
       </Button>
       {status === "completed" ? (
@@ -70,16 +70,18 @@ export function GoalActions({ goalId, status }: GoalActionsProps) {
           icon={Archive}
           label={t("archive")}
           variant="ghost"
+          compact
         />
       )}
       <ConfirmDialog
         trigger={
           <Button
             variant="ghost"
+            title={t("delete")}
             className="text-muted-foreground hover:text-destructive"
           >
             <Trash2 aria-hidden="true" />
-            {t("delete")}
+            <span className="sr-only sm:not-sr-only">{t("delete")}</span>
           </Button>
         }
         title={t("deleteTitle")}
@@ -101,6 +103,8 @@ type StatusButtonProps = {
   icon: LucideIcon;
   label: string;
   variant: ComponentProps<typeof Button>["variant"];
+  /** Icône seule sur téléphone (le libellé reste lu par les lecteurs d'écran). */
+  compact?: boolean;
 };
 
 function StatusButton({ goalId, status, ...button }: StatusButtonProps) {
@@ -115,12 +119,22 @@ function StatusSubmit({
   icon: Icon,
   label,
   variant,
+  compact,
 }: Omit<StatusButtonProps, "goalId" | "status">) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant={variant} disabled={pending}>
+    <Button
+      type="submit"
+      variant={variant}
+      disabled={pending}
+      title={compact ? label : undefined}
+    >
       <Icon aria-hidden="true" />
-      {label}
+      {compact ? (
+        <span className="sr-only sm:not-sr-only">{label}</span>
+      ) : (
+        label
+      )}
     </Button>
   );
 }

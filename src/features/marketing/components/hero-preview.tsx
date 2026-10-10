@@ -1,10 +1,16 @@
-import { Check, Flame } from "lucide-react";
-import { useFormatter, useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+"use client";
+
+import { Flame } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { Progress } from "@/components/ui/progress";
-import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
-import { cn } from "@/lib/utils";
+import type { Pillar } from "@/config/pillars";
+import {
+  QuestRow,
+  type HabitQuest,
+} from "@/features/today/components/quest-list";
+import { SystemOrbit } from "@/features/today/components/system-orbit";
+import { summarizeDay } from "@/features/today/day-plan";
 
 // Valeurs d'illustration pour la page d'accueil : ce ne sont pas des données utilisateur.
 const EXAMPLE = {
@@ -13,128 +19,128 @@ const EXAMPLE = {
   xpToNextLevel: 550,
   levelProgress: 68,
   streakDays: 18,
-  pillars: {
+  scores: {
     physical: 72,
     mental: 61,
     social: 48,
     financial: 67,
   } satisfies Record<Pillar, number>,
-  tasks: [
-    { key: "workout", done: true },
-    { key: "meditation", done: true },
-    { key: "budget", done: false },
-  ],
-} as const;
+};
 
-/** Aperçu illustratif de l'application, affiché dans le hero. */
+type ExampleQuest = {
+  key: "workout" | "meditation" | "friend" | "budget";
+  pillar: Pillar;
+  /** Série avant aujourd'hui. */
+  streak: number;
+  done: boolean;
+};
+
+const EXAMPLE_QUESTS: readonly ExampleQuest[] = [
+  { key: "workout", pillar: "physical", streak: 3, done: true },
+  { key: "meditation", pillar: "mental", streak: 11, done: true },
+  { key: "friend", pillar: "social", streak: 0, done: false },
+  { key: "budget", pillar: "financial", streak: 2, done: false },
+];
+
+/**
+ * Aperçu interactif de la page Aujourd'hui, avec les vrais composants : on peut
+ * toucher un pilier pour filtrer et cocher les quêtes. Rien n'est enregistré.
+ */
 export function HeroPreview() {
-  const t = useTranslations();
-  const format = useFormatter();
+  const t = useTranslations("Marketing.preview");
+  const tQuests = useTranslations("Today.quests");
+  const tPillars = useTranslations("Pillars");
+  const [filter, setFilter] = useState<Pillar | null>(null);
+  const [done, setDone] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(EXAMPLE_QUESTS.map((quest) => [quest.key, quest.done])),
+  );
+
+  const quests: HabitQuest[] = EXAMPLE_QUESTS.map((quest) => {
+    const isDone = done[quest.key] ?? false;
+    return {
+      kind: "habit",
+      key: quest.key,
+      id: quest.key,
+      title: t(`tasks.${quest.key}`),
+      pillar: quest.pillar,
+      done: isDone,
+      late: false,
+      streak: quest.streak + (isDone ? 1 : 0),
+    };
+  });
+  const summary = summarizeDay(quests);
+  const shown = filter
+    ? quests.filter((quest) => quest.pillar === filter)
+    : quests;
+  const nextLevel = t("nextLevel", {
+    remaining: EXAMPLE.xpToNextLevel,
+    level: EXAMPLE.level + 1,
+  });
 
   return (
     <figure
-      aria-label={t("Marketing.preview.label")}
+      aria-label={t("label")}
       className="relative mx-auto w-full max-w-md"
     >
       <div
         aria-hidden="true"
-        className="absolute -inset-6 -z-10 rounded-[2rem] bg-primary/10 blur-3xl"
+        className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-primary/10 blur-3xl"
       />
-      <Card className="gap-6 bg-card/90 py-6 shadow-2xl backdrop-blur">
-        <CardHeader className="gap-3 px-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                {t("Marketing.preview.level", { level: EXAMPLE.level })}
-              </p>
-              <p className="font-heading text-2xl font-semibold tracking-tight">
-                {t("Marketing.preview.xp", { xp: EXAMPLE.xp })}
-              </p>
-            </div>
-            <Badge variant="secondary" className="h-7 gap-1.5 px-2.5">
-              <Flame aria-hidden="true" className="text-primary" />
-              {t("Marketing.preview.streak", { days: EXAMPLE.streakDays })}
-            </Badge>
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-card/80 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-5">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground">
+              {t("level", { level: EXAMPLE.level })}
+            </span>
+            <span className="font-mono text-sm font-bold text-primary">
+              {t("xp", { xp: EXAMPLE.xp })}
+            </span>
           </div>
-          <Progress
-            value={EXAMPLE.levelProgress}
-            className="h-2"
-            aria-label={t("Marketing.preview.nextLevel", {
-              remaining: EXAMPLE.xpToNextLevel,
-              level: EXAMPLE.level + 1,
-            })}
-          />
-          <p className="text-xs text-muted-foreground">
-            {t("Marketing.preview.nextLevel", {
-              remaining: EXAMPLE.xpToNextLevel,
-              level: EXAMPLE.level + 1,
-            })}
+          <span className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-medium">
+            <Flame aria-hidden="true" className="size-3.5 text-primary" />
+            {t("streak", { days: EXAMPLE.streakDays })}
+          </span>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Progress value={EXAMPLE.levelProgress} aria-label={nextLevel} />
+          <p className="font-mono text-xs text-muted-foreground">{nextLevel}</p>
+        </div>
+
+        <SystemOrbit
+          scores={EXAMPLE.scores}
+          day={summary.day}
+          pillars={summary.pillars}
+          filter={filter}
+          onFilterChange={setFilter}
+          explain={false}
+        />
+
+        <div className="flex flex-col gap-2">
+          <p className="font-heading font-bold">
+            {filter
+              ? tQuests("titleFiltered", {
+                  pillar: tPillars(`${filter}.name`),
+                })
+              : tQuests("title")}
           </p>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-6 px-6">
-          <div>
-            <p className="mb-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-              {t("Marketing.preview.today")}
-            </p>
-            <ul className="flex flex-col gap-2">
-              {EXAMPLE.tasks.map(({ key, done }) => (
-                <li
-                  key={key}
-                  className="flex items-center gap-3 rounded-lg bg-secondary/60 px-3 py-2.5 text-sm"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "flex size-5 shrink-0 items-center justify-center rounded-full border",
-                      done
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-input",
-                    )}
-                  >
-                    {done ? <Check className="size-3" /> : null}
-                  </span>
-                  <span
-                    className={cn(done && "text-muted-foreground line-through")}
-                  >
-                    {t(`Marketing.preview.tasks.${key}`)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <p className="mb-3 text-xs font-medium tracking-wider text-muted-foreground uppercase">
-              {t("Marketing.preview.pillars")}
-            </p>
-            <ul className="grid grid-cols-2 gap-x-5 gap-y-3">
-              {PILLARS.map((pillar) => {
-                const Icon = pillarIcons[pillar];
-                const value = EXAMPLE.pillars[pillar];
-                return (
-                  <li key={pillar} className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5 text-muted-foreground">
-                        <Icon aria-hidden="true" className="size-3.5" />
-                        {t(`Pillars.${pillar}.name`)}
-                      </span>
-                      <span className="font-medium tabular-nums">
-                        {format.number(value / 100, { style: "percent" })}
-                      </span>
-                    </div>
-                    <Progress
-                      value={value}
-                      className="h-1.5"
-                      aria-label={t(`Pillars.${pillar}.name`)}
-                    />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+          <ul className="flex flex-col gap-2">
+            {shown.map((quest) => (
+              <QuestRow
+                key={quest.key}
+                quest={quest}
+                onToggle={() =>
+                  setDone((current) => ({
+                    ...current,
+                    [quest.key]: !current[quest.key],
+                  }))
+                }
+              />
+            ))}
+          </ul>
+        </div>
+      </div>
       <figcaption className="mt-3 text-center text-xs text-muted-foreground">
-        {t("Marketing.preview.example")}
+        {t("example")}
       </figcaption>
     </figure>
   );

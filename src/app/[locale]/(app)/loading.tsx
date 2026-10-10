@@ -11,7 +11,7 @@ export default function AppLoading() {
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-5 w-72 max-w-full" />
       </div>
-      <Skeleton className="h-64 w-full rounded-xl" />
+      <Skeleton className="h-64 w-full rounded-3xl" />
     </div>
   );
 }

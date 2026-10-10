@@ -24,7 +24,7 @@ export function SituationStep({ draft, update }: StepProps) {
           <section
             key={pillar}
             aria-labelledby={headingId}
-            className="flex flex-col gap-3 rounded-xl border bg-card/60 p-4"
+            className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2
@@ -62,7 +62,7 @@ export function SituationStep({ draft, update }: StepProps) {
                     score: level.score,
                     level: t(`levels.${level.key}`),
                   })}
-                  className="h-11 rounded-lg border border-input bg-input/30 font-heading text-base font-semibold text-muted-foreground transition-colors outline-none hover:bg-input/60 hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
+                  className="h-11 rounded-xl border border-white/10 bg-white/[0.03] font-mono text-base font-bold text-muted-foreground transition-colors outline-none hover:bg-white/[0.08] hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
                 >
                   {level.score}
                 </RadioGroupPrimitive.Item>

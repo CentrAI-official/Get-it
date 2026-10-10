@@ -64,7 +64,7 @@ export function GoalForm({
     <form
       action={formAction}
       noValidate
-      className="flex max-w-2xl flex-col gap-6"
+      className="flex max-w-2xl flex-col gap-6 rounded-3xl glass p-5 sm:p-6"
     >
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="pillar" value={pillar} />

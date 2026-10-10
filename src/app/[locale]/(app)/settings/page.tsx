@@ -57,7 +57,7 @@ export default function SettingsPage() {
           <LanguageSettings labelledBy="language-settings-title" />
         </CardContent>
       </Card>
-      <Card className="max-w-2xl border-destructive/30">
+      <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>
           <CardTitle>{t("deleteAccount.title")}</CardTitle>
           <CardDescription>{t("deleteAccount.description")}</CardDescription>

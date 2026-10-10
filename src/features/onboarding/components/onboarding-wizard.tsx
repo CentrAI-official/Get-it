@@ -150,9 +150,15 @@ export function OnboardingWizard() {
   });
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="flex flex-col gap-8 rounded-3xl glass p-5 sm:p-8"
+    >
       <div className="flex flex-col gap-3">
-        <p className="text-sm text-muted-foreground">{stepLabel}</p>
+        <p className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase">
+          {stepLabel}
+        </p>
         <Progress
           aria-hidden="true"
           value={((stepIndex + 1) / ONBOARDING_STEPS.length) * 100}
@@ -163,7 +169,7 @@ export function OnboardingWizard() {
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="font-heading text-2xl font-semibold tracking-tight text-balance outline-none sm:text-3xl"
+          className="font-heading text-3xl leading-tight font-bold tracking-tight text-balance outline-none sm:text-4xl"
         >
           {headers[step].title}
         </h1>
@@ -195,7 +201,7 @@ export function OnboardingWizard() {
         </Alert>
       ) : null}
 
-      <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-6">
+      <div className="flex items-center justify-between gap-3 border-t border-white/5 pt-6">
         {stepIndex > 0 ? (
           <Button
             type="button"

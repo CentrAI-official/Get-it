@@ -1,6 +1,13 @@
 "use client";
 
-import { Check, Flame, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
+import {
+  Check,
+  Flame,
+  LoaderCircle,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -141,11 +148,9 @@ export function QuestList({
           ))}
         </ul>
       ) : (
-        <div className="glass flex flex-col items-start gap-3 rounded-2xl p-4">
+        <div className="flex flex-col items-start gap-3 rounded-2xl glass p-4">
           <p className="text-sm text-muted-foreground">
-            {filter
-              ? t("emptyFiltered", { pillar: pillarName })
-              : t("empty")}
+            {filter ? t("emptyFiltered", { pillar: pillarName }) : t("empty")}
           </p>
           {filter ? (
             <Button variant="outline" size="sm" onClick={onClearFilter}>
@@ -188,10 +193,16 @@ type QuestRowProps = {
   onToggle: () => void;
   /** Seules les tâches se suppriment d'ici. */
   onDelete?: () => void;
-  deleteLabel: string;
+  deleteLabel?: string;
 };
 
-function QuestRow({ quest, onToggle, onDelete, deleteLabel }: QuestRowProps) {
+/** Une quête à cocher (aussi utilisée dans l'aperçu du site public). */
+export function QuestRow({
+  quest,
+  onToggle,
+  onDelete,
+  deleteLabel,
+}: QuestRowProps) {
   const t = useTranslations("Today.quests");
   const tPillars = useTranslations("Pillars");
   const tHabits = useTranslations("Habits");
@@ -239,11 +250,13 @@ function QuestRow({ quest, onToggle, onDelete, deleteLabel }: QuestRowProps) {
           className={cn(
             "flex size-10 shrink-0 items-center justify-center rounded-full transition-all duration-200",
             quest.done
-              ? "glow-primary bg-primary text-primary-foreground"
+              ? "bg-primary text-primary-foreground glow-primary"
               : "border-2 border-white/20",
           )}
         >
-          {quest.done ? <Check className="size-[18px]" strokeWidth={3} /> : null}
+          {quest.done ? (
+            <Check className="size-[18px]" strokeWidth={3} />
+          ) : null}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span

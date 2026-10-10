@@ -32,13 +32,13 @@ export function HabitCard({ habit, today }: HabitCardProps) {
   );
 
   return (
-    <article className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+    <article className="flex flex-col gap-4 rounded-3xl glass p-4 sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-secondary text-silver">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb text-silver">
           <Icon aria-hidden="true" className="size-5" />
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <h3 className="font-medium break-words">{habit.title}</h3>
+          <h3 className="font-semibold break-words">{habit.title}</h3>
           <p className="text-sm text-muted-foreground">
             {tPillars(`${habit.pillar}.name`)} ·{" "}
             <ScheduleLabel weekdays={habit.weekdays} />
@@ -59,16 +59,27 @@ export function HabitCard({ habit, today }: HabitCardProps) {
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-sm font-medium">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <p className="flex items-center gap-2.5">
           <Flame
             aria-hidden="true"
             className={cn(
-              "size-4",
+              "size-7",
               current > 0 ? "text-primary" : "text-muted-foreground",
             )}
           />
-          {t("streak", { count: current })}
+          <span className="flex flex-col gap-0.5">
+            <span
+              aria-hidden="true"
+              className="font-mono text-2xl leading-none font-bold"
+            >
+              {t("streakValue", { count: current })}
+            </span>
+            <span aria-hidden="true" className="text-xs text-muted-foreground">
+              {t("streakCaption")}
+            </span>
+            <span className="sr-only">{t("streak", { count: current })}</span>
+          </span>
         </p>
         {best > 0 ? (
           <p className="text-xs text-muted-foreground">
@@ -100,15 +111,17 @@ export function HabitCard({ habit, today }: HabitCardProps) {
                 disabled={day < habit.startDay}
                 onClick={() => toggle(day)}
                 className={cn(
-                  "flex w-full flex-col items-center gap-1 rounded-lg py-1.5 text-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-30",
-                  isToday && "bg-secondary",
+                  "flex w-full flex-col items-center gap-1.5 rounded-xl py-1.5 text-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-30",
+                  isToday && "bg-white/[0.06]",
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "uppercase",
-                    isToday ? "text-foreground" : "text-muted-foreground",
+                    "font-mono uppercase",
+                    isToday
+                      ? "font-bold text-foreground"
+                      : "text-muted-foreground",
                   )}
                 >
                   {format.dateTime(date, {
@@ -119,16 +132,16 @@ export function HabitCard({ habit, today }: HabitCardProps) {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "flex size-8 items-center justify-center rounded-full border text-sm tabular-nums transition-colors",
+                    "flex size-9 items-center justify-center rounded-full font-mono text-sm transition-all duration-200",
                     done
-                      ? "border-primary bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground glow-primary"
                       : scheduled
-                        ? "border-input text-foreground"
-                        : "border-dashed border-border text-muted-foreground",
+                        ? "border-2 border-white/15 text-foreground"
+                        : "border border-dashed border-white/10 text-muted-foreground",
                   )}
                 >
                   {done ? (
-                    <Check className="size-4" />
+                    <Check className="size-4" strokeWidth={3} />
                   ) : (
                     format.dateTime(date, { day: "numeric", timeZone: "UTC" })
                   )}

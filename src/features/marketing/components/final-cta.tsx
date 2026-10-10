@@ -8,7 +8,7 @@ export function FinalCta() {
 
   return (
     <section aria-labelledby="cta-title" className="px-4 pb-24 sm:px-6">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-primary/20 bg-card px-6 py-16 text-center sm:px-12 lg:py-20">
+      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] border-primary/25! glass px-6 py-16 text-center sm:px-12 lg:py-20">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-glow"

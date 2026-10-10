@@ -19,7 +19,7 @@ export function GoalListSkeleton() {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {[0, 1].map((index) => (
-        <Skeleton key={index} className="h-[106px] rounded-xl" />
+        <Skeleton key={index} className="h-[90px] rounded-3xl" />
       ))}
     </div>
   );

@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Progress } from "@/components/ui/progress";
+import { ProgressRing } from "@/components/progress-ring";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
 import {
@@ -27,15 +27,15 @@ export async function ProfileOverview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4 rounded-xl border bg-card p-5 sm:p-6">
+      <div className="flex items-center gap-4 rounded-3xl glass p-5 sm:gap-5 sm:p-6">
         <span
           aria-hidden="true"
-          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary font-heading text-xl font-semibold text-silver uppercase"
+          className="flex size-16 shrink-0 items-center justify-center rounded-full border border-white/15 orb font-heading text-2xl font-bold uppercase sm:size-20 sm:text-3xl"
         >
           {name.charAt(0)}
         </span>
-        <div className="min-w-0">
-          <h2 className="font-heading text-xl font-semibold break-words">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h2 className="font-heading text-2xl font-bold tracking-tight break-words">
             {name}
           </h2>
           {profile.occupation ? (
@@ -52,9 +52,9 @@ export async function ProfileOverview() {
       <div className="grid gap-6 lg:grid-cols-2">
         <section
           aria-labelledby="profile-pillars"
-          className="flex flex-col gap-4 rounded-xl border bg-card p-5 sm:p-6"
+          className="flex flex-col gap-4 rounded-3xl glass p-5 sm:p-6"
         >
-          <h2 id="profile-pillars" className="font-heading font-semibold">
+          <h2 id="profile-pillars" className="font-heading text-lg font-bold">
             {t("pillarsTitle")}
           </h2>
           <ul className="flex flex-wrap gap-2">
@@ -63,7 +63,7 @@ export async function ProfileOverview() {
               return (
                 <li
                   key={pillar}
-                  className="flex items-center gap-2 rounded-lg border bg-background/40 px-3 py-1.5 text-sm font-medium"
+                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium"
                 >
                   <Icon aria-hidden="true" className="size-4 text-silver" />
                   {tPillars(`${pillar}.name`)}
@@ -72,9 +72,9 @@ export async function ProfileOverview() {
             })}
           </ul>
           {time ? (
-            <dl className="mt-auto flex items-baseline justify-between gap-4 border-t pt-4 text-sm">
+            <dl className="mt-auto flex items-baseline justify-between gap-4 border-t border-white/5 pt-4 text-sm">
               <dt className="text-muted-foreground">{t("dailyTime")}</dt>
-              <dd className="font-medium">
+              <dd className="font-mono font-medium">
                 {tOnboarding(`time.options.${time.key}`)}
               </dd>
             </dl>
@@ -83,12 +83,12 @@ export async function ProfileOverview() {
 
         <section
           aria-labelledby="profile-starting-point"
-          className="flex flex-col gap-4 rounded-xl border bg-card p-5 sm:p-6"
+          className="flex flex-col gap-4 rounded-3xl glass p-5 sm:p-6"
         >
           <div className="flex flex-col gap-1">
             <h2
               id="profile-starting-point"
-              className="font-heading font-semibold"
+              className="font-heading text-lg font-bold"
             >
               {t("startingPointTitle")}
             </h2>
@@ -96,30 +96,33 @@ export async function ProfileOverview() {
               {t("startingPointDescription")}
             </p>
           </div>
-          <ul className="flex flex-col gap-4">
+          {/* Une bulle par pilier, l'anneau rempli selon la note sur 5 */}
+          <ul className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
             {assessments.map(({ pillar, score }) => {
-              const Icon = pillarIcons[pillar];
               const level = ASSESSMENT_LEVELS.find(
                 (item) => item.score === score,
               );
               return (
-                <li key={pillar} className="flex flex-col gap-2">
-                  <div className="flex items-baseline justify-between gap-3 text-sm">
-                    <span className="flex items-center gap-2 font-medium">
-                      <Icon aria-hidden="true" className="size-4 text-silver" />
-                      {tPillars(`${pillar}.name`)}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {level
-                        ? `${tOnboarding(`situation.levels.${level.key}`)} · `
-                        : null}
+                <li
+                  key={pillar}
+                  className="flex flex-col items-center gap-2 text-center"
+                >
+                  <ProgressRing value={score / 5} className="size-16 p-1">
+                    <span className="font-mono text-sm font-bold">
                       {t("score", { score })}
                     </span>
-                  </div>
-                  <Progress
-                    value={score * 20}
-                    aria-label={tPillars(`${pillar}.name`)}
-                  />
+                  </ProgressRing>
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold">
+                      {tPillars(`${pillar}.name`)}
+                    </span>
+                    {level ? (
+                      <span className="text-xs text-muted-foreground">
+                        {tOnboarding(`situation.levels.${level.key}`)}
+                      </span>
+                    ) : null}
+                    <span className="sr-only">{t("score", { score })}</span>
+                  </span>
                 </li>
               );
             })}
@@ -133,10 +136,10 @@ export async function ProfileOverview() {
 export function ProfileOverviewSkeleton() {
   return (
     <div className="flex flex-col gap-6">
-      <Skeleton className="h-[104px] rounded-xl" />
+      <Skeleton className="h-[112px] rounded-3xl" />
       <div className="grid gap-6 lg:grid-cols-2">
-        <Skeleton className="h-48 rounded-xl" />
-        <Skeleton className="h-48 rounded-xl" />
+        <Skeleton className="h-56 rounded-3xl" />
+        <Skeleton className="h-56 rounded-3xl" />
       </div>
     </div>
   );

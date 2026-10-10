@@ -6,7 +6,7 @@ export function SiteFooter() {
   const t = useTranslations("Marketing.footer");
 
   return (
-    <footer className="border-t border-border/60">
+    <footer className="border-t border-white/5">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex flex-col gap-2">
           <Logo />

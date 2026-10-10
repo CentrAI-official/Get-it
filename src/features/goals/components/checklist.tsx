@@ -48,12 +48,16 @@ export function ChecklistItem({
   return (
     <li
       className={cn(
-        "flex items-center gap-3 rounded-lg border bg-card/60 py-1.5 pr-1.5 pl-3 transition-opacity",
+        "flex items-center gap-3 rounded-2xl border py-1.5 pr-1.5 pl-3 transition-[opacity,background-color,border-color]",
+        optimisticDone
+          ? "border-primary/30 bg-primary/[0.07]"
+          : "border-white/8 bg-white/[0.035]",
         isDeleting && "opacity-50",
       )}
     >
       <Checkbox
         id={checkboxId}
+        className="size-6 rounded-full border-2 border-white/20 data-checked:glow-primary [&_svg]:size-3.5"
         checked={optimisticDone}
         onCheckedChange={(checked) =>
           startToggle(async () => {
@@ -150,8 +154,12 @@ export function AddItemForm({
         />
         <div className="flex gap-2">
           {dateLabel ? (
-            <>
-              <label htmlFor={`${idPrefix}-date`} className="sr-only">
+            // Libellé visible quand la date passe sous le titre ; masqué sur une seule ligne
+            <div className="flex min-w-0 flex-1 flex-col gap-1 @lg:w-44 @lg:flex-none">
+              <label
+                htmlFor={`${idPrefix}-date`}
+                className="text-xs text-muted-foreground @lg:sr-only"
+              >
                 {dateLabel}
               </label>
               <Input
@@ -160,15 +168,15 @@ export function AddItemForm({
                 type="date"
                 title={dateLabel}
                 defaultValue={state.values?.dueDate ?? defaultDate}
-                className="h-10 min-w-0 flex-1 @lg:w-44 @lg:flex-none"
+                className="h-10"
               />
-            </>
+            </div>
           ) : null}
           <Button
             type="submit"
             variant="secondary"
             disabled={pending}
-            className="h-10"
+            className="h-10 self-end"
           >
             <Plus aria-hidden="true" />
             {submitLabel}

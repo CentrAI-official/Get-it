@@ -10,15 +10,11 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-glow"
-      />
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 pt-16 pb-20 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:pt-24 lg:pb-28">
         <div className="flex flex-col items-start gap-7">
           <Badge
             variant="outline"
-            className="h-7 border-primary/30 bg-primary/10 px-3 text-primary"
+            className="h-7 border-white/10 bg-white/5 px-3 font-mono text-[0.7rem] tracking-[0.14em] text-silver uppercase"
           >
             {t("eyebrow")}
           </Badge>

@@ -1,7 +1,9 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { useFormatter, useLocale, useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
+import { PercentValue } from "@/components/percent-value";
+import { ringBackground } from "@/components/progress-ring";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { cn } from "@/lib/utils";
 import { ratio, type Progress } from "../day-plan";
@@ -21,32 +23,6 @@ const ANGLES: Record<Pillar, number> = {
 const toX = (px: number) => `${(px / BOX.width) * 100}%`;
 const toY = (px: number) => `${(px / BOX.height) * 100}%`;
 
-/** Anneau orange rempli selon la part faite (0 à 1), en partant du haut. */
-function ringBackground(part: number) {
-  const end = Math.round(part * 100);
-  return `conic-gradient(var(--primary) 0 ${end}%, rgb(255 255 255 / 0.12) ${end}% 100%)`;
-}
-
-/**
- * Pourcentage d'affichage : le nombre en grand, le signe en petit et sans espace
- * (les libellés accessibles gardent le format complet de la langue).
- */
-function PercentValue({ part }: { part: number }) {
-  const locale = useLocale();
-  const parts = new Intl.NumberFormat(locale, { style: "percent" }).formatToParts(
-    part,
-  );
-  return parts.map((item, index) =>
-    item.type === "percentSign" ? (
-      <span key={index} className="ml-[0.06em] text-[0.62em]">
-        {item.value}
-      </span>
-    ) : item.type === "literal" && !item.value.trim() ? null : (
-      item.value
-    ),
-  );
-}
-
 type SystemOrbitProps = {
   /** Score de chaque pilier, de 0 à 100 ; null tant qu'il n'y a pas de données. */
   scores: Record<Pillar, number | null>;
@@ -54,6 +30,8 @@ type SystemOrbitProps = {
   pillars: Record<Pillar, Progress>;
   filter: Pillar | null;
   onFilterChange: (pillar: Pillar | null) => void;
+  /** Affiche l'explication du calcul du score (masquée dans l'aperçu du site). */
+  explain?: boolean;
   className?: string;
 };
 
@@ -68,6 +46,7 @@ export function SystemOrbit({
   pillars,
   filter,
   onFilterChange,
+  explain = true,
   className,
 }: SystemOrbitProps) {
   const t = useTranslations("Today.system");
@@ -78,7 +57,10 @@ export function SystemOrbit({
   return (
     <section
       aria-labelledby="system-title"
-      className={cn("glass flex flex-col gap-2 rounded-3xl p-4 sm:p-5", className)}
+      className={cn(
+        "flex flex-col gap-2 rounded-3xl glass p-4 sm:p-5",
+        className,
+      )}
     >
       <div className="flex min-h-8 items-center justify-between gap-3">
         <h2 id="system-title" className="font-heading font-semibold">
@@ -205,18 +187,20 @@ export function SystemOrbit({
       </div>
 
       <p className="text-center text-xs text-muted-foreground">{t("hint")}</p>
-      <details className="group text-xs text-muted-foreground">
-        <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1 rounded-md outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
-          <ChevronRight
-            aria-hidden="true"
-            className="size-3.5 transition-transform group-open:rotate-90"
-          />
-          {t("howTitle")}
-        </summary>
-        <p className="mx-auto mt-2 max-w-sm text-center text-pretty">
-          {t("how")}
-        </p>
-      </details>
+      {explain ? (
+        <details className="group text-xs text-muted-foreground">
+          <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1 rounded-md outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">
+            <ChevronRight
+              aria-hidden="true"
+              className="size-3.5 transition-transform group-open:rotate-90"
+            />
+            {t("howTitle")}
+          </summary>
+          <p className="mx-auto mt-2 max-w-sm text-center text-pretty">
+            {t("how")}
+          </p>
+        </details>
+      ) : null}
     </section>
   );
 }

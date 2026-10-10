@@ -28,15 +28,17 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <Empty className={cn("border bg-card/40 py-14", className)}>
+    <Empty className={cn("rounded-3xl border-solid glass py-14", className)}>
       <EmptyHeader>
         <EmptyMedia
           variant="icon"
-          className="size-11 rounded-xl bg-primary/10 text-primary [&_svg:not([class*='size-'])]:size-5"
+          className="size-12 rounded-2xl bg-primary/15 text-primary glow-primary [&_svg:not([class*='size-'])]:size-5"
         >
           <Icon aria-hidden="true" />
         </EmptyMedia>
-        <EmptyTitle className="text-base">{title}</EmptyTitle>
+        <EmptyTitle className="font-heading text-lg font-semibold">
+          {title}
+        </EmptyTitle>
         <EmptyDescription>{description}</EmptyDescription>
       </EmptyHeader>
       {action ? <EmptyContent>{action}</EmptyContent> : null}
