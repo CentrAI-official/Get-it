@@ -1,31 +1,35 @@
 "use client";
 
-import { Flame, Zap } from "lucide-react";
+import { Flame } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { Progress } from "@/components/ui/progress";
+import type { LevelProgress } from "@/features/xp/rules";
 import { cn } from "@/lib/utils";
 
 type DayTilesProps = {
   /** Meilleure série en cours, toutes habitudes confondues. */
   streak: number;
-  /** Énergie du check-in du jour (1 à 5), ou null s'il n'est pas fait. */
-  energy: number | null;
+  /** Niveau actuel et avancement vers le suivant. */
+  level: LevelProgress;
   className?: string;
 };
 
 const tile =
-  "flex min-w-0 items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.035] p-3.5";
+  "flex min-w-0 rounded-2xl border border-white/8 bg-white/[0.035] p-3.5";
 
-/** « En bref » : la série en cours et l'énergie du jour. */
-export function DayTiles({ streak, energy, className }: DayTilesProps) {
+/** « En bref » : la série en cours et le chemin vers le prochain niveau. */
+export function DayTiles({ streak, level, className }: DayTilesProps) {
   const t = useTranslations("Today.tiles");
-  const tCheckIn = useTranslations("Today.checkIn");
+  const tXp = useTranslations("Xp");
+  const left = level.needed - level.current;
+  const next = level.level + 1;
 
   return (
     <section
       aria-label={t("label")}
       className={cn("grid grid-cols-2 gap-3", className)}
     >
-      <div className={tile}>
+      <div className={cn(tile, "items-center gap-3")}>
         <Flame
           aria-hidden="true"
           className={cn(
@@ -43,35 +47,20 @@ export function DayTiles({ streak, energy, className }: DayTilesProps) {
         </div>
       </div>
 
-      {energy !== null ? (
-        <div className={tile}>
-          <Zap aria-hidden="true" className="size-7 shrink-0 text-silver" />
-          <div className="flex min-w-0 flex-col">
-            <span className="font-mono text-xl font-bold">
-              {tCheckIn("score", { score: energy })}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {t("energyLabel")}
-            </span>
-          </div>
+      <div className={cn(tile, "flex-col justify-center gap-2")}>
+        <div className="flex flex-wrap items-baseline justify-between gap-x-2">
+          <span className="text-xs text-muted-foreground">
+            {tXp("toLevel", { level: next })}
+          </span>
+          <span className="font-mono text-xs font-bold text-primary">
+            {tXp("xp", { xp: left })}
+          </span>
         </div>
-      ) : (
-        <a
-          href="#check-in"
-          className={cn(
-            tile,
-            "transition-colors outline-none hover:border-primary/40 focus-visible:ring-3 focus-visible:ring-ring/50",
-          )}
-        >
-          <Zap aria-hidden="true" className="size-7 shrink-0 text-primary" />
-          <div className="flex min-w-0 flex-col">
-            <span className="font-mono text-xl font-bold">{t("checkIn")}</span>
-            <span className="text-xs text-muted-foreground">
-              {t("checkInLabel")}
-            </span>
-          </div>
-        </a>
-      )}
+        <Progress
+          value={Math.round(level.progress * 100)}
+          aria-label={tXp("toLevelLabel", { xp: left, level: next })}
+        />
+      </div>
     </section>
   );
 }

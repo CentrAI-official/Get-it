@@ -173,8 +173,6 @@
     "profile": {
       "title": "Profile",
       "question": "Who am I becoming?",
-      "emptyTitle": "Your level and badges",
-      "emptyDescription": "Your achievements will appear here as you progress.",
       "memberSince": "Member since {date, date, long}",
       "pillarsTitle": "Your priority pillars",
       "dailyTime": "Time per day",
@@ -559,10 +557,7 @@
     "tiles": {
       "label": "At a glance",
       "streak": "{count, number} d",
-      "streakLabel": "Best current streak",
-      "energyLabel": "Today’s energy",
-      "checkIn": "Check-in",
-      "checkInLabel": "Take stock in 30 seconds"
+      "streakLabel": "Best current streak"
     },
     "quests": {
       "title": "Today’s quests",
@@ -578,7 +573,10 @@
       "empty": "Nothing planned today. Add a task below or create a habit to get started.",
       "emptyFiltered": "No {pillar} quests today.",
       "showAll": "Show all quests",
-      "createHabit": "Create a habit"
+      "createHabit": "Create a habit",
+      "xpReward": "+{xp, number} XP",
+      "xpEarned": "{xp, number} XP",
+      "withStreak": "{meta} · {count, number}-day streak"
     },
     "checkIn": {
       "title": "Daily check-in",
@@ -612,6 +610,45 @@
         "incomplete": "Rate each item from 1 to 5.",
         "unexpected": "Something went wrong. Try again in a moment."
       }
+    }
+  },
+  "Xp": {
+    "level": "Level {level, number}",
+    "xp": "{xp, number} XP",
+    "badgeLabel": "Level {level, number}, {xp, number} XP. See your progress",
+    "toLevel": "To level {level, number}",
+    "toLevelLabel": "{xp, number} XP to go before level {level, number}",
+    "levelUp": {
+      "title": "Level {level, number} reached!",
+      "body": "Your actions are paying off. Keep it up.",
+      "close": "Close"
+    }
+  },
+  "Progress": {
+    "title": "Your progress",
+    "pillarsTitle": "Your level in each pillar",
+    "pillarsDescription": "Each pillar levels up with the XP from its habits, and from the tasks, milestones and goals linked to it.",
+    "xpChart": {
+      "title": "XP over the last 14 days",
+      "chartLabel": "XP earned each day over 14 days. Use the left and right arrows to browse.",
+      "dayValue": "{date}: {xp, number} XP",
+      "today": "Today",
+      "empty": "Check off your first quests: your XP will show up here.",
+      "table": "Show the data",
+      "colDay": "Day",
+      "colXp": "XP"
+    },
+    "checkIns": {
+      "title": "Your check-ins",
+      "description": "The last 14 days, rated out of 5.",
+      "chartLabel": "{metric} over 14 days. Use the left and right arrows to browse.",
+      "dayValue": "{date}: {score, number}/5",
+      "noValue": "{date}: no check-in",
+      "average": "Average {value}/5",
+      "empty": "Do your check-in every day to follow your mood, energy, stress and sleep here.",
+      "emptyCta": "Do my check-in",
+      "table": "Show the data",
+      "colDay": "Day"
     }
   },
   "NotFound": {

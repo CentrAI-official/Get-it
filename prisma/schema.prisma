@@ -61,6 +61,7 @@ model Profile {
   habits      Habit[]
   checkIns    DailyCheckIn[]
   assessments PillarAssessment[]
+  xpEvents    XpEvent[]
 
   @@map("profiles")
 }
@@ -100,6 +101,8 @@ model Goal {
   milestones GoalMilestone[]
   tasks      Task[]
   habits     Habit[]
+  /// XP de l'objectif atteint.
+  xpEvent    XpEvent?
 
   @@index([userId, status])
   @@map("goals")
@@ -116,7 +119,8 @@ model GoalMilestone {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  goal    Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  xpEvent XpEvent?
 
   @@index([goalId, position])
   @@map("goal_milestones")
@@ -134,8 +138,9 @@ model Task {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal    Goal?   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal    Goal?    @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  xpEvent XpEvent?
 
   @@index([userId, completedAt])
   @@index([goalId])
@@ -187,7 +192,8 @@ model HabitCompletion {
   day       DateTime @db.Date
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  xpEvent XpEvent?
 
   @@unique([habitId, day])
   @@map("habit_completions")
@@ -207,8 +213,48 @@ model DailyCheckIn {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xpEvent XpEvent?
 
   @@unique([userId, day])
   @@map("daily_check_ins")
+}
+
+/// Action qui rapporte de l'XP (§6).
+enum XpSource {
+  habit_day
+  task
+  milestone
+  goal
+  check_in
+}
+
+/// XP gagnée par une action (§54 XPEvent). Chaque ligne pointe vers son action
+/// (une seule) : annuler ou supprimer l'action retire son XP (cascade).
+model XpEvent {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  userId            String   @map("user_id") @db.Uuid
+  source            XpSource
+  amount            Int      @db.SmallInt
+  /// Pilier crédité ; null pour une action sans pilier (check-in, tâche sans objectif).
+  pillar            Pillar?
+  /// Jour où l'XP compte, dans le fuseau de l'utilisateur (plafond quotidien, historique).
+  day               DateTime @db.Date
+  habitCompletionId String?  @unique @map("habit_completion_id") @db.Uuid
+  taskId            String?  @unique @map("task_id") @db.Uuid
+  milestoneId       String?  @unique @map("milestone_id") @db.Uuid
+  goalId            String?  @unique @map("goal_id") @db.Uuid
+  checkInId         String?  @unique @map("check_in_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitCompletion HabitCompletion? @relation(fields: [habitCompletionId], references: [id], onDelete: Cascade)
+  task            Task?            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  milestone       GoalMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  goal            Goal?            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  checkIn         DailyCheckIn?    @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+
+  @@index([userId, day])
+  @@index([userId, source, day])
+  @@map("xp_events")
 }

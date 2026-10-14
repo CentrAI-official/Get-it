@@ -1,8 +1,10 @@
 import "server-only";
 import type { Pillar } from "@/config/pillars";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
+import { habitDayXp } from "@/features/xp/rules";
 import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
+import { awardHabitDay } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus : un utilisateur
 // ne lit et ne modifie que ses propres habitudes.
@@ -115,11 +117,19 @@ export async function updateHabit(
   input: HabitFields,
 ) {
   if (!(await canLinkGoal(userId, input.goalId))) return false;
-  const { count } = await db.habit.updateMany({
-    where: { id: habitId, userId },
-    data: toHabitData(input),
+  return db.$transaction(async (tx) => {
+    const { count } = await tx.habit.updateMany({
+      where: { id: habitId, userId },
+      data: toHabitData(input),
+    });
+    if (count === 0) return false;
+    // L'XP déjà gagnée suit le pilier de l'habitude
+    await tx.xpEvent.updateMany({
+      where: { userId, habitCompletion: { habitId } },
+      data: { pillar: input.pillar },
+    });
+    return true;
   });
-  return count > 0;
 }
 
 /** Met en pause (archive) ou reprend une habitude. */
@@ -154,7 +164,7 @@ export async function setHabitDay(
 ) {
   const habit = await db.habit.findFirst({
     where: { id: input.habitId, userId, archivedAt: null },
-    select: { createdAt: true },
+    select: { createdAt: true, pillar: true, weekdays: true },
   });
   if (!habit) return false;
 
@@ -167,12 +177,22 @@ export async function setHabitDay(
 
   const day = toDbDate(input.day);
   if (input.done) {
-    await db.habitCompletion.upsert({
-      where: { habitId_day: { habitId: input.habitId, day } },
-      update: {},
-      create: { habitId: input.habitId, day },
+    await db.$transaction(async (tx) => {
+      const completion = await tx.habitCompletion.upsert({
+        where: { habitId_day: { habitId: input.habitId, day } },
+        update: {},
+        create: { habitId: input.habitId, day },
+        select: { id: true },
+      });
+      await awardHabitDay(tx, completion.id, {
+        userId,
+        amount: habitDayXp(habit.weekdays, input.day),
+        pillar: habit.pillar,
+        day: input.day,
+      });
     });
   } else {
+    // L'XP du jour part avec lui (cascade)
     await db.habitCompletion.deleteMany({
       where: { habitId: input.habitId, day },
     });

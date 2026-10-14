@@ -1,25 +1,40 @@
 import { getTranslations } from "next-intl/server";
+import type { ReactNode } from "react";
 import { ProgressRing } from "@/components/progress-ring";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
 import {
   ASSESSMENT_LEVELS,
   DAILY_MINUTES_OPTIONS,
 } from "@/features/onboarding/schemas";
+import { levelFromXp } from "@/features/xp/rules";
 import {
   getCurrentProfile,
   getLatestAssessments,
 } from "@/server/profile/service";
+import { getXpTotals } from "@/server/xp/service";
 
-/** Identité, piliers prioritaires et point de départ. Lit la session : à placer dans un <Suspense>. */
-export async function ProfileOverview() {
+/**
+ * Identité et niveau, progression (passée en `progression`), piliers
+ * prioritaires et point de départ. Lit la session : à placer dans un <Suspense>.
+ */
+export async function ProfileOverview({
+  progression,
+}: {
+  progression: ReactNode;
+}) {
   const profile = await getCurrentProfile();
-  const [assessments, t, tPillars, tOnboarding] = await Promise.all([
+  const [assessments, xp, t, tXp, tPillars, tOnboarding] = await Promise.all([
     getLatestAssessments(profile.id),
+    getXpTotals(profile.id),
     getTranslations("App.profile"),
+    getTranslations("Xp"),
     getTranslations("Pillars"),
     getTranslations("Onboarding"),
   ]);
+  const level = levelFromXp(xp.total);
+  const left = level.needed - level.current;
   const name = profile.displayName ?? profile.email ?? "";
   const time = DAILY_MINUTES_OPTIONS.find(
     (option) => option.minutes === profile.dailyMinutes,
@@ -27,27 +42,57 @@ export async function ProfileOverview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4 rounded-3xl glass p-5 sm:gap-5 sm:p-6">
-        <span
-          aria-hidden="true"
-          className="flex size-16 shrink-0 items-center justify-center rounded-full border border-white/15 orb font-heading text-2xl font-bold uppercase sm:size-20 sm:text-3xl"
-        >
-          {name.charAt(0)}
-        </span>
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="font-heading text-2xl font-bold tracking-tight break-words">
-            {name}
-          </h2>
-          {profile.occupation ? (
-            <p className="text-muted-foreground">
-              {tOnboarding(`about.occupations.${profile.occupation}`)}
+      <div className="flex flex-col gap-5 rounded-3xl glass p-5 sm:p-6">
+        <div className="flex items-center gap-4 sm:gap-5">
+          {/* L'anneau autour de l'initiale avance avec le niveau */}
+          <ProgressRing
+            value={level.progress}
+            className="size-20 p-1 sm:size-24"
+          >
+            <span className="font-heading text-2xl font-bold uppercase sm:text-3xl">
+              {name.charAt(0)}
+            </span>
+          </ProgressRing>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h2 className="font-heading text-2xl font-bold tracking-tight break-words">
+              {name}
+            </h2>
+            {profile.occupation ? (
+              <p className="text-muted-foreground">
+                {tOnboarding(`about.occupations.${profile.occupation}`)}
+              </p>
+            ) : null}
+            <p className="text-sm text-muted-foreground">
+              {t("memberSince", { date: profile.createdAt })}
             </p>
-          ) : null}
-          <p className="text-sm text-muted-foreground">
-            {t("memberSince", { date: profile.createdAt })}
-          </p>
+          </div>
+        </div>
+        {/* Niveau global et chemin vers le suivant */}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <p className="flex items-baseline gap-3">
+              <span className="font-heading text-xl font-bold">
+                {tXp("level", { level: level.level })}
+              </span>
+              <span className="font-mono text-sm font-bold text-primary">
+                {tXp("xp", { xp: xp.total })}
+              </span>
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {tXp("toLevelLabel", { xp: left, level: level.level + 1 })}
+            </p>
+          </div>
+          <Progress
+            value={Math.round(level.progress * 100)}
+            aria-label={tXp("toLevelLabel", {
+              xp: left,
+              level: level.level + 1,
+            })}
+          />
         </div>
       </div>
+
+      {progression}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section
@@ -136,7 +181,8 @@ export async function ProfileOverview() {
 export function ProfileOverviewSkeleton() {
   return (
     <div className="flex flex-col gap-6">
-      <Skeleton className="h-[112px] rounded-3xl" />
+      <Skeleton className="h-[188px] rounded-3xl" />
+      <Skeleton className="h-40 rounded-3xl" />
       <div className="grid gap-6 lg:grid-cols-2">
         <Skeleton className="h-56 rounded-3xl" />
         <Skeleton className="h-56 rounded-3xl" />

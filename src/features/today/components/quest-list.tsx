@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  Check,
-  Flame,
-  LoaderCircle,
-  Plus,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { Check, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Pillar } from "@/config/pillars";
 import { AddItemForm } from "@/features/goals/components/checklist";
@@ -25,6 +18,8 @@ type QuestBase = {
   id: string;
   title: string;
   done: boolean;
+  /** XP rapportée (ou déjà gagnée) ; 0 au-delà du plafond quotidien de tâches. */
+  xp: number;
 };
 
 export type HabitQuest = QuestBase & {
@@ -205,8 +200,14 @@ export function QuestRow({
 }: QuestRowProps) {
   const t = useTranslations("Today.quests");
   const tPillars = useTranslations("Pillars");
-  const tHabits = useTranslations("Habits");
   const format = useFormatter();
+  // Chaque coche qui rapporte de l'XP relance la petite animation « +10 XP »
+  const [burst, setBurst] = useState(0);
+
+  function toggle() {
+    if (!quest.done && quest.xp > 0) setBurst((count) => count + 1);
+    onToggle();
+  }
 
   function taskMeta(task: TaskQuest) {
     const due =
@@ -225,15 +226,19 @@ export function QuestRow({
       : due;
   }
 
-  const meta =
-    quest.kind === "habit"
-      ? t("habit", { pillar: tPillars(`${quest.pillar}.name`) })
-      : taskMeta(quest);
+  function habitMeta(habit: HabitQuest) {
+    const meta = t("habit", { pillar: tPillars(`${habit.pillar}.name`) });
+    return habit.streak > 0
+      ? t("withStreak", { meta, count: habit.streak })
+      : meta;
+  }
+
+  const meta = quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
 
   return (
     <li
       className={cn(
-        "flex items-center gap-2 rounded-2xl border p-2 transition-colors duration-200",
+        "relative flex items-center gap-2 rounded-2xl border p-2 transition-colors duration-200",
         quest.done
           ? "border-primary/30 bg-primary/[0.07]"
           : "border-white/8 bg-white/[0.035]",
@@ -242,7 +247,7 @@ export function QuestRow({
       <button
         type="button"
         aria-pressed={quest.done}
-        onClick={onToggle}
+        onClick={toggle}
         className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <span
@@ -280,25 +285,38 @@ export function QuestRow({
         </span>
       </button>
 
-      {quest.kind === "habit" ? (
+      {quest.xp > 0 ? (
         <span
-          title={tHabits("streak", { count: quest.streak })}
           className={cn(
-            "mr-1 flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-mono text-xs font-bold transition-colors",
+            "flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-mono text-xs font-bold transition-colors",
+            quest.kind === "habit" && "mr-1",
             quest.done
               ? "bg-primary text-primary-foreground"
-              : quest.streak > 0
-                ? "bg-primary/12 text-primary"
-                : "bg-white/5 text-muted-foreground",
+              : "bg-primary/12 text-primary",
           )}
         >
-          <Flame aria-hidden="true" className="size-3.5" />
-          <span aria-hidden="true">{quest.streak}</span>
-          <span className="sr-only">
-            {tHabits("streak", { count: quest.streak })}
-          </span>
+          {quest.done ? (
+            <>
+              <Check aria-hidden="true" className="size-3" strokeWidth={3} />
+              {t("xpEarned", { xp: quest.xp })}
+            </>
+          ) : (
+            t("xpReward", { xp: quest.xp })
+          )}
         </span>
-      ) : onDelete ? (
+      ) : null}
+      {burst > 0 ? (
+        // Retiré à la fin de l'animation ; jamais affiché si les animations sont réduites
+        <span
+          key={burst}
+          aria-hidden="true"
+          onAnimationEnd={() => setBurst(0)}
+          className="pointer-events-none absolute -top-2 right-12 hidden font-mono text-sm font-bold text-primary opacity-0 motion-safe:block motion-safe:animate-xp-float"
+        >
+          {t("xpReward", { xp: quest.xp })}
+        </span>
+      ) : null}
+      {quest.kind === "task" && onDelete ? (
         <Button
           type="button"
           variant="ghost"

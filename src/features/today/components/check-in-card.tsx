@@ -6,6 +6,7 @@ import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import { useActionState, useId, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { XP_REWARDS } from "@/features/xp/rules";
 import { saveCheckInAction } from "../actions";
 import {
   CHECK_IN_METRICS,
@@ -18,17 +19,18 @@ const SCORES = [1, 2, 3, 4, 5] as const;
 /** Check-in du jour : formulaire, puis résumé modifiable une fois enregistré. */
 export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
   const t = useTranslations("Today.checkIn");
+  const tQuests = useTranslations("Today.quests");
   const [editing, setEditing] = useState(saved === null);
 
   return (
     <section
       id="check-in"
       aria-labelledby="check-in-title"
-      className="glass flex scroll-mt-24 flex-col gap-4 rounded-3xl p-4 sm:p-5"
+      className="flex scroll-mt-24 flex-col gap-4 rounded-3xl glass p-4 sm:p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 id="check-in-title" className="font-heading font-semibold">
+          <h2 id="check-in-title" className="font-heading text-lg font-bold">
             {t("title")}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -50,6 +52,11 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
             <Pencil aria-hidden="true" />
             {t("edit")}
           </Button>
+        ) : saved === null ? (
+          // Le premier check-in du jour rapporte de l'XP
+          <span className="shrink-0 rounded-lg bg-primary/12 px-2 py-1 font-mono text-xs font-bold text-primary">
+            {tQuests("xpReward", { xp: XP_REWARDS.checkIn })}
+          </span>
         ) : null}
       </div>
 

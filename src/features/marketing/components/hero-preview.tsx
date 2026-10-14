@@ -11,6 +11,7 @@ import {
 } from "@/features/today/components/quest-list";
 import { SystemOrbit } from "@/features/today/components/system-orbit";
 import { summarizeDay } from "@/features/today/day-plan";
+import { XP_REWARDS } from "@/features/xp/rules";
 
 // Valeurs d'illustration pour la page d'accueil : ce ne sont pas des données utilisateur.
 const EXAMPLE = {
@@ -64,6 +65,7 @@ export function HeroPreview() {
       title: t(`tasks.${quest.key}`),
       pillar: quest.pillar,
       done: isDone,
+      xp: XP_REWARDS.habitScheduled,
       late: false,
       streak: quest.streak + (isDone ? 1 : 0),
     };

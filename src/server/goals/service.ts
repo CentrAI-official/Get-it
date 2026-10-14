@@ -1,8 +1,11 @@
 import "server-only";
 import type { Pillar } from "@/config/pillars";
 import type { GoalStatus } from "@/features/goals/schemas";
-import { fromDbDate, toDbDate } from "@/lib/dates";
+import { XP_REWARDS } from "@/features/xp/rules";
+import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
+import { getUserTimeZone } from "@/server/profile/service";
+import { awardGoal, awardMilestone, revokeXp } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus : un utilisateur
 // ne lit et ne modifie que ses propres objectifs et jalons.
@@ -153,14 +156,28 @@ export async function updateGoal(
   goalId: string,
   input: GoalFields,
 ) {
-  const { count } = await db.goal.updateMany({
-    where: { id: goalId, userId },
-    data: toGoalData(input),
+  return db.$transaction(async (tx) => {
+    const { count } = await tx.goal.updateMany({
+      where: { id: goalId, userId },
+      data: toGoalData(input),
+    });
+    if (count === 0) return false;
+    // L'XP déjà gagnée (objectif, jalons, tâches) suit le pilier de l'objectif
+    await tx.xpEvent.updateMany({
+      where: {
+        userId,
+        OR: [{ goalId }, { milestone: { goalId } }, { task: { goalId } }],
+      },
+      data: { pillar: input.pillar },
+    });
+    return true;
   });
-  return count > 0;
 }
 
-/** Atteint, repris ou archivé. Archiver garde la date d'atteinte. */
+/**
+ * Atteint (+ XP), repris (XP retirée) ou archivé. Archiver garde la date
+ * d'atteinte et l'XP.
+ */
 export async function setGoalStatus(
   userId: string,
   goalId: string,
@@ -172,11 +189,31 @@ export async function setGoalStatus(
       : status === "active"
         ? { status, completedAt: null }
         : { status };
-  const { count } = await db.goal.updateMany({
-    where: { id: goalId, userId },
-    data,
+  const timeZone =
+    status === "completed" ? await getUserTimeZone(userId) : null;
+
+  return db.$transaction(async (tx) => {
+    const { count } = await tx.goal.updateMany({
+      where: { id: goalId, userId },
+      data,
+    });
+    if (count === 0) return false;
+    if (timeZone) {
+      const goal = await tx.goal.findUniqueOrThrow({
+        where: { id: goalId },
+        select: { pillar: true },
+      });
+      await awardGoal(tx, goalId, {
+        userId,
+        amount: XP_REWARDS.goal,
+        pillar: goal.pillar,
+        day: toCalendarDay(new Date(), timeZone),
+      });
+    } else if (status === "active") {
+      await revokeXp(tx, userId, { goalId });
+    }
+    return true;
   });
-  return count > 0;
 }
 
 /** Supprime un objectif, ses jalons et ses tâches (cascade). */
@@ -222,14 +259,35 @@ export async function setMilestoneDone(
   milestoneId: string,
   done: boolean,
 ) {
-  await db.goalMilestone.updateMany({
-    // Déjà terminé : la date d'origine est conservée
-    where: {
-      id: milestoneId,
-      goal: { userId },
-      ...(done ? { completedAt: null } : {}),
-    },
-    data: { completedAt: done ? new Date() : null },
+  if (!done) {
+    await db.$transaction(async (tx) => {
+      await tx.goalMilestone.updateMany({
+        where: { id: milestoneId, goal: { userId } },
+        data: { completedAt: null },
+      });
+      await revokeXp(tx, userId, { milestoneId });
+    });
+    return;
+  }
+
+  const timeZone = await getUserTimeZone(userId);
+  await db.$transaction(async (tx) => {
+    // Déjà terminé : la date d'origine (et son XP) sont conservées
+    const { count } = await tx.goalMilestone.updateMany({
+      where: { id: milestoneId, goal: { userId }, completedAt: null },
+      data: { completedAt: new Date() },
+    });
+    if (count === 0) return;
+    const milestone = await tx.goalMilestone.findUniqueOrThrow({
+      where: { id: milestoneId },
+      select: { goal: { select: { pillar: true } } },
+    });
+    await awardMilestone(tx, milestoneId, {
+      userId,
+      amount: XP_REWARDS.milestone,
+      pillar: milestone.goal.pillar,
+      day: toCalendarDay(new Date(), timeZone),
+    });
   });
 }
 
