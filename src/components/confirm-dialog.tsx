@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleAlert, LoaderCircle } from "lucide-react";
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-export type ConfirmState = { status: "idle" | "error" };
+/** « success » ferme la boîte (pour une action qui ne redirige pas). */
+export type ConfirmState = { status: "idle" | "error" | "success" };
 
 const initialState: ConfirmState = { status: "idle" };
 
@@ -28,7 +29,7 @@ type ConfirmDialogProps = {
   pendingLabel: string;
   cancelLabel: string;
   errorMessage: string;
-  /** Server Action exécutée à la confirmation (redirige en cas de succès). */
+  /** Server Action exécutée à la confirmation : redirige, ou renvoie « success ». */
   action: (state: ConfirmState, formData: FormData) => Promise<ConfirmState>;
   /** Champs cachés envoyés avec la confirmation (ex. la langue). */
   fields?: Record<string, string>;
@@ -46,10 +47,18 @@ export function ConfirmDialog({
   action,
   fields = {},
 }: ConfirmDialogProps) {
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [open, setOpen] = useState(false);
+  const [state, formAction, pending] = useActionState(
+    async (previous: ConfirmState, formData: FormData) => {
+      const result = await action(previous, formData);
+      if (result.status === "success") setOpen(false);
+      return result;
+    },
+    initialState,
+  );
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>{trigger}</AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

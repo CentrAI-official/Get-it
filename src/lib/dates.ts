@@ -42,3 +42,10 @@ export function lastDays(today: string, count: number): string[] {
     addDays(today, index - count + 1),
   );
 }
+
+/** Jours de `from` à `to` (négatif si `to` est avant). */
+export function daysBetween(from: string, to: string): number {
+  return Math.round(
+    (toDbDate(to).getTime() - toDbDate(from).getTime()) / 86_400_000,
+  );
+}

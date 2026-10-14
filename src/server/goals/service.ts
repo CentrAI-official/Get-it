@@ -71,6 +71,43 @@ export async function listActiveGoals(userId: string): Promise<GoalSummary[]> {
   return goals.map(toSummary);
 }
 
+/** Objectifs en cours avec leurs jalons et leurs tâches ouvertes (contexte de Get iT AI). */
+export async function listActiveGoalPlans(userId: string, limit = 6) {
+  const goals = await db.goal.findMany({
+    where: { userId, status: "active" },
+    orderBy: { createdAt: "asc" },
+    take: limit,
+    select: {
+      title: true,
+      pillar: true,
+      targetDate: true,
+      milestones: {
+        orderBy: { position: "asc" },
+        select: { title: true, completedAt: true },
+      },
+      tasks: {
+        where: { completedAt: null },
+        orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
+        take: 5,
+        select: { title: true, dueDate: true },
+      },
+    },
+  });
+  return goals.map((goal) => ({
+    title: goal.title,
+    pillar: goal.pillar,
+    targetDate: goal.targetDate ? fromDbDate(goal.targetDate) : null,
+    milestones: goal.milestones.map((milestone) => ({
+      title: milestone.title,
+      done: milestone.completedAt !== null,
+    })),
+    openTasks: goal.tasks.map((task) => ({
+      title: task.title,
+      dueDate: task.dueDate ? fromDbDate(task.dueDate) : null,
+    })),
+  }));
+}
+
 export type GoalDetail = GoalSummary & {
   description: string | null;
   completedAt: Date | null;

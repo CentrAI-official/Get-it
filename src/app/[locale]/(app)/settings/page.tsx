@@ -13,6 +13,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
 import { AccountEmail } from "@/features/settings/components/account-email";
+import {
+  AiSettings,
+  AiSettingsSkeleton,
+} from "@/features/settings/components/ai-settings";
 import { DeleteAccountDialog } from "@/features/settings/components/delete-account-dialog";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 
@@ -57,6 +61,9 @@ export default function SettingsPage() {
           <LanguageSettings labelledBy="language-settings-title" />
         </CardContent>
       </Card>
+      <Suspense fallback={<AiSettingsSkeleton />}>
+        <AiSettings />
+      </Suspense>
       <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>
           <CardTitle>{t("deleteAccount.title")}</CardTitle>

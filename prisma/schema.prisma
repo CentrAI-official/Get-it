@@ -55,28 +55,32 @@ model Profile {
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  settings    UserSettings?
-  goals       Goal[]
-  tasks       Task[]
-  habits      Habit[]
-  checkIns    DailyCheckIn[]
-  assessments PillarAssessment[]
-  xpEvents    XpEvent[]
+  settings           UserSettings?
+  goals              Goal[]
+  tasks              Task[]
+  habits             Habit[]
+  checkIns           DailyCheckIn[]
+  assessments        PillarAssessment[]
+  xpEvents           XpEvent[]
+  aiRequests         AiRequest[]
+  coachConversations CoachConversation[]
 
   @@map("profiles")
 }
 
 /// Préférences personnelles, séparées du profil public.
 model UserSettings {
-  userId       String   @id @map("user_id") @db.Uuid
+  userId       String    @id @map("user_id") @db.Uuid
   /// Langue choisie : suit l'utilisateur sur tous ses appareils (web et future app mobile).
-  locale       Locale   @default(fr)
+  locale       Locale    @default(fr)
   /// Fuseau IANA (ex. « America/Toronto ») : sert à calculer « aujourd'hui » et les séries.
-  timeZone     String   @default("America/Toronto") @map("time_zone")
+  timeZone     String    @default("America/Toronto") @map("time_zone")
   /// Temps que l'utilisateur veut investir chaque jour, en minutes.
-  dailyMinutes Int?     @map("daily_minutes")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  dailyMinutes Int?      @map("daily_minutes")
+  /// Accord pour que Get iT AI reçoive les données de l'utilisateur (Loi 25) ; null : pas d'accord.
+  aiConsentAt  DateTime? @map("ai_consent_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -257,4 +261,64 @@ model XpEvent {
   @@index([userId, day])
   @@index([userId, source, day])
   @@map("xp_events")
+}
+
+/// Usage de Get iT AI.
+enum AiRequestKind {
+  coach
+  goal_plan
+}
+
+/// Requête faite à Get iT AI : limite quotidienne et suivi des coûts (jetons).
+model AiRequest {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  userId           String        @map("user_id") @db.Uuid
+  kind             AiRequestKind
+  /// Jour dans le fuseau de l'utilisateur (limite quotidienne).
+  day              DateTime      @db.Date
+  model            String
+  inputTokens      Int           @default(0) @map("input_tokens")
+  outputTokens     Int           @default(0) @map("output_tokens")
+  cacheReadTokens  Int           @default(0) @map("cache_read_tokens")
+  cacheWriteTokens Int           @default(0) @map("cache_write_tokens")
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, day])
+  @@map("ai_requests")
+}
+
+enum CoachRole {
+  user
+  assistant
+}
+
+/// Conversation avec Get iT AI (§15).
+model CoachConversation {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// Début du premier message, pour retrouver la conversation.
+  title     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile  Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages CoachMessage[]
+
+  @@index([userId, updatedAt])
+  @@map("coach_conversations")
+}
+
+model CoachMessage {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  conversationId String    @map("conversation_id") @db.Uuid
+  role           CoachRole
+  content        String
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  conversation CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("coach_messages")
 }

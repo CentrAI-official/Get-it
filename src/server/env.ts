@@ -18,6 +18,22 @@ const serverEnvSchema = z.object({
       error:
         "doit être la clé publiable (sb_publishable_…), jamais la clé secrète",
     }),
+  // Clé de l'API Claude (console.anthropic.com) : serveur seulement. Facultative :
+  // sans elle, Get iT AI s'affiche comme « pas encore activé ».
+  ANTHROPIC_API_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .startsWith("sk-ant-", {
+        error: "doit être une clé de l'API Anthropic (sk-ant-…)",
+      })
+      .optional(),
+  ),
+  // « fake » : réponses factices pour les tests de bout en bout, sans appel payant
+  AI_PROVIDER: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.enum(["claude", "fake"]).optional(),
+  ),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -26,7 +42,24 @@ export type ServerEnv = z.infer<typeof serverEnvSchema>;
 export function parseServerEnv(
   env: Record<string, string | undefined>,
 ): ServerEnv {
+  // Une clé secrète ne doit jamais être exposée au navigateur
+  const leaked = Object.entries(env).find(
+    ([name, value]) =>
+      name.startsWith("NEXT_PUBLIC_") && value?.startsWith("sk-ant-"),
+  );
+  if (leaked) {
+    throw new Error(
+      `Variables d'environnement invalides : ${leaked[0]} contient une clé de l'API Anthropic. Les variables NEXT_PUBLIC_ sont envoyées au navigateur ; utilise ANTHROPIC_API_KEY.`,
+    );
+  }
   const result = serverEnvSchema.safeParse(env);
+  if (result.success && result.data.AI_PROVIDER === "fake") {
+    if (env.NODE_ENV === "production") {
+      throw new Error(
+        "Variables d'environnement invalides : AI_PROVIDER=fake est réservé aux tests, jamais en production.",
+      );
+    }
+  }
   if (!result.success) {
     throw new Error(
       `Variables d'environnement invalides (voir .env.example) :\n${z.prettifyError(result.error)}`,

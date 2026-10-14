@@ -160,9 +160,7 @@
     },
     "coach": {
       "title": "Get iT AI",
-      "question": "What should I do next?",
-      "emptyTitle": "Your personal coach",
-      "emptyDescription": "Get iT AI will use your goals and your progress to help you decide on your next step."
+      "question": "What should I do next?"
     },
     "community": {
       "title": "Get iT Center",
@@ -202,6 +200,23 @@
         "confirm": "Delete permanently",
         "pending": "Deleting…",
         "error": "The deletion failed. Try again in a moment."
+      },
+      "ai": {
+        "title": "Get iT AI",
+        "description": "Your personal coach only uses your data with your permission.",
+        "notConfigured": "Get iT AI isn’t enabled yet.",
+        "consentedOn": "Permission given on {date}. Get iT AI can use your data to help you.",
+        "noConsent": "No permission given: Get iT AI receives none of your data.",
+        "grant": "Allow Get iT AI",
+        "revoke": "Withdraw my permission",
+        "deleteConversations": "Delete my conversations",
+        "deleteTitle": "Delete your conversations?",
+        "deleteDescription": "{count, plural, one {Your conversation with Get iT AI will be permanently deleted.} other {Your # conversations with Get iT AI will be permanently deleted.}}",
+        "deleteConfirm": "Delete",
+        "deleting": "Deleting…",
+        "cancel": "Cancel",
+        "deleteError": "Deletion failed. Try again in a moment.",
+        "conversations": "{count, plural, =0 {No saved conversations.} one {# saved conversation.} other {# saved conversations.}}"
       }
     }
   },
@@ -472,6 +487,35 @@
       "dateInvalid": "This date isn’t valid.",
       "notFound": "This goal no longer exists.",
       "unexpected": "Something went wrong. Try again in a moment."
+    },
+    "plan": {
+      "title": "Create my plan with AI",
+      "description": "Get iT AI suggests milestones, your first tasks and habits for this goal. You choose what to keep.",
+      "consent": "Enable Get iT AI first: it needs your permission to read this goal.",
+      "consentCta": "Enable Get iT AI",
+      "generate": "Suggest a plan",
+      "again": "Suggest another plan",
+      "loading": "Get iT AI is preparing your plan… This can take about thirty seconds.",
+      "groups": {
+        "milestones": "Milestones",
+        "tasks": "First tasks",
+        "habits": "Habits"
+      },
+      "due": "{days, plural, =0 {Today} =1 {Tomorrow} other {In # days}}",
+      "apply": "{count, plural, =0 {Nothing to add} one {Add # item} other {Add # items}}",
+      "retry": "Suggest something else",
+      "cancel": "Cancel",
+      "disclaimer": "AI-generated plan: check that it suits you. For health or money, ask a professional.",
+      "added": "Plan added: {milestones, plural, one {# milestone} other {# milestones}}, {tasks, plural, one {# task} other {# tasks}} and {habits, plural, one {# habit} other {# habits}}.",
+      "errors": {
+        "notConfigured": "Get iT AI isn’t enabled yet.",
+        "consentRequired": "Enable Get iT AI first to create a plan.",
+        "notFound": "This goal can’t be found.",
+        "limitReached": "You’ve used your 20 Get iT AI requests for today. Come back tomorrow!",
+        "refused": "Get iT AI can’t create a plan for this goal. Try rewording its title or description.",
+        "unexpected": "Get iT AI couldn’t prepare your plan. Try again in a moment.",
+        "apply": "The plan couldn’t be added. Try again."
+      }
     }
   },
   "Habits": {
@@ -649,6 +693,56 @@
       "emptyCta": "Do my check-in",
       "table": "Show the data",
       "colDay": "Day"
+    }
+  },
+  "Coach": {
+    "title": "Get iT AI",
+    "newConversation": "New conversation",
+    "logLabel": "Conversation with Get iT AI",
+    "welcomeTitle": "Hi {name}, where do we start?",
+    "welcomeTitleNoName": "Hi, where do we start?",
+    "welcomeBody": "I know your goals, habits, progress and check-ins. Ask me anything or pick an idea below.",
+    "suggestions": {
+      "focus": "What should I focus on today?",
+      "week": "Help me plan my week.",
+      "progress": "Analyze my progress over the last few days.",
+      "restart": "I fell off track this week. Help me get back on it."
+    },
+    "you": "You:",
+    "thinking": "Get iT AI is writing…",
+    "refused": "Get iT AI can’t answer this request. Try phrasing it differently.",
+    "status": {
+      "truncated": "Answer cut short: ask for the rest if you need it.",
+      "stopped": "Answer stopped.",
+      "failed": "Answer interrupted."
+    },
+    "errors": {
+      "notConfigured": "Get iT AI isn’t enabled yet.",
+      "consentRequired": "Enable Get iT AI first to continue.",
+      "limitReached": "You’ve used your 20 Get iT AI requests for today. Come back tomorrow!",
+      "invalid": "This message can’t be sent. Check its length.",
+      "notFound": "This conversation no longer exists. Start a new one.",
+      "unexpected": "Get iT AI couldn’t answer. Try again in a moment."
+    },
+    "inputLabel": "Your message to Get iT AI",
+    "placeholder": "Write your message…",
+    "limitPlaceholder": "Daily limit reached: see you tomorrow!",
+    "send": "Send",
+    "stop": "Stop the answer",
+    "remaining": "{count, plural, =0 {No requests left today} one {# request left today} other {# requests left today}}",
+    "length": "{count, number}/{max, number}",
+    "disclaimer": "Educational information: not a substitute for a professional.",
+    "notConfiguredTitle": "Get iT AI is coming soon",
+    "notConfiguredDescription": "Your personal coach will use your goals, habits and check-ins to help you decide what to do next.",
+    "consent": {
+      "title": "Before we start",
+      "subtitle": "Get iT AI needs your permission to use your data.",
+      "data": "To help you, Get iT AI receives your messages and a summary of your data: your first name, pillars, goals and milestones, tasks, habits and streaks, level, scores and check-ins from the last 7 days.",
+      "processor": "This data is processed by Anthropic, which provides the Claude AI model, on servers located outside Québec. Under its terms, Anthropic doesn’t use it to train its models.",
+      "control": "You can withdraw your permission and delete your conversations at any time in Settings.",
+      "disclaimer": "Get iT AI provides educational information: it doesn’t replace a doctor, a psychologist or a financial advisor.",
+      "accept": "Enable Get iT AI",
+      "later": "Not now"
     }
   },
   "NotFound": {

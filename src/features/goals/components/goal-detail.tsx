@@ -7,10 +7,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
 import { TaskList } from "@/features/tasks/components/task-list";
 import { toCalendarDay, toDbDate } from "@/lib/dates";
+import { isAiConfigured } from "@/server/ai/provider";
+import { getAiProfile } from "@/server/ai/usage";
 import { getGoal } from "@/server/goals/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { recordIdSchema } from "../schemas";
 import { GoalActions } from "./goal-actions";
+import { GoalPlanCard } from "./goal-plan-card";
 import { MilestoneList } from "./milestone-list";
 
 /** Un objectif : description, avancement, jalons et tâches. Lit la session : à placer dans un <Suspense>. */
@@ -20,10 +23,14 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
   const goal = await getGoal(profile.id, goalId);
   if (!goal) notFound();
 
-  const [t, tPillars, format] = await Promise.all([
+  const [t, tPillars, format, ai] = await Promise.all([
     getTranslations("Goals"),
     getTranslations("Pillars"),
     getFormatter(),
+    // Le plan par l'IA : seulement pour un objectif en cours, quand l'IA est activée
+    goal.status === "active" && isAiConfigured()
+      ? getAiProfile(profile.id)
+      : null,
   ]);
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const today = toCalendarDay(new Date(), profile.timeZone);
@@ -94,6 +101,14 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
           <GoalActions goalId={goal.id} status={goal.status} />
         </div>
       </header>
+
+      {ai ? (
+        <GoalPlanCard
+          key={goal.id}
+          goalId={goal.id}
+          access={ai.consented ? "ready" : "consent"}
+        />
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <section

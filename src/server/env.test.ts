@@ -30,4 +30,36 @@ describe("parseServerEnv", () => {
       }),
     ).toThrow(/clé publiable/);
   });
+
+  it("accepte la clé de l'API Anthropic, facultative", () => {
+    expect(parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "" })).toEqual(
+      validEnv,
+    );
+    expect(
+      parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "sk-ant-api03-abc" })
+        .ANTHROPIC_API_KEY,
+    ).toBe("sk-ant-api03-abc");
+    expect(() =>
+      parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "abc" }),
+    ).toThrow(/ANTHROPIC_API_KEY/);
+  });
+
+  it("refuse une clé Anthropic dans une variable publique", () => {
+    expect(() =>
+      parseServerEnv({ ...validEnv, NEXT_PUBLIC_AI_KEY: "sk-ant-api03-abc" }),
+    ).toThrow(/NEXT_PUBLIC_AI_KEY/);
+  });
+
+  it("réserve le fournisseur factice aux tests", () => {
+    expect(
+      parseServerEnv({ ...validEnv, AI_PROVIDER: "fake" }).AI_PROVIDER,
+    ).toBe("fake");
+    expect(() =>
+      parseServerEnv({
+        ...validEnv,
+        AI_PROVIDER: "fake",
+        NODE_ENV: "production",
+      }),
+    ).toThrow(/réservé aux tests/);
+  });
 });

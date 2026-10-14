@@ -160,9 +160,7 @@
     },
     "coach": {
       "title": "Get iT AI",
-      "question": "Que dois-je faire ensuite?",
-      "emptyTitle": "Ton coach personnel",
-      "emptyDescription": "Get iT AI s’appuiera sur tes objectifs et ta progression pour t’aider à décider de la prochaine étape."
+      "question": "Que dois-je faire ensuite?"
     },
     "community": {
       "title": "Centre Get iT",
@@ -202,6 +200,23 @@
         "confirm": "Supprimer définitivement",
         "pending": "Suppression…",
         "error": "La suppression a échoué. Réessaie dans un instant."
+      },
+      "ai": {
+        "title": "Get iT AI",
+        "description": "Ton coach personnel utilise tes données seulement avec ton accord.",
+        "notConfigured": "Get iT AI n’est pas encore activé.",
+        "consentedOn": "Accord donné le {date}. Get iT AI peut utiliser tes données pour t’aider.",
+        "noConsent": "Pas d’accord donné : Get iT AI ne reçoit aucune de tes données.",
+        "grant": "Autoriser Get iT AI",
+        "revoke": "Retirer mon accord",
+        "deleteConversations": "Effacer mes conversations",
+        "deleteTitle": "Effacer tes conversations?",
+        "deleteDescription": "{count, plural, one {Ta conversation avec Get iT AI sera effacée définitivement.} other {Tes # conversations avec Get iT AI seront effacées définitivement.}}",
+        "deleteConfirm": "Effacer",
+        "deleting": "Suppression…",
+        "cancel": "Annuler",
+        "deleteError": "La suppression a échoué. Réessaie dans un instant.",
+        "conversations": "{count, plural, =0 {Aucune conversation enregistrée.} one {# conversation enregistrée.} other {# conversations enregistrées.}}"
       }
     }
   },
@@ -472,6 +487,35 @@
       "dateInvalid": "Cette date n’est pas valide.",
       "notFound": "Cet objectif n’existe plus.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "plan": {
+      "title": "Créer mon plan avec l’IA",
+      "description": "Get iT AI propose des jalons, tes premières tâches et des habitudes pour cet objectif. Tu choisis ce que tu gardes.",
+      "consent": "Active d’abord Get iT AI : il a besoin de ton accord pour lire cet objectif.",
+      "consentCta": "Activer Get iT AI",
+      "generate": "Proposer un plan",
+      "again": "Proposer un autre plan",
+      "loading": "Get iT AI prépare ton plan… Ça peut prendre une trentaine de secondes.",
+      "groups": {
+        "milestones": "Jalons",
+        "tasks": "Premières tâches",
+        "habits": "Habitudes"
+      },
+      "due": "{days, plural, =0 {Aujourd’hui} =1 {Demain} other {Dans # jours}}",
+      "apply": "{count, plural, =0 {Rien à ajouter} one {Ajouter # élément} other {Ajouter # éléments}}",
+      "retry": "Proposer autre chose",
+      "cancel": "Annuler",
+      "disclaimer": "Plan créé par l’IA : vérifie qu’il te convient. Pour la santé ou l’argent, demande l’avis d’un professionnel.",
+      "added": "Plan ajouté : {milestones, plural, one {# jalon} other {# jalons}}, {tasks, plural, one {# tâche} other {# tâches}} et {habits, plural, one {# habitude} other {# habitudes}}.",
+      "errors": {
+        "notConfigured": "Get iT AI n’est pas encore activé.",
+        "consentRequired": "Active d’abord Get iT AI pour créer un plan.",
+        "notFound": "Cet objectif est introuvable.",
+        "limitReached": "Tu as utilisé tes 20 requêtes Get iT AI d’aujourd’hui. Reviens demain!",
+        "refused": "Get iT AI ne peut pas créer de plan pour cet objectif. Essaie de reformuler son titre ou sa description.",
+        "unexpected": "Get iT AI n’a pas pu préparer ton plan. Réessaie dans un instant.",
+        "apply": "Le plan n’a pas pu être ajouté. Réessaie."
+      }
     }
   },
   "Habits": {
@@ -649,6 +693,56 @@
       "emptyCta": "Faire mon check-in",
       "table": "Voir les données",
       "colDay": "Jour"
+    }
+  },
+  "Coach": {
+    "title": "Get iT AI",
+    "newConversation": "Nouvelle conversation",
+    "logLabel": "Conversation avec Get iT AI",
+    "welcomeTitle": "Salut {name}, par où on commence?",
+    "welcomeTitleNoName": "Salut, par où on commence?",
+    "welcomeBody": "Je connais tes objectifs, tes habitudes, ta progression et tes check-ins. Pose-moi une question ou choisis une idée ci-dessous.",
+    "suggestions": {
+      "focus": "Sur quoi je devrais me concentrer aujourd’hui?",
+      "week": "Aide-moi à planifier ma semaine.",
+      "progress": "Analyse ma progression des derniers jours.",
+      "restart": "J’ai décroché cette semaine. Aide-moi à repartir."
+    },
+    "you": "Toi :",
+    "thinking": "Get iT AI écrit…",
+    "refused": "Get iT AI ne peut pas répondre à cette demande. Essaie de la formuler autrement.",
+    "status": {
+      "truncated": "Réponse coupée : demande la suite si besoin.",
+      "stopped": "Réponse arrêtée.",
+      "failed": "Réponse interrompue."
+    },
+    "errors": {
+      "notConfigured": "Get iT AI n’est pas encore activé.",
+      "consentRequired": "Active d’abord Get iT AI pour continuer.",
+      "limitReached": "Tu as utilisé tes 20 requêtes Get iT AI d’aujourd’hui. Reviens demain!",
+      "invalid": "Ce message ne peut pas être envoyé. Vérifie sa longueur.",
+      "notFound": "Cette conversation n’existe plus. Commence-en une nouvelle.",
+      "unexpected": "Get iT AI n’a pas pu répondre. Réessaie dans un instant."
+    },
+    "inputLabel": "Ton message à Get iT AI",
+    "placeholder": "Écris ton message…",
+    "limitPlaceholder": "Limite du jour atteinte : à demain!",
+    "send": "Envoyer",
+    "stop": "Arrêter la réponse",
+    "remaining": "{count, plural, =0 {Plus de requête aujourd’hui} one {# requête restante aujourd’hui} other {# requêtes restantes aujourd’hui}}",
+    "length": "{count, number}/{max, number}",
+    "disclaimer": "Information éducative : ne remplace pas un professionnel.",
+    "notConfiguredTitle": "Get iT AI arrive bientôt",
+    "notConfiguredDescription": "Ton coach personnel s’appuiera sur tes objectifs, tes habitudes et tes check-ins pour t’aider à décider de la prochaine étape.",
+    "consent": {
+      "title": "Avant de commencer",
+      "subtitle": "Get iT AI a besoin de ton accord pour utiliser tes données.",
+      "data": "Pour t’aider, Get iT AI reçoit tes messages et un résumé de tes données : ton prénom, tes piliers, tes objectifs et jalons, tes tâches, tes habitudes et séries, ton niveau, tes scores et tes check-ins des 7 derniers jours.",
+      "processor": "Ces données sont traitées par Anthropic, qui fournit le modèle d’IA Claude, sur des serveurs situés hors du Québec. Selon ses conditions, Anthropic ne les utilise pas pour entraîner ses modèles.",
+      "control": "Tu peux retirer ton accord et effacer tes conversations à tout moment dans Réglages.",
+      "disclaimer": "Get iT AI donne de l’information éducative : il ne remplace pas un médecin, un psychologue ni un conseiller financier.",
+      "accept": "Activer Get iT AI",
+      "later": "Plus tard"
     }
   },
   "NotFound": {
