@@ -92,6 +92,7 @@ describe("formatCoachContext", () => {
     ],
     goals: [
       {
+        ref: "G1",
         title: "Courir un demi-marathon",
         pillar: "physical",
         targetDate: "2027-05-01",
@@ -125,6 +126,7 @@ describe("formatCoachContext", () => {
       '[done] "Méditer 10 minutes" (habit, Mental, streak 2 days)',
     );
     expect(context).toContain("overdue since 2026-10-12");
+    expect(context).toContain('- [G1] "Courir un demi-marathon"');
     expect(context).toContain("milestones 1/2 done");
     expect(context).toContain(
       "every day, current streak 2, best 3, done today",

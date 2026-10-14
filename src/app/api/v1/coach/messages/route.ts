@@ -68,7 +68,14 @@ export async function POST(request: Request) {
           (text) => send({ type: "text", text }),
           request.signal,
         );
-        send({ type: "done", ...result });
+        if (result.actions.length > 0) {
+          send({ type: "actions", actions: result.actions });
+        }
+        send({
+          type: "done",
+          refused: result.refused,
+          truncated: result.truncated,
+        });
       } catch (error) {
         if (!request.signal.aborted) {
           console.error("Réponse de Get iT AI impossible", error);

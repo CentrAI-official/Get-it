@@ -27,6 +27,8 @@ import {
   type CoachError,
   type CoachStreamEvent,
 } from "../limits";
+import type { CoachActionView } from "../coach-tools";
+import { ActionCard } from "./action-card";
 import { MessageContent } from "./message-content";
 
 type ChatMessage = {
@@ -35,6 +37,8 @@ type ChatMessage = {
   content: string;
   /** Réponse en cours, refusée, coupée, arrêtée ou interrompue par une erreur. */
   status?: "streaming" | "refused" | "truncated" | "stopped" | "failed";
+  /** Ajouts proposés par Get iT AI (à accepter ou ignorer). */
+  actions?: CoachActionView[];
 };
 
 type CoachChatProps = {
@@ -122,6 +126,8 @@ export function CoachChat({
           ...message,
           content: message.content + event.text,
         }));
+      } else if (event.type === "actions") {
+        updateReply((message) => ({ ...message, actions: event.actions }));
       } else if (event.type === "done") {
         updateReply((message) => ({
           ...message,
@@ -211,6 +217,22 @@ export function CoachChat({
       event.preventDefault();
       void send(draft);
     }
+  }
+
+  /** Une proposition a été ajoutée ou ignorée. */
+  function updateAction(messageId: string, next: CoachActionView) {
+    setMessages((current) =>
+      current.map((message) =>
+        message.id === messageId
+          ? {
+              ...message,
+              actions: message.actions?.map((action) =>
+                action.id === next.id ? next : action,
+              ),
+            }
+          : message,
+      ),
+    );
   }
 
   function newConversation() {
@@ -319,6 +341,20 @@ export function CoachChat({
                           />
                         ))}
                       </span>
+                    ) : null}
+                    {message.actions?.length ? (
+                      <ul
+                        aria-label={t("actions.listLabel")}
+                        className="flex flex-col gap-2 pt-1"
+                      >
+                        {message.actions.map((action) => (
+                          <ActionCard
+                            key={action.id}
+                            action={action}
+                            onChange={(next) => updateAction(message.id, next)}
+                          />
+                        ))}
+                      </ul>
                     ) : null}
                     {message.status === "refused" ? (
                       <p className="flex items-start gap-2 text-sm text-muted-foreground">

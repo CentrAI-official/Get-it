@@ -743,6 +743,29 @@
       "disclaimer": "Get iT AI donne de l’information éducative : il ne remplace pas un médecin, un psychologue ni un conseiller financier.",
       "accept": "Activer Get iT AI",
       "later": "Plus tard"
+    },
+    "actions": {
+      "listLabel": "Propositions de Get iT AI",
+      "kinds": {
+        "goal": "Nouvel objectif",
+        "habit": "Nouvelle habitude",
+        "task": "Nouvelle tâche",
+        "milestone": "Nouveau jalon"
+      },
+      "target": "Date cible : {date}",
+      "due": "Pour le {date}",
+      "noDue": "Sans échéance",
+      "goal": "Objectif : {goal}",
+      "add": "Ajouter",
+      "dismiss": "Ignorer",
+      "added": "Ajouté",
+      "view": "Voir",
+      "dismissed": "Ignoré",
+      "errors": {
+        "notFound": "Cette proposition n’existe plus.",
+        "goalMissing": "L’objectif lié n’existe plus. Ignore cette proposition ou demande-en une autre.",
+        "unexpected": "L’ajout a échoué. Réessaie dans un instant."
+      }
     }
   },
   "NotFound": {

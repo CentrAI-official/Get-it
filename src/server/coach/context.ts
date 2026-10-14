@@ -1,4 +1,5 @@
 import "server-only";
+import type { GoalRef } from "@/features/coach/coach-tools";
 import { formatCoachContext } from "@/features/coach/context";
 import { computeStreaks } from "@/features/habits/streak";
 import { selectHabitsToday } from "@/features/today/day-plan";
@@ -26,12 +27,14 @@ type ContextProfile = {
 
 /**
  * Contexte de l'utilisateur pour Get iT AI (§15-16) : objectifs, quêtes du jour,
- * habitudes, scores, niveau et check-ins récents, résumés et bornés.
+ * habitudes, scores, niveau et check-ins récents, résumés et bornés. Renvoie
+ * aussi les objectifs avec leur référence courte (G1…), pour relier les
+ * propositions du coach au bon objectif.
  */
 export async function buildCoachContext(
   userId: string,
   profile: ContextProfile,
-): Promise<string> {
+): Promise<{ text: string; today: string; goals: GoalRef[] }> {
   const today = toCalendarDay(new Date(), profile.timeZone);
   const scoreDays = scoreWindow(today);
   const [habits, tasks, recentTasks, assessments, xp, checkIns, goals] =
@@ -58,7 +61,8 @@ export async function buildCoachContext(
     ]),
   );
 
-  return formatCoachContext({
+  const refs = goals.map((goal, index) => ({ ...goal, ref: `G${index + 1}` }));
+  const text = formatCoachContext({
     today,
     name: profile.displayName,
     occupation: profile.occupation,
@@ -103,7 +107,7 @@ export async function buildCoachContext(
         streak: null,
       })),
     ],
-    goals,
+    goals: refs,
     habits: active.map((habit) => ({
       title: habit.title,
       pillar: habit.pillar,
@@ -114,4 +118,14 @@ export async function buildCoachContext(
     })),
     checkIns,
   });
+  return {
+    text,
+    today,
+    goals: refs.map(({ ref, id, title, pillar }) => ({
+      ref,
+      id,
+      title,
+      pillar,
+    })),
+  };
 }

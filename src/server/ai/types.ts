@@ -1,3 +1,4 @@
+import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
 import type { GoalPlan } from "@/features/goals/plan";
 
 // Couche d'abstraction (§53) : le reste de l'application ne connaît que ces
@@ -27,6 +28,8 @@ export type ChatResult = {
   refused: boolean;
   /** Réponse coupée par la limite de longueur. */
   truncated: boolean;
+  /** Outils appelés par le modèle (propositions, à valider avant usage). */
+  toolCalls: AiToolCall[];
   usage: AiUsage;
 };
 
@@ -42,6 +45,8 @@ export interface AiProvider {
   streamChat(input: {
     system: SystemPrompt;
     turns: ChatTurn[];
+    /** Outils que le modèle peut appeler (jamais exécutés automatiquement). */
+    tools?: AiToolSpec[];
     onText: (delta: string) => void;
     signal?: AbortSignal;
   }): Promise<ChatResult>;

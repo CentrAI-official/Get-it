@@ -1,5 +1,14 @@
 import "server-only";
 import {
+  COACH_TOOLS,
+  MAX_ACTIONS_PER_REPLY,
+  coachActionPayloadSchema,
+  describeActions,
+  parseToolCall,
+  type CoachActionPayload,
+  type CoachActionView,
+} from "@/features/coach/coach-tools";
+import {
   COACH_HISTORY_MESSAGES,
   type CoachError,
   type CoachMessageInput,
@@ -21,10 +30,40 @@ export type CoachMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Propositions de la réponse (objectif, habitude, tâche, jalon). */
+  actions: CoachActionView[];
 };
 
 /** Messages affichés d'une conversation : les plus récents. */
 const DISPLAYED_MESSAGES = 50;
+
+const actionSelect = {
+  id: true,
+  status: true,
+  createdId: true,
+  payload: true,
+} as const;
+
+/** Proposition lue en base, revalidée (le JSON enregistré n'est jamais cru tel quel). */
+function toActionView(action: {
+  id: string;
+  status: CoachActionView["status"];
+  createdId: string | null;
+  payload: unknown;
+}): CoachActionView | null {
+  const payload = coachActionPayloadSchema.safeParse(action.payload);
+  return payload.success
+    ? {
+        id: action.id,
+        status: action.status,
+        createdId: action.createdId,
+        payload: payload.data,
+      }
+    : null;
+}
+
+const toActionViews = (actions: Parameters<typeof toActionView>[0][]) =>
+  actions.flatMap((action) => toActionView(action) ?? []);
 
 /** Dernière conversation de l'utilisateur, ou null s'il n'en a pas encore. */
 export async function getLatestConversation(userId: string) {
@@ -36,14 +75,24 @@ export async function getLatestConversation(userId: string) {
       messages: {
         orderBy: { createdAt: "desc" },
         take: DISPLAYED_MESSAGES,
-        select: { id: true, role: true, content: true },
+        select: {
+          id: true,
+          role: true,
+          content: true,
+          actions: { orderBy: { createdAt: "asc" }, select: actionSelect },
+        },
       },
     },
   });
   if (!conversation) return null;
   return {
     id: conversation.id,
-    messages: conversation.messages.reverse() as CoachMessage[],
+    messages: conversation.messages.reverse().map((message): CoachMessage => ({
+      id: message.id,
+      role: message.role,
+      content: message.content,
+      actions: toActionViews(message.actions),
+    })),
   };
 }
 
@@ -66,7 +115,11 @@ type StartedMessage = {
   run: (
     onText: (text: string) => void,
     signal?: AbortSignal,
-  ) => Promise<{ refused: boolean; truncated: boolean }>;
+  ) => Promise<{
+    refused: boolean;
+    truncated: boolean;
+    actions: CoachActionView[];
+  }>;
 };
 
 /**
@@ -117,11 +170,27 @@ export async function startCoachMessage(
           where: { conversationId },
           orderBy: { createdAt: "desc" },
           take: COACH_HISTORY_MESSAGES,
-          select: { role: true, content: true },
+          select: {
+            role: true,
+            content: true,
+            actions: {
+              orderBy: { createdAt: "asc" },
+              select: actionSelect,
+            },
+          },
         }),
       ]);
-      // Du plus ancien au plus récent ; la conversation envoyée commence par l'utilisateur
-      const turns = recent.reverse();
+      // Du plus ancien au plus récent ; la conversation envoyée commence par
+      // l'utilisateur. Chaque réponse rappelle le sort de ses propositions.
+      const turns = recent.reverse().map((message) => ({
+        role: message.role,
+        content: [
+          message.content,
+          describeActions(toActionViews(message.actions)),
+        ]
+          .filter(Boolean)
+          .join("\n\n"),
+      }));
       while (turns[0]?.role === "assistant") turns.shift();
 
       let streamed = false;
@@ -130,9 +199,10 @@ export async function startCoachMessage(
         result = await provider.streamChat({
           system: {
             instructions: coachInstructions(profile.locale),
-            context,
+            context: context.text,
           },
           turns,
+          tools: COACH_TOOLS,
           onText: (text) => {
             streamed = true;
             onText(text);
@@ -145,17 +215,38 @@ export async function startCoachMessage(
         throw error;
       }
       await recordAiUsage(reservation.id, result.usage);
+
+      // Propositions valides seulement, dans la limite par réponse
+      const proposals = result.toolCalls
+        .map((call) => parseToolCall(call, context))
+        .filter((payload): payload is CoachActionPayload => payload !== null)
+        .slice(0, MAX_ACTIONS_PER_REPLY);
+
+      let actions: CoachActionView[] = [];
       // Un refus n'est pas enregistré : il ne pèse pas sur la suite de la conversation
-      if (result.text) {
-        await db.coachMessage.create({
+      if (result.text || proposals.length > 0) {
+        const message = await db.coachMessage.create({
           data: { conversationId, role: "assistant", content: result.text },
+          select: { id: true },
         });
+        if (proposals.length > 0) {
+          const created = await db.coachAction.createManyAndReturn({
+            data: proposals.map((payload) => ({
+              messageId: message.id,
+              userId,
+              kind: payload.kind,
+              payload,
+            })),
+            select: actionSelect,
+          });
+          actions = toActionViews(created);
+        }
       }
       await db.coachConversation.update({
         where: { id: conversationId },
         data: { updatedAt: new Date() },
       });
-      return { refused: result.refused, truncated: result.truncated };
+      return { refused: result.refused, truncated: result.truncated, actions };
     },
   };
 }

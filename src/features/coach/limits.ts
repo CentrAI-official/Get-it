@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { CoachActionView } from "./coach-tools";
 
 /** Requêtes à Get iT AI par jour et par utilisateur (message du coach ou plan d'objectif). */
 export const AI_DAILY_LIMIT = 20;
@@ -21,6 +22,7 @@ export type CoachMessageInput = z.infer<typeof coachMessageSchema>;
 export type CoachStreamEvent =
   | { type: "start"; conversationId: string; remaining: number }
   | { type: "text"; text: string }
+  | { type: "actions"; actions: CoachActionView[] }
   | { type: "done"; refused: boolean; truncated: boolean }
   | { type: "error"; error: CoachError };
 

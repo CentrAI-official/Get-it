@@ -78,6 +78,7 @@ export async function listActiveGoalPlans(userId: string, limit = 6) {
     orderBy: { createdAt: "asc" },
     take: limit,
     select: {
+      id: true,
       title: true,
       pillar: true,
       targetDate: true,
@@ -94,6 +95,7 @@ export async function listActiveGoalPlans(userId: string, limit = 6) {
     },
   });
   return goals.map((goal) => ({
+    id: goal.id,
     title: goal.title,
     pillar: goal.pillar,
     targetDate: goal.targetDate ? fromDbDate(goal.targetDate) : null,

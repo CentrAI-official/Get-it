@@ -24,6 +24,8 @@ export type CoachContextData = {
     streak: number | null;
   }[];
   goals: {
+    /** Référence courte donnée au modèle pour lier une proposition (G1, G2…). */
+    ref: string;
     title: string;
     pillar: Pillar;
     targetDate: string | null;
@@ -126,7 +128,7 @@ export function formatCoachContext(data: CoachContextData): string {
   for (const goal of goals) {
     const done = goal.milestones.filter((m) => m.done).length;
     lines.push(
-      `- ${quote(goal.title)} (${PILLAR_NAMES[goal.pillar]}${
+      `- [${goal.ref}] ${quote(goal.title)} (${PILLAR_NAMES[goal.pillar]}${
         goal.targetDate ? `, target ${goal.targetDate}` : ""
       }, milestones ${done}/${goal.milestones.length} done)`,
     );

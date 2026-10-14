@@ -21,14 +21,51 @@ export function createFakeProvider(): AiProvider {
       const question = turns.at(-1)?.content ?? "";
       // « refus » dans la question : simule un refus des filtres de sécurité
       if (question.toLowerCase().includes("refus")) {
-        return { text: "", refused: true, truncated: false, usage };
+        return {
+          text: "",
+          refused: true,
+          truncated: false,
+          toolCalls: [],
+          usage,
+        };
       }
+      // « ajoute » dans la question : simule trois propositions du coach
+      const toolCalls = question.toLowerCase().includes("ajoute")
+        ? [
+            {
+              name: "propose_habit",
+              input: {
+                title: "Habitude du coach",
+                pillar: "mental",
+                weekdays: [1, 3, 5],
+                goal_ref: "G1",
+              },
+            },
+            {
+              name: "propose_task",
+              input: {
+                title: "Tâche du coach",
+                due_date: null,
+                goal_ref: null,
+              },
+            },
+            {
+              name: "propose_goal",
+              input: {
+                title: "Objectif du coach",
+                pillar: "financial",
+                description: null,
+                target_date: null,
+              },
+            },
+          ]
+        : [];
       const text = `Réponse de test à « ${question.slice(0, 60)} ».\n\n- **Première action** : coche une quête.\n- Deuxième action : fais ton check-in.`;
       for (const word of text.split(/(?<= )/)) {
         onText(word);
         await pause(15);
       }
-      return { text, refused: false, truncated: false, usage };
+      return { text, refused: false, truncated: false, toolCalls, usage };
     },
 
     async generateGoalPlan({ maxDueInDays }) {

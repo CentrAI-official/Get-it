@@ -64,6 +64,7 @@ model Profile {
   xpEvents           XpEvent[]
   aiRequests         AiRequest[]
   coachConversations CoachConversation[]
+  coachActions       CoachAction[]
 
   @@map("profiles")
 }
@@ -318,7 +319,43 @@ model CoachMessage {
   createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   conversation CoachConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  actions      CoachAction[]
 
   @@index([conversationId, createdAt])
   @@map("coach_messages")
+}
+
+enum CoachActionKind {
+  goal
+  habit
+  task
+  milestone
+}
+
+enum CoachActionStatus {
+  pending
+  applied
+  dismissed
+}
+
+/// Ajout proposé par Get iT AI dans une réponse : rien n'est créé sans l'accord de l'utilisateur.
+model CoachAction {
+  id        String            @id @default(uuid(7)) @db.Uuid
+  messageId String            @map("message_id") @db.Uuid
+  userId    String            @map("user_id") @db.Uuid
+  kind      CoachActionKind
+  /// Proposition validée (titre, pilier, jours, échéance, objectif lié).
+  payload   Json
+  status    CoachActionStatus @default(pending)
+  /// Élément créé une fois la proposition acceptée (objectif, habitude…).
+  createdId String?           @map("created_id") @db.Uuid
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  message CoachMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  profile Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@index([userId, status])
+  @@map("coach_actions")
 }
