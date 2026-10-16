@@ -3,21 +3,11 @@
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
-import { LocaleSwitcher } from "@/components/locale-switcher";
-import { SignOutButton } from "@/features/auth/components/sign-out-button";
-import { DayPanelButton } from "@/features/today/components/day-panel-button";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { QuickAdd } from "./quick-add";
-import {
-  appNavItems,
-  coachNavItem,
-  isActiveItem,
-  settingsNavItem,
-  type AppNavItem,
-} from "./nav-items";
+import { appNavItems, isActiveItem, type AppNavItem } from "./nav-items";
 
-/** Barre latérale de l'application (ordinateur et tablette en paysage). */
+/** Barre latérale de l'application (ordinateur et tablette en paysage) : les cinq catégories. */
 export function AppSidebar() {
   const t = useTranslations("App.nav");
   const tCommon = useTranslations("Common");
@@ -27,25 +17,9 @@ export function AppSidebar() {
       <Link href="/community" aria-label={tCommon("homeLink")} className="px-3">
         <Logo />
       </Link>
-      <div className="mt-8 flex flex-col gap-2 px-1">
-        <QuickAdd variant="sidebar" />
-        <DayPanelButton variant="sidebar" />
-      </div>
-      <nav aria-label={t("label")} className="mt-6 flex flex-1 flex-col gap-1">
+      <nav aria-label={t("label")} className="mt-8 flex flex-1 flex-col gap-1">
         <SidebarLinks items={appNavItems} />
-        <div className="my-3 border-t border-white/5" />
-        <SidebarLinks items={[coachNavItem]} />
       </nav>
-      <div className="flex flex-col gap-2 border-t border-white/5 pt-4">
-        <SidebarLinks items={[settingsNavItem]} />
-        <SignOutButton
-          variant="ghost"
-          className="h-auto w-full justify-start gap-3 px-3 py-2 font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground"
-        />
-        <div className="px-1">
-          <LocaleSwitcher align="start" />
-        </div>
-      </div>
     </aside>
   );
 }

@@ -1,15 +1,20 @@
 "use client";
 
-import { LoaderCircle, Send } from "lucide-react";
+import { LoaderCircle, Send, Trophy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { cn } from "@/lib/utils";
 import type { ShareableProgress } from "@/server/community/posts";
 import { createPostAction, shareProgressAction } from "../actions";
-import { focusComposer, NEW_POST_ANCHOR } from "../composer-focus";
 import {
   initialCommunityState,
   POST_MAX_LENGTH,
@@ -21,6 +26,13 @@ type PostComposerProps = {
   shareable: ShareableProgress[];
   /** Progrès à présélectionner (lien « Partager » depuis un objectif ou un niveau). */
   preselected: string | null;
+  /** Prénom affiché dans la barre : « Quoi de neuf, Max? » */
+  name: string;
+};
+
+type FormProps = {
+  /** Publication envoyée : la fenêtre se ferme. */
+  onDone: () => void;
 };
 
 const keyOf = (item: ShareableProgress) =>
@@ -34,47 +46,105 @@ const chipOn = "border-primary bg-primary/15 text-foreground";
 const chipOff =
   "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground";
 
-/** Publier un texte, une question ou un progrès réel. */
-export function PostComposer({ shareable, preselected }: PostComposerProps) {
+/**
+ * Barre discrète (« Quoi de neuf, Max? »), qui ouvre le formulaire complet :
+ * texte, question ou progrès réel.
+ */
+export function PostComposer({
+  shareable,
+  preselected,
+  name,
+}: PostComposerProps) {
   const t = useTranslations("Community.composer");
   const startOnProgress = Boolean(
     preselected && shareable.some((item) => keyOf(item) === preselected),
   );
+  // Lien « Partager » : la fenêtre s'ouvre directement sur le progrès
+  const [open, setOpen] = useState(startOnProgress);
   const [tab, setTab] = useState<"post" | "progress">(
     startOnProgress ? "progress" : "post",
   );
+  const contentRef = useRef<HTMLDivElement>(null);
 
-  // Arrivée par le bouton « + » → « Publication » depuis une autre page
-  useEffect(() => {
-    if (window.location.hash === `#${NEW_POST_ANCHOR}`) focusComposer();
-  }, []);
+  function start(next: "post" | "progress") {
+    setTab(next);
+    setOpen(true);
+  }
 
   return (
-    <section
-      id={NEW_POST_ANCHOR}
-      aria-label={t("label")}
-      className="flex scroll-mt-24 flex-col gap-4 rounded-3xl glass p-4 sm:p-5"
-    >
-      <div role="tablist" aria-label={t("label")} className="flex gap-2">
-        {(["post", "progress"] as const).map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            onClick={() => setTab(value)}
-            className={cn(chip, tab === value ? chipOn : chipOff)}
-          >
-            {t(`tabs.${value}`)}
-          </button>
-        ))}
-      </div>
-      {tab === "post" ? (
-        <PostForm />
-      ) : (
-        <ProgressForm shareable={shareable} preselected={preselected} />
-      )}
-    </section>
+    <>
+      <section
+        aria-label={t("label")}
+        className="flex items-center gap-3 rounded-3xl glass p-3"
+      >
+        <span
+          aria-hidden="true"
+          className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
+        >
+          {name.charAt(0)}
+        </span>
+        <button
+          type="button"
+          onClick={() => start("post")}
+          className="h-10 min-w-0 flex-1 truncate rounded-full border border-white/10 bg-white/[0.04] px-4 text-left text-sm text-muted-foreground transition-colors outline-none hover:bg-white/[0.07] focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {t("prompt", { name })}
+        </button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-lg"
+          aria-label={t("shareProgress")}
+          onClick={() => start("progress")}
+          className="shrink-0 text-primary hover:text-primary"
+        >
+          <Trophy aria-hidden="true" />
+        </Button>
+      </section>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent
+          ref={contentRef}
+          closeLabel={t("close")}
+          className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain sm:max-w-lg"
+          onOpenAutoFocus={(event) => {
+            // Le curseur va directement dans le texte
+            const field = contentRef.current?.querySelector("textarea");
+            if (tab !== "post" || !field) return;
+            event.preventDefault();
+            field.focus();
+          }}
+        >
+          <div className="flex flex-col gap-1 pr-8">
+            <DialogTitle>{t("label")}</DialogTitle>
+            <DialogDescription>{t("description")}</DialogDescription>
+          </div>
+          <div role="tablist" aria-label={t("label")} className="flex gap-2">
+            {(["post", "progress"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                role="tab"
+                aria-selected={tab === value}
+                onClick={() => setTab(value)}
+                className={cn(chip, tab === value ? chipOn : chipOff)}
+              >
+                {t(`tabs.${value}`)}
+              </button>
+            ))}
+          </div>
+          {tab === "post" ? (
+            <PostForm onDone={() => setOpen(false)} />
+          ) : (
+            <ProgressForm
+              shareable={shareable}
+              preselected={preselected}
+              onDone={() => setOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -87,7 +157,7 @@ function useResetOnSuccess(state: CommunityFormState, reset: () => void) {
   }, [state, reset]);
 }
 
-function PostForm() {
+function PostForm({ onDone }: FormProps) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const tPillars = useTranslations("Pillars");
@@ -105,6 +175,7 @@ function PostForm() {
     formRef.current?.reset();
     setPillar(null);
     setLength(0);
+    onDone();
   });
 
   return (
@@ -189,7 +260,11 @@ function PostForm() {
   );
 }
 
-function ProgressForm({ shareable, preselected }: PostComposerProps) {
+function ProgressForm({
+  shareable,
+  preselected,
+  onDone,
+}: Omit<PostComposerProps, "name"> & FormProps) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const locale = useLocale();
@@ -207,6 +282,7 @@ function ProgressForm({ shareable, preselected }: PostComposerProps) {
   useResetOnSuccess(state, () => {
     formRef.current?.reset();
     setSelected(null);
+    onDone();
   });
   const chosen = shareable.find((item) => keyOf(item) === selected);
 

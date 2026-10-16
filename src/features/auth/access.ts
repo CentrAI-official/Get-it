@@ -10,7 +10,10 @@ export const RESET_PASSWORD_PATH = "/reset-password";
 /** Pages de l'application, réservées aux utilisateurs connectés. */
 export const PROTECTED_PATHS = [
   "/community",
+  "/groups",
   "/events",
+  "/messages",
+  "/services",
   "/marketplace",
   "/profile",
   "/goals",

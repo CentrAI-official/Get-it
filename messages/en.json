@@ -125,18 +125,19 @@
     "nav": {
       "label": "Main navigation",
       "community": "Community",
-      "events": "Events",
+      "messages": "Messages",
+      "services": "My services",
       "marketplace": "Marketplace",
-      "profile": "Profile",
-      "coach": "Get iT AI",
-      "settings": "Settings"
+      "profile": "Profile"
     },
-    "quickAdd": {
-      "label": "Add",
-      "post": "Post",
-      "task": "New task",
-      "habit": "New habit",
-      "goal": "New goal"
+    "topActions": {
+      "label": "Page actions",
+      "groups": "Groups",
+      "events": "Events",
+      "coach": "Get iT AI",
+      "newMessage": "New message",
+      "shopServices": "Shop for services",
+      "settings": "Settings"
     },
     "profileTabs": {
       "label": "Profile sections",
@@ -168,6 +169,25 @@
       "title": "Get iT Center",
       "question": "Who can help or inspire me?"
     },
+    "messages": {
+      "title": "Messages",
+      "question": "Who do I want to grow with?",
+      "soonTitle": "Messages are coming soon",
+      "soonDescription": "Write privately to Hub members. A first message from someone you don’t know will arrive as a request you can accept or decline."
+    },
+    "services": {
+      "title": "My services",
+      "question": "Who supports my progress?",
+      "soonTitle": "Your services are coming soon",
+      "soonDescription": "Your fitness coach, your financial advisor and the other professionals who support you: your upcoming appointments, notes from your last session and a direct way to contact them.",
+      "shop": "Shop for services"
+    },
+    "groups": {
+      "title": "Groups",
+      "question": "Who do I share my goals with?",
+      "soonTitle": "Groups are coming soon",
+      "soonDescription": "Join groups by pillar or by theme, and find the ones you follow here."
+    },
     "events": {
       "title": "Events",
       "question": "Where can I meet people who grow like me?",
@@ -175,10 +195,23 @@
       "soonDescription": "Networking, competitions, workshops and meetups: soon you’ll discover community events and propose your own."
     },
     "marketplace": {
-      "title": "Marketplace",
-      "question": "What can help me make progress?",
-      "soonTitle": "The marketplace is coming soon",
-      "soonDescription": "Sportswear, home training gear, ebooks and programs: a selection of products to help you in every pillar."
+      "tabs": {
+        "label": "Marketplace sections",
+        "gear": "Gear",
+        "services": "Services"
+      },
+      "gear": {
+        "title": "Marketplace",
+        "question": "What can help me make progress?",
+        "soonTitle": "Gear is coming soon",
+        "soonDescription": "Sportswear, training machines, educational books: a selection of products for every pillar."
+      },
+      "services": {
+        "title": "Marketplace",
+        "question": "Who can support me?",
+        "soonTitle": "Services are coming soon",
+        "soonDescription": "Fitness coaches, financial advisors, psychologists and other professionals verified by Get iT: you’ll see their offers and book."
+      }
     },
     "profile": {
       "title": "Profile",
@@ -602,8 +635,6 @@
   "Today": {
     "panel": {
       "button": "My day",
-      "buttonLabel": "My day: {done, number} of {total, number} done",
-      "count": "{done, number}/{total, number}",
       "description": "Check off what you did today.",
       "progress": "{done, number} of {total, number} quests done",
       "close": "Close",
@@ -622,7 +653,9 @@
         "cancel": "Cancel",
         "achieved": "Goal reached: {title}",
         "share": "Share in the Hub"
-      }
+      },
+      "cardDescription": "Check off today’s habits, tasks and milestones.",
+      "cardProgress": "{done, number} of {total, number} quests done today"
     },
     "system": {
       "title": "Your system",
@@ -821,6 +854,10 @@
       "later": "Later"
     },
     "composer": {
+      "prompt": "What’s new, {name}?",
+      "shareProgress": "Share progress",
+      "close": "Close",
+      "description": "Share a win, ask a question or show real progress.",
       "label": "New post",
       "tabs": {
         "post": "Post",

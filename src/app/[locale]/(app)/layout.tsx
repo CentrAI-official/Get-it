@@ -23,7 +23,7 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
         <AppTopbar />
         <main
           id="main"
-          className="flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-10 lg:pt-10 lg:pb-12"
+          className="flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-10 lg:pt-2 lg:pb-12"
         >
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>

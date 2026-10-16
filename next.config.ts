@@ -25,6 +25,9 @@ const nextConfig: NextConfig = {
   // Développement seulement : ouvrir le serveur de dev depuis un téléphone du
   // même réseau Wi-Fi (npm run dev:mobile). Sans effet en production.
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*"],
+  // Le badge de Next.js couvrait un onglet de la barre du bas sur téléphone ;
+  // les erreurs de compilation et d'exécution restent affichées.
+  devIndicators: false,
   turbopack: {
     rules: {
       "*.css": {

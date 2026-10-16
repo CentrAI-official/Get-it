@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  appNavItems,
-  coachNavItem,
-  settingsNavItem,
-} from "@/components/layout/nav-items";
+import { appNavItems, topActions } from "@/components/layout/nav-items";
 import { getAuthRedirect, PROTECTED_PATHS } from "./access";
 
 const visitor = { search: "", isAuthenticated: false };
@@ -64,14 +60,21 @@ describe("getAuthRedirect", () => {
     expect(getAuthRedirect({ ...visitor, pathname: "/goals" })).toBeNull();
   });
 
-  it("protège chaque section de la navigation", () => {
-    for (const item of [...appNavItems, coachNavItem, settingsNavItem]) {
-      for (const href of [
+  it("protège chaque catégorie, ses sections et les boutons du haut", () => {
+    const hrefs = [
+      ...appNavItems.flatMap((item) => [
         item.href,
         ...("includes" in item ? item.includes : []),
-      ]) {
-        expect(PROTECTED_PATHS).toContain(href);
-      }
+      ]),
+      ...Object.values(topActions).map((action) => action.href),
+    ];
+    for (const href of hrefs) {
+      // « /marketplace/services » est couvert par « /marketplace »
+      expect(
+        PROTECTED_PATHS.some(
+          (base) => href === base || href.startsWith(`${base}/`),
+        ),
+      ).toBe(true);
     }
   });
 

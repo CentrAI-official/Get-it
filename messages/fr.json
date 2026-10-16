@@ -125,18 +125,19 @@
     "nav": {
       "label": "Navigation principale",
       "community": "Communauté",
-      "events": "Événements",
+      "messages": "Messagerie",
+      "services": "Mes services",
       "marketplace": "Marketplace",
-      "profile": "Profil",
-      "coach": "Get iT AI",
-      "settings": "Réglages"
+      "profile": "Profil"
     },
-    "quickAdd": {
-      "label": "Ajouter",
-      "post": "Publication",
-      "task": "Nouvelle tâche",
-      "habit": "Nouvelle habitude",
-      "goal": "Nouvel objectif"
+    "topActions": {
+      "label": "Actions de la page",
+      "groups": "Groupes",
+      "events": "Événements",
+      "coach": "Get iT AI",
+      "newMessage": "Nouveau message",
+      "shopServices": "Magasiner des services",
+      "settings": "Réglages"
     },
     "profileTabs": {
       "label": "Sections du profil",
@@ -168,6 +169,25 @@
       "title": "Centre Get iT",
       "question": "Qui peut m’aider ou m’inspirer?"
     },
+    "messages": {
+      "title": "Messagerie",
+      "question": "Avec qui je veux avancer?",
+      "soonTitle": "La messagerie arrive bientôt",
+      "soonDescription": "Écris en privé aux membres du Centre. Le premier message d’une personne que tu ne connais pas t’arrivera comme une demande, que tu pourras accepter ou refuser."
+    },
+    "services": {
+      "title": "Mes services",
+      "question": "Qui m’accompagne dans ma progression?",
+      "soonTitle": "Tes services arrivent bientôt",
+      "soonDescription": "Ton coach fitness, ton conseiller financier et les autres professionnels qui t’accompagnent : tes prochains rendez-vous, les notes de ta dernière session et un accès direct pour les contacter.",
+      "shop": "Magasiner des services"
+    },
+    "groups": {
+      "title": "Groupes",
+      "question": "Avec qui je partage mes objectifs?",
+      "soonTitle": "Les groupes arrivent bientôt",
+      "soonDescription": "Rejoins des groupes par pilier ou par thème, et retrouve ici ceux que tu suis."
+    },
     "events": {
       "title": "Événements",
       "question": "Où rencontrer des gens qui avancent comme moi?",
@@ -175,10 +195,23 @@
       "soonDescription": "Réseautage, compétitions, ateliers et rencontres : tu pourras bientôt découvrir les événements de la communauté et proposer les tiens."
     },
     "marketplace": {
-      "title": "Marketplace",
-      "question": "Qu’est-ce qui peut m’aider à progresser?",
-      "soonTitle": "La marketplace arrive bientôt",
-      "soonDescription": "Vêtements de sport, équipement d’entraînement, ebooks et programmes : une sélection de produits pour t’aider dans chaque pilier."
+      "tabs": {
+        "label": "Sections de la marketplace",
+        "gear": "Gear",
+        "services": "Services"
+      },
+      "gear": {
+        "title": "Marketplace",
+        "question": "Qu’est-ce qui peut m’aider à progresser?",
+        "soonTitle": "Le Gear arrive bientôt",
+        "soonDescription": "Vêtements de sport, machines d’entraînement, livres éducatifs : une sélection de produits pour chaque pilier."
+      },
+      "services": {
+        "title": "Marketplace",
+        "question": "Qui peut m’accompagner?",
+        "soonTitle": "Les services arrivent bientôt",
+        "soonDescription": "Coachs fitness, conseillers financiers, psychologues et autres professionnels vérifiés par Get iT : tu pourras voir leurs offres et réserver."
+      }
     },
     "profile": {
       "title": "Profil",
@@ -602,8 +635,6 @@
   "Today": {
     "panel": {
       "button": "Ma journée",
-      "buttonLabel": "Ma journée : {done, number} sur {total, number} faites",
-      "count": "{done, number}/{total, number}",
       "description": "Coche ce que tu as fait aujourd’hui.",
       "progress": "{done, number} sur {total, number} quêtes faites",
       "close": "Fermer",
@@ -622,7 +653,9 @@
         "cancel": "Annuler",
         "achieved": "Objectif atteint : {title}",
         "share": "Partager dans le Centre"
-      }
+      },
+      "cardDescription": "Coche tes habitudes, tes tâches et tes jalons du jour.",
+      "cardProgress": "{done, number} sur {total, number} quêtes faites aujourd’hui"
     },
     "system": {
       "title": "Ton système",
@@ -821,6 +854,10 @@
       "later": "Plus tard"
     },
     "composer": {
+      "prompt": "Quoi de neuf, {name}?",
+      "shareProgress": "Partager un progrès",
+      "close": "Fermer",
+      "description": "Partage une victoire, pose une question ou montre un vrai progrès.",
       "label": "Nouvelle publication",
       "tabs": {
         "post": "Publication",

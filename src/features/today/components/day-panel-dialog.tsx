@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import type { DayPlan } from "@/server/day/service";
 import { markDayPanelSeenAction } from "../actions";
@@ -12,7 +12,6 @@ import {
   setDayProgress,
   useDayPanel,
 } from "../day-panel-store";
-import { NEW_TASK_ANCHOR } from "../new-task";
 import { DayBoard } from "./day-board";
 
 type DayPanelDialogProps = {
@@ -33,10 +32,9 @@ export function DayPanelDialog({
   initial,
 }: DayPanelDialogProps) {
   const t = useTranslations("Today.panel");
-  const { open, focusNewTask } = useDayPanel();
-  const contentRef = useRef<HTMLDivElement>(null);
+  const { open } = useDayPanel();
 
-  // Avancement enregistré, affiché sur les boutons d'ouverture
+  // Avancement enregistré, affiché sur le bouton d'ouverture du Profil
   const progress = useMemo(() => summarizePlannedDay(plan).day, [plan]);
   useEffect(() => {
     setDayProgress(progress);
@@ -54,19 +52,8 @@ export function DayPanelDialog({
       onOpenChange={(value) => (value ? openDayPanel() : closeDayPanel())}
     >
       <DialogContent
-        ref={contentRef}
         closeLabel={t("close")}
         className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-5 sm:max-w-2xl sm:p-6"
-        onOpenAutoFocus={(event) => {
-          if (!focusNewTask) return;
-          // Menu « + » → « Nouvelle tâche » : le curseur va dans le formulaire
-          const input = contentRef.current?.querySelector<HTMLInputElement>(
-            `#${NEW_TASK_ANCHOR} input[name="title"]`,
-          );
-          if (!input) return;
-          event.preventDefault();
-          input.focus();
-        }}
         onClickCapture={(event) => {
           // Un lien mène ailleurs : le popup se ferme
           if (

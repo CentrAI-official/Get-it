@@ -2,7 +2,7 @@
 
 import { Check, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Pillar } from "@/config/pillars";
 import { AddItemForm } from "@/features/goals/components/checklist";
@@ -10,7 +10,6 @@ import { addTaskAction } from "@/features/tasks/actions";
 import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import { focusNewTaskForm, NEW_TASK_ANCHOR } from "../new-task";
 
 type QuestBase = {
   /** « habit:<id> » ou « task:<id> » */
@@ -79,11 +78,6 @@ export function QuestList({
   const tPillars = useTranslations("Pillars");
   const tTasks = useTranslations("Goals.tasks");
   const pillarName = filter ? tPillars(`${filter}.name`) : "";
-
-  // Arrivée par le bouton « + » → « Nouvelle tâche » depuis une autre page
-  useEffect(() => {
-    if (window.location.hash === `#${NEW_TASK_ANCHOR}`) focusNewTaskForm();
-  }, []);
 
   return (
     <section
@@ -157,7 +151,7 @@ export function QuestList({
         </p>
       ) : null}
 
-      <div id={NEW_TASK_ANCHOR} className="scroll-mt-24 pt-1">
+      <div id="nouvelle-tache" className="pt-1">
         <AddItemForm
           action={addStandaloneTask}
           label={tTasks("addLabel")}

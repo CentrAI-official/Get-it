@@ -70,7 +70,11 @@ export async function CommunityPanel({
           })}
         </p>
       ) : (
-        <PostComposer shareable={shareable} preselected={preselected} />
+        <PostComposer
+          shareable={shareable}
+          preselected={preselected}
+          name={profile.displayName ?? member.username ?? ""}
+        />
       )}
 
       <CommunityFeed

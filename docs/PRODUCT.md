@@ -1915,6 +1915,8 @@ PostCard
 
 # 60. NAVIGATION DESKTOP
 
+> **Mise à jour du 2026-10-16** : la navigation compte maintenant cinq catégories (voir §61) : Communauté, Messagerie, Mes services, Marketplace, Profil. Les Événements et les Groupes sont des boutons de la Communauté. Mes services réunit les professionnels de l'utilisateur (coach, conseiller…), ses rendez-vous et les notes de session ; la Marketplace propose du Gear (produits) et des Services (professionnels vérifiés).
+>
 > **Décision du 2026-10-15 (fondateur et partenaires)** : l'application s'organise en quatre catégories : **Communauté** (le réseau social, page d'accueil), **Événements**, **Marketplace** et **Profil** (objectifs, habitudes, progression, niveaux et, bientôt, journal). Get iT AI reste accessible depuis toutes les pages. La page Aujourd'hui devient le popup **« Ma journée »** : il s'ouvre une fois par jour et permet de cocher les habitudes, les tâches, les jalons et les objectifs atteints.
 
 Possibilité de navigation principale :
@@ -1953,7 +1955,7 @@ Certaines sections pourront être cachées selon la version du produit.
 
 # 61. MOBILE NAVIGATION
 
-> **Mise à jour du 2026-10-15** : barre du bas Communauté · Événements · **+** · Marketplace · Profil. Le **+** propose : publication, tâche, habitude, objectif (et journal, à venir). « Ma journée », Get iT AI et les réglages sont dans la barre du haut.
+> **Mise à jour du 2026-10-16** : barre du bas Communauté · Messagerie · **Mes services** (au centre) · Marketplace · Profil ; plus de bouton **+**. Les boutons du haut changent selon la catégorie : Communauté (Groupes, Événements, Get iT AI), Messagerie (Nouveau message, Get iT AI), Mes services (Magasiner des services, Get iT AI), Marketplace (Get iT AI ; onglets Gear et Services), Profil (Réglages, Get iT AI). La langue est dans Réglages ; « Ma journée » se rouvre depuis le Profil.
 
 Navigation mobile simple.
 

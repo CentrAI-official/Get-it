@@ -72,7 +72,11 @@ src/i18n/                 configuration des langues
 - [x] 8. Get iT AI
 - [x] 9. Centre Get iT : fil social de base et modération
 - [x] 9b. Réorganisation : Communauté en accueil, popup « Ma journée », Profil (objectifs, habitudes, progression)
-- [ ] 9c. Journal (dans Profil)
-- [ ] 9d. Événements (proposés par les membres, approuvés par Get iT)
-- [ ] 9e. Marketplace (vitrine, sans paiement dans l’application)
+- [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mes services, Marketplace, Profil
+- [ ] 9d. Journal (dans Profil)
+- [ ] 9e. Messagerie (messages privés, demandes de message)
+- [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
+- [ ] 9g. Marketplace › Gear (vitrine, sans paiement dans l’application)
+- [ ] 9h. Groupes
+- [ ] 9i. Services : annuaire, réservations, Mes services, notes de session
 - [ ] 10. Finitions, analytics et déploiement

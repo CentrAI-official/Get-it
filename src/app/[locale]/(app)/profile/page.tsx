@@ -13,6 +13,7 @@ import {
 } from "@/features/profile/components/profile-today";
 import { ProfileTabs } from "@/features/profile/components/profile-tabs";
 import { ProgressionOverview } from "@/features/profile/components/progression-overview";
+import { DayPanelCard } from "@/features/today/components/day-panel-card";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("App.profile");
@@ -28,6 +29,7 @@ export default function ProfilePage() {
         <ProfileTabs current="overview" />
         <PageHeader title={t("title")} description={t("question")} />
       </div>
+      <DayPanelCard />
       <Suspense fallback={<ProfileOverviewSkeleton />}>
         <ProfileOverview
           today={
