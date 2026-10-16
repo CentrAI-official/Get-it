@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
+import { DayPanel } from "@/features/today/components/day-panel";
 
 // L'espace personnel n'a pas à être indexé par les moteurs de recherche
 export const metadata: Metadata = {
@@ -14,7 +16,7 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       {/* Fond fixe : halos orange et quadrillage, derrière tout le contenu */}
       <div
         aria-hidden="true"
-        className="bg-app pointer-events-none fixed inset-0 -z-10"
+        className="pointer-events-none fixed inset-0 -z-10 bg-app"
       />
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
@@ -27,6 +29,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
         </main>
       </div>
       <AppMobileNav />
+      {/* « Ma journée » : popup quotidien, ouvert aussi depuis la navigation */}
+      <Suspense fallback={null}>
+        <DayPanel />
+      </Suspense>
     </div>
   );
 }

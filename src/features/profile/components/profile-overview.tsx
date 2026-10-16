@@ -16,12 +16,15 @@ import {
 import { getXpTotals } from "@/server/xp/service";
 
 /**
- * Identité et niveau, progression (passée en `progression`), piliers
- * prioritaires et point de départ. Lit la session : à placer dans un <Suspense>.
+ * Identité et niveau, système du jour (passé en `today`), progression (passée
+ * en `progression`), piliers prioritaires et point de départ. Lit la session :
+ * à placer dans un <Suspense>.
  */
 export async function ProfileOverview({
+  today,
   progression,
 }: {
+  today: ReactNode;
   progression: ReactNode;
 }) {
   const profile = await getCurrentProfile();
@@ -91,6 +94,8 @@ export async function ProfileOverview({
           />
         </div>
       </div>
+
+      {today}
 
       {progression}
 

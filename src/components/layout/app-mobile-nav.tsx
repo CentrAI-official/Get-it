@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { isActivePath, mobileNavItems } from "./nav-items";
+import { isActiveItem, mobileNavItems } from "./nav-items";
 import { QuickAdd } from "./quick-add";
 
 /** Barre de navigation flottante en bas de l'écran sur mobile, avec le « + » au centre. */
@@ -32,8 +32,9 @@ function Tabs({ pathname }: { pathname: string | null }) {
   const t = useTranslations("App.nav");
   const half = Math.ceil(mobileNavItems.length / 2);
 
-  function renderTab({ key, href, icon: Icon }: (typeof mobileNavItems)[number]) {
-    const active = pathname !== null && isActivePath(pathname, href);
+  function renderTab(item: (typeof mobileNavItems)[number]) {
+    const { key, href, icon: Icon } = item;
+    const active = pathname !== null && isActiveItem(pathname, item);
     return (
       <li key={key}>
         <Link

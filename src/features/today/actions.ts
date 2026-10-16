@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { toCalendarDay } from "@/lib/dates";
 import { requireUser } from "@/server/auth/session";
 import { saveCheckIn } from "@/server/check-ins/service";
+import { markDayPanelSeen } from "@/server/day/service";
 import { getUserTimeZone } from "@/server/profile/service";
 import { checkInSchema, type CheckInState } from "./schemas";
 
@@ -29,4 +30,12 @@ export async function saveCheckInAction(
   }
   refresh();
   return { status: "success" };
+}
+
+/** « Ma journée » s'est ouvert tout seul : pas avant demain. */
+export async function markDayPanelSeenAction() {
+  const user = await requireUser();
+  await markDayPanelSeen(user.id).catch((error: unknown) => {
+    console.error("« Ma journée » non enregistré comme vu", error);
+  });
 }

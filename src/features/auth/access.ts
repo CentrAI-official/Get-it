@@ -1,20 +1,21 @@
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 
-/** Page d'arrivée d'un utilisateur connecté. */
-export const APP_HOME_PATH = "/today";
+/** Page d'arrivée d'un utilisateur connecté : la Communauté. */
+export const APP_HOME_PATH = "/community";
 /** Parcours de départ, à terminer avant d'utiliser l'application. */
 export const ONBOARDING_PATH = "/onboarding";
 export const RESET_PASSWORD_PATH = "/reset-password";
 
 /** Pages de l'application, réservées aux utilisateurs connectés. */
 export const PROTECTED_PATHS = [
-  "/today",
+  "/community",
+  "/events",
+  "/marketplace",
+  "/profile",
   "/goals",
   "/habits",
   "/coach",
-  "/community",
-  "/profile",
   "/moderation",
   "/settings",
   ONBOARDING_PATH,

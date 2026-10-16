@@ -71,6 +71,46 @@ export async function listActiveGoals(userId: string): Promise<GoalSummary[]> {
   return goals.map(toSummary);
 }
 
+export type DayGoal = {
+  id: string;
+  title: string;
+  pillar: Pillar;
+  milestonesDone: number;
+  milestonesTotal: number;
+  /** Premier jalon pas encore atteint, dans l'ordre du plan. */
+  nextMilestone: { id: string; title: string } | null;
+};
+
+/** Objectifs en cours et leur prochain jalon (popup « Ma journée »). */
+export async function listActiveGoalsWithNextMilestone(
+  userId: string,
+): Promise<DayGoal[]> {
+  const goals = await db.goal.findMany({
+    where: { userId, status: "active" },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      title: true,
+      pillar: true,
+      milestones: {
+        orderBy: { position: "asc" },
+        select: { id: true, title: true, completedAt: true },
+      },
+    },
+  });
+  return goals.map((goal) => {
+    const next = goal.milestones.find((milestone) => !milestone.completedAt);
+    return {
+      id: goal.id,
+      title: goal.title,
+      pillar: goal.pillar,
+      milestonesDone: goal.milestones.filter((m) => m.completedAt).length,
+      milestonesTotal: goal.milestones.length,
+      nextMilestone: next ? { id: next.id, title: next.title } : null,
+    };
+  });
+}
+
 /** Objectifs en cours avec leurs jalons et leurs tâches ouvertes (contexte de Get iT AI). */
 export async function listActiveGoalPlans(userId: string, limit = 6) {
   const goals = await db.goal.findMany({

@@ -124,26 +124,28 @@
   "App": {
     "nav": {
       "label": "Navigation principale",
-      "today": "Aujourd’hui",
-      "goals": "Objectifs",
-      "habits": "Habitudes",
-      "coach": "Get iT AI",
       "community": "Communauté",
+      "events": "Événements",
+      "marketplace": "Marketplace",
       "profile": "Profil",
+      "coach": "Get iT AI",
       "settings": "Réglages"
     },
     "quickAdd": {
       "label": "Ajouter",
+      "post": "Publication",
       "task": "Nouvelle tâche",
       "habit": "Nouvelle habitude",
       "goal": "Nouvel objectif"
     },
+    "profileTabs": {
+      "label": "Sections du profil",
+      "overview": "Aperçu",
+      "goals": "Objectifs",
+      "habits": "Habitudes"
+    },
     "today": {
-      "title": "Aujourd’hui",
-      "question": "Que dois-je faire aujourd’hui?",
-      "greeting": "{period, select, morning {Bonjour} afternoon {Bon après-midi} other {Bonsoir}}, {name}.",
-      "goalsTitle": "Tes objectifs",
-      "goalsLink": "Voir tous tes objectifs"
+      "greeting": "{period, select, morning {Bonjour} afternoon {Bon après-midi} other {Bonsoir}}, {name}."
     },
     "goals": {
       "title": "Objectifs",
@@ -165,6 +167,18 @@
     "community": {
       "title": "Centre Get iT",
       "question": "Qui peut m’aider ou m’inspirer?"
+    },
+    "events": {
+      "title": "Événements",
+      "question": "Où rencontrer des gens qui avancent comme moi?",
+      "soonTitle": "Les événements arrivent bientôt",
+      "soonDescription": "Réseautage, compétitions, ateliers et rencontres : tu pourras bientôt découvrir les événements de la communauté et proposer les tiens."
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "question": "Qu’est-ce qui peut m’aider à progresser?",
+      "soonTitle": "La marketplace arrive bientôt",
+      "soonDescription": "Vêtements de sport, équipement d’entraînement, ebooks et programmes : une sélection de produits pour t’aider dans chaque pilier."
     },
     "profile": {
       "title": "Profil",
@@ -586,6 +600,30 @@
     }
   },
   "Today": {
+    "panel": {
+      "button": "Ma journée",
+      "buttonLabel": "Ma journée : {done, number} sur {total, number} faites",
+      "count": "{done, number}/{total, number}",
+      "description": "Coche ce que tu as fait aujourd’hui.",
+      "progress": "{done, number} sur {total, number} quêtes faites",
+      "close": "Fermer",
+      "start": "C’est parti",
+      "profileLink": "Voir ma progression",
+      "goals": {
+        "title": "Tes objectifs",
+        "all": "Tout voir",
+        "empty": "Aucun objectif en cours.",
+        "create": "Créer un objectif",
+        "meta": "{pillar} · {done, number}/{total, number} jalons",
+        "nextMilestone": "Prochain jalon : {title}",
+        "reached": "Objectif atteint",
+        "confirm": "Marquer « {title} » comme atteint? Tu gagnes {xp, number} XP.",
+        "confirmAction": "Confirmer",
+        "cancel": "Annuler",
+        "achieved": "Objectif atteint : {title}",
+        "share": "Partager dans le Centre"
+      }
+    },
     "system": {
       "title": "Ton système",
       "dayLabel": "Aujourd’hui",
@@ -597,16 +635,9 @@
       "howTitle": "Comment le score est calculé",
       "how": "Il combine ton autoévaluation (40 %) et ta régularité des 7 derniers jours (60 %) : les habitudes prévues que tu as faites et les tâches de tes objectifs terminées."
     },
-    "tiles": {
-      "label": "En bref",
-      "streak": "{count, number} j",
-      "streakLabel": "Meilleure série en cours"
-    },
     "quests": {
       "title": "Quêtes du jour",
       "titleFiltered": "Quêtes · {pillar}",
-      "count": "{done, number}/{total, number}",
-      "countLabel": "{done, number} sur {total, number} faites",
       "habit": "Habitude · {pillar}",
       "taskToday": "Tâche · aujourd’hui",
       "taskOverdue": "En retard · {date}",
@@ -786,7 +817,8 @@
         "honesty": "Signale ce qui enfreint ces règles : la modération s’en occupe."
       },
       "accept": "J’accepte les règles du Centre Get iT.",
-      "submit": "Rejoindre le Centre"
+      "submit": "Rejoindre le Centre",
+      "later": "Plus tard"
     },
     "composer": {
       "label": "Nouvelle publication",

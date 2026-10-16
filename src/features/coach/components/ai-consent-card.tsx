@@ -57,7 +57,7 @@ export function AiConsentCard() {
           {t("accept")}
         </Button>
         <Button asChild variant="ghost" size="lg" className="h-10">
-          <Link href="/today">{t("later")}</Link>
+          <Link href="/community">{t("later")}</Link>
         </Button>
       </div>
     </section>

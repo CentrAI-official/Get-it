@@ -7,6 +7,11 @@ import {
   ProfileOverview,
   ProfileOverviewSkeleton,
 } from "@/features/profile/components/profile-overview";
+import {
+  ProfileToday,
+  ProfileTodaySkeleton,
+} from "@/features/profile/components/profile-today";
+import { ProfileTabs } from "@/features/profile/components/profile-tabs";
 import { ProgressionOverview } from "@/features/profile/components/progression-overview";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,9 +24,19 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title={t("title")} description={t("question")} />
+      <div className="flex flex-col gap-4">
+        <ProfileTabs current="overview" />
+        <PageHeader title={t("title")} description={t("question")} />
+      </div>
       <Suspense fallback={<ProfileOverviewSkeleton />}>
-        <ProfileOverview progression={<ProgressionOverview />} />
+        <ProfileOverview
+          today={
+            <Suspense fallback={<ProfileTodaySkeleton />}>
+              <ProfileToday />
+            </Suspense>
+          }
+          progression={<ProgressionOverview />}
+        />
       </Suspense>
     </div>
   );

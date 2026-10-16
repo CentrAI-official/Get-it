@@ -71,4 +71,8 @@ src/i18n/                 configuration des langues
 - [x] 7. XP, niveaux et progression
 - [x] 8. Get iT AI
 - [x] 9. Centre Get iT : fil social de base et modération
+- [x] 9b. Réorganisation : Communauté en accueil, popup « Ma journée », Profil (objectifs, habitudes, progression)
+- [ ] 9c. Journal (dans Profil)
+- [ ] 9d. Événements (proposés par les membres, approuvés par Get iT)
+- [ ] 9e. Marketplace (vitrine, sans paiement dans l’application)
 - [ ] 10. Finitions, analytics et déploiement

@@ -124,26 +124,28 @@
   "App": {
     "nav": {
       "label": "Main navigation",
-      "today": "Today",
-      "goals": "Goals",
-      "habits": "Habits",
-      "coach": "Get iT AI",
       "community": "Community",
+      "events": "Events",
+      "marketplace": "Marketplace",
       "profile": "Profile",
+      "coach": "Get iT AI",
       "settings": "Settings"
     },
     "quickAdd": {
       "label": "Add",
+      "post": "Post",
       "task": "New task",
       "habit": "New habit",
       "goal": "New goal"
     },
+    "profileTabs": {
+      "label": "Profile sections",
+      "overview": "Overview",
+      "goals": "Goals",
+      "habits": "Habits"
+    },
     "today": {
-      "title": "Today",
-      "question": "What should I do today?",
-      "greeting": "{period, select, morning {Good morning} afternoon {Good afternoon} other {Good evening}}, {name}.",
-      "goalsTitle": "Your goals",
-      "goalsLink": "See all your goals"
+      "greeting": "{period, select, morning {Good morning} afternoon {Good afternoon} other {Good evening}}, {name}."
     },
     "goals": {
       "title": "Goals",
@@ -165,6 +167,18 @@
     "community": {
       "title": "Get iT Center",
       "question": "Who can help or inspire me?"
+    },
+    "events": {
+      "title": "Events",
+      "question": "Where can I meet people who grow like me?",
+      "soonTitle": "Events are coming soon",
+      "soonDescription": "Networking, competitions, workshops and meetups: soon you’ll discover community events and propose your own."
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "question": "What can help me make progress?",
+      "soonTitle": "The marketplace is coming soon",
+      "soonDescription": "Sportswear, home training gear, ebooks and programs: a selection of products to help you in every pillar."
     },
     "profile": {
       "title": "Profile",
@@ -586,6 +600,30 @@
     }
   },
   "Today": {
+    "panel": {
+      "button": "My day",
+      "buttonLabel": "My day: {done, number} of {total, number} done",
+      "count": "{done, number}/{total, number}",
+      "description": "Check off what you did today.",
+      "progress": "{done, number} of {total, number} quests done",
+      "close": "Close",
+      "start": "Let’s go",
+      "profileLink": "See my progress",
+      "goals": {
+        "title": "Your goals",
+        "all": "See all",
+        "empty": "No goal in progress.",
+        "create": "Create a goal",
+        "meta": "{pillar} · {done, number}/{total, number} milestones",
+        "nextMilestone": "Next milestone: {title}",
+        "reached": "Goal reached",
+        "confirm": "Mark “{title}” as reached? You earn {xp, number} XP.",
+        "confirmAction": "Confirm",
+        "cancel": "Cancel",
+        "achieved": "Goal reached: {title}",
+        "share": "Share in the Hub"
+      }
+    },
     "system": {
       "title": "Your system",
       "dayLabel": "Today",
@@ -597,16 +635,9 @@
       "howTitle": "How the score works",
       "how": "It combines your self-assessment (40%) and your consistency over the last 7 days (60%): the planned habits you did and the goal tasks you finished."
     },
-    "tiles": {
-      "label": "At a glance",
-      "streak": "{count, number} d",
-      "streakLabel": "Best current streak"
-    },
     "quests": {
       "title": "Today’s quests",
       "titleFiltered": "Quests · {pillar}",
-      "count": "{done, number}/{total, number}",
-      "countLabel": "{done, number} of {total, number} done",
       "habit": "Habit · {pillar}",
       "taskToday": "Task · today",
       "taskOverdue": "Overdue · {date}",
@@ -786,7 +817,8 @@
         "honesty": "Report anything that breaks these rules: moderation will handle it."
       },
       "accept": "I accept the Get iT Hub rules.",
-      "submit": "Join the Hub"
+      "submit": "Join the Hub",
+      "later": "Later"
     },
     "composer": {
       "label": "New post",

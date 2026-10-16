@@ -1915,6 +1915,8 @@ PostCard
 
 # 60. NAVIGATION DESKTOP
 
+> **Décision du 2026-10-15 (fondateur et partenaires)** : l'application s'organise en quatre catégories : **Communauté** (le réseau social, page d'accueil), **Événements**, **Marketplace** et **Profil** (objectifs, habitudes, progression, niveaux et, bientôt, journal). Get iT AI reste accessible depuis toutes les pages. La page Aujourd'hui devient le popup **« Ma journée »** : il s'ouvre une fois par jour et permet de cocher les habitudes, les tâches, les jalons et les objectifs atteints.
+
 Possibilité de navigation principale :
 
 GET IT
@@ -1950,6 +1952,8 @@ Certaines sections pourront être cachées selon la version du produit.
 ---
 
 # 61. MOBILE NAVIGATION
+
+> **Mise à jour du 2026-10-15** : barre du bas Communauté · Événements · **+** · Marketplace · Profil. Le **+** propose : publication, tâche, habitude, objectif (et journal, à venir). « Ma journée », Get iT AI et les réglages sont dans la barre du haut.
 
 Navigation mobile simple.
 
@@ -2061,6 +2065,8 @@ Create Account
 ---
 
 # 64. HOME APP
+
+> **Mise à jour du 2026-10-15** : après la connexion, l'utilisateur arrive dans la Communauté. Le tableau de bord du jour (salutation, quêtes, objectifs, XP) vit dans le popup « Ma journée », ouvert automatiquement à la première visite du jour. L'orbite des piliers et le check-in sont dans le Profil.
 
 Après connexion, ne pas afficher une landing page marketing.
 
@@ -2422,6 +2428,8 @@ Principe :
 ---
 
 # 81. PRIORITÉ ABSOLUE
+
+> **Note du 2026-10-15** : la Communauté devient la page d'accueil (§60). Ce principe reste valable : « Ma journée » garde la boucle Objectif → Action → Progrès au premier plan, et chaque nouvelle fonctionnalité sociale doit amplifier les vrais progrès, pas les remplacer.
 
 Le produit doit être utile même avec zéro réseau social.
 

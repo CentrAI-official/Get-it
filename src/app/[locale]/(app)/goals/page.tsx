@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { GoalListSkeleton } from "@/features/goals/components/goal-list";
 import { GoalsOverview } from "@/features/goals/components/goals-overview";
+import { ProfileTabs } from "@/features/profile/components/profile-tabs";
 import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -19,18 +20,21 @@ export default function GoalsPage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader
-        title={t("App.goals.title")}
-        description={t("App.goals.question")}
-        action={
-          <Button asChild>
-            <Link href="/goals/new">
-              <Plus aria-hidden="true" />
-              {t("Goals.new")}
-            </Link>
-          </Button>
-        }
-      />
+      <div className="flex flex-col gap-4">
+        <ProfileTabs current="goals" />
+        <PageHeader
+          title={t("App.goals.title")}
+          description={t("App.goals.question")}
+          action={
+            <Button asChild>
+              <Link href="/goals/new">
+                <Plus aria-hidden="true" />
+                {t("Goals.new")}
+              </Link>
+            </Button>
+          }
+        />
+      </div>
       <Suspense fallback={<GoalListSkeleton />}>
         <GoalsOverview />
       </Suspense>

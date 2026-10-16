@@ -1,6 +1,7 @@
 import "server-only";
 import type { OnboardingInput } from "@/features/onboarding/schemas";
 import { db } from "@/server/db";
+import { markDayPanelSeen } from "@/server/day/service";
 
 /**
  * Enregistre les réponses de l'onboarding : profil, temps quotidien, premiers
@@ -39,4 +40,6 @@ export async function completeOnboarding(
       }),
     });
   });
+  // Le jour de l'inscription, « Ma journée » ne s'ouvre pas tout seul
+  await markDayPanelSeen(userId);
 }

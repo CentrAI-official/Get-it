@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import en from "../../../messages/en.json";
 import fr from "../../../messages/fr.json";
-import { selectHabitsToday, summarizeDay } from "./day-plan";
+import {
+  selectHabitsToday,
+  summarizeDay,
+  summarizePlannedDay,
+} from "./day-plan";
 import { formatDayStamp } from "./day-stamp";
 import { computePillarScores } from "./pillar-scores";
 import { CHECK_IN_METRICS, checkInSchema } from "./schemas";
@@ -48,6 +52,26 @@ describe("summarizeDay", () => {
 
   it("donne un total nul quand rien n'est prévu", () => {
     expect(summarizeDay([]).day).toEqual({ done: 0, total: 0 });
+  });
+});
+
+describe("summarizePlannedDay", () => {
+  it("compte les habitudes faites aujourd'hui et les tâches du jour, pas celles en retard", () => {
+    const { day, pillars } = summarizePlannedDay({
+      today: "2026-10-15",
+      habits: [
+        { pillar: "mental", completions: ["2026-10-14", "2026-10-15"] },
+        { pillar: "physical", completions: ["2026-10-14"] },
+      ],
+      tasks: [
+        { goal: { pillar: "physical" }, done: true, dueDate: "2026-10-15" },
+        { goal: null, done: false, dueDate: "2026-10-15" },
+        { goal: { pillar: "social" }, done: false, dueDate: "2026-10-12" },
+      ],
+    });
+    expect(day).toEqual({ done: 2, total: 4 });
+    expect(pillars.physical).toEqual({ done: 1, total: 2 });
+    expect(pillars.social).toEqual({ done: 0, total: 0 });
   });
 });
 

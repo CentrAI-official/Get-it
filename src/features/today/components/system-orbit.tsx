@@ -29,7 +29,8 @@ type SystemOrbitProps = {
   day: Progress;
   pillars: Record<Pillar, Progress>;
   filter: Pillar | null;
-  onFilterChange: (pillar: Pillar | null) => void;
+  /** Toucher une bulle filtre les quêtes ; sans cette fonction, l'orbite est un simple affichage. */
+  onFilterChange?: (pillar: Pillar | null) => void;
   /** Affiche l'explication du calcul du score (masquée dans l'aperçu du site). */
   explain?: boolean;
   className?: string;
@@ -38,7 +39,7 @@ type SystemOrbitProps = {
 /**
  * « Ton système » : l'avancement du jour au centre et les quatre piliers en
  * orbite. Chaque bulle affiche le score du pilier, son anneau ce qui est fait
- * aujourd'hui ; la toucher filtre les quêtes.
+ * aujourd'hui ; la toucher filtre les quêtes (si `onFilterChange` est fourni).
  */
 export function SystemOrbit({
   scores,
@@ -66,7 +67,7 @@ export function SystemOrbit({
         <h2 id="system-title" className="font-heading font-semibold">
           {t("title")}
         </h2>
-        {filter ? (
+        {filter && onFilterChange ? (
           <button
             type="button"
             onClick={() => onFilterChange(null)}
@@ -140,18 +141,25 @@ export function SystemOrbit({
           const size = 46 + (score ?? 40) * 0.3;
           const angle = (ANGLES[pillar] * Math.PI) / 180;
 
+          const label = t("bubble", {
+            pillar: name,
+            score: score === null ? t("noScore") : percent(score / 100),
+            done: progress.done,
+            total: progress.total,
+          });
+          const Bubble = onFilterChange ? "button" : "div";
+
           return (
-            <button
+            <Bubble
               key={pillar}
-              type="button"
-              aria-pressed={selected}
-              aria-label={t("bubble", {
-                pillar: name,
-                score: score === null ? t("noScore") : percent(score / 100),
-                done: progress.done,
-                total: progress.total,
-              })}
-              onClick={() => onFilterChange(selected ? null : pillar)}
+              {...(onFilterChange
+                ? {
+                    type: "button" as const,
+                    "aria-pressed": selected,
+                    onClick: () => onFilterChange(selected ? null : pillar),
+                  }
+                : { role: "img" })}
+              aria-label={label}
               className={cn(
                 "absolute aspect-square -translate-x-1/2 -translate-y-1/2 rounded-full p-[1.25cqw] transition-[scale,box-shadow] duration-300 ease-out outline-none focus-visible:ring-3 focus-visible:ring-ring/60",
                 selected
@@ -181,12 +189,14 @@ export function SystemOrbit({
               >
                 {name}
               </span>
-            </button>
+            </Bubble>
           );
         })}
       </div>
 
-      <p className="text-center text-xs text-muted-foreground">{t("hint")}</p>
+      {onFilterChange ? (
+        <p className="text-center text-xs text-muted-foreground">{t("hint")}</p>
+      ) : null}
       {explain ? (
         <details className="group text-xs text-muted-foreground">
           <summary className="mx-auto flex w-fit cursor-pointer list-none items-center gap-1 rounded-md outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 [&::-webkit-details-marker]:hidden">

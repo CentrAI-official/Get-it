@@ -79,10 +79,6 @@ export function QuestList({
   const tPillars = useTranslations("Pillars");
   const tTasks = useTranslations("Goals.tasks");
   const pillarName = filter ? tPillars(`${filter}.name`) : "";
-  const count = {
-    done: quests.filter((quest) => quest.done).length,
-    total: quests.length,
-  };
 
   // Arrivée par le bouton « + » → « Nouvelle tâche » depuis une autre page
   useEffect(() => {
@@ -117,14 +113,6 @@ export function QuestList({
               </>
             ) : null}
           </span>
-          {count.total > 0 ? (
-            <>
-              <span aria-hidden="true" className="font-mono text-sm">
-                {t("count", count)}
-              </span>
-              <span className="sr-only">{t("countLabel", count)}</span>
-            </>
-          ) : null}
         </div>
       </div>
 

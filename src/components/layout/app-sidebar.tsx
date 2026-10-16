@@ -5,12 +5,14 @@ import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import { DayPanelButton } from "@/features/today/components/day-panel-button";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { QuickAdd } from "./quick-add";
 import {
   appNavItems,
-  isActivePath,
+  coachNavItem,
+  isActiveItem,
   settingsNavItem,
   type AppNavItem,
 } from "./nav-items";
@@ -22,14 +24,17 @@ export function AppSidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-white/5 bg-sidebar/60 px-3 py-6 backdrop-blur-xl lg:flex">
-      <Link href="/today" aria-label={tCommon("homeLink")} className="px-3">
+      <Link href="/community" aria-label={tCommon("homeLink")} className="px-3">
         <Logo />
       </Link>
-      <div className="mt-8 px-1">
+      <div className="mt-8 flex flex-col gap-2 px-1">
         <QuickAdd variant="sidebar" />
+        <DayPanelButton variant="sidebar" />
       </div>
       <nav aria-label={t("label")} className="mt-6 flex flex-1 flex-col gap-1">
         <SidebarLinks items={appNavItems} />
+        <div className="my-3 border-t border-white/5" />
+        <SidebarLinks items={[coachNavItem]} />
       </nav>
       <div className="flex flex-col gap-2 border-t border-white/5 pt-4">
         <SidebarLinks items={[settingsNavItem]} />
@@ -69,8 +74,9 @@ function LinkList({
 }: SidebarLinksProps & { pathname: string | null }) {
   const t = useTranslations("App.nav");
 
-  return items.map(({ key, href, icon: Icon }) => {
-    const active = pathname !== null && isActivePath(pathname, href);
+  return items.map((item) => {
+    const { key, href, icon: Icon } = item;
+    const active = pathname !== null && isActiveItem(pathname, item);
     return (
       <Link
         key={key}
@@ -79,7 +85,7 @@ function LinkList({
         className={cn(
           "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground",
           active &&
-            "bg-primary/10 text-foreground hover:bg-primary/10 before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary",
+            "bg-primary/10 text-foreground before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary hover:bg-primary/10",
         )}
       >
         <Icon

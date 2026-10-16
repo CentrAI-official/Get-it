@@ -13,6 +13,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Fragment, useState, useTransition, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { ScheduleLabel } from "@/features/habits/components/schedule-label";
+import { openDayPanel } from "@/features/today/day-panel-store";
 import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -26,15 +27,18 @@ const ICONS = {
   milestone: Flag,
 } as const;
 
-/** Page où retrouver l'élément une fois ajouté. */
-function linkFor(payload: CoachActionPayload, createdId: string | null) {
+/** Page où retrouver l'élément une fois ajouté ; null : dans « Ma journée ». */
+function linkFor(
+  payload: CoachActionPayload,
+  createdId: string | null,
+): string | null {
   switch (payload.kind) {
     case "goal":
       return createdId ? `/goals/${createdId}` : "/goals";
     case "habit":
       return "/habits";
     case "task":
-      return "/today";
+      return payload.goal ? `/goals/${payload.goal.id}` : null;
     case "milestone":
       return `/goals/${payload.goal.id}`;
   }
@@ -56,6 +60,7 @@ export function ActionCard({ action, onChange }: ActionCardProps) {
   >(null);
   const { payload, status } = action;
   const Icon = ICONS[payload.kind];
+  const link = linkFor(payload, action.createdId);
 
   // Jour du calendrier : formaté en UTC pour ne pas glisser d'un jour
   const date = (day: string) =>
@@ -161,12 +166,22 @@ export function ActionCard({ action, onChange }: ActionCardProps) {
             <Check aria-hidden="true" className="size-4" />
             {t("added")}
           </span>
-          <Link
-            href={linkFor(payload, action.createdId)}
-            className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t("view")}
-          </Link>
+          {link ? (
+            <Link
+              href={link}
+              className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            >
+              {t("view")}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => openDayPanel()}
+              className="rounded-sm text-muted-foreground underline-offset-4 outline-none hover:text-foreground hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("view")}
+            </button>
+          )}
         </p>
       ) : (
         <p role="status" className="text-sm text-muted-foreground">

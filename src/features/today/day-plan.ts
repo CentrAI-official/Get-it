@@ -50,6 +50,33 @@ export function summarizeDay(quests: readonly CountedQuest[]): {
   return { day, pillars };
 }
 
+type PlannedDay = {
+  /** Habitudes prévues aujourd'hui et leurs jours faits. */
+  habits: readonly { pillar: Pillar; completions: readonly string[] }[];
+  tasks: readonly {
+    goal: { pillar: Pillar } | null;
+    done: boolean;
+    dueDate: string | null;
+  }[];
+  today: string;
+};
+
+/** Avancement enregistré de la journée (avant toute coche en cours). */
+export function summarizePlannedDay({ habits, tasks, today }: PlannedDay) {
+  return summarizeDay([
+    ...habits.map((habit) => ({
+      pillar: habit.pillar,
+      done: habit.completions.includes(today),
+      late: false,
+    })),
+    ...tasks.map((task) => ({
+      pillar: task.goal?.pillar ?? null,
+      done: task.done,
+      late: task.dueDate !== null && task.dueDate < today,
+    })),
+  ]);
+}
+
 /** Part faite, de 0 à 1 (0 quand rien n'est prévu). */
 export function ratio({ done, total }: Progress) {
   return total === 0 ? 0 : done / total;

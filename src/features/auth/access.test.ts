@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { appNavItems, settingsNavItem } from "@/components/layout/nav-items";
+import {
+  appNavItems,
+  coachNavItem,
+  settingsNavItem,
+} from "@/components/layout/nav-items";
 import { getAuthRedirect, PROTECTED_PATHS } from "./access";
 
 const visitor = { search: "", isAuthenticated: false };
@@ -33,16 +37,18 @@ describe("getAuthRedirect", () => {
     ).toBe("/en/forgot-password");
   });
 
-  it("envoie un utilisateur connecté directement dans l'application", () => {
-    expect(getAuthRedirect({ ...member, pathname: "/en" })).toBe("/en/today");
+  it("envoie un utilisateur connecté directement dans la Communauté", () => {
+    expect(getAuthRedirect({ ...member, pathname: "/en" })).toBe(
+      "/en/community",
+    );
     expect(getAuthRedirect({ ...member, pathname: "/fr/login" })).toBe(
-      "/fr/today",
+      "/fr/community",
     );
   });
 
   it("laisse un utilisateur connecté utiliser l'application et changer son mot de passe", () => {
     for (const pathname of [
-      "/fr/today",
+      "/fr/community",
       "/fr/settings",
       "/fr/reset-password",
     ]) {
@@ -59,8 +65,13 @@ describe("getAuthRedirect", () => {
   });
 
   it("protège chaque section de la navigation", () => {
-    for (const { href } of [...appNavItems, settingsNavItem]) {
-      expect(PROTECTED_PATHS).toContain(href);
+    for (const item of [...appNavItems, coachNavItem, settingsNavItem]) {
+      for (const href of [
+        item.href,
+        ...("includes" in item ? item.includes : []),
+      ]) {
+        expect(PROTECTED_PATHS).toContain(href);
+      }
     }
   });
 

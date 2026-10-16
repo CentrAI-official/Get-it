@@ -6,6 +6,7 @@ import { useActionState, useId } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Link } from "@/i18n/navigation";
 import { joinCommunityAction } from "../actions";
 import { initialCommunityState } from "../rules";
 
@@ -95,17 +96,22 @@ export function JoinCommunityCard() {
             {tErrors(error)}
           </p>
         ) : null}
-        <Button
-          type="submit"
-          size="lg"
-          disabled={pending}
-          className="h-10 w-fit px-5"
-        >
-          {pending ? (
-            <LoaderCircle aria-hidden="true" className="animate-spin" />
-          ) : null}
-          {t("submit")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={pending}
+            className="h-10 w-fit px-5"
+          >
+            {pending ? (
+              <LoaderCircle aria-hidden="true" className="animate-spin" />
+            ) : null}
+            {t("submit")}
+          </Button>
+          <Button asChild variant="ghost" size="lg" className="h-10">
+            <Link href="/profile">{t("later")}</Link>
+          </Button>
+        </div>
       </form>
     </section>
   );

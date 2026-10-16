@@ -9,6 +9,7 @@ import { PILLARS, type Pillar } from "@/config/pillars";
 import { cn } from "@/lib/utils";
 import type { ShareableProgress } from "@/server/community/posts";
 import { createPostAction, shareProgressAction } from "../actions";
+import { focusComposer, NEW_POST_ANCHOR } from "../composer-focus";
 import {
   initialCommunityState,
   POST_MAX_LENGTH,
@@ -43,10 +44,16 @@ export function PostComposer({ shareable, preselected }: PostComposerProps) {
     startOnProgress ? "progress" : "post",
   );
 
+  // Arrivée par le bouton « + » → « Publication » depuis une autre page
+  useEffect(() => {
+    if (window.location.hash === `#${NEW_POST_ANCHOR}`) focusComposer();
+  }, []);
+
   return (
     <section
+      id={NEW_POST_ANCHOR}
       aria-label={t("label")}
-      className="flex flex-col gap-4 rounded-3xl glass p-4 sm:p-5"
+      className="flex scroll-mt-24 flex-col gap-4 rounded-3xl glass p-4 sm:p-5"
     >
       <div role="tablist" aria-label={t("label")} className="flex gap-2">
         {(["post", "progress"] as const).map((value) => (

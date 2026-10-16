@@ -52,7 +52,7 @@ export function CheckInTrends({ days }: CheckInTrendsProps) {
         <div className="flex flex-col items-start gap-3">
           <p className="text-sm text-muted-foreground">{t("empty")}</p>
           <Button asChild variant="outline" size="sm">
-            <Link href="/today#check-in">{t("emptyCta")}</Link>
+            <Link href="/profile#check-in">{t("emptyCta")}</Link>
           </Button>
         </div>
       ) : (
