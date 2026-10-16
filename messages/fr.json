@@ -164,9 +164,7 @@
     },
     "community": {
       "title": "Centre Get iT",
-      "question": "Qui peut m’aider ou m’inspirer?",
-      "emptyTitle": "Le fil de la communauté apparaîtra ici",
-      "emptyDescription": "Tu pourras y partager tes progrès, poser tes questions et suivre ceux qui t’inspirent."
+      "question": "Qui peut m’aider ou m’inspirer?"
     },
     "profile": {
       "title": "Profil",
@@ -453,7 +451,8 @@
       "deleting": "Suppression…",
       "deleteError": "La suppression a échoué. Réessaie dans un instant.",
       "cancel": "Annuler",
-      "completedOn": "Atteint le {date}"
+      "completedOn": "Atteint le {date}",
+      "share": "Partager dans le Centre"
     },
     "milestones": {
       "title": "Jalons",
@@ -665,7 +664,8 @@
     "levelUp": {
       "title": "Niveau {level, number} atteint!",
       "body": "Tes actions portent fruit. Continue comme ça.",
-      "close": "Fermer"
+      "close": "Fermer",
+      "share": "Partager dans le Centre"
     }
   },
   "Progress": {
@@ -766,6 +766,165 @@
         "goalMissing": "L’objectif lié n’existe plus. Ignore cette proposition ou demande-en une autre.",
         "unexpected": "L’ajout a échoué. Réessaie dans un instant."
       }
+    }
+  },
+  "Community": {
+    "signedInAs": "Connecté en tant que @{username}",
+    "moderationLink": "Modération",
+    "suspended": "Ton compte est suspendu du Centre jusqu’au {date}. Tu peux lire le fil, mais pas publier, commenter ni réagir.",
+    "join": {
+      "title": "Rejoindre le Centre Get iT",
+      "subtitle": "Partage tes progrès, pose tes questions et encourage les autres.",
+      "usernameLabel": "Ton nom d’utilisateur",
+      "usernameHelp": "3 à 20 caractères : lettres minuscules, chiffres ou « _ ». Ton prénom, ton nom d’utilisateur et ton niveau seront visibles par les membres. Tes objectifs, habitudes et check-ins restent privés.",
+      "rulesTitle": "Les règles du Centre",
+      "rules": {
+        "respect": "Reste respectueux : pas d’insultes, de harcèlement ni de propos haineux.",
+        "progress": "Partage du vrai : tes progrès, tes questions, tes conseils. Pas de publicité ni de spam.",
+        "safety": "Les conseils de santé ou d’argent ne remplacent pas un professionnel. En cas de détresse, appelle ou texte le 9-8-8.",
+        "privacy": "Ne publie pas d’informations personnelles, les tiennes ou celles des autres.",
+        "honesty": "Signale ce qui enfreint ces règles : la modération s’en occupe."
+      },
+      "accept": "J’accepte les règles du Centre Get iT.",
+      "submit": "Rejoindre le Centre"
+    },
+    "composer": {
+      "label": "Nouvelle publication",
+      "tabs": {
+        "post": "Publication",
+        "progress": "Progrès"
+      },
+      "kindLabel": "Type de publication",
+      "kinds": {
+        "text": "Texte",
+        "question": "Question"
+      },
+      "bodyLabel": "Ton message",
+      "placeholder": "Partage une victoire, un conseil, une réflexion…",
+      "questionPlaceholder": "Pose ta question à la communauté…",
+      "pillarLabel": "Pilier (facultatif)",
+      "length": "{count, number}/{max, number}",
+      "publish": "Publier",
+      "progressHelp": "Choisis un vrai progrès à partager. Il apparaîtra tel quel dans le fil.",
+      "progressLabel": "Progrès à partager",
+      "messageLabel": "Message facultatif",
+      "messagePlaceholder": "Ajoute un mot (facultatif)…",
+      "share": "Partager"
+    },
+    "progress": {
+      "goal": "Objectif atteint : {title}",
+      "milestone": "Jalon atteint : {title} ({goal})",
+      "streak": "Série de {days, number} jours : {title}",
+      "level": "Niveau {level, number} atteint"
+    },
+    "post": {
+      "level": "Niv. {level, number}",
+      "menu": "Options de la publication",
+      "delete": "Supprimer",
+      "reportPost": "Signaler la publication",
+      "reportUser": "Signaler {handle}",
+      "block": "Bloquer {handle}",
+      "hidden": "Masquée après plusieurs signalements, en attendant la décision de la modération. Toi seul la vois encore.",
+      "question": "Question",
+      "bravo": "Bravo",
+      "bravoCount": "{count, plural, =0 {Aucun bravo} one {# bravo} other {# bravos}}",
+      "comments": "{count, plural, =0 {Commenter} one {# commentaire} other {# commentaires}}",
+      "blockTitle": "Bloquer {handle}?",
+      "blockDescription": "Vous ne verrez plus les publications ni les commentaires l’un de l’autre. Tu pourras débloquer cette personne dans Réglages.",
+      "blockConfirm": "Bloquer",
+      "deleteTitle": "Supprimer ta publication?",
+      "deleteDescription": "Elle disparaîtra du fil avec ses commentaires. Cette action est irréversible.",
+      "deleteConfirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "comments": {
+      "loading": "Chargement des commentaires…",
+      "empty": "Aucun commentaire. Lance la discussion!",
+      "gone": "Cette publication n’est plus disponible.",
+      "hidden": "Masqué après des signalements.",
+      "delete": "Supprimer mon commentaire",
+      "report": "Signaler le commentaire",
+      "label": "Ton commentaire",
+      "placeholder": "Écris un commentaire…",
+      "send": "Envoyer"
+    },
+    "feed": {
+      "label": "Fil du Centre Get iT",
+      "emptyTitle": "Le fil est encore vide",
+      "emptyDescription": "Sois la première personne à partager un progrès ou à poser une question.",
+      "more": "Voir plus",
+      "end": "Tu as tout vu. Retourne à tes quêtes!",
+      "blocked": "Personne bloquée : ses publications ont disparu de ton fil.",
+      "deleted": "Publication supprimée.",
+      "reported": "Merci! La modération va examiner ce signalement."
+    },
+    "report": {
+      "title": {
+        "post": "Signaler la publication",
+        "comment": "Signaler le commentaire",
+        "user": "Signaler cette personne"
+      },
+      "description": "Dis-nous ce qui ne va pas. Ton signalement reste anonyme.",
+      "reasonLabel": "Raison du signalement",
+      "reasons": {
+        "spam": "Spam ou publicité",
+        "harassment": "Harcèlement ou intimidation",
+        "hate": "Propos haineux",
+        "self_harm": "Détresse ou automutilation",
+        "inappropriate": "Contenu inapproprié",
+        "other": "Autre"
+      },
+      "detailsLabel": "Précisions",
+      "detailsPlaceholder": "Précisions (facultatif)",
+      "cancel": "Annuler",
+      "submit": "Signaler"
+    },
+    "moderation": {
+      "title": "Modération",
+      "description": "Signalements ouverts du Centre Get iT.",
+      "emptyTitle": "Aucun signalement",
+      "emptyDescription": "Tout est calme dans le Centre.",
+      "targets": {
+        "post": "Publication",
+        "comment": "Commentaire",
+        "user": "Personne"
+      },
+      "count": "{count, plural, one {# signalement} other {# signalements}}",
+      "status": {
+        "visible": "Visible",
+        "hidden": "Masqué automatiquement",
+        "removed": "Retiré"
+      },
+      "suspendedUntil": "Suspendu jusqu’au {date}",
+      "remove": "Retirer",
+      "restore": "Rétablir",
+      "dismiss": "Rejeter les signalements",
+      "suspend": "Suspendre {handle} 7 jours",
+      "unsuspend": "Lever la suspension"
+    },
+    "settings": {
+      "title": "Centre Get iT",
+      "description": "Ton identité dans la communauté et les personnes que tu as bloquées.",
+      "username": "Ton nom d’utilisateur : @{username}",
+      "notJoined": "Tu n’as pas encore rejoint le Centre.",
+      "blockedTitle": "Personnes bloquées",
+      "blockedEmpty": "Tu n’as bloqué personne.",
+      "unblock": "Débloquer"
+    },
+    "errors": {
+      "usernameInvalid": "3 à 20 caractères : lettres minuscules, chiffres ou « _ ».",
+      "usernameReserved": "Ce nom est réservé. Choisis-en un autre.",
+      "usernameTaken": "Ce nom d’utilisateur est déjà pris.",
+      "rulesRequired": "Accepte les règles pour rejoindre le Centre.",
+      "bodyRequired": "Écris quelque chose avant d’envoyer.",
+      "bodyTooLong": "Ton texte est trop long.",
+      "notJoined": "Rejoins d’abord le Centre.",
+      "suspended": "Ton compte est suspendu du Centre.",
+      "postLimit": "Tu as atteint la limite de 10 publications par 24 heures.",
+      "commentLimit": "Tu as atteint la limite de 50 commentaires par 24 heures.",
+      "reportLimit": "Tu as atteint la limite de signalements pour aujourd’hui.",
+      "notFound": "Ce contenu n’est plus disponible.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },
   "NotFound": {

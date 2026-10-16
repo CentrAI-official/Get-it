@@ -2,7 +2,10 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { PercentValue } from "@/components/percent-value";
 import { ProgressRing } from "@/components/progress-ring";
+import { Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
 import { TaskList } from "@/features/tasks/components/task-list";
@@ -99,6 +102,14 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
             </p>
           ) : null}
           <GoalActions goalId={goal.id} status={goal.status} />
+          {goal.completedAt ? (
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link href={`/community?partager=goal:${goal.id}`}>
+                <Share2 aria-hidden="true" />
+                {t("detail.share")}
+              </Link>
+            </Button>
+          ) : null}
         </div>
       </header>
 

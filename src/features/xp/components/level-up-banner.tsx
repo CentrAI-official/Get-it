@@ -3,6 +3,7 @@
 import { Sparkles, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 
 type LevelUpBannerProps = {
   /** Niveau atteint, ou null quand il n'y a rien à fêter. */
@@ -27,6 +28,12 @@ export function LevelUpBanner({ level, onClose }: LevelUpBannerProps) {
               {t("title", { level })}
             </p>
             <p className="text-sm text-muted-foreground">{t("body")}</p>
+            <Link
+              href="/community?partager=level"
+              className="mt-1 w-fit text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {t("share")}
+            </Link>
           </div>
           <Button
             type="button"

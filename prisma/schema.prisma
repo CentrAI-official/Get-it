@@ -42,18 +42,29 @@ enum GoalStatus {
 }
 
 /// Profil d'un utilisateur. L'id est celui du compte Supabase Auth (auth.users.id).
+/// Rôle dans la plateforme (§43) ; les permissions sont vérifiées côté serveur.
+enum UserRole {
+  user
+  moderator
+  admin
+}
+
 model Profile {
-  id           String      @id @db.Uuid
-  username     String?     @unique
+  id             String      @id @db.Uuid
+  /// Nom d'utilisateur public du Centre Get iT (minuscules, chiffres, « _ »).
+  username       String?     @unique
+  role           UserRole    @default(user)
+  /// Suspension du Centre Get iT par la modération ; null : pas suspendu.
+  suspendedUntil DateTime?   @map("suspended_until") @db.Timestamptz(3)
   /// Prénom ou nom affiché, demandé à l'onboarding.
-  displayName  String?     @map("display_name")
-  occupation   Occupation?
+  displayName    String?     @map("display_name")
+  occupation     Occupation?
   /// Piliers que l'utilisateur veut améliorer en priorité.
-  focusPillars Pillar[]    @default([]) @map("focus_pillars")
+  focusPillars   Pillar[]    @default([]) @map("focus_pillars")
   /// Fin de l'onboarding ; null tant qu'il n'est pas terminé.
-  onboardedAt  DateTime?   @map("onboarded_at") @db.Timestamptz(3)
-  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  onboardedAt    DateTime?   @map("onboarded_at") @db.Timestamptz(3)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   settings           UserSettings?
   goals              Goal[]
@@ -65,23 +76,33 @@ model Profile {
   aiRequests         AiRequest[]
   coachConversations CoachConversation[]
   coachActions       CoachAction[]
+  posts              Post[]
+  postComments       PostComment[]
+  postReactions      PostReaction[]
+  reportsMade        ContentReport[]     @relation("ReportReporter")
+  reportsReceived    ContentReport[]     @relation("ReportedUser")
+  reportsResolved    ContentReport[]     @relation("ReportResolver")
+  blocking           UserBlock[]         @relation("Blocker")
+  blockedBy          UserBlock[]         @relation("Blocked")
 
   @@map("profiles")
 }
 
 /// Préférences personnelles, séparées du profil public.
 model UserSettings {
-  userId       String    @id @map("user_id") @db.Uuid
+  userId           String    @id @map("user_id") @db.Uuid
   /// Langue choisie : suit l'utilisateur sur tous ses appareils (web et future app mobile).
-  locale       Locale    @default(fr)
+  locale           Locale    @default(fr)
   /// Fuseau IANA (ex. « America/Toronto ») : sert à calculer « aujourd'hui » et les séries.
-  timeZone     String    @default("America/Toronto") @map("time_zone")
+  timeZone         String    @default("America/Toronto") @map("time_zone")
   /// Temps que l'utilisateur veut investir chaque jour, en minutes.
-  dailyMinutes Int?      @map("daily_minutes")
+  dailyMinutes     Int?      @map("daily_minutes")
   /// Accord pour que Get iT AI reçoive les données de l'utilisateur (Loi 25) ; null : pas d'accord.
-  aiConsentAt  DateTime? @map("ai_consent_at") @db.Timestamptz(3)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  aiConsentAt      DateTime? @map("ai_consent_at") @db.Timestamptz(3)
+  /// Acceptation des règles du Centre Get iT, avant la première publication.
+  communityRulesAt DateTime? @map("community_rules_at") @db.Timestamptz(3)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -358,4 +379,130 @@ model CoachAction {
   @@index([messageId])
   @@index([userId, status])
   @@map("coach_actions")
+}
+
+enum PostKind {
+  text
+  question
+  progress
+}
+
+/// Visibilité d'un contenu : masqué automatiquement après plusieurs
+/// signalements (en attente de décision), ou retiré par la modération.
+enum ContentStatus {
+  visible
+  hidden
+  removed
+}
+
+/// Publication du Centre Get iT (§17-18).
+model Post {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  kind      PostKind
+  /// Texte, ou message facultatif d'un progrès partagé.
+  body      String
+  pillar    Pillar?
+  /// Progrès partagé, figé au moment du partage (objectif atteint, niveau…).
+  progress  Json?
+  status    ContentStatus @default(visible)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile   Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  PostComment[]
+  reactions PostReaction[]
+  reports   ContentReport[]
+
+  @@index([status, createdAt])
+  @@index([userId, createdAt])
+  @@map("posts")
+}
+
+model PostComment {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  postId    String        @map("post_id") @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  body      String
+  status    ContentStatus @default(visible)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  post    Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports ContentReport[]
+
+  @@index([postId, createdAt])
+  @@index([userId, createdAt])
+  @@map("post_comments")
+}
+
+/// « Bravo » sur une publication : une seule réaction par personne.
+model PostReaction {
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("post_reactions")
+}
+
+enum ReportReason {
+  spam
+  harassment
+  hate
+  self_harm
+  inappropriate
+  other
+}
+
+enum ReportStatus {
+  open
+  resolved
+  dismissed
+}
+
+/// Signalement (§44) d'une publication, d'un commentaire ou d'une personne.
+model ContentReport {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  reporterId     String       @map("reporter_id") @db.Uuid
+  postId         String?      @map("post_id") @db.Uuid
+  commentId      String?      @map("comment_id") @db.Uuid
+  reportedUserId String?      @map("reported_user_id") @db.Uuid
+  reason         ReportReason
+  details        String?
+  status         ReportStatus @default(open)
+  resolvedById   String?      @map("resolved_by_id") @db.Uuid
+  resolvedAt     DateTime?    @map("resolved_at") @db.Timestamptz(3)
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  reporter     Profile      @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  post         Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      PostComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reportedUser Profile?     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  resolvedBy   Profile?     @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@unique([reporterId, postId])
+  @@unique([reporterId, commentId])
+  @@unique([reporterId, reportedUserId])
+  @@index([status, createdAt])
+  @@map("content_reports")
+}
+
+/// Blocage : les deux personnes ne voient plus le contenu l'une de l'autre.
+model UserBlock {
+  blockerId String   @map("blocker_id") @db.Uuid
+  blockedId String   @map("blocked_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  blocker Profile @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked Profile @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+  @@map("user_blocks")
 }

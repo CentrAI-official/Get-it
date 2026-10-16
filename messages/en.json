@@ -164,9 +164,7 @@
     },
     "community": {
       "title": "Get iT Center",
-      "question": "Who can help or inspire me?",
-      "emptyTitle": "The community feed will appear here",
-      "emptyDescription": "You’ll be able to share your progress, ask questions and follow the people who inspire you."
+      "question": "Who can help or inspire me?"
     },
     "profile": {
       "title": "Profile",
@@ -453,7 +451,8 @@
       "deleting": "Deleting…",
       "deleteError": "The deletion failed. Try again in a moment.",
       "cancel": "Cancel",
-      "completedOn": "Achieved on {date}"
+      "completedOn": "Achieved on {date}",
+      "share": "Share in the Hub"
     },
     "milestones": {
       "title": "Milestones",
@@ -665,7 +664,8 @@
     "levelUp": {
       "title": "Level {level, number} reached!",
       "body": "Your actions are paying off. Keep it up.",
-      "close": "Close"
+      "close": "Close",
+      "share": "Share in the Hub"
     }
   },
   "Progress": {
@@ -766,6 +766,165 @@
         "goalMissing": "The linked goal no longer exists. Dismiss this suggestion or ask for another one.",
         "unexpected": "Adding failed. Try again in a moment."
       }
+    }
+  },
+  "Community": {
+    "signedInAs": "Signed in as @{username}",
+    "moderationLink": "Moderation",
+    "suspended": "Your account is suspended from the Hub until {date}. You can read the feed, but not post, comment or react.",
+    "join": {
+      "title": "Join the Get iT Hub",
+      "subtitle": "Share your progress, ask your questions and cheer others on.",
+      "usernameLabel": "Your username",
+      "usernameHelp": "3 to 20 characters: lowercase letters, numbers or “_”. Your first name, username and level will be visible to members. Your goals, habits and check-ins stay private.",
+      "rulesTitle": "Hub rules",
+      "rules": {
+        "respect": "Be respectful: no insults, harassment or hate speech.",
+        "progress": "Share real things: your progress, questions and tips. No ads or spam.",
+        "safety": "Health or money tips don’t replace a professional. If you’re in distress, call or text 9-8-8.",
+        "privacy": "Don’t post personal information, yours or anyone else’s.",
+        "honesty": "Report anything that breaks these rules: moderation will handle it."
+      },
+      "accept": "I accept the Get iT Hub rules.",
+      "submit": "Join the Hub"
+    },
+    "composer": {
+      "label": "New post",
+      "tabs": {
+        "post": "Post",
+        "progress": "Progress"
+      },
+      "kindLabel": "Post type",
+      "kinds": {
+        "text": "Text",
+        "question": "Question"
+      },
+      "bodyLabel": "Your message",
+      "placeholder": "Share a win, a tip, a thought…",
+      "questionPlaceholder": "Ask the community your question…",
+      "pillarLabel": "Pillar (optional)",
+      "length": "{count, number}/{max, number}",
+      "publish": "Post",
+      "progressHelp": "Pick real progress to share. It will appear as is in the feed.",
+      "progressLabel": "Progress to share",
+      "messageLabel": "Optional message",
+      "messagePlaceholder": "Add a few words (optional)…",
+      "share": "Share"
+    },
+    "progress": {
+      "goal": "Goal reached: {title}",
+      "milestone": "Milestone reached: {title} ({goal})",
+      "streak": "{days, number}-day streak: {title}",
+      "level": "Reached level {level, number}"
+    },
+    "post": {
+      "level": "Lvl {level, number}",
+      "menu": "Post options",
+      "delete": "Delete",
+      "reportPost": "Report post",
+      "reportUser": "Report {handle}",
+      "block": "Block {handle}",
+      "hidden": "Hidden after several reports, pending a moderation decision. Only you can still see it.",
+      "question": "Question",
+      "bravo": "Kudos",
+      "bravoCount": "{count, plural, =0 {No kudos} one {# kudos} other {# kudos}}",
+      "comments": "{count, plural, =0 {Comment} one {# comment} other {# comments}}",
+      "blockTitle": "Block {handle}?",
+      "blockDescription": "You won’t see each other’s posts or comments anymore. You can unblock this person in Settings.",
+      "blockConfirm": "Block",
+      "deleteTitle": "Delete your post?",
+      "deleteDescription": "It will disappear from the feed along with its comments. This can’t be undone.",
+      "deleteConfirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "comments": {
+      "loading": "Loading comments…",
+      "empty": "No comments yet. Start the conversation!",
+      "gone": "This post is no longer available.",
+      "hidden": "Hidden after reports.",
+      "delete": "Delete my comment",
+      "report": "Report comment",
+      "label": "Your comment",
+      "placeholder": "Write a comment…",
+      "send": "Send"
+    },
+    "feed": {
+      "label": "Get iT Hub feed",
+      "emptyTitle": "The feed is still empty",
+      "emptyDescription": "Be the first to share progress or ask a question.",
+      "more": "Show more",
+      "end": "You’re all caught up. Back to your quests!",
+      "blocked": "Person blocked: their posts are gone from your feed.",
+      "deleted": "Post deleted.",
+      "reported": "Thanks! Moderation will review this report."
+    },
+    "report": {
+      "title": {
+        "post": "Report post",
+        "comment": "Report comment",
+        "user": "Report this person"
+      },
+      "description": "Tell us what’s wrong. Your report stays anonymous.",
+      "reasonLabel": "Reason for the report",
+      "reasons": {
+        "spam": "Spam or advertising",
+        "harassment": "Harassment or bullying",
+        "hate": "Hate speech",
+        "self_harm": "Distress or self-harm",
+        "inappropriate": "Inappropriate content",
+        "other": "Other"
+      },
+      "detailsLabel": "Details",
+      "detailsPlaceholder": "Details (optional)",
+      "cancel": "Cancel",
+      "submit": "Report"
+    },
+    "moderation": {
+      "title": "Moderation",
+      "description": "Open reports from the Get iT Hub.",
+      "emptyTitle": "No reports",
+      "emptyDescription": "All is calm in the Hub.",
+      "targets": {
+        "post": "Post",
+        "comment": "Comment",
+        "user": "Person"
+      },
+      "count": "{count, plural, one {# report} other {# reports}}",
+      "status": {
+        "visible": "Visible",
+        "hidden": "Automatically hidden",
+        "removed": "Removed"
+      },
+      "suspendedUntil": "Suspended until {date}",
+      "remove": "Remove",
+      "restore": "Restore",
+      "dismiss": "Dismiss reports",
+      "suspend": "Suspend {handle} for 7 days",
+      "unsuspend": "Lift suspension"
+    },
+    "settings": {
+      "title": "Get iT Hub",
+      "description": "Your identity in the community and the people you’ve blocked.",
+      "username": "Your username: @{username}",
+      "notJoined": "You haven’t joined the Hub yet.",
+      "blockedTitle": "Blocked people",
+      "blockedEmpty": "You haven’t blocked anyone.",
+      "unblock": "Unblock"
+    },
+    "errors": {
+      "usernameInvalid": "3 to 20 characters: lowercase letters, numbers or “_”.",
+      "usernameReserved": "This name is reserved. Choose another one.",
+      "usernameTaken": "This username is already taken.",
+      "rulesRequired": "Accept the rules to join the Hub.",
+      "bodyRequired": "Write something before sending.",
+      "bodyTooLong": "Your text is too long.",
+      "notJoined": "Join the Hub first.",
+      "suspended": "Your account is suspended from the Hub.",
+      "postLimit": "You’ve reached the limit of 10 posts per 24 hours.",
+      "commentLimit": "You’ve reached the limit of 50 comments per 24 hours.",
+      "reportLimit": "You’ve reached today’s report limit.",
+      "notFound": "This content is no longer available.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   },
   "NotFound": {

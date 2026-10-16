@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SignOutButton } from "@/features/auth/components/sign-out-button";
+import {
+  CommunitySettings,
+  CommunitySettingsSkeleton,
+} from "@/features/community/components/community-settings";
 import { AccountEmail } from "@/features/settings/components/account-email";
 import {
   AiSettings,
@@ -63,6 +67,9 @@ export default function SettingsPage() {
       </Card>
       <Suspense fallback={<AiSettingsSkeleton />}>
         <AiSettings />
+      </Suspense>
+      <Suspense fallback={<CommunitySettingsSkeleton />}>
+        <CommunitySettings />
       </Suspense>
       <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>

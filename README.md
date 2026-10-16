@@ -70,5 +70,5 @@ src/i18n/                 configuration des langues
 - [x] 6. Page Aujourd’hui et check-in quotidien
 - [x] 7. XP, niveaux et progression
 - [x] 8. Get iT AI
-- [ ] 9. Fil social de base et modération
+- [x] 9. Centre Get iT : fil social de base et modération
 - [ ] 10. Finitions, analytics et déploiement

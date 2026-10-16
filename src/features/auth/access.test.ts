@@ -63,4 +63,10 @@ describe("getAuthRedirect", () => {
       expect(PROTECTED_PATHS).toContain(href);
     }
   });
+
+  it("protège la page de modération, absente de la navigation", () => {
+    expect(getAuthRedirect({ ...visitor, pathname: "/fr/moderation" })).toBe(
+      "/fr/login?next=%2Fmoderation",
+    );
+  });
 });
