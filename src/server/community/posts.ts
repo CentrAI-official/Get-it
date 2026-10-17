@@ -65,7 +65,7 @@ export type ProgressSource =
  * Le progrès réel derrière une source, figé pour la publication, ou null si
  * l'utilisateur ne peut pas le partager (pas à lui, pas encore accompli…).
  */
-async function freezeProgress(
+export async function freezeProgress(
   userId: string,
   source: ProgressSource,
 ): Promise<ProgressData | null> {

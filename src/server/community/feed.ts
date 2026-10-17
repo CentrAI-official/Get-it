@@ -4,10 +4,10 @@ import {
   progressDataSchema,
   type ProgressData,
 } from "@/features/community/rules";
-import { levelFromXp } from "@/features/xp/rules";
 import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { getLevels } from "@/server/xp/service";
 import { getBlockedIds } from "./members";
 
 // Le fil est chronologique (§82 : pas d'algorithme qui pousse à scroller).
@@ -48,19 +48,6 @@ export type FeedComment = {
 
 /** Curseur de pagination : la dernière publication déjà affichée. */
 export type FeedCursor = { createdAt: string; id: string };
-
-/** Niveau de chaque auteur, calculé sur son XP totale. */
-async function levelsOf(userIds: string[]) {
-  if (userIds.length === 0) return new Map<string, number>();
-  const rows = await db.xpEvent.groupBy({
-    by: ["userId"],
-    where: { userId: { in: userIds } },
-    _sum: { amount: true },
-  });
-  return new Map(
-    rows.map((row) => [row.userId, levelFromXp(row._sum.amount ?? 0).level]),
-  );
-}
 
 /** Contenu visible pour l'utilisateur : visible, ou masqué mais à lui. */
 function visibleTo(viewerId: string) {
@@ -128,7 +115,7 @@ export async function listFeed(
   });
 
   const page = rows.slice(0, FEED_PAGE_SIZE);
-  const levels = await levelsOf([...new Set(page.map((post) => post.userId))]);
+  const levels = await getLevels([...new Set(page.map((post) => post.userId))]);
   const last = page.at(-1);
 
   return {

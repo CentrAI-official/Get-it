@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
+import { UnreadPoller } from "@/features/messages/components/unread-poller";
 import { DayPanel } from "@/features/today/components/day-panel";
 
 // L'espace personnel n'a pas à être indexé par les moteurs de recherche
@@ -33,6 +34,7 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       <Suspense fallback={null}>
         <DayPanel />
       </Suspense>
+      <UnreadPoller />
     </div>
   );
 }

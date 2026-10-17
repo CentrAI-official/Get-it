@@ -1,0 +1,171 @@
+"use server";
+
+import { z } from "zod";
+import { progressShareSchema } from "@/features/community/rules";
+import { recordIdSchema } from "@/features/goals/schemas";
+import { requireUser } from "@/server/auth/session";
+import { listShareableProgress } from "@/server/community/posts";
+import {
+  clearConversation,
+  countUnread,
+  deleteMessage,
+  getConversation,
+  listInbox,
+  listOlderMessages,
+  markRead,
+  respondToRequest,
+  searchMembers,
+  sendMessage,
+  setMessageReaction,
+  startConversation,
+  type ChatMessage,
+  type ConversationState,
+  type InboxItem,
+  type MessagePerson,
+} from "@/server/messages/service";
+import {
+  firstMessageError,
+  memberSearchSchema,
+  messageBodySchema,
+  progressNoteSchema,
+  reactionSchema,
+  type MessageError,
+} from "./rules";
+
+// Points d'entrée publics : session, identifiants et saisies revalidés ici ;
+// le service vérifie la participation à la conversation et les blocages.
+
+type Result<T> = ({ ok: true } & T) | { ok: false; error: MessageError };
+
+export async function searchMembersAction(
+  query: unknown,
+): Promise<MessagePerson[]> {
+  const user = await requireUser();
+  const parsed = memberSearchSchema.safeParse(query);
+  if (!parsed.success) return [];
+  return searchMembers(user.id, parsed.data);
+}
+
+/** Ouvre (ou crée) la conversation avec un membre. */
+export async function startConversationAction(
+  userId: unknown,
+): Promise<Result<{ id: string }>> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(userId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  try {
+    return await startConversation(user.id, id.data);
+  } catch (error) {
+    console.error("Conversation impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+export async function listInboxAction(): Promise<InboxItem[]> {
+  const user = await requireUser();
+  return (await listInbox(user.id)).items;
+}
+
+export async function countUnreadAction(): Promise<number> {
+  const user = await requireUser();
+  return countUnread(user.id).catch(() => 0);
+}
+
+/** État à jour d'une conversation (rafraîchissement régulier). */
+export async function getConversationAction(
+  conversationId: unknown,
+): Promise<ConversationState | null> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return null;
+  return getConversation(user.id, id.data);
+}
+
+const cursorSchema = z.object({ createdAt: z.iso.datetime(), id: z.uuid() });
+
+export async function loadOlderMessagesAction(
+  conversationId: unknown,
+  cursor: unknown,
+): Promise<{ messages: ChatMessage[]; hasMore: boolean } | null> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  const before = cursorSchema.safeParse(cursor);
+  if (!id.success || !before.success) return null;
+  return listOlderMessages(user.id, id.data, before.data);
+}
+
+const messageInputSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("text"), body: messageBodySchema }),
+  z.object({
+    kind: z.literal("progress"),
+    source: progressShareSchema.shape.source,
+    body: progressNoteSchema,
+  }),
+]);
+
+export async function sendMessageAction(
+  conversationId: unknown,
+  input: unknown,
+): Promise<Result<{ message: ChatMessage }>> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  const parsed = messageInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: firstMessageError(parsed.error) };
+  }
+  try {
+    return await sendMessage(user.id, id.data, parsed.data);
+  } catch (error) {
+    console.error("Envoi du message impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+export async function markReadAction(conversationId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return;
+  await markRead(user.id, id.data).catch(() => undefined);
+}
+
+export async function respondToRequestAction(
+  conversationId: unknown,
+  accept: unknown,
+) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success || typeof accept !== "boolean") return false;
+  return respondToRequest(user.id, id.data, accept).catch(() => false);
+}
+
+export async function deleteMessageAction(messageId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(messageId);
+  if (!id.success) return false;
+  return deleteMessage(user.id, id.data).catch(() => false);
+}
+
+export async function setMessageReactionAction(
+  messageId: unknown,
+  kind: unknown,
+) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(messageId);
+  const reaction = reactionSchema.safeParse(kind);
+  if (!id.success || !reaction.success) return false;
+  return setMessageReaction(user.id, id.data, reaction.data).catch(() => false);
+}
+
+export async function clearConversationAction(conversationId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return false;
+  return clearConversation(user.id, id.data).catch(() => false);
+}
+
+/** Progrès que l'on peut envoyer dans une conversation. */
+export async function listShareableProgressAction() {
+  const user = await requireUser();
+  return listShareableProgress(user.id);
+}

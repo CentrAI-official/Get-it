@@ -110,6 +110,7 @@ export const reportSchema = z.object({
     z.object({ type: z.literal("post"), id: z.uuid() }),
     z.object({ type: z.literal("comment"), id: z.uuid() }),
     z.object({ type: z.literal("user"), id: z.uuid() }),
+    z.object({ type: z.literal("message"), id: z.uuid() }),
   ]),
   reason: z.enum(REPORT_REASONS),
   details: z.string().trim().max(REPORT_DETAILS_MAX_LENGTH).optional(),

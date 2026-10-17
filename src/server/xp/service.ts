@@ -1,6 +1,6 @@
 import "server-only";
 import { PILLARS, type Pillar } from "@/config/pillars";
-import { DAILY_TASK_XP_LIMIT } from "@/features/xp/rules";
+import { DAILY_TASK_XP_LIMIT, levelFromXp } from "@/features/xp/rules";
 import type { Prisma } from "@/generated/prisma/client";
 import { fromDbDate, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
@@ -36,6 +36,19 @@ export async function getXpTotals(userId: string): Promise<XpTotals> {
 }
 
 /** XP gagnée chaque jour entre `from` et `to` inclus (« AAAA-MM-JJ » → XP). */
+/** Niveau de plusieurs membres (fil du Centre, Messagerie), selon leur XP totale. */
+export async function getLevels(userIds: string[]) {
+  if (userIds.length === 0) return new Map<string, number>();
+  const rows = await db.xpEvent.groupBy({
+    by: ["userId"],
+    where: { userId: { in: userIds } },
+    _sum: { amount: true },
+  });
+  return new Map(
+    rows.map((row) => [row.userId, levelFromXp(row._sum.amount ?? 0).level]),
+  );
+}
+
 export async function getXpByDay(userId: string, from: string, to: string) {
   const rows = await db.xpEvent.groupBy({
     by: ["day"],

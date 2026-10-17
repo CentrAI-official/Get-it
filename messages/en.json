@@ -904,7 +904,8 @@
       "deleteTitle": "Delete your post?",
       "deleteDescription": "It will disappear from the feed along with its comments. This can’t be undone.",
       "deleteConfirm": "Delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "message": "Send a message"
     },
     "comments": {
       "loading": "Loading comments…",
@@ -931,7 +932,8 @@
       "title": {
         "post": "Report post",
         "comment": "Report comment",
-        "user": "Report this person"
+        "user": "Report this person",
+        "message": "Report message"
       },
       "description": "Tell us what’s wrong. Your report stays anonymous.",
       "reasonLabel": "Reason for the report",
@@ -956,7 +958,8 @@
       "targets": {
         "post": "Post",
         "comment": "Comment",
-        "user": "Person"
+        "user": "Person",
+        "message": "Private message"
       },
       "count": "{count, plural, one {# report} other {# reports}}",
       "status": {
@@ -993,6 +996,106 @@
       "commentLimit": "You’ve reached the limit of 50 comments per 24 hours.",
       "reportLimit": "You’ve reached today’s report limit.",
       "notFound": "This content is no longer available.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Messages": {
+    "unreadLabel": "{count, plural, one {# unread conversation} other {# unread conversations}}",
+    "inbox": {
+      "tabsLabel": "Inbox",
+      "chats": "Chats",
+      "requests": "Requests",
+      "requestsCount": "Requests ({count, number})",
+      "emptyTitle": "No chats yet",
+      "emptyDescription": "Write to a Hub member to cheer each other on, ask questions or challenge each other.",
+      "newMessage": "New message",
+      "requestsEmpty": "No requests. A first message from someone you’ve never talked to lands here.",
+      "you": "You: {text}",
+      "progress": "Shared progress",
+      "deleted": "Message deleted",
+      "unread": "Unread",
+      "level": "Lvl {level, number}"
+    },
+    "join": {
+      "title": "Join the Hub to write to members",
+      "description": "Messages are for Get iT Hub members: choose your username and accept the rules.",
+      "action": "Join the Hub"
+    },
+    "search": {
+      "title": "New message",
+      "description": "Who do you want to write to?",
+      "back": "Messages",
+      "label": "Search for a member",
+      "placeholder": "First name or @username",
+      "hint": "Search for a Hub member by first name or username.",
+      "empty": "No member found.",
+      "searching": "Searching…"
+    },
+    "conversation": {
+      "back": "Back to messages",
+      "menu": "Conversation options",
+      "report": "Report {handle}",
+      "block": "Block {handle}",
+      "clear": "Delete conversation",
+      "blockTitle": "Block {handle}?",
+      "blockDescription": "You won’t be able to write to each other, and you won’t see each other’s posts. You can unblock this person in Settings.",
+      "blockConfirm": "Block",
+      "clearTitle": "Delete this conversation?",
+      "clearDescription": "It disappears from your inbox, on your side only. It will come back if you write to each other again.",
+      "clearConfirm": "Delete",
+      "cancel": "Cancel",
+      "older": "Earlier messages",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "deleted": "Message deleted",
+      "you": "You",
+      "label": "Your message",
+      "placeholder": "Write a message…",
+      "send": "Send",
+      "sendProgress": "Send progress",
+      "sending": "Sending…",
+      "options": "Message reactions and options",
+      "reactLabel": "React",
+      "deleteMessage": "Delete",
+      "reportMessage": "Report",
+      "reported": "Thanks! Moderation will review this report.",
+      "gone": "This conversation is no longer available.",
+      "firstMessage": "Say hi to {name}! Your first message will arrive as a request.",
+      "privacy": "Private messages: never shared in the Hub or sent to Get iT AI. No “Seen” or “Online”: reply at your own pace.",
+      "requestTitle": "{name} wants to write to you",
+      "requestDescription": "Accept to reply. Until you do, this person doesn’t know whether you read their message.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "pending": "Request sent. You’ll be able to write again once {handle} accepts it.",
+      "cannotWrite": "Your account is suspended from the Hub: you can read your messages, but not write."
+    },
+    "reactions": {
+      "bravo": "Kudos",
+      "force": "Strength",
+      "proud": "Proud of you",
+      "thanks": "Thanks"
+    },
+    "picker": {
+      "title": "Send progress",
+      "description": "Pick real progress. It will arrive as is in the conversation.",
+      "loading": "Loading…",
+      "empty": "No progress to share yet.",
+      "note": "Optional note",
+      "notePlaceholder": "Add a few words (optional)…",
+      "send": "Send",
+      "close": "Close"
+    },
+    "errors": {
+      "bodyRequired": "Write something before sending.",
+      "bodyTooLong": "Your message is too long (2,000 characters max).",
+      "notJoined": "Join the Hub first.",
+      "suspended": "Your account is suspended from the Hub.",
+      "blocked": "You can’t write to this person.",
+      "notFound": "This content is no longer available.",
+      "acceptFirst": "Accept the request first to reply.",
+      "requestPending": "Your request hasn’t been accepted yet.",
+      "messageLimit": "You’ve reached the limit of 200 messages per 24 hours.",
+      "conversationLimit": "You’ve started 20 new conversations today: that’s the limit.",
       "unexpected": "Something went wrong. Try again in a moment."
     }
   },

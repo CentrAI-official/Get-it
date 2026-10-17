@@ -31,27 +31,7 @@ export async function reportContent(
 
   const { target } = input;
   // La cible doit exister et ne pas être à soi
-  const owner =
-    target.type === "post"
-      ? (
-          await db.post.findUnique({
-            where: { id: target.id },
-            select: { userId: true },
-          })
-        )?.userId
-      : target.type === "comment"
-        ? (
-            await db.postComment.findUnique({
-              where: { id: target.id },
-              select: { userId: true },
-            })
-          )?.userId
-        : (
-            await db.profile.findUnique({
-              where: { id: target.id },
-              select: { id: true },
-            })
-          )?.id;
+  const owner = await ownerOf(target, reporterId);
   if (!owner || owner === reporterId) return { ok: false, error: "notFound" };
 
   try {
@@ -61,6 +41,7 @@ export async function reportContent(
         postId: target.type === "post" ? target.id : null,
         commentId: target.type === "comment" ? target.id : null,
         reportedUserId: target.type === "user" ? target.id : null,
+        messageId: target.type === "message" ? target.id : null,
         reason: input.reason,
         details: input.details || null,
       },
@@ -99,6 +80,47 @@ export async function reportContent(
   return { ok: true };
 }
 
+/**
+ * Auteur d'un contenu (ou la personne elle-même). Un message privé n'est
+ * visible, donc signalable, que par les participants de sa conversation.
+ */
+async function ownerOf(target: ModerationTarget, viewerId: string) {
+  switch (target.type) {
+    case "post":
+      return (
+        await db.post.findUnique({
+          where: { id: target.id },
+          select: { userId: true },
+        })
+      )?.userId;
+    case "comment":
+      return (
+        await db.postComment.findUnique({
+          where: { id: target.id },
+          select: { userId: true },
+        })
+      )?.userId;
+    case "message":
+      return (
+        await db.message.findFirst({
+          where: {
+            id: target.id,
+            deletedAt: null,
+            conversation: { members: { some: { userId: viewerId } } },
+          },
+          select: { senderId: true },
+        })
+      )?.senderId;
+    case "user":
+      return (
+        await db.profile.findUnique({
+          where: { id: target.id },
+          select: { id: true },
+        })
+      )?.id;
+  }
+}
+
 /** Vrai si l'utilisateur est modérateur (ou administrateur). */
 export async function canModerate(userId: string) {
   const member = await getCommunityMember(userId);
@@ -106,13 +128,13 @@ export async function canModerate(userId: string) {
 }
 
 export type ModerationTarget = {
-  type: "post" | "comment" | "user";
+  type: "post" | "comment" | "user" | "message";
   id: string;
 };
 
 export type ReportedItem = {
   target: ModerationTarget;
-  /** Texte signalé (publication ou commentaire) ; null pour une personne. */
+  /** Texte signalé (publication, commentaire, message) ; null pour une personne. */
   body: string | null;
   status: "visible" | "hidden" | "removed" | null;
   author: {
@@ -174,6 +196,22 @@ export async function listOpenReports(moderatorId: string) {
           suspendedUntil: true,
         },
       },
+      // Message privé : la modération ne voit que le message signalé
+      message: {
+        select: {
+          id: true,
+          body: true,
+          deletedAt: true,
+          sender: {
+            select: {
+              id: true,
+              displayName: true,
+              username: true,
+              suspendedUntil: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -185,17 +223,30 @@ export async function listOpenReports(moderatorId: string) {
       createdAt: report.createdAt.toISOString(),
     };
     const source = report.post ?? report.comment;
-    const type = report.post ? "post" : report.comment ? "comment" : "user";
-    const author = source?.profile ?? report.reportedUser;
-    const id = source?.id ?? report.reportedUser?.id;
+    const message = report.message;
+    const type = report.post
+      ? "post"
+      : report.comment
+        ? "comment"
+        : message
+          ? "message"
+          : "user";
+    const author = source?.profile ?? message?.sender ?? report.reportedUser;
+    const id = source?.id ?? message?.id ?? report.reportedUser?.id;
     if (!author || !id) continue;
     const key = `${type}:${id}`;
     const item =
       items.get(key) ??
       ({
         target: { type, id },
-        body: source ? source.body || null : null,
-        status: source?.status ?? null,
+        body: source
+          ? source.body || null
+          : message
+            ? message.body || null
+            : null,
+        status:
+          source?.status ??
+          (message ? (message.deletedAt ? "removed" : "visible") : null),
         author: {
           id: author.id,
           displayName: author.displayName,
@@ -229,41 +280,42 @@ export async function moderate(
   if (!(await canModerate(moderatorId))) return false;
   // L'auteur est retrouvé en base, jamais fourni par le navigateur
   const authorId =
-    target.type === "post"
+    target.type === "message"
       ? (
-          await db.post.findUnique({
+          await db.message.findUnique({
             where: { id: target.id },
-            select: { userId: true },
+            select: { senderId: true },
           })
-        )?.userId
-      : target.type === "comment"
-        ? (
-            await db.postComment.findUnique({
-              where: { id: target.id },
-              select: { userId: true },
-            })
-          )?.userId
-        : (
-            await db.profile.findUnique({
-              where: { id: target.id },
-              select: { id: true },
-            })
-          )?.id;
+        )?.senderId
+      : await ownerOf(target, moderatorId);
   if (!authorId) return false;
   const reportsWhere =
     target.type === "post"
       ? { postId: target.id }
       : target.type === "comment"
         ? { commentId: target.id }
-        : { reportedUserId: target.id };
+        : target.type === "message"
+          ? { messageId: target.id }
+          : { reportedUserId: target.id };
   const close = (status: "resolved" | "dismissed") =>
     db.contentReport.updateMany({
       where: { ...reportsWhere, status: "open" },
       data: { status, resolvedById: moderatorId, resolvedAt: new Date() },
     });
 
+  if (target.type === "message" && decision === "remove") {
+    // Un message retiré ne peut pas être rétabli : son contenu est effacé
+    await db.$transaction([
+      db.message.updateMany({
+        where: { id: target.id },
+        data: { deletedAt: new Date(), body: "", progress: Prisma.DbNull },
+      }),
+      close("resolved"),
+    ]);
+    return true;
+  }
   if (decision === "remove" || decision === "restore") {
-    if (target.type === "user") return false;
+    if (target.type === "user" || target.type === "message") return false;
     const status = decision === "remove" ? "removed" : "visible";
     await db.$transaction([
       target.type === "post"

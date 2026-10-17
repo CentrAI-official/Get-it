@@ -104,7 +104,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
         </p>
       ) : null}
       <div className="flex flex-wrap gap-2">
-        {item.target.type !== "user" ? (
+        {item.target.type === "post" || item.target.type === "comment" ? (
           <>
             <Button
               size="sm"
@@ -124,14 +124,26 @@ function ReportedCard({ item }: { item: ReportedItem }) {
             </Button>
           </>
         ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={pending}
-            onClick={() => decide("dismiss")}
-          >
-            {t("dismiss")}
-          </Button>
+          <>
+            {item.target.type === "message" && item.status !== "removed" ? (
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={pending}
+                onClick={() => decide("remove")}
+              >
+                {t("remove")}
+              </Button>
+            ) : null}
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={pending}
+              onClick={() => decide("dismiss")}
+            >
+              {t("dismiss")}
+            </Button>
+          </>
         )}
         {item.author.suspendedUntil ? (
           <Button

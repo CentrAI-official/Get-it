@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { UnreadBadge } from "@/features/messages/components/unread-badge";
 import { appNavItems, isActiveItem } from "./nav-items";
 
 /** Barre de navigation flottante en bas de l'écran sur mobile, « Mes services » au centre. */
@@ -59,7 +60,12 @@ function Tabs({ pathname }: { pathname: string | null }) {
                   <Icon aria-hidden="true" className="size-6" />
                 </span>
               ) : (
-                <Icon aria-hidden="true" className="size-[22px]" />
+                <span className="relative">
+                  <Icon aria-hidden="true" className="size-[22px]" />
+                  {key === "messages" ? (
+                    <UnreadBadge className="absolute -top-1.5 -right-2.5" />
+                  ) : null}
+                </span>
               )}
               {t(key)}
             </Link>

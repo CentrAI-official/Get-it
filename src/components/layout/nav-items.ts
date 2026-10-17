@@ -60,7 +60,7 @@ export const topActions = {
   groups: { key: "groups", href: "/groups", icon: UsersRound },
   events: { key: "events", href: "/events", icon: CalendarDays },
   coach: { key: "coach", href: "/coach", icon: Sparkles },
-  newMessage: { key: "newMessage", href: "/messages", icon: SquarePen },
+  newMessage: { key: "newMessage", href: "/messages/new", icon: SquarePen },
   shopServices: {
     key: "shopServices",
     href: "/marketplace/services",

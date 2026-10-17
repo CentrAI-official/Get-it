@@ -904,7 +904,8 @@
       "deleteTitle": "Supprimer ta publication?",
       "deleteDescription": "Elle disparaîtra du fil avec ses commentaires. Cette action est irréversible.",
       "deleteConfirm": "Supprimer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "message": "Envoyer un message"
     },
     "comments": {
       "loading": "Chargement des commentaires…",
@@ -931,7 +932,8 @@
       "title": {
         "post": "Signaler la publication",
         "comment": "Signaler le commentaire",
-        "user": "Signaler cette personne"
+        "user": "Signaler cette personne",
+        "message": "Signaler le message"
       },
       "description": "Dis-nous ce qui ne va pas. Ton signalement reste anonyme.",
       "reasonLabel": "Raison du signalement",
@@ -956,7 +958,8 @@
       "targets": {
         "post": "Publication",
         "comment": "Commentaire",
-        "user": "Personne"
+        "user": "Personne",
+        "message": "Message privé"
       },
       "count": "{count, plural, one {# signalement} other {# signalements}}",
       "status": {
@@ -993,6 +996,106 @@
       "commentLimit": "Tu as atteint la limite de 50 commentaires par 24 heures.",
       "reportLimit": "Tu as atteint la limite de signalements pour aujourd’hui.",
       "notFound": "Ce contenu n’est plus disponible.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Messages": {
+    "unreadLabel": "{count, plural, one {# conversation non lue} other {# conversations non lues}}",
+    "inbox": {
+      "tabsLabel": "Boîte de réception",
+      "chats": "Discussions",
+      "requests": "Demandes",
+      "requestsCount": "Demandes ({count, number})",
+      "emptyTitle": "Aucune discussion pour l’instant",
+      "emptyDescription": "Écris à un membre du Centre pour vous encourager, vous poser des questions ou vous lancer un défi.",
+      "newMessage": "Nouveau message",
+      "requestsEmpty": "Aucune demande. Le premier message d’une personne à qui tu n’as jamais parlé arrive ici.",
+      "you": "Toi : {text}",
+      "progress": "Progrès partagé",
+      "deleted": "Message supprimé",
+      "unread": "Non lu",
+      "level": "Niv. {level, number}"
+    },
+    "join": {
+      "title": "Rejoins le Centre pour écrire aux membres",
+      "description": "La Messagerie est réservée aux membres du Centre Get iT : choisis ton nom d’utilisateur et accepte les règles.",
+      "action": "Rejoindre le Centre"
+    },
+    "search": {
+      "title": "Nouveau message",
+      "description": "À qui veux-tu écrire?",
+      "back": "Messages",
+      "label": "Rechercher un membre",
+      "placeholder": "Prénom ou @nom d’utilisateur",
+      "hint": "Cherche un membre du Centre par son prénom ou son nom d’utilisateur.",
+      "empty": "Aucun membre trouvé.",
+      "searching": "Recherche…"
+    },
+    "conversation": {
+      "back": "Retour aux messages",
+      "menu": "Options de la conversation",
+      "report": "Signaler {handle}",
+      "block": "Bloquer {handle}",
+      "clear": "Supprimer la conversation",
+      "blockTitle": "Bloquer {handle}?",
+      "blockDescription": "Vous ne pourrez plus vous écrire, et vous ne verrez plus les publications l’un de l’autre. Tu pourras débloquer cette personne dans Réglages.",
+      "blockConfirm": "Bloquer",
+      "clearTitle": "Supprimer la conversation?",
+      "clearDescription": "Elle disparaît de ta boîte de réception, de ton côté seulement. Elle réapparaîtra si vous vous écrivez de nouveau.",
+      "clearConfirm": "Supprimer",
+      "cancel": "Annuler",
+      "older": "Messages précédents",
+      "today": "Aujourd’hui",
+      "yesterday": "Hier",
+      "deleted": "Message supprimé",
+      "you": "Toi",
+      "label": "Ton message",
+      "placeholder": "Écris un message…",
+      "send": "Envoyer",
+      "sendProgress": "Envoyer un progrès",
+      "sending": "Envoi…",
+      "options": "Réactions et options du message",
+      "reactLabel": "Réagir",
+      "deleteMessage": "Supprimer",
+      "reportMessage": "Signaler",
+      "reported": "Merci! La modération va examiner ce signalement.",
+      "gone": "Cette conversation n’est plus disponible.",
+      "firstMessage": "Dis bonjour à {name}! Ton premier message lui arrivera comme une demande.",
+      "privacy": "Messages privés : jamais partagés dans le Centre ni envoyés à Get iT AI. Pas de « Vu » ni de « En ligne » : réponds à ton rythme.",
+      "requestTitle": "{name} veut t’écrire",
+      "requestDescription": "Accepte pour lui répondre. Tant que tu n’acceptes pas, cette personne ne sait pas si tu as lu son message.",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "pending": "Demande envoyée. Tu pourras écrire de nouveau quand {handle} l’aura acceptée.",
+      "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire."
+    },
+    "reactions": {
+      "bravo": "Bravo",
+      "force": "Force",
+      "proud": "Fier de toi",
+      "thanks": "Merci"
+    },
+    "picker": {
+      "title": "Envoyer un progrès",
+      "description": "Choisis un vrai progrès. Il arrivera tel quel dans la conversation.",
+      "loading": "Chargement…",
+      "empty": "Aucun progrès à partager pour l’instant.",
+      "note": "Mot facultatif",
+      "notePlaceholder": "Ajoute un mot (facultatif)…",
+      "send": "Envoyer",
+      "close": "Fermer"
+    },
+    "errors": {
+      "bodyRequired": "Écris quelque chose avant d’envoyer.",
+      "bodyTooLong": "Ton message est trop long (2 000 caractères au plus).",
+      "notJoined": "Rejoins d’abord le Centre.",
+      "suspended": "Ton compte est suspendu du Centre.",
+      "blocked": "Tu ne peux pas écrire à cette personne.",
+      "notFound": "Ce contenu n’est plus disponible.",
+      "acceptFirst": "Accepte d’abord la demande pour répondre.",
+      "requestPending": "Ta demande n’a pas encore été acceptée.",
+      "messageLimit": "Tu as atteint la limite de 200 messages par 24 heures.",
+      "conversationLimit": "Tu as commencé 20 nouvelles conversations aujourd’hui : c’est la limite.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },

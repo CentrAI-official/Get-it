@@ -82,6 +82,7 @@ export function CommunityFeed({
             canWrite={canWrite}
             onRemoved={removed}
             onReport={setReportTarget}
+            onNotice={setNotice}
           />
         ))
       )}

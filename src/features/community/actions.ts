@@ -232,7 +232,7 @@ export async function unblockUserAction(userId: string) {
 
 const moderationSchema = z.object({
   target: z.object({
-    type: z.enum(["post", "comment", "user"]),
+    type: z.enum(["post", "comment", "user", "message"]),
     id: z.uuid(),
   }),
   decision: z.enum(["remove", "restore", "dismiss", "suspend", "unsuspend"]),

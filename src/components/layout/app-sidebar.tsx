@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { Logo } from "@/components/brand/logo";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { UnreadBadge } from "@/features/messages/components/unread-badge";
 import { appNavItems, isActiveItem, type AppNavItem } from "./nav-items";
 
 /** Barre latérale de l'application (ordinateur et tablette en paysage) : les cinq catégories. */
@@ -67,6 +68,7 @@ function LinkList({
           className={cn("size-4", active && "text-primary")}
         />
         {t(key)}
+        {key === "messages" ? <UnreadBadge className="ml-auto" /> : null}
       </Link>
     );
   });

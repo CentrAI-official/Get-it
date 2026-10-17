@@ -35,6 +35,8 @@ import {
   deletePostAction,
   setReactionAction,
 } from "../actions";
+import { startConversationAction } from "@/features/messages/actions";
+import { useRouter } from "@/i18n/navigation";
 import { PostComments } from "./post-comments";
 import { ProgressShare } from "./progress-share";
 
@@ -45,6 +47,8 @@ type PostCardProps = {
   /** La publication disparaît du fil (supprimée, ou auteur bloqué). */
   onRemoved: (filter: { postId?: string; authorId?: string }) => void;
   onReport: (target: { type: "post" | "comment" | "user"; id: string }) => void;
+  /** Message d'information (ex. conversation impossible). */
+  onNotice: (text: string) => void;
 };
 
 /** Publication du fil : auteur, contenu, « Bravo », commentaires et menu. */
@@ -54,6 +58,7 @@ export function PostCard({
   canWrite,
   onRemoved,
   onReport,
+  onNotice,
 }: PostCardProps) {
   const t = useTranslations("Community.post");
   const tPillars = useTranslations("Pillars");
@@ -66,6 +71,16 @@ export function PostCard({
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<"delete" | "block" | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
+  const tMessages = useTranslations("Messages.errors");
+
+  function message() {
+    startTransition(async () => {
+      const result = await startConversationAction(post.author.id);
+      if (result.ok) router.push(`/messages/${result.id}`);
+      else onNotice(tMessages(result.error));
+    });
+  }
   const name = post.author.displayName ?? post.author.username ?? "";
   const handle = `@${post.author.username ?? ""}`;
 
@@ -142,6 +157,12 @@ export function PostCard({
               </DropdownMenuItem>
             ) : (
               <>
+                {canWrite ? (
+                  <DropdownMenuItem onSelect={message}>
+                    <MessageCircle aria-hidden="true" />
+                    {t("message")}
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem
                   onSelect={() => onReport({ type: "post", id: post.id })}
                 >

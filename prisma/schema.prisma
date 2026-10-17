@@ -66,24 +66,28 @@ model Profile {
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  settings           UserSettings?
-  goals              Goal[]
-  tasks              Task[]
-  habits             Habit[]
-  checkIns           DailyCheckIn[]
-  assessments        PillarAssessment[]
-  xpEvents           XpEvent[]
-  aiRequests         AiRequest[]
-  coachConversations CoachConversation[]
-  coachActions       CoachAction[]
-  posts              Post[]
-  postComments       PostComment[]
-  postReactions      PostReaction[]
-  reportsMade        ContentReport[]     @relation("ReportReporter")
-  reportsReceived    ContentReport[]     @relation("ReportedUser")
-  reportsResolved    ContentReport[]     @relation("ReportResolver")
-  blocking           UserBlock[]         @relation("Blocker")
-  blockedBy          UserBlock[]         @relation("Blocked")
+  settings             UserSettings?
+  goals                Goal[]
+  tasks                Task[]
+  habits               Habit[]
+  checkIns             DailyCheckIn[]
+  assessments          PillarAssessment[]
+  xpEvents             XpEvent[]
+  aiRequests           AiRequest[]
+  coachConversations   CoachConversation[]
+  coachActions         CoachAction[]
+  posts                Post[]
+  postComments         PostComment[]
+  postReactions        PostReaction[]
+  reportsMade          ContentReport[]      @relation("ReportReporter")
+  reportsReceived      ContentReport[]      @relation("ReportedUser")
+  reportsResolved      ContentReport[]      @relation("ReportResolver")
+  blocking             UserBlock[]          @relation("Blocker")
+  blockedBy            UserBlock[]          @relation("Blocked")
+  conversationsStarted Conversation[]       @relation("ConversationCreator")
+  conversationMembers  ConversationMember[]
+  messagesSent         Message[]
+  messageReactions     MessageReaction[]
 
   @@map("profiles")
 }
@@ -475,6 +479,7 @@ model ContentReport {
   postId         String?      @map("post_id") @db.Uuid
   commentId      String?      @map("comment_id") @db.Uuid
   reportedUserId String?      @map("reported_user_id") @db.Uuid
+  messageId      String?      @map("message_id") @db.Uuid
   reason         ReportReason
   details        String?
   status         ReportStatus @default(open)
@@ -486,11 +491,13 @@ model ContentReport {
   post         Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
   comment      PostComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
   reportedUser Profile?     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  message      Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
   resolvedBy   Profile?     @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   @@unique([reporterId, postId])
   @@unique([reporterId, commentId])
   @@unique([reporterId, reportedUserId])
+  @@unique([reporterId, messageId])
   @@index([status, createdAt])
   @@map("content_reports")
 }
@@ -507,4 +514,97 @@ model UserBlock {
   @@id([blockerId, blockedId])
   @@index([blockedId])
   @@map("user_blocks")
+}
+
+/// Place d'un participant dans une conversation privée.
+enum ConversationMemberStatus {
+  /// Conversation acceptée : dans les Discussions.
+  accepted
+  /// Premier message d'une personne inconnue : dans les Demandes, en attente.
+  request
+}
+
+enum MessageKind {
+  text
+  /// Progrès réel, figé au moment de l'envoi (comme dans le Centre).
+  progress
+}
+
+/// Réactions de la Messagerie : Bravo, Force, Fier de toi, Merci.
+enum MessageReactionKind {
+  bravo
+  force
+  proud
+  thanks
+}
+
+/// Conversation privée entre deux membres du Centre (une seule par paire).
+model Conversation {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  /// Les deux identifiants triés, « idA:idB » : empêche les doublons.
+  directKey     String   @unique @map("direct_key")
+  createdById   String   @map("created_by_id") @db.Uuid
+  lastMessageAt DateTime @default(now()) @map("last_message_at") @db.Timestamptz(3)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  createdBy Profile              @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  members   ConversationMember[]
+  messages  Message[]
+
+  @@index([createdById, createdAt])
+  @@map("conversations")
+}
+
+model ConversationMember {
+  conversationId String                   @map("conversation_id") @db.Uuid
+  userId         String                   @map("user_id") @db.Uuid
+  status         ConversationMemberStatus @default(accepted)
+  /// Dernière lecture : sert seulement au nombre de non-lus (pas de « Vu »).
+  lastReadAt     DateTime?                @map("last_read_at") @db.Timestamptz(3)
+  /// Conversation supprimée de son côté : les messages d'avant restent cachés.
+  clearedAt      DateTime?                @map("cleared_at") @db.Timestamptz(3)
+  createdAt      DateTime                 @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  profile      Profile      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+  @@map("conversation_members")
+}
+
+model Message {
+  id             String      @id @default(uuid(7)) @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  senderId       String      @map("sender_id") @db.Uuid
+  kind           MessageKind @default(text)
+  /// Texte, ou mot facultatif accompagnant un progrès ; vide une fois supprimé.
+  body           String      @default("")
+  /// Progrès figé (même forme que posts.progress).
+  progress       Json?
+  /// Supprimé par son auteur ou retiré par la modération : contenu effacé.
+  deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(3)
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       Profile           @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  reactions    MessageReaction[]
+  reports      ContentReport[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+  @@map("messages")
+}
+
+model MessageReaction {
+  messageId String              @map("message_id") @db.Uuid
+  userId    String              @map("user_id") @db.Uuid
+  kind      MessageReactionKind
+  createdAt DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+  @@map("message_reactions")
 }
