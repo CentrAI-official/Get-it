@@ -88,6 +88,9 @@ model Profile {
   conversationMembers  ConversationMember[]
   messagesSent         Message[]
   messageReactions     MessageReaction[]
+  pactsProposed        Pact[]               @relation("PactProposer")
+  pactsEnded           Pact[]               @relation("PactEnder")
+  pactMembers          PactMember[]
 
   @@map("profiles")
 }
@@ -211,6 +214,7 @@ model Habit {
   profile     Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal        Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
   completions HabitCompletion[]
+  pactMembers PactMember[]
 
   @@index([userId, archivedAt])
   @@index([goalId])
@@ -528,6 +532,8 @@ enum MessageKind {
   text
   /// Progrès réel, figé au moment de l'envoi (comme dans le Centre).
   progress
+  /// Étape d'un pacte (proposition, fin) : affichée selon l'état du pacte.
+  pact
 }
 
 /// Réactions de la Messagerie : Bravo, Force, Fier de toi, Merci.
@@ -550,6 +556,7 @@ model Conversation {
   createdBy Profile              @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
   members   ConversationMember[]
   messages  Message[]
+  pacts     Pact[]
 
   @@index([createdById, createdAt])
   @@map("conversations")
@@ -582,12 +589,15 @@ model Message {
   body           String      @default("")
   /// Progrès figé (même forme que posts.progress).
   progress       Json?
+  /// Pacte dont ce message marque une étape (« proposed », « ended », « cancelled » dans body).
+  pactId         String?     @map("pact_id") @db.Uuid
   /// Supprimé par son auteur ou retiré par la modération : contenu effacé.
   deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(3)
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
 
   conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       Profile           @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  pact         Pact?             @relation(fields: [pactId], references: [id], onDelete: Cascade)
   reactions    MessageReaction[]
   reports      ContentReport[]
 
@@ -607,4 +617,76 @@ model MessageReaction {
 
   @@id([messageId, userId])
   @@map("message_reactions")
+}
+
+/// Règle de réussite d'un pacte.
+enum PactRule {
+  /// Chaque jour, pour les deux.
+  daily
+  /// Au moins 80 % des jours (arrondi au-dessus).
+  most
+}
+
+enum PactStatus {
+  proposed
+  active
+  declined
+  /// Quitté (ou retiré) par l'un des deux.
+  cancelled
+  /// Arrivé à son dernier jour.
+  ended
+}
+
+enum PactOutcome {
+  success
+  failed
+}
+
+/// Pacte : défi à deux dans une conversation, chacun avec son habitude.
+model Pact {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  conversationId String       @map("conversation_id") @db.Uuid
+  proposedById   String       @map("proposed_by_id") @db.Uuid
+  title          String
+  pillar         Pillar
+  /// Durée en jours : 7, 14 ou 30.
+  days           Int
+  rule           PactRule     @default(most)
+  status         PactStatus   @default(proposed)
+  /// Premier et dernier jour (calendrier), fixés à l'acceptation.
+  startsOn       DateTime?    @map("starts_on") @db.Date
+  endsOn         DateTime?    @map("ends_on") @db.Date
+  outcome        PactOutcome?
+  /// Qui l'a quitté : jamais affiché à l'autre (« Le pacte est terminé »).
+  endedById      String?      @map("ended_by_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  proposedBy   Profile      @relation("PactProposer", fields: [proposedById], references: [id], onDelete: Cascade)
+  endedBy      Profile?     @relation("PactEnder", fields: [endedById], references: [id], onDelete: SetNull)
+  members      PactMember[]
+  messages     Message[]
+
+  @@index([conversationId, status])
+  @@index([proposedById, createdAt])
+  @@map("pacts")
+}
+
+/// Participant d'un pacte et l'habitude qu'il y relie (seul son « fait / pas fait » est partagé).
+model PactMember {
+  pactId   String    @map("pact_id") @db.Uuid
+  userId   String    @map("user_id") @db.Uuid
+  /// Détachée si l'habitude est supprimée.
+  habitId  String?   @map("habit_id") @db.Uuid
+  joinedAt DateTime? @map("joined_at") @db.Timestamptz(3)
+
+  pact    Pact    @relation(fields: [pactId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habit   Habit?  @relation(fields: [habitId], references: [id], onDelete: SetNull)
+
+  @@id([pactId, userId])
+  @@index([userId])
+  @@index([habitId])
+  @@map("pact_members")
 }

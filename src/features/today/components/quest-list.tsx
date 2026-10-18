@@ -1,6 +1,13 @@
 "use client";
 
-import { Check, LoaderCircle, Plus, Sparkles, Trash2 } from "lucide-react";
+import {
+  Check,
+  Handshake,
+  LoaderCircle,
+  Plus,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +34,13 @@ export type HabitQuest = QuestBase & {
   /** Série en cours, recalculée à chaque clic. */
   streak: number;
   late: false;
+  /** Pacte en cours sur cette habitude (Messagerie). */
+  pact?: {
+    partnerName: string;
+    dayIndex: number;
+    days: number;
+    partnerDone: boolean;
+  };
 };
 
 export type TaskQuest = QuestBase & {
@@ -216,6 +230,7 @@ export function QuestRow({
   }
 
   const meta = quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
+  const pact = quest.kind === "habit" ? quest.pact : undefined;
 
   return (
     <li
@@ -254,6 +269,25 @@ export function QuestRow({
           >
             {quest.title}
           </span>
+          {pact ? (
+            <span className="flex items-start gap-1.5 text-xs text-primary">
+              <Handshake
+                aria-hidden="true"
+                className="mt-px size-3.5 shrink-0"
+              />
+              <span className="break-words">
+                {t("pact", {
+                  name: pact.partnerName,
+                  day: pact.dayIndex,
+                  days: pact.days,
+                })}
+                {" · "}
+                {pact.partnerDone
+                  ? t("pactPartnerDone", { name: pact.partnerName })
+                  : t("pactPartnerPending", { name: pact.partnerName })}
+              </span>
+            </span>
+          ) : null}
           <span
             className={cn(
               "text-xs break-words",

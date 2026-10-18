@@ -1243,7 +1243,7 @@ Prévoir préférences configurables.
 
 # 38. MESSAGING
 
-> **Mise à jour du 2026-10-16 (lot M1 construit)** : messages privés entre membres du Centre ; demandes de message pour les inconnus (un seul message avant l'acceptation) ; réactions Bravo, Force, Fier de toi, Merci ; cartes de progrès réels ; ni « Vu » ni « En ligne » (pas de pression) ; signalement à la modération, blocage, suppression. NEXT : Pactes (défis à deux, lot M2), temps réel, notifications avec « Mode focus », photos, groupes, conversations avec ses professionnels.
+> **Mise à jour du 2026-10-16 (lot M1 construit)** : messages privés entre membres du Centre ; demandes de message pour les inconnus (un seul message avant l'acceptation) ; réactions Bravo, Force, Fier de toi, Merci ; cartes de progrès réels ; ni « Vu » ni « En ligne » (pas de pression) ; signalement à la modération, blocage, suppression. Lot M2 construit le 2026-10-17 : **Pactes**, défis à deux dans une conversation (7, 14 ou 30 jours, règle « chaque jour » ou « 80 % des jours », habitudes reliées, bandeau du jour, encouragement, pacte réussi à partager dans le Centre). NEXT : pactes à plusieurs (Groupes), temps réel, notifications avec « Mode focus », photos, groupes, conversations avec ses professionnels.
 
 Messagerie interne future.
 

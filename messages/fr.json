@@ -683,7 +683,10 @@
       "createHabit": "Créer une habitude",
       "xpReward": "+{xp, number} XP",
       "xpEarned": "{xp, number} XP",
-      "withStreak": "{meta} · série de {count, number} j"
+      "withStreak": "{meta} · série de {count, number} j",
+      "pact": "Pacte avec {name} · jour {day, number}/{days, number}",
+      "pactPartnerDone": "{name} a déjà fait sa part",
+      "pactPartnerPending": "{name} n’a pas encore fait sa part"
     },
     "checkIn": {
       "title": "Check-in du jour",
@@ -884,7 +887,8 @@
       "goal": "Objectif atteint : {title}",
       "milestone": "Jalon atteint : {title} ({goal})",
       "streak": "Série de {days, number} jours : {title}",
-      "level": "Niveau {level, number} atteint"
+      "level": "Niveau {level, number} atteint",
+      "pact": "Pacte réussi : {title} · {together, number} jours ensemble sur {days, number}"
     },
     "post": {
       "level": "Niv. {level, number}",
@@ -1014,7 +1018,8 @@
       "progress": "Progrès partagé",
       "deleted": "Message supprimé",
       "unread": "Non lu",
-      "level": "Niv. {level, number}"
+      "level": "Niv. {level, number}",
+      "pact": "Pacte"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1096,7 +1101,101 @@
       "requestPending": "Ta demande n’a pas encore été acceptée.",
       "messageLimit": "Tu as atteint la limite de 200 messages par 24 heures.",
       "conversationLimit": "Tu as commencé 20 nouvelles conversations aujourd’hui : c’est la limite.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "pactOpen": "Un pacte est déjà proposé ou en cours dans cette conversation.",
+      "pactLimit": "Tu as proposé assez de pactes pour aujourd’hui.",
+      "habitRequired": "Choisis l’habitude à relier au pacte.",
+      "titleRequired": "Donne un nom au défi.",
+      "titleTooLong": "Le nom du défi est trop long (60 caractères au plus)."
+    },
+    "pacts": {
+      "propose": "Proposer un pacte",
+      "proposeTitle": "Proposer un pacte à {name}",
+      "proposeDescription": "Un défi à deux : chacun fait son habitude chaque jour, et voit si l’autre a tenu sa part.",
+      "challenge": "Le défi",
+      "challengePlaceholder": "Ex. Méditer 10 minutes",
+      "duration": "Durée",
+      "days": "{count, number} jours",
+      "habit": "Ton habitude",
+      "habitHelp": "Seul le « fait / pas fait » de cette habitude sera partagé avec {name}. Le reste de ton profil reste privé.",
+      "noHabits": "Crée d’abord une habitude à relier au pacte.",
+      "createHabit": "Créer une habitude",
+      "loading": "Chargement…",
+      "rule": "Le pacte est réussi si…",
+      "rules": {
+        "daily": "Chaque jour",
+        "dailyHint": "Strict : aucun jour manqué",
+        "most": "80 % des jours",
+        "mostHint": "Un jour off, ça arrive"
+      },
+      "need": "Chacun doit le faire au moins <strong>{need, number}</strong> jours sur {days, number}.",
+      "startsTomorrow": "Commence demain si {name} accepte. Vous pourrez quitter le pacte à tout moment.",
+      "send": "Envoyer la proposition",
+      "close": "Fermer",
+      "hint": "Faites-le ensemble.",
+      "hintText": "Propose un pacte à {name} : chacun fait son habitude, chaque jour.",
+      "encouragement": "Petit rappel amical : on garde notre pacte en vie aujourd’hui! On lâche pas.",
+      "card": {
+        "proposedToMe": "{name} te propose un pacte",
+        "proposedByMe": "Tu proposes un pacte",
+        "days": "{days, number} jours",
+        "startsTomorrow": "Commence le lendemain de l’accord",
+        "rule": "Réussi si {need, number} jours sur {days, number}",
+        "linkHabit": "Relier à ton habitude",
+        "newHabit": "Créer « {title} »",
+        "newHabitHint": "Nouvelle habitude, tous les jours",
+        "privacy": "{name} verra seulement si tu as fait cette habitude chaque jour, rien d’autre.",
+        "accept": "Accepter le pacte",
+        "decline": "Refuser",
+        "waiting": "En attente de {name}",
+        "withdraw": "Retirer la proposition",
+        "declined": "Pacte refusé",
+        "accepted": "Pacte accepté · du {from} au {to}",
+        "cancelled": "Le pacte est terminé",
+        "successTitle": "Pacte réussi!",
+        "failedTitle": "Pacte terminé",
+        "summary": "{title} · {days, number} jours avec {name}",
+        "together": "Ensemble",
+        "you": "Toi",
+        "count": "{count, number}/{days, number}",
+        "share": "Partager dans le Centre",
+        "again": "Relancer un pacte"
+      },
+      "banner": {
+        "label": "Pacte en cours",
+        "details": "Voir le détail du pacte",
+        "day": "Jour {day, number}/{days, number}",
+        "startsTomorrow": "Commence demain",
+        "you": "Toi",
+        "done": "fait",
+        "doneAt": "fait à {time}",
+        "notYet": "pas encore",
+        "bothDone": "Vous avez tous les deux tenu votre part aujourd’hui!",
+        "streak": "Série commune : <strong>{count, plural, one {# jour} other {# jours}}</strong>",
+        "doMyPart": "Faire ma part",
+        "encourage": "Encourager {name}",
+        "habitMissing": "Ton habitude reliée a été supprimée : tes jours ne comptent plus."
+      },
+      "detail": {
+        "close": "Fermer",
+        "with": "avec {name} · du {from} au {to}",
+        "rule": "Réussi si chacun le fait au moins {need, number} jours sur {days, number}",
+        "together": "Ensemble",
+        "you": "Toi",
+        "score": "{count, number}/{days, number}",
+        "calendar": "Les {days, number} jours",
+        "dayBoth": "{date} : vous l’avez fait tous les deux",
+        "dayMine": "{date} : toi seulement",
+        "dayTheirs": "{date} : {name} seulement",
+        "dayNone": "{date} : personne",
+        "dayFuture": "{date} : à venir",
+        "encourage": "Envoyer un encouragement à {name}",
+        "quit": "Quitter le pacte",
+        "quitTitle": "Quitter le pacte?",
+        "quitDescription": "{name} verra seulement « Le pacte est terminé ». Ta série dans ton habitude reste intacte.",
+        "keep": "Continuer le pacte",
+        "quitConfirm": "Quitter"
+      }
     }
   },
   "NotFound": {

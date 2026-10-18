@@ -683,7 +683,10 @@
       "createHabit": "Create a habit",
       "xpReward": "+{xp, number} XP",
       "xpEarned": "{xp, number} XP",
-      "withStreak": "{meta} · {count, number}-day streak"
+      "withStreak": "{meta} · {count, number}-day streak",
+      "pact": "Pact with {name} · day {day, number}/{days, number}",
+      "pactPartnerDone": "{name} already did their part",
+      "pactPartnerPending": "{name} hasn’t done their part yet"
     },
     "checkIn": {
       "title": "Daily check-in",
@@ -884,7 +887,8 @@
       "goal": "Goal reached: {title}",
       "milestone": "Milestone reached: {title} ({goal})",
       "streak": "{days, number}-day streak: {title}",
-      "level": "Reached level {level, number}"
+      "level": "Reached level {level, number}",
+      "pact": "Pact completed: {title} · {together, number} days together out of {days, number}"
     },
     "post": {
       "level": "Lvl {level, number}",
@@ -1014,7 +1018,8 @@
       "progress": "Shared progress",
       "deleted": "Message deleted",
       "unread": "Unread",
-      "level": "Lvl {level, number}"
+      "level": "Lvl {level, number}",
+      "pact": "Pact"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1096,7 +1101,101 @@
       "requestPending": "Your request hasn’t been accepted yet.",
       "messageLimit": "You’ve reached the limit of 200 messages per 24 hours.",
       "conversationLimit": "You’ve started 20 new conversations today: that’s the limit.",
-      "unexpected": "Something went wrong. Try again in a moment."
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "pactOpen": "A pact is already proposed or in progress in this conversation.",
+      "pactLimit": "You’ve proposed enough pacts for today.",
+      "habitRequired": "Choose the habit to link to the pact.",
+      "titleRequired": "Give the challenge a name.",
+      "titleTooLong": "The challenge name is too long (60 characters max)."
+    },
+    "pacts": {
+      "propose": "Propose a pact",
+      "proposeTitle": "Propose a pact to {name}",
+      "proposeDescription": "A challenge for two: each of you does your habit every day, and sees whether the other did their part.",
+      "challenge": "The challenge",
+      "challengePlaceholder": "E.g. Meditate 10 minutes",
+      "duration": "Duration",
+      "days": "{count, number} days",
+      "habit": "Your habit",
+      "habitHelp": "Only the “done / not done” of this habit is shared with {name}. The rest of your profile stays private.",
+      "noHabits": "Create a habit to link to the pact first.",
+      "createHabit": "Create a habit",
+      "loading": "Loading…",
+      "rule": "The pact succeeds if…",
+      "rules": {
+        "daily": "Every day",
+        "dailyHint": "Strict: no day missed",
+        "most": "80% of days",
+        "mostHint": "A day off happens"
+      },
+      "need": "Each of you must do it at least <strong>{need, number}</strong> days out of {days, number}.",
+      "startsTomorrow": "Starts tomorrow if {name} accepts. You can leave the pact at any time.",
+      "send": "Send the proposal",
+      "close": "Close",
+      "hint": "Do it together.",
+      "hintText": "Propose a pact to {name}: each of you does your habit, every day.",
+      "encouragement": "Friendly reminder: let’s keep our pact alive today! We don’t give up.",
+      "card": {
+        "proposedToMe": "{name} proposes a pact",
+        "proposedByMe": "You propose a pact",
+        "days": "{days, number} days",
+        "startsTomorrow": "Starts the day after it’s accepted",
+        "rule": "Succeeds at {need, number} days out of {days, number}",
+        "linkHabit": "Link to your habit",
+        "newHabit": "Create “{title}”",
+        "newHabitHint": "New habit, every day",
+        "privacy": "{name} will only see whether you did this habit each day, nothing else.",
+        "accept": "Accept the pact",
+        "decline": "Decline",
+        "waiting": "Waiting for {name}",
+        "withdraw": "Withdraw the proposal",
+        "declined": "Pact declined",
+        "accepted": "Pact accepted · from {from} to {to}",
+        "cancelled": "The pact has ended",
+        "successTitle": "Pact completed!",
+        "failedTitle": "Pact over",
+        "summary": "{title} · {days, number} days with {name}",
+        "together": "Together",
+        "you": "You",
+        "count": "{count, number}/{days, number}",
+        "share": "Share in the Hub",
+        "again": "Start another pact"
+      },
+      "banner": {
+        "label": "Pact in progress",
+        "details": "See the pact details",
+        "day": "Day {day, number}/{days, number}",
+        "startsTomorrow": "Starts tomorrow",
+        "you": "You",
+        "done": "done",
+        "doneAt": "done at {time}",
+        "notYet": "not yet",
+        "bothDone": "You both did your part today!",
+        "streak": "Shared streak: <strong>{count, plural, one {# day} other {# days}}</strong>",
+        "doMyPart": "Do my part",
+        "encourage": "Cheer {name} on",
+        "habitMissing": "Your linked habit was deleted: your days no longer count."
+      },
+      "detail": {
+        "close": "Close",
+        "with": "with {name} · from {from} to {to}",
+        "rule": "Succeeds if each of you does it at least {need, number} days out of {days, number}",
+        "together": "Together",
+        "you": "You",
+        "score": "{count, number}/{days, number}",
+        "calendar": "The {days, number} days",
+        "dayBoth": "{date}: you both did it",
+        "dayMine": "{date}: only you",
+        "dayTheirs": "{date}: only {name}",
+        "dayNone": "{date}: nobody",
+        "dayFuture": "{date}: upcoming",
+        "encourage": "Send {name} some encouragement",
+        "quit": "Leave the pact",
+        "quitTitle": "Leave the pact?",
+        "quitDescription": "{name} will only see “The pact has ended”. Your streak in your habit stays intact.",
+        "keep": "Keep the pact",
+        "quitConfirm": "Leave"
+      }
     }
   },
   "NotFound": {

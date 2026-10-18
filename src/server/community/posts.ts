@@ -12,6 +12,7 @@ import { levelFromXp } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import { db } from "@/server/db";
 import { getUserTimeZone } from "@/server/profile/service";
+import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
 import { getXpTotals } from "@/server/xp/service";
 import { getBlockedIds, getCommunityMember } from "./members";
 
@@ -59,7 +60,8 @@ export async function createPost(
 }
 
 export type ProgressSource =
-  { type: "goal" | "milestone" | "streak"; id: string } | { type: "level" };
+  | { type: "goal" | "milestone" | "streak" | "pact"; id: string }
+  | { type: "level" };
 
 /**
  * Le progrès réel derrière une source, figé pour la publication, ou null si
@@ -69,6 +71,7 @@ export async function freezeProgress(
   userId: string,
   source: ProgressSource,
 ): Promise<ProgressData | null> {
+  if (source.type === "pact") return frozenPact(userId, source.id);
   if (source.type === "level") {
     const xp = await getXpTotals(userId);
     return { type: "level", level: levelFromXp(xp.total).level };
@@ -169,7 +172,7 @@ export async function listShareableProgress(
   userId: string,
 ): Promise<ShareableProgress[]> {
   const recent = new Date(Date.now() - 60 * DAY_MS);
-  const [goals, milestones, streaks, xp] = await Promise.all([
+  const [goals, milestones, streaks, xp, pacts] = await Promise.all([
     db.goal.findMany({
       where: { userId, completedAt: { gte: recent } },
       orderBy: { completedAt: "desc" },
@@ -188,13 +191,23 @@ export async function listShareableProgress(
     }),
     currentStreaks(userId),
     getXpTotals(userId),
+    listSuccessfulPacts(userId),
   ]);
+  const pactProgress = (
+    await Promise.all(pacts.map((pact) => frozenPact(userId, pact.id)))
+  ).flatMap((progress, index) => {
+    const pact = pacts[index];
+    return progress && pact
+      ? [{ source: { type: "pact" as const, id: pact.id }, progress }]
+      : [];
+  });
 
   return [
     {
       source: { type: "level" },
       progress: { type: "level", level: levelFromXp(xp.total).level },
     },
+    ...pactProgress,
     ...goals.map((goal): ShareableProgress => ({
       source: { type: "goal", id: goal.id },
       progress: { type: "goal", title: goal.title, pillar: goal.pillar },

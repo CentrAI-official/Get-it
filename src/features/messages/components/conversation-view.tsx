@@ -7,6 +7,7 @@ import {
   Flag,
   LoaderCircle,
   Send,
+  Handshake,
   ShieldAlert,
   Trash2,
   Trophy,
@@ -55,6 +56,9 @@ import {
 } from "../rules";
 import { refreshUnreadCount } from "../unread-store";
 import { MessageBubble } from "./message-bubble";
+import { PactBanner } from "./pact-banner";
+import { PactMessage } from "./pact-message";
+import { ProposePactDialog } from "./propose-pact-dialog";
 import { ProgressPicker } from "./progress-picker";
 
 type LocalMessage = ChatMessage & { pending?: boolean };
@@ -74,6 +78,8 @@ function meta(state: ConversationState) {
     otherStatus: state.otherStatus,
     permission: state.permission,
     canWrite: state.canWrite,
+    pact: state.pact,
+    pactCount: state.pactCount,
   };
 }
 
@@ -114,6 +120,8 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
   const [gone, setGone] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [picker, setPicker] = useState(false);
+  const [proposing, setProposing] = useState(false);
+  const tPacts = useTranslations("Messages.pacts");
   const [confirm, setConfirm] = useState<"block" | "clear" | null>(null);
   const [report, setReport] = useState<{
     type: "message" | "user";
@@ -153,6 +161,16 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       window.clearInterval(timer);
     };
   }, [initial.id]);
+
+  /** État à jour tout de suite (après une action sur un pacte). */
+  async function refreshNow() {
+    const next = await getConversationAction(initial.id).catch(() => null);
+    if (!next) return;
+    stickToBottom.current = true;
+    setState(meta(next));
+    setLoadedAt(next.loadedAt);
+    setMessages((current) => merge(current, next.messages));
+  }
 
   // Lu jusqu'ici : la pastille de la Messagerie se met à jour
   useEffect(() => {
@@ -206,6 +224,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       kind: input.kind,
       body: input.body,
       progress: input.kind === "progress" ? input.progress : null,
+      pact: null,
       deleted: false,
       createdAt: new Date().toISOString(),
       reactions: [],
@@ -384,6 +403,18 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
         </DropdownMenu>
       </header>
 
+      {state.pact?.status === "active" ? (
+        <PactBanner
+          pact={state.pact}
+          name={name}
+          timeZone={timeZone}
+          onEncourage={() =>
+            void send({ kind: "text", body: tPacts("encouragement") })
+          }
+          onChanged={() => void refreshNow()}
+        />
+      ) : null}
+
       <div
         ref={listRef}
         onScroll={(event) => {
@@ -432,25 +463,57 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                   {dayLabel(message.day, message.createdAt)}
                 </p>
               ) : null}
-              <MessageBubble
-                message={message}
-                otherName={name}
-                groupEnd={message.groupEnd}
-                timeZone={timeZone}
-                selected={selected === message.id}
-                onSelect={() =>
-                  setSelected(selected === message.id ? null : message.id)
-                }
-                onReact={(kind) => void react(message, kind)}
-                onDelete={() => void remove(message)}
-                onReport={() => {
-                  setSelected(null);
-                  setReport({ type: "message", id: message.id });
-                }}
-              />
+              {message.kind === "pact" && message.pact ? (
+                <PactMessage
+                  step={message.body}
+                  pact={message.pact}
+                  name={name}
+                  canWrite={canSend}
+                  onChanged={() => void refreshNow()}
+                  onAgain={() => setProposing(true)}
+                />
+              ) : (
+                <MessageBubble
+                  message={message}
+                  otherName={name}
+                  groupEnd={message.groupEnd}
+                  timeZone={timeZone}
+                  selected={selected === message.id}
+                  onSelect={() =>
+                    setSelected(selected === message.id ? null : message.id)
+                  }
+                  onReact={(kind) => void react(message, kind)}
+                  onDelete={() => void remove(message)}
+                  onReport={() => {
+                    setSelected(null);
+                    setReport({ type: "message", id: message.id });
+                  }}
+                />
+              )}
             </li>
           ))}
         </ol>
+
+        {/* Suggestion « Faites-le ensemble », tant qu'aucun pacte n'a été proposé */}
+        {canSend &&
+        state.pactCount === 0 &&
+        messages.some((m) => m.mine) &&
+        messages.some((m) => !m.mine) ? (
+          <button
+            type="button"
+            onClick={() => setProposing(true)}
+            className="mx-auto mt-4 flex max-w-xs items-center gap-2.5 rounded-[20px] border border-dashed border-primary/45 bg-primary/[0.07] px-4 py-3 text-left text-[0.8rem] leading-snug outline-none hover:bg-primary/[0.1] focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Handshake
+              aria-hidden="true"
+              className="size-5 shrink-0 text-primary"
+            />
+            <span>
+              <strong className="font-semibold">{tPacts("hint")}</strong>{" "}
+              {tPacts("hintText", { name })}
+            </span>
+          </button>
+        ) : null}
       </div>
 
       {/* Bas : demande reçue, demande en attente, ou champ d'envoi */}
@@ -522,6 +585,17 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             >
               <Trophy aria-hidden="true" />
             </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-lg"
+              aria-label={tPacts("propose")}
+              disabled={!canSend || state.pact !== null}
+              onClick={() => setProposing(true)}
+              className="shrink-0 text-primary hover:text-primary"
+            >
+              <Handshake aria-hidden="true" />
+            </Button>
             <label htmlFor={fieldId} className="sr-only">
               {t("label")}
             </label>
@@ -559,6 +633,13 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
         ) : null}
       </div>
 
+      <ProposePactDialog
+        conversationId={initial.id}
+        name={name}
+        open={proposing}
+        onOpenChange={setProposing}
+        onProposed={() => void refreshNow()}
+      />
       <ProgressPicker
         open={picker}
         onOpenChange={setPicker}

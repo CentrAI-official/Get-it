@@ -1,4 +1,4 @@
-import { Flag, Flame, Target, Trophy } from "lucide-react";
+import { Flag, Flame, Handshake, Target, Trophy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { ProgressData } from "../rules";
@@ -8,6 +8,7 @@ const ICONS = {
   milestone: Flag,
   streak: Flame,
   level: Target,
+  pact: Handshake,
 } as const;
 
 /** Phrase d'un progrès (« Objectif atteint : … »), figée au moment du partage. */
@@ -25,6 +26,12 @@ export function ProgressSentence({ progress }: { progress: ProgressData }) {
       return t("streak", { title: progress.title, days: progress.days });
     case "level":
       return t("level", { level: progress.level });
+    case "pact":
+      return t("pact", {
+        title: progress.title,
+        together: progress.together,
+        days: progress.days,
+      });
   }
 }
 

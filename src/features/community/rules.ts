@@ -81,6 +81,7 @@ export const progressShareSchema = z.object({
     z.object({ type: z.literal("milestone"), id: z.uuid() }),
     z.object({ type: z.literal("streak"), id: z.uuid() }),
     z.object({ type: z.literal("level") }),
+    z.object({ type: z.literal("pact"), id: z.uuid() }),
   ]),
   body: z
     .string()
@@ -138,6 +139,13 @@ export const progressDataSchema = z.discriminatedUnion("type", [
     pillar: z.enum(PILLARS),
   }),
   z.object({ type: z.literal("level"), level: z.number().int().positive() }),
+  z.object({
+    type: z.literal("pact"),
+    title: z.string(),
+    days: z.number().int().positive(),
+    together: z.number().int().nonnegative(),
+    pillar: z.enum(PILLARS),
+  }),
 ]);
 
 export type ProgressData = z.infer<typeof progressDataSchema>;

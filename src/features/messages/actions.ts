@@ -6,6 +6,12 @@ import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
 import { listShareableProgress } from "@/server/community/posts";
 import {
+  cancelPact,
+  listPactHabits,
+  proposePact,
+  respondToPact,
+} from "@/server/messages/pacts";
+import {
   clearConversation,
   countUnread,
   deleteMessage,
@@ -31,6 +37,12 @@ import {
   reactionSchema,
   type MessageError,
 } from "./rules";
+import {
+  PACT_ERRORS,
+  pactProposalSchema,
+  pactResponseSchema,
+  type PactError,
+} from "./pacts";
 
 // Points d'entrée publics : session, identifiants et saisies revalidés ici ;
 // le service vérifie la participation à la conversation et les blocages.
@@ -168,4 +180,61 @@ export async function clearConversationAction(conversationId: unknown) {
 export async function listShareableProgressAction() {
   const user = await requireUser();
   return listShareableProgress(user.id);
+}
+
+type PactResult = { ok: true } | { ok: false; error: MessageError | PactError };
+
+/** Habitudes actives à relier à un pacte. */
+export async function listPactHabitsAction() {
+  const user = await requireUser();
+  return listPactHabits(user.id);
+}
+
+export async function proposePactAction(
+  conversationId: unknown,
+  input: unknown,
+): Promise<PactResult> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  const parsed = pactProposalSchema.safeParse(input);
+  if (!parsed.success) {
+    const message = parsed.error.issues[0]?.message;
+    return {
+      ok: false,
+      error: PACT_ERRORS.includes(message as PactError)
+        ? (message as PactError)
+        : "unexpected",
+    };
+  }
+  try {
+    return await proposePact(user.id, id.data, parsed.data);
+  } catch (error) {
+    console.error("Proposition de pacte impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+export async function respondPactAction(
+  pactId: unknown,
+  response: unknown,
+): Promise<PactResult> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(pactId);
+  const parsed = pactResponseSchema.safeParse(response);
+  if (!id.success || !parsed.success) return { ok: false, error: "notFound" };
+  try {
+    return await respondToPact(user.id, id.data, parsed.data);
+  } catch (error) {
+    console.error("Réponse au pacte impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** Quitter un pacte en cours, ou retirer sa proposition. */
+export async function cancelPactAction(pactId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(pactId);
+  if (!id.success) return false;
+  return cancelPact(user.id, id.data).catch(() => false);
 }

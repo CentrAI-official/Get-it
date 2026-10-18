@@ -19,6 +19,13 @@ import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { freezeProgress, type ProgressSource } from "@/server/community/posts";
 import { db } from "@/server/db";
 import { getLevels } from "@/server/xp/service";
+import {
+  getOpenPact,
+  pactCardsFor,
+  settlePacts,
+  type PactBanner,
+  type PactCard,
+} from "./pacts";
 
 // Messagerie privée entre membres du Centre. Chaque fonction reçoit l'userId
 // de la session et vérifie qu'il participe à la conversation, sans blocage.
@@ -40,9 +47,12 @@ export type ChatMessage = {
   id: string;
   senderId: string;
   mine: boolean;
-  kind: "text" | "progress";
+  kind: "text" | "progress" | "pact";
+  /** Texte ; pour un pacte, l'étape (« proposed », « ended », « cancelled »). */
   body: string;
   progress: ProgressData | null;
+  /** Le pacte d'un message « pact », dans son état actuel. */
+  pact: PactCard | null;
   deleted: boolean;
   createdAt: string;
   /** Au plus une réaction par personne. */
@@ -57,7 +67,7 @@ export type InboxItem = {
   unread: boolean;
   lastMessage: {
     mine: boolean;
-    kind: "text" | "progress";
+    kind: "text" | "progress" | "pact";
     body: string;
     deleted: boolean;
   };
@@ -74,6 +84,10 @@ export type ConversationState = {
   canWrite: boolean;
   messages: ChatMessage[];
   hasMore: boolean;
+  /** Pacte proposé ou en cours dans la conversation. */
+  pact: PactBanner | null;
+  /** Pactes déjà proposés ici (la suggestion « Faites-le ensemble » n'apparaît qu'au début). */
+  pactCount: number;
   /** Moment du chargement : base de « Aujourd'hui » et « Hier ». */
   loadedAt: number;
 };
@@ -86,6 +100,7 @@ const messageSelect = {
   kind: true,
   body: true,
   progress: true,
+  pactId: true,
   deletedAt: true,
   createdAt: true,
   reactions: { select: { userId: true, kind: true } },
@@ -93,7 +108,11 @@ const messageSelect = {
 
 type MessageRow = Prisma.MessageGetPayload<{ select: typeof messageSelect }>;
 
-function toChatMessage(viewerId: string, row: MessageRow): ChatMessage {
+function toChatMessage(
+  viewerId: string,
+  row: MessageRow,
+  pacts: Map<string, PactCard> = new Map(),
+): ChatMessage {
   const progress = row.progress
     ? progressDataSchema.safeParse(row.progress)
     : null;
@@ -104,6 +123,7 @@ function toChatMessage(viewerId: string, row: MessageRow): ChatMessage {
     kind: row.kind,
     body: row.deletedAt ? "" : row.body,
     progress: !row.deletedAt && progress?.success ? progress.data : null,
+    pact: row.pactId ? (pacts.get(row.pactId) ?? null) : null,
     deleted: row.deletedAt !== null,
     createdAt: row.createdAt.toISOString(),
     reactions: row.reactions.map((reaction) => ({
@@ -114,14 +134,14 @@ function toChatMessage(viewerId: string, row: MessageRow): ChatMessage {
 }
 
 /** Peut écrire : membre du Centre et pas suspendu. */
-async function canWrite(userId: string): Promise<{ ok: true } | Fail> {
+export async function canWrite(userId: string): Promise<{ ok: true } | Fail> {
   const member = await getCommunityMember(userId);
   if (!member?.joined) return { ok: false, error: "notJoined" };
   if (member.suspendedUntil) return { ok: false, error: "suspended" };
   return { ok: true };
 }
 
-async function isBlockedPair(a: string, b: string) {
+export async function isBlockedPair(a: string, b: string) {
   const blocks = await db.userBlock.count({
     where: {
       OR: [
@@ -134,7 +154,7 @@ async function isBlockedPair(a: string, b: string) {
 }
 
 /** La conversation, vue par un participant ; null s'il n'y est pas ou s'il y a un blocage. */
-async function loadMembership(viewerId: string, conversationId: string) {
+export async function loadMembership(viewerId: string, conversationId: string) {
   const conversation = await db.conversation.findFirst({
     where: { id: conversationId, members: { some: { userId: viewerId } } },
     select: {
@@ -371,12 +391,13 @@ async function messagesPage(
     take: MESSAGE_PAGE_SIZE + 1,
     select: messageSelect,
   });
+  const page = rows.slice(0, MESSAGE_PAGE_SIZE);
+  const pacts = await pactCardsFor(viewerId, [
+    ...new Set(page.flatMap((row) => (row.pactId ? [row.pactId] : []))),
+  ]);
   return {
     // Du plus ancien au plus récent, pour l'affichage
-    messages: rows
-      .slice(0, MESSAGE_PAGE_SIZE)
-      .reverse()
-      .map((row) => toChatMessage(viewerId, row)),
+    messages: page.reverse().map((row) => toChatMessage(viewerId, row, pacts)),
     hasMore: rows.length > MESSAGE_PAGE_SIZE,
   };
 }
@@ -388,11 +409,15 @@ export async function getConversation(
 ): Promise<ConversationState | null> {
   const membership = await loadMembership(viewerId, conversationId);
   if (!membership) return null;
-  const [byId, viewerMessages, page, allowed] = await Promise.all([
+  await settlePacts(conversationId, viewerId);
+  const [byId, viewerMessages, page, allowed, open] = await Promise.all([
     people([membership.other.userId]),
-    db.message.count({ where: { conversationId, senderId: viewerId } }),
+    db.message.count({
+      where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
+    }),
     messagesPage(viewerId, conversationId, membership.viewer.clearedAt),
     canWrite(viewerId),
+    getOpenPact(viewerId, conversationId),
   ]);
   const other = byId.get(membership.other.userId);
   if (!other) return null;
@@ -409,6 +434,8 @@ export async function getConversation(
     canWrite: allowed.ok,
     messages: page.messages,
     hasMore: page.hasMore,
+    pact: open.pact,
+    pactCount: open.count,
     loadedAt: Date.now(),
   };
 }
@@ -445,7 +472,9 @@ export async function sendMessage(
   if (!membership) return { ok: false, error: "notFound" };
 
   const [viewerMessages, recent] = await Promise.all([
-    db.message.count({ where: { conversationId, senderId: viewerId } }),
+    db.message.count({
+      where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
+    }),
     db.message.count({
       where: { senderId: viewerId, createdAt: { gte: since24h() } },
     }),
@@ -523,7 +552,12 @@ export async function respondToRequest(
 /** Supprime son propre message pour tout le monde (le contenu est effacé). */
 export async function deleteMessage(viewerId: string, messageId: string) {
   const { count } = await db.message.updateMany({
-    where: { id: messageId, senderId: viewerId, deletedAt: null },
+    where: {
+      id: messageId,
+      senderId: viewerId,
+      deletedAt: null,
+      kind: { not: "pact" },
+    },
     data: { deletedAt: new Date(), body: "", progress: Prisma.DbNull },
   });
   if (count > 0) await db.messageReaction.deleteMany({ where: { messageId } });
@@ -540,6 +574,7 @@ export async function setMessageReaction(
     where: {
       id: messageId,
       deletedAt: null,
+      kind: { not: "pact" },
       conversation: { members: { some: { userId: viewerId } } },
     },
     select: { senderId: true },

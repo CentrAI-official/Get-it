@@ -101,6 +101,7 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
         xp: xp.items[key] ?? 0,
         late: false,
         streak: current,
+        pact: plan.pacts[habit.id],
       };
     }),
     ...tasks

@@ -111,9 +111,11 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
   const last = item.lastMessage;
   const text = last.deleted
     ? t("deleted")
-    : last.kind === "progress" && !last.body
-      ? t("progress")
-      : last.body;
+    : last.kind === "pact"
+      ? t("pact")
+      : last.kind === "progress" && !last.body
+        ? t("progress")
+        : last.body;
   const preview = last.mine ? t("you", { text }) : text;
 
   return (

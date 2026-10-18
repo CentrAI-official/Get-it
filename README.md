@@ -75,7 +75,7 @@ src/i18n/                 configuration des langues
 - [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mes services, Marketplace, Profil
 - [ ] 9d. Journal (dans Profil)
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
-- [ ] 9e2. Messagerie (M2) : Pactes (défis à deux)
+- [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
 - [ ] 9g. Marketplace › Gear (vitrine, sans paiement dans l’application)
 - [ ] 9h. Groupes

@@ -1,5 +1,6 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
+import { directKey } from "@/features/messages/rules";
 import { db } from "@/server/db";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus.
@@ -96,6 +97,14 @@ export async function blockUser(userId: string, blockedId: string) {
     select: { id: true },
   });
   if (!exists) return false;
+  // Les pactes ouverts entre les deux personnes s'arrêtent
+  await db.pact.updateMany({
+    where: {
+      status: { in: ["proposed", "active"] },
+      conversation: { directKey: directKey(userId, blockedId) },
+    },
+    data: { status: "cancelled", endedById: userId },
+  });
   await db.userBlock.upsert({
     where: { blockerId_blockedId: { blockerId: userId, blockedId } },
     update: {},
