@@ -7,13 +7,16 @@ import {
   type CommunityError,
   type ProgressData,
 } from "@/features/community/rules";
+import type { PostMediaInput } from "@/features/community/media";
 import { computeStreaks } from "@/features/habits/streak";
 import { levelFromXp } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import { db } from "@/server/db";
 import { getUserTimeZone } from "@/server/profile/service";
 import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
+import { removeFiles } from "@/server/storage/service";
 import { getXpTotals } from "@/server/xp/service";
+import { postMediaPaths, verifyMedia } from "./media";
 import { getBlockedIds, getCommunityMember } from "./members";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus. Pas d'XP
@@ -25,7 +28,7 @@ const since24h = () => new Date(Date.now() - DAY_MS);
 type Result = { ok: true } | { ok: false; error: CommunityError };
 
 /** Peut publier, commenter ou réagir : membre du Centre et pas suspendu. */
-async function canParticipate(userId: string): Promise<Result> {
+export async function canParticipate(userId: string): Promise<Result> {
   const member = await getCommunityMember(userId);
   if (!member?.joined) return { ok: false, error: "notJoined" };
   if (member.suspendedUntil) return { ok: false, error: "suspended" };
@@ -43,18 +46,44 @@ async function underPostLimit(userId: string) {
 /** Publication de texte ou question. */
 export async function createPost(
   userId: string,
-  input: { kind: "text" | "question"; body: string; pillar?: Pillar },
+  input: {
+    kind: "text" | "question";
+    body: string;
+    pillar?: Pillar;
+    media: PostMediaInput;
+  },
 ): Promise<Result> {
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
+  if (!input.body && input.media.length === 0) {
+    return { ok: false, error: "bodyRequired" };
+  }
   if (!(await underPostLimit(userId))) return { ok: false, error: "postLimit" };
-  await db.post.create({
-    data: {
-      userId,
-      kind: input.kind,
-      body: input.body,
-      pillar: input.pillar ?? null,
-    },
+  // Fichiers vérifiés dans le stockage avant d'écrire quoi que ce soit
+  const verified = await verifyMedia(userId, input.media);
+  if (!verified.ok) return verified;
+  const { rows, uploadIds } = verified.media;
+  await db.$transaction(async (tx) => {
+    const post = await tx.post.create({
+      data: {
+        userId,
+        kind: input.kind,
+        body: input.body,
+        pillar: input.pillar ?? null,
+        mediaCount: rows.length,
+      },
+      select: { id: true },
+    });
+    if (rows.length === 0) return;
+    await tx.postMedia.createMany({
+      data: rows.map((row) => ({ ...row, postId: post.id })),
+    });
+    const { count } = await tx.mediaUpload.updateMany({
+      where: { id: { in: uploadIds }, userId, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    // Un même envoi ne sert qu'une fois
+    if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
   });
   return { ok: true };
 }
@@ -239,7 +268,13 @@ export async function listShareableProgress(
 
 /** Supprime sa propre publication (et ses commentaires, réactions, signalements). */
 export async function deletePost(userId: string, postId: string) {
+  const paths = await postMediaPaths(postId);
   const { count } = await db.post.deleteMany({ where: { id: postId, userId } });
+  if (count > 0 && paths.length > 0) {
+    await removeFiles(paths).catch((error: unknown) => {
+      console.error("Fichiers d'une publication non supprimés", error);
+    });
+  }
   return count > 0;
 }
 

@@ -28,7 +28,20 @@ describe("parseServerEnv", () => {
         ...validEnv,
         NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_secret_abc123",
       }),
-    ).toThrow(/clé publiable/);
+    ).toThrow(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY contient une clé secrète/);
+  });
+
+  it("accepte la clé secrète Supabase côté serveur, facultative", () => {
+    expect(parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "" })).toEqual(
+      validEnv,
+    );
+    expect(
+      parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "sb_secret_abc123" })
+        .SUPABASE_SECRET_KEY,
+    ).toBe("sb_secret_abc123");
+    expect(() =>
+      parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "sb_publishable_x" }),
+    ).toThrow(/SUPABASE_SECRET_KEY/);
   });
 
   it("accepte la clé de l'API Anthropic, facultative", () => {

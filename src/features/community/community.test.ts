@@ -62,10 +62,8 @@ describe("postFormSchema", () => {
     });
   });
 
-  it("refuse un texte vide ou trop long", () => {
-    expect(errorOf(postFormSchema.safeParse({ ...base, body: "   " }))).toBe(
-      "bodyRequired",
-    );
+  it("accepte un texte vide (une photo suffit, vérifié par le serveur), refuse un texte trop long", () => {
+    expect(postFormSchema.parse({ ...base, body: "   " }).body).toBe("");
     expect(
       errorOf(
         postFormSchema.safeParse({

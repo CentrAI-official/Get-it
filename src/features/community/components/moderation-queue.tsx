@@ -10,6 +10,7 @@ import type {
   ReportedItem,
 } from "@/server/community/moderation";
 import { moderateAction } from "../actions";
+import { PostMedia } from "./post-media";
 
 /** Signalements ouverts et décisions de la modération (§44). */
 export function ModerationQueue({ items }: { items: ReportedItem[] }) {
@@ -75,6 +76,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
           {item.body}
         </blockquote>
       ) : null}
+      {item.media.length > 0 ? <PostMedia media={item.media} /> : null}
       <ul className="flex flex-wrap gap-2">
         {[...counts].map(([reason, count]) => (
           <li

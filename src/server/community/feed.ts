@@ -8,6 +8,7 @@ import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { getLevels } from "@/server/xp/service";
+import { mediaForPosts, type FeedMedia } from "./media";
 import { getBlockedIds } from "./members";
 
 // Le fil est chronologique (§82 : pas d'algorithme qui pousse à scroller).
@@ -35,6 +36,8 @@ export type FeedPost = {
   reacted: boolean;
   comments: number;
   mine: boolean;
+  /** Photos ou vidéo, avec des liens de lecture temporaires. */
+  media: FeedMedia[];
 };
 
 export type FeedComment = {
@@ -96,6 +99,7 @@ export async function listFeed(
       pillar: true,
       progress: true,
       status: true,
+      mediaCount: true,
       createdAt: true,
       userId: true,
       profile: { select: { displayName: true, username: true } },
@@ -115,6 +119,9 @@ export async function listFeed(
   });
 
   const page = rows.slice(0, FEED_PAGE_SIZE);
+  const media = await mediaForPosts(
+    page.filter((post) => post.mediaCount > 0).map((post) => post.id),
+  );
   const levels = await getLevels([...new Set(page.map((post) => post.userId))]);
   const last = page.at(-1);
 
@@ -141,6 +148,7 @@ export async function listFeed(
         reacted: post.reactions.length > 0,
         comments: post._count.comments,
         mine: post.userId === viewerId,
+        media: media.get(post.id) ?? [],
       };
     }),
     nextCursor:

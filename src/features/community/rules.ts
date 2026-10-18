@@ -62,11 +62,8 @@ export const joinCommunitySchema = z.object({
 export const postFormSchema = z.object({
   locale: z.enum(routing.locales),
   kind: z.enum(["text", "question"]),
-  body: z
-    .string()
-    .trim()
-    .min(1, { error: "bodyRequired" })
-    .max(POST_MAX_LENGTH, { error: "bodyTooLong" }),
+  // Facultatif avec des photos ou une vidéo (vérifié par l'action)
+  body: z.string().trim().max(POST_MAX_LENGTH, { error: "bodyTooLong" }),
   pillar: z
     .enum(PILLARS)
     .optional()
@@ -166,6 +163,13 @@ export const COMMUNITY_ERRORS = [
   "commentLimit",
   "reportLimit",
   "notFound",
+  "mediaUnavailable",
+  "mediaTooMany",
+  "mediaTooLarge",
+  "mediaType",
+  "mediaMissing",
+  "videoTooLong",
+  "uploadLimit",
   "unexpected",
 ] as const;
 

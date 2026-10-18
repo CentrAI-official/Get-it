@@ -21,8 +21,10 @@ import {
   reportContent,
   type ModerationDecision,
 } from "@/server/community/moderation";
+import { requestUploads, type UploadSlot } from "@/server/community/media";
 import {
   addComment,
+  canParticipate,
   createPost,
   deleteComment,
   deletePost,
@@ -39,6 +41,7 @@ import {
   type CommunityError,
   type CommunityFormState,
 } from "./rules";
+import { postMediaSchema, uploadRequestSchema } from "./media";
 
 // Points d'entrée publics : session, identifiants et saisies revalidés ici ;
 // les services filtrent sur l'utilisateur et revérifient les permissions.
@@ -79,10 +82,29 @@ export async function createPostAction(
 ): Promise<CommunityFormState> {
   const user = await requireUser();
   const values = { body: read(formData, "body") };
-  const parsed = postFormSchema.safeParse(Object.fromEntries(formData));
+  const parsed = postFormSchema.safeParse({
+    locale: read(formData, "locale"),
+    kind: read(formData, "kind"),
+    body: values.body,
+    pillar: read(formData, "pillar"),
+  });
   if (!parsed.success) return fail(firstCommunityError(parsed.error), values);
+  // Médias envoyés au préalable (identifiants d'envoi, revérifiés par le service)
+  let rawMedia: unknown = [];
   try {
-    const result = await createPost(user.id, parsed.data);
+    rawMedia = JSON.parse(read(formData, "media") || "[]");
+  } catch {
+    return fail("mediaMissing", values);
+  }
+  const media = postMediaSchema.safeParse(rawMedia);
+  if (!media.success) return fail(firstCommunityError(media.error), values);
+  try {
+    const result = await createPost(user.id, {
+      kind: parsed.data.kind,
+      body: parsed.data.body,
+      pillar: parsed.data.pillar,
+      media: media.data,
+    });
     if (!result.ok) return fail(result.error, values);
   } catch (error) {
     console.error("Publication impossible", error);
@@ -90,6 +112,26 @@ export async function createPostAction(
   }
   refresh();
   return { status: "success" };
+}
+
+/** Autorisations d'envoi pour les photos ou la vidéo d'une publication. */
+export async function requestUploadsAction(
+  files: unknown,
+): Promise<
+  { ok: true; slots: UploadSlot[] } | { ok: false; error: CommunityError }
+> {
+  const user = await requireUser();
+  const parsed = uploadRequestSchema.safeParse(files);
+  if (!parsed.success)
+    return { ok: false, error: firstCommunityError(parsed.error) };
+  const allowed = await canParticipate(user.id);
+  if (!allowed.ok) return allowed;
+  try {
+    return await requestUploads(user.id, parsed.data);
+  } catch (error) {
+    console.error("Autorisation d'envoi impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
 }
 
 /** Partage d'un progrès (la source est revérifiée et figée par le serveur). */

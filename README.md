@@ -76,6 +76,10 @@ src/i18n/                 configuration des langues
 - [ ] 9d. Journal (dans Profil)
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
+- [x] 9f0. Photos et vidéos dans les publications
+- [ ] 9f1. Groupes (création, fil, rôles)
+- [ ] 9f2. Discussions de groupe (Messagerie)
+- [ ] 9f3. Pactes à plusieurs
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
 - [ ] 9g. Marketplace › Gear (vitrine, sans paiement dans l’application)
 - [ ] 9h. Groupes

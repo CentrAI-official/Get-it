@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Send, Trophy } from "lucide-react";
+import { ImagePlus, LoaderCircle, Send, Trophy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,8 @@ import {
   POST_MAX_LENGTH,
   type CommunityFormState,
 } from "../rules";
+import { useMediaUploads } from "../use-media-uploads";
+import { MediaPicker } from "./media-picker";
 import { ProgressShare } from "./progress-share";
 
 type PostComposerProps = {
@@ -28,6 +30,8 @@ type PostComposerProps = {
   preselected: string | null;
   /** Prénom affiché dans la barre : « Quoi de neuf, Max? » */
   name: string;
+  /** Stockage configuré : photos et vidéos possibles. */
+  mediaEnabled: boolean;
 };
 
 type FormProps = {
@@ -54,6 +58,7 @@ export function PostComposer({
   shareable,
   preselected,
   name,
+  mediaEnabled,
 }: PostComposerProps) {
   const t = useTranslations("Community.composer");
   const startOnProgress = Boolean(
@@ -90,6 +95,18 @@ export function PostComposer({
         >
           {t("prompt", { name })}
         </button>
+        {mediaEnabled ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            aria-label={t("addMedia")}
+            onClick={() => start("post")}
+            className="shrink-0 text-primary hover:text-primary"
+          >
+            <ImagePlus aria-hidden="true" />
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
@@ -134,7 +151,10 @@ export function PostComposer({
             ))}
           </div>
           {tab === "post" ? (
-            <PostForm onDone={() => setOpen(false)} />
+            <PostForm
+              mediaEnabled={mediaEnabled}
+              onDone={() => setOpen(false)}
+            />
           ) : (
             <ProgressForm
               shareable={shareable}
@@ -157,7 +177,10 @@ function useResetOnSuccess(state: CommunityFormState, reset: () => void) {
   }, [state, reset]);
 }
 
-function PostForm({ onDone }: FormProps) {
+function PostForm({
+  onDone,
+  mediaEnabled,
+}: FormProps & { mediaEnabled: boolean }) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const tPillars = useTranslations("Pillars");
@@ -167,6 +190,7 @@ function PostForm({ onDone }: FormProps) {
   const [kind, setKind] = useState<"text" | "question">("text");
   const [pillar, setPillar] = useState<Pillar | null>(null);
   const [length, setLength] = useState(0);
+  const media = useMediaUploads();
   const [state, formAction, pending] = useActionState(
     createPostAction,
     initialCommunityState,
@@ -175,6 +199,7 @@ function PostForm({ onDone }: FormProps) {
     formRef.current?.reset();
     setPillar(null);
     setLength(0);
+    media.reset();
     onDone();
   });
 
@@ -188,6 +213,7 @@ function PostForm({ onDone }: FormProps) {
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="pillar" value={pillar ?? ""} />
+      <input type="hidden" name="media" value={media.payload} />
       <div
         role="radiogroup"
         aria-label={t("kindLabel")}
@@ -238,6 +264,19 @@ function PostForm({ onDone }: FormProps) {
           </button>
         ))}
       </div>
+      {mediaEnabled ? (
+        <MediaPicker
+          items={media.items}
+          onAdd={media.add}
+          onRemove={media.remove}
+          disabled={pending}
+        />
+      ) : null}
+      {media.error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {tErrors(media.error)}
+        </p>
+      ) : null}
       {state.status === "error" && state.error ? (
         <p role="alert" className="text-sm text-destructive">
           {tErrors(state.error)}
@@ -247,7 +286,7 @@ function PostForm({ onDone }: FormProps) {
         <span className="font-mono text-xs text-muted-foreground">
           {t("length", { count: length, max: POST_MAX_LENGTH })}
         </span>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || !media.ready}>
           {pending ? (
             <LoaderCircle aria-hidden="true" className="animate-spin" />
           ) : (
@@ -264,7 +303,7 @@ function ProgressForm({
   shareable,
   preselected,
   onDone,
-}: Omit<PostComposerProps, "name"> & FormProps) {
+}: Omit<PostComposerProps, "name" | "mediaEnabled"> & FormProps) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const locale = useLocale();

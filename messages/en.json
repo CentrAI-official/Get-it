@@ -881,7 +881,8 @@
       "progressLabel": "Progress to share",
       "messageLabel": "Optional message",
       "messagePlaceholder": "Add a few words (optional)…",
-      "share": "Share"
+      "share": "Share",
+      "addMedia": "Add a photo or video"
     },
     "progress": {
       "goal": "Goal reached: {title}",
@@ -1000,7 +1001,28 @@
       "commentLimit": "You’ve reached the limit of 50 comments per 24 hours.",
       "reportLimit": "You’ve reached today’s report limit.",
       "notFound": "This content is no longer available.",
-      "unexpected": "Something went wrong. Try again in a moment."
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "mediaUnavailable": "Adding photos and videos isn’t enabled yet.",
+      "mediaTooMany": "Up to 4 photos, or a single video, per post.",
+      "mediaTooLarge": "This file is too large (50 MB max for a video).",
+      "mediaType": "This format isn’t supported. Try a JPEG photo or an MP4 video.",
+      "mediaMissing": "A media file hasn’t finished uploading. Try again.",
+      "videoTooLong": "The video is longer than 60 seconds.",
+      "uploadLimit": "You’ve uploaded a lot of files today. Try again tomorrow."
+    },
+    "media": {
+      "gallery": "Photo/video",
+      "photo": "Photo",
+      "video": "Video",
+      "limits": "Up to 4 photos or 1 video of 60 seconds. GPS location is removed from photos.",
+      "preparing": "Preparing…",
+      "uploading": "{percent, number}%",
+      "remove": "Remove this media",
+      "open": "Photo {index, number} of {total, number}",
+      "viewer": "Enlarged photo",
+      "close": "Close",
+      "previous": "Previous photo",
+      "next": "Next photo"
     }
   },
   "Messages": {

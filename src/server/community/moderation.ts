@@ -8,6 +8,7 @@ import {
 } from "@/features/community/rules";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { mediaForPosts, type FeedMedia } from "./media";
 import { getCommunityMember, isModerator } from "./members";
 
 // Signalements et modération (§44). Les permissions sont vérifiées ici, pas
@@ -144,6 +145,8 @@ export type ReportedItem = {
     suspendedUntil: string | null;
   };
   reports: { reason: string; details: string | null; createdAt: string }[];
+  /** Photos ou vidéo d'une publication signalée. */
+  media: FeedMedia[];
 };
 
 /** Signalements ouverts, regroupés par contenu ou par personne. */
@@ -257,11 +260,22 @@ export async function listOpenReports(moderatorId: string) {
               : null,
         },
         reports: [],
+        media: [],
       } satisfies ReportedItem);
     item.reports.push(entry);
     items.set(key, item);
   }
-  return [...items.values()];
+  const list = [...items.values()];
+  const media = await mediaForPosts(
+    list
+      .filter((item) => item.target.type === "post")
+      .map((item) => item.target.id),
+  );
+  return list.map((item) =>
+    item.target.type === "post"
+      ? { ...item, media: media.get(item.target.id) ?? [] }
+      : item,
+  );
 }
 
 export type ModerationDecision =

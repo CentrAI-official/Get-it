@@ -88,6 +88,7 @@ model Profile {
   conversationMembers  ConversationMember[]
   messagesSent         Message[]
   messageReactions     MessageReaction[]
+  mediaUploads         MediaUpload[]
   pactsProposed        Pact[]               @relation("PactProposer")
   pactsEnded           Pact[]               @relation("PactEnder")
   pactMembers          PactMember[]
@@ -407,22 +408,25 @@ enum ContentStatus {
 
 /// Publication du Centre Get iT (§17-18).
 model Post {
-  id        String        @id @default(uuid(7)) @db.Uuid
-  userId    String        @map("user_id") @db.Uuid
-  kind      PostKind
+  id         String        @id @default(uuid(7)) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  kind       PostKind
   /// Texte, ou message facultatif d'un progrès partagé.
-  body      String
-  pillar    Pillar?
+  body       String
+  pillar     Pillar?
   /// Progrès partagé, figé au moment du partage (objectif atteint, niveau…).
-  progress  Json?
-  status    ContentStatus @default(visible)
-  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  progress   Json?
+  status     ContentStatus @default(visible)
+  /// Photos ou vidéo jointes (0 à 4) : une publication avec médias peut être sans texte.
+  mediaCount Int           @default(0) @map("media_count") @db.SmallInt
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile   Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
   comments  PostComment[]
   reactions PostReaction[]
   reports   ContentReport[]
+  media     PostMedia[]
 
   @@index([status, createdAt])
   @@index([userId, createdAt])
@@ -689,4 +693,48 @@ model PactMember {
   @@index([userId])
   @@index([habitId])
   @@map("pact_members")
+}
+
+enum MediaKind {
+  image
+  video
+}
+
+/// Fichier envoyé au stockage (compartiment « media »), en attente d'être joint
+/// à une publication ; un envoi jamais utilisé est supprimé au bout d'un jour.
+model MediaUpload {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  kind      MediaKind
+  /// Chemin dans le compartiment : posts/<userId>/<id>.<extension>
+  path      String    @unique
+  mimeType  String    @map("mime_type")
+  usedAt    DateTime? @map("used_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("media_uploads")
+}
+
+/// Photo ou vidéo d'une publication (fichier privé, lu par des liens temporaires).
+model PostMedia {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  postId     String    @map("post_id") @db.Uuid
+  kind       MediaKind
+  path       String
+  /// Image d'aperçu d'une vidéo.
+  posterPath String?   @map("poster_path")
+  width      Int
+  height     Int
+  durationMs Int?      @map("duration_ms")
+  sizeBytes  Int       @map("size_bytes")
+  position   Int       @db.SmallInt
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, position])
+  @@map("post_media")
 }

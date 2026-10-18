@@ -18,6 +18,17 @@ const serverEnvSchema = z.object({
       error:
         "doit être la clé publiable (sb_publishable_…), jamais la clé secrète",
     }),
+  // Clé secrète Supabase (sb_secret_…) : serveur seulement, pour le stockage des
+  // photos et vidéos. Facultative : sans elle, l'ajout de médias est désactivé.
+  SUPABASE_SECRET_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .startsWith("sb_secret_", {
+        error: "doit être une clé secrète Supabase (sb_secret_…)",
+      })
+      .optional(),
+  ),
   // Clé de l'API Claude (console.anthropic.com) : serveur seulement. Facultative :
   // sans elle, Get iT AI s'affiche comme « pas encore activé ».
   ANTHROPIC_API_KEY: z.preprocess(
@@ -45,11 +56,12 @@ export function parseServerEnv(
   // Une clé secrète ne doit jamais être exposée au navigateur
   const leaked = Object.entries(env).find(
     ([name, value]) =>
-      name.startsWith("NEXT_PUBLIC_") && value?.startsWith("sk-ant-"),
+      name.startsWith("NEXT_PUBLIC_") &&
+      (value?.startsWith("sk-ant-") || value?.startsWith("sb_secret_")),
   );
   if (leaked) {
     throw new Error(
-      `Variables d'environnement invalides : ${leaked[0]} contient une clé de l'API Anthropic. Les variables NEXT_PUBLIC_ sont envoyées au navigateur ; utilise ANTHROPIC_API_KEY.`,
+      `Variables d'environnement invalides : ${leaked[0]} contient une clé secrète. Les variables NEXT_PUBLIC_ sont envoyées au navigateur ; utilise ANTHROPIC_API_KEY ou SUPABASE_SECRET_KEY.`,
     );
   }
   const result = serverEnvSchema.safeParse(env);

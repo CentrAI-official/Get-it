@@ -881,7 +881,8 @@
       "progressLabel": "Progrès à partager",
       "messageLabel": "Message facultatif",
       "messagePlaceholder": "Ajoute un mot (facultatif)…",
-      "share": "Partager"
+      "share": "Partager",
+      "addMedia": "Ajouter une photo ou une vidéo"
     },
     "progress": {
       "goal": "Objectif atteint : {title}",
@@ -1000,7 +1001,28 @@
       "commentLimit": "Tu as atteint la limite de 50 commentaires par 24 heures.",
       "reportLimit": "Tu as atteint la limite de signalements pour aujourd’hui.",
       "notFound": "Ce contenu n’est plus disponible.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "mediaUnavailable": "L’ajout de photos et de vidéos n’est pas encore activé.",
+      "mediaTooMany": "Jusqu’à 4 photos, ou une seule vidéo, par publication.",
+      "mediaTooLarge": "Ce fichier est trop lourd (50 Mo au plus pour une vidéo).",
+      "mediaType": "Ce format n’est pas pris en charge. Essaie une photo JPEG ou une vidéo MP4.",
+      "mediaMissing": "Un média n’a pas fini de s’envoyer. Réessaie.",
+      "videoTooLong": "La vidéo dépasse 60 secondes.",
+      "uploadLimit": "Tu as envoyé beaucoup de fichiers aujourd’hui. Réessaie demain."
+    },
+    "media": {
+      "gallery": "Photo/vidéo",
+      "photo": "Photo",
+      "video": "Vidéo",
+      "limits": "Jusqu’à 4 photos ou 1 vidéo de 60 secondes. La position GPS des photos est retirée.",
+      "preparing": "Préparation…",
+      "uploading": "{percent, number} %",
+      "remove": "Retirer ce média",
+      "open": "Photo {index, number} sur {total, number}",
+      "viewer": "Photo agrandie",
+      "close": "Fermer",
+      "previous": "Photo précédente",
+      "next": "Photo suivante"
     }
   },
   "Messages": {

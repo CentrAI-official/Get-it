@@ -38,6 +38,7 @@ import {
 import { startConversationAction } from "@/features/messages/actions";
 import { useRouter } from "@/i18n/navigation";
 import { PostComments } from "./post-comments";
+import { PostMedia } from "./post-media";
 import { ProgressShare } from "./progress-share";
 
 type PostCardProps = {
@@ -213,6 +214,7 @@ export function PostCard({
       ) : null}
 
       {post.progress ? <ProgressShare progress={post.progress} /> : null}
+      {post.media.length > 0 ? <PostMedia media={post.media} /> : null}
       {post.body ? (
         <p className="break-words whitespace-pre-wrap">{post.body}</p>
       ) : null}

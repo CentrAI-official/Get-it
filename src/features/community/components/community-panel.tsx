@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { listFeed } from "@/server/community/feed";
+import { storageEnabled } from "@/server/storage/service";
 import { getCommunityMember, isModerator } from "@/server/community/members";
 import { listShareableProgress } from "@/server/community/posts";
 import { getCurrentProfile } from "@/server/profile/service";
@@ -74,6 +75,7 @@ export async function CommunityPanel({
           shareable={shareable}
           preselected={preselected}
           name={profile.displayName ?? member.username ?? ""}
+          mediaEnabled={storageEnabled()}
         />
       )}
 
