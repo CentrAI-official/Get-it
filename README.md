@@ -85,5 +85,6 @@ src/i18n/                 configuration des langues
 - [x] 9g1. Marketplace (lot 1) : comptes affiliés, catalogue Services et Gear, filtres, formulaire de vente, approbation par l’équipe Get iT
 - [ ] 9g2. Paiement dans l’application (Stripe Connect : commission ou abonnement des vendeurs)
 - [ ] 9g3. Avis et vérification des affiliés
-- [ ] 9i. Mon développement : plans personnalisés par Get iT AI (Physique, Mental, Social, Financier et entreprise), puis suivi par un professionnel (rendez-vous, notes de session)
+- [x] 9i1. Mon développement : plans personnalisés par Get iT AI (entraînement, mental, social, financier, entreprise)
+- [ ] 9i2. Mon développement : suivi par un professionnel (rendez-vous, notes de session)
 - [ ] 10. Finitions, analytics et déploiement

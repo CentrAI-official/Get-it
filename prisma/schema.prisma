@@ -103,6 +103,7 @@ model Profile {
   pactMembers          PactMember[]
   listings             Listing[]            @relation("ListingSeller")
   listingsReviewed     Listing[]            @relation("ListingReviewer")
+  developmentPlans     DevelopmentPlan[]
 
   @@map("profiles")
 }
@@ -311,6 +312,7 @@ model XpEvent {
 enum AiRequestKind {
   coach
   goal_plan
+  development_plan
 }
 
 /// Requête faite à Get iT AI : limite quotidienne et suivi des coûts (jetons).
@@ -853,4 +855,33 @@ model ListingMedia {
 
   @@index([listingId, position])
   @@map("listing_media")
+}
+
+/// Plans de « Mon développement » : un par pilier, plus le plan d'entreprise.
+enum DevelopmentKind {
+  physical
+  mental
+  social
+  financial
+  business
+}
+
+/// Plan personnalisé par Get iT AI à partir d'un questionnaire. Les réponses
+/// (renseignements sensibles : santé, finances) restent privées ; supprimer le
+/// plan les supprime aussi. Un seul plan par type et par personne.
+model DevelopmentPlan {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  kind      DevelopmentKind
+  /// Réponses au questionnaire, revalidées par src/features/development/questionnaires.ts.
+  answers   Json
+  /// Plan normalisé (src/features/development/plan.ts).
+  plan      Json
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind])
+  @@map("development_plans")
 }

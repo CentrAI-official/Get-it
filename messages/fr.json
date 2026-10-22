@@ -180,10 +180,7 @@
     },
     "services": {
       "title": "Mon développement",
-      "question": "Comment je progresse, et avec qui?",
-      "soonTitle": "Ton développement arrive bientôt",
-      "soonDescription": "Des plans personnalisés par Get iT AI pour chaque pilier (entraînement, mental, social, finances), puis le suivi avec tes professionnels.",
-      "shop": "Magasiner des services"
+      "question": "Comment je progresse, et avec qui?"
     },
     "groups": {
       "title": "Groupes",
@@ -1517,6 +1514,499 @@
         "contactName": "Entre ton nom complet.",
         "contactEmail": "Entre un courriel valide.",
         "media": "Vérifie tes photos."
+      }
+    }
+  },
+  "Development": {
+    "other": "Autre",
+    "otherLabel": "Précise",
+    "optional": "facultatif",
+    "yes": "Oui",
+    "no": "Non",
+    "unitLabel": "Unité",
+    "units": {
+      "kg": "kg",
+      "lb": "lb",
+      "cm": "cm",
+      "feet": "pi/po",
+      "ft": "pi",
+      "in": "po"
+    },
+    "cancel": "Annuler",
+    "consent": "J’accepte que Get iT AI reçoive ces réponses pour créer mon plan. Elles restent privées et je peux les supprimer en tout temps.",
+    "submit": "Créer mon plan",
+    "submitRedo": "Refaire mon plan",
+    "costNotice": "Un plan compte comme une demande à Get iT AI (3 plans par jour au plus). C’est de l’information éducative : elle ne remplace pas un professionnel.",
+    "notConfiguredTitle": "Get iT AI arrive bientôt",
+    "loading": {
+      "title": "Get iT AI prépare ton plan…",
+      "description": "Ça peut prendre une minute ou deux. Garde cette page ouverte."
+    },
+    "fieldErrors": {
+      "required": "Réponse obligatoire.",
+      "invalid": "Vérifie cette réponse."
+    },
+    "errors": {
+      "notConfigured": "Get iT AI n’est pas encore activé : les plans personnalisés arrivent bientôt.",
+      "consentRequired": "Active d’abord Get iT AI : il a besoin de ton accord pour lire tes réponses.",
+      "dataConsentRequired": "Coche la case d’accord pour créer ton plan.",
+      "invalid": "Vérifie les réponses en rouge.",
+      "dailyLimit": "Tu as créé 3 plans aujourd’hui. Réessaie demain.",
+      "limitReached": "Tu as atteint la limite de Get iT AI pour aujourd’hui. Réessaie demain.",
+      "refused": "Get iT AI n’a pas pu créer ce plan. Reformule tes réponses et réessaie.",
+      "crisis": "De l’aide est disponible maintenant : compose ou texte le 9-8-8.",
+      "notFound": "Ce plan n’existe plus.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "crisis": {
+      "title": "Tu n’as pas à vivre ça seul",
+      "description": "Tes réponses montrent que tu traverses peut-être un moment difficile. Avant un plan, parle à quelqu’un : de l’aide gratuite est disponible maintenant, 24 heures sur 24.",
+      "call988": "Appeler le 9-8-8",
+      "text988": "Texter le 9-8-8",
+      "info811": "Info-Social : compose le 811, option 2, pour parler à un intervenant.",
+      "emergency": "En danger immédiat : compose le 911.",
+      "back": "Revenir au questionnaire"
+    },
+    "hub": {
+      "plansTitle": "Tes plans personnalisés",
+      "plansDescription": "Get iT AI crée un plan complet à partir de tes réponses. Tu choisis ensuite ce que tu ajoutes à tes objectifs et habitudes.",
+      "updated": "Mis à jour le {date}",
+      "open": "Voir",
+      "create": "Créer",
+      "prosTitle": "Mes professionnels",
+      "prosDescription": "Bientôt : ton coach, ton nutritionniste ou ton conseiller, tes rendez-vous et les notes de tes séances, au même endroit.",
+      "prosAction": "Magasiner des services"
+    },
+    "plan": {
+      "updated": "Plan créé le {date, date, long}",
+      "week": "Ta semaine type",
+      "businessCta": "Tu as ou tu veux une entreprise? Crée aussi ton plan d’entreprise.",
+      "redo": "Refaire mon plan",
+      "addTitle": "Ajouter à mon Get iT",
+      "addDescription": "Choisis ce que tu veux suivre dans tes objectifs, tes habitudes et tes tâches.",
+      "added": "Ajouté! Tu le retrouves dans ton Profil.",
+      "goalMeta": "Objectif · d’ici {days, plural, one {# jour} other {# jours}}",
+      "habitMeta": "Habitude · {days}",
+      "everyDay": "tous les jours",
+      "taskMeta": "Tâche · {days, plural, =0 {aujourd’hui} one {dans # jour} other {dans # jours}}",
+      "addFailed": "L’ajout n’a pas fonctionné. Réessaie.",
+      "addAction": "{count, plural, =0 {Ajouter} one {Ajouter # élément} other {Ajouter # éléments}}",
+      "delete": "Supprimer le plan",
+      "deleteTitle": "Supprimer ce plan?",
+      "deleteDescription": "Le plan et tes réponses au questionnaire seront effacés. Ce que tu as déjà ajouté à tes objectifs et habitudes reste.",
+      "deleteConfirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "weekdays": {
+      "1": "Lundi",
+      "2": "Mardi",
+      "3": "Mercredi",
+      "4": "Jeudi",
+      "5": "Vendredi",
+      "6": "Samedi",
+      "7": "Dimanche"
+    },
+    "weekdaysShort": {
+      "1": "lun.",
+      "2": "mar.",
+      "3": "mer.",
+      "4": "jeu.",
+      "5": "ven.",
+      "6": "sam.",
+      "7": "dim."
+    },
+    "kinds": {
+      "physical": {
+        "title": "Plan d’entraînement",
+        "description": "Ton programme et tes conseils d’alimentation.",
+        "formDescription": "Réponds à quelques questions : Get iT AI crée ton programme d’entraînement et tes conseils d’alimentation."
+      },
+      "mental": {
+        "title": "Plan mental",
+        "description": "Stress, discipline, concentration, confiance.",
+        "formDescription": "Quelques questions pour cerner ce que tu vis : Get iT AI crée des pratiques simples, adaptées à toi."
+      },
+      "social": {
+        "title": "Plan social",
+        "description": "Rencontres, aisance, communication, réseau.",
+        "formDescription": "Quelques questions pour comprendre ta réalité : Get iT AI crée des étapes concrètes, à ton rythme."
+      },
+      "financial": {
+        "title": "Plan financier",
+        "description": "Budget, épargne, dettes et objectifs.",
+        "formDescription": "Avec tes vrais chiffres, Get iT AI crée ton budget et les étapes vers ton objectif."
+      },
+      "business": {
+        "title": "Plan d’entreprise",
+        "description": "Lancer ou faire grandir ton entreprise.",
+        "formDescription": "Quelques questions sur ton projet : Get iT AI crée les étapes pour te lancer ou grandir."
+      }
+    },
+    "sections": {
+      "physical": {
+        "goal": "Ton objectif",
+        "body": "Toi",
+        "activity": "Ton entraînement",
+        "food": "Ton alimentation, en général"
+      },
+      "mental": {
+        "goal": "Ton objectif",
+        "situation": "Où tu en es",
+        "routine": "Ton rythme"
+      },
+      "social": {
+        "goal": "Ton objectif",
+        "situation": "Où tu en es",
+        "routine": "Ton rythme"
+      },
+      "financial": {
+        "career": "Ta carrière",
+        "goal": "Ton objectif",
+        "situation": "Ta situation",
+        "business": "Entreprise"
+      },
+      "business": {
+        "project": "Ton projet",
+        "means": "Tes moyens"
+      }
+    },
+    "questions": {
+      "physical": {
+        "fitness": {
+          "label": "Ta forme physique en ce moment",
+          "options": {
+            "beginner": "Je débute ou je reprends",
+            "light": "Je bouge un peu",
+            "regular": "Je m’entraîne régulièrement",
+            "athletic": "Je suis très en forme"
+          }
+        },
+        "mainGoal": {
+          "label": "Ton objectif principal",
+          "options": {
+            "lose_fat": "Perdre du gras",
+            "build_muscle": "Prendre du muscle",
+            "get_stronger": "Devenir plus fort",
+            "cardio": "Améliorer mon cardio",
+            "health": "Être en santé et garder la forme",
+            "event": "Me préparer à un événement"
+          }
+        },
+        "targetDate": {
+          "label": "Pour quand?",
+          "hint": "La date à laquelle tu aimerais atteindre ton objectif."
+        },
+        "age": {
+          "label": "Ton âge"
+        },
+        "height": {
+          "label": "Ta taille"
+        },
+        "weight": {
+          "label": "Ton poids"
+        },
+        "limitations": {
+          "label": "Blessures, douleurs ou conditions médicales",
+          "hint": "Get iT AI adaptera les exercices. En cas de doute, parles-en d’abord à un professionnel de la santé."
+        },
+        "sessionsNow": {
+          "label": "Combien de fois par semaine fais-tu de l’activité physique en ce moment?"
+        },
+        "sessionsWanted": {
+          "label": "Combien de fois par semaine aimerais-tu t’entraîner?"
+        },
+        "sessionLength": {
+          "label": "Combien de temps par séance?",
+          "options": {
+            "m20": "20 min",
+            "m30": "30 min",
+            "m45": "45 min",
+            "m60": "1 h",
+            "m90": "1 h 30"
+          }
+        },
+        "focus": {
+          "label": "Sur quoi veux-tu mettre l’accent?",
+          "options": {
+            "cardio": "Cardio",
+            "strength": "Force",
+            "hybrid": "Hybride (les deux)"
+          }
+        },
+        "equipment": {
+          "label": "Comment veux-tu t’entraîner?",
+          "options": {
+            "gym": "Au gym",
+            "free_weights": "Avec des poids libres",
+            "bodyweight": "Au poids du corps"
+          }
+        },
+        "breakfast": {
+          "label": "Ton déjeuner",
+          "hint": "Ce que tu manges d’habitude."
+        },
+        "snacks": {
+          "label": "Tes collations"
+        },
+        "lunch": {
+          "label": "Ton dîner"
+        },
+        "dinner": {
+          "label": "Ton souper"
+        }
+      },
+      "mental": {
+        "mainGoal": {
+          "label": "Ton objectif principal",
+          "options": {
+            "stress": "Mieux gérer mon stress",
+            "discipline": "Avoir plus de discipline",
+            "focus": "Être plus concentré",
+            "confidence": "Avoir plus confiance en moi",
+            "sleep": "Mieux dormir et récupérer",
+            "emotions": "Mieux gérer mes émotions"
+          }
+        },
+        "stressDetail": {
+          "label": "Quelles situations te stressent le plus?"
+        },
+        "disciplineDetail": {
+          "label": "À quel moment de la journée lâches-tu le plus souvent?"
+        },
+        "focusDetail": {
+          "label": "Qu’est-ce qui te distrait le plus?"
+        },
+        "confidenceDetail": {
+          "label": "Dans quelles situations manques-tu le plus de confiance?"
+        },
+        "sleepDetail": {
+          "label": "Décris ta routine du soir, du souper jusqu’au coucher."
+        },
+        "emotionsDetail": {
+          "label": "Quelle émotion aimerais-tu mieux gérer, et quand arrive-t-elle?"
+        },
+        "challenges": {
+          "label": "Qu’est-ce qui te ressemble?",
+          "options": {
+            "procrastination": "Je remets à plus tard",
+            "overthinking": "Je pense trop",
+            "overwhelmed": "Je me sens vite débordé",
+            "screens": "J’ai de la misère à décrocher des écrans",
+            "motivation": "Je manque de motivation",
+            "comparison": "Je me compare aux autres"
+          }
+        },
+        "stressLevel": {
+          "label": "Ton niveau de stress ces temps-ci",
+          "min": "Très bas",
+          "max": "Très élevé"
+        },
+        "sleepHours": {
+          "label": "Combien d’heures dors-tu par nuit, en moyenne?"
+        },
+        "practices": {
+          "label": "Ce que tu fais déjà",
+          "options": {
+            "meditation": "Méditation",
+            "journaling": "Journal",
+            "sport": "Sport",
+            "reading": "Lecture",
+            "therapy": "Suivi avec un professionnel"
+          }
+        },
+        "minutesPerDay": {
+          "label": "Combien de temps peux-tu y consacrer par jour?",
+          "options": {
+            "m5": "5 min",
+            "m10": "10 min",
+            "m20": "20 min",
+            "m30": "30 min"
+          }
+        },
+        "style": {
+          "label": "Ce qui te convient le mieux",
+          "options": {
+            "guided": "Des exercices courts et guidés",
+            "writing": "Écrire",
+            "routines": "Des routines structurées",
+            "learning": "Apprendre (lectures, vidéos)"
+          }
+        },
+        "about": {
+          "label": "Autre chose que Get iT AI devrait savoir sur toi?"
+        }
+      },
+      "social": {
+        "mainGoal": {
+          "label": "Ton objectif principal",
+          "options": {
+            "meet_people": "Rencontrer de nouvelles personnes",
+            "groups": "Être plus à l’aise en groupe",
+            "communication": "Mieux communiquer",
+            "network": "Développer mon réseau professionnel",
+            "relationships": "Améliorer mes relations proches",
+            "public_speaking": "Prendre la parole en public"
+          }
+        },
+        "meetPeopleDetail": {
+          "label": "Quel genre de personnes aimerais-tu rencontrer?"
+        },
+        "groupsDetail": {
+          "label": "Qu’est-ce qui te met mal à l’aise en groupe?"
+        },
+        "communicationDetail": {
+          "label": "Donne un exemple de conversation qui ne s’est pas passée comme tu voulais."
+        },
+        "networkDetail": {
+          "label": "Dans quel domaine veux-tu développer ton réseau?"
+        },
+        "relationshipsDetail": {
+          "label": "Quelle relation aimerais-tu améliorer, et pourquoi?"
+        },
+        "publicSpeakingDetail": {
+          "label": "Dans quel contexte dois-tu prendre la parole?"
+        },
+        "personality": {
+          "label": "Tu es plutôt…",
+          "options": {
+            "introvert": "Introverti",
+            "ambivert": "Un peu des deux",
+            "extrovert": "Extraverti"
+          }
+        },
+        "difficulties": {
+          "label": "Ce qui est le plus difficile pour toi",
+          "options": {
+            "start_conversation": "Engager la conversation",
+            "keep_conversation": "Garder la conversation",
+            "boundaries": "Dire non, poser mes limites",
+            "groups": "Parler devant un groupe",
+            "opportunities": "Trouver des occasions de rencontrer du monde",
+            "anxiety": "Le stress en société"
+          }
+        },
+        "outingsPerWeek": {
+          "label": "Combien de fois par semaine vois-tu du monde en dehors du travail ou de l’école?"
+        },
+        "contexts": {
+          "label": "Où pourrais-tu rencontrer du monde?",
+          "options": {
+            "work": "Au travail ou à l’école",
+            "sport": "Au sport ou au gym",
+            "clubs": "Activités et clubs",
+            "networking": "Événements de réseautage",
+            "online": "En ligne",
+            "volunteering": "Bénévolat"
+          }
+        },
+        "hoursPerWeek": {
+          "label": "Combien de temps par semaine peux-tu y consacrer?",
+          "options": {
+            "h1": "1 h",
+            "h3": "3 h",
+            "h5": "5 h",
+            "h10": "10 h et plus"
+          }
+        },
+        "about": {
+          "label": "Autre chose que Get iT AI devrait savoir sur toi?"
+        }
+      },
+      "financial": {
+        "career": {
+          "label": "Ta situation",
+          "options": {
+            "employee": "Employé",
+            "employer": "Employeur",
+            "self_employed": "À mon compte",
+            "student": "Étudiant",
+            "between_jobs": "Entre deux emplois"
+          }
+        },
+        "income": {
+          "label": "Ton revenu annuel avant impôts"
+        },
+        "mainGoal": {
+          "label": "Ton objectif financier",
+          "hint": "Ex. acheter une maison, rembourser mes dettes, épargner 10 000 $."
+        },
+        "targetDate": {
+          "label": "Pour quand?"
+        },
+        "monthlyExpenses": {
+          "label": "Tes dépenses par mois, en général"
+        },
+        "savings": {
+          "label": "L’argent que tu as de côté"
+        },
+        "assets": {
+          "label": "La valeur de tes actifs",
+          "hint": "Placements, maison, auto…"
+        },
+        "assetsDetail": {
+          "label": "Lesquels?"
+        },
+        "belt": {
+          "label": "À quel point es-tu prêt à serrer la ceinture?",
+          "min": "Un peu",
+          "max": "Beaucoup"
+        },
+        "hasDebt": {
+          "label": "As-tu des dettes?"
+        },
+        "debtAmount": {
+          "label": "Le total de tes dettes"
+        },
+        "debtTypes": {
+          "label": "Quel genre de dettes?",
+          "options": {
+            "credit_card": "Carte de crédit",
+            "car": "Prêt auto",
+            "student": "Prêt étudiant",
+            "mortgage": "Hypothèque",
+            "line_of_credit": "Marge de crédit"
+          }
+        },
+        "business": {
+          "label": "As-tu une entreprise, ou veux-tu en créer une?",
+          "hint": "Si oui, tu pourras aussi créer un plan d’entreprise séparé.",
+          "options": {
+            "none": "Non",
+            "has_business": "J’ai déjà une entreprise",
+            "wants_business": "Je veux en créer une"
+          }
+        }
+      },
+      "business": {
+        "domain": {
+          "label": "Dans quel domaine?",
+          "hint": "Ex. coaching sportif, vêtements, application mobile."
+        },
+        "stage": {
+          "label": "Où en es-tu?",
+          "options": {
+            "idea": "J’ai une idée",
+            "validating": "Je valide mon idée",
+            "first_clients": "J’ai mes premiers clients",
+            "growing": "Mon entreprise roule, je veux la faire grandir"
+          }
+        },
+        "launchedBefore": {
+          "label": "As-tu déjà lancé une entreprise?"
+        },
+        "goal": {
+          "label": "Ton objectif pour cette entreprise"
+        },
+        "hoursPerWeek": {
+          "label": "Combien d’heures par semaine peux-tu y mettre?"
+        },
+        "budget": {
+          "label": "Ton budget de départ"
+        },
+        "location": {
+          "label": "Dans quel pays ou quelle région?",
+          "hint": "Ex. Montréal, Québec."
+        }
       }
     }
   },

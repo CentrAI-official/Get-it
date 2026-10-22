@@ -1,4 +1,5 @@
 import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
+import type { DevelopmentPlan } from "@/features/development/plan";
 import type { GoalPlan } from "@/features/goals/plan";
 
 // Couche d'abstraction (§53) : le reste de l'application ne connaît que ces
@@ -40,6 +41,15 @@ export type PlanResult = {
   usage: AiUsage;
 };
 
+export type DevelopmentPlanResult = {
+  /** Null si détresse, refus, réponse coupée ou illisible. */
+  plan: DevelopmentPlan | null;
+  /** Le modèle a signalé une détresse : montrer des ressources d'aide. */
+  crisis: boolean;
+  refused: boolean;
+  usage: AiUsage;
+};
+
 export interface AiProvider {
   /** Réponse du coach, transmise morceau par morceau à `onText`. */
   streamChat(input: {
@@ -58,4 +68,10 @@ export interface AiProvider {
     /** Échéance maximale des tâches, en jours (date cible de l'objectif). */
     maxDueInDays?: number;
   }): Promise<PlanResult>;
+
+  /** Plan complet de « Mon développement » en sortie structurée. */
+  generateDevelopmentPlan(input: {
+    system: string;
+    prompt: string;
+  }): Promise<DevelopmentPlanResult>;
 }

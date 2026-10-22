@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeDevelopmentPlan } from "@/features/development/plan";
 import { normalizeGoalPlan } from "@/features/goals/plan";
 import type { AiProvider, AiUsage } from "./types";
 
@@ -87,6 +88,59 @@ export function createFakeProvider(): AiProvider {
           },
           { maxDueInDays },
         ),
+        refused: false,
+        usage,
+      };
+    },
+
+    async generateDevelopmentPlan({ prompt }) {
+      await pause(300);
+      // « crise » dans une réponse : simule une détresse détectée
+      if (prompt.toLowerCase().includes("crise")) {
+        return { plan: null, crisis: true, refused: false, usage };
+      }
+      const kind = /Plan type: (\w+)/.exec(prompt)?.[1] ?? "physical";
+      return {
+        plan: normalizeDevelopmentPlan({
+          crisis: false,
+          title: `Plan de test (${kind})`,
+          summary: "Un plan de test, généré sans appel à Get iT AI.",
+          highlights: [
+            { label: "Séances par semaine", value: "3" },
+            { label: "Durée", value: "45 min" },
+          ],
+          schedule: [
+            {
+              weekday: 1,
+              title: "Haut du corps",
+              items: [
+                { name: "Échauffement", detail: "5 min de vélo" },
+                { name: "Pompes", detail: "3 × 10, repos 60 s" },
+              ],
+            },
+            {
+              weekday: 4,
+              title: "Bas du corps",
+              items: [{ name: "Squats", detail: "3 × 12, repos 60 s" }],
+            },
+          ],
+          sections: [
+            {
+              title: "Alimentation",
+              items: [
+                {
+                  title: "Protéines",
+                  detail: "Une source de protéines à chaque repas.",
+                },
+              ],
+            },
+          ],
+          goal: { title: "Objectif de test", targetInDays: 90 },
+          habits: [{ title: "Habitude de test", weekdays: [1, 4] }],
+          tasks: [{ title: "Tâche de test", dueInDays: 2 }],
+          caution: "Consulte un professionnel au besoin.",
+        }),
+        crisis: false,
         refused: false,
         usage,
       };

@@ -1,6 +1,10 @@
 import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
+import {
+  aiDevelopmentPlanSchema,
+  normalizeDevelopmentPlan,
+} from "@/features/development/plan";
 import { aiGoalPlanSchema, normalizeGoalPlan } from "@/features/goals/plan";
 import type { AiProvider, AiUsage } from "./types";
 
@@ -141,6 +145,37 @@ export function createClaudeProvider(apiKey: string): AiProvider {
       const parsed = refused ? null : message.parsed_output;
       return {
         plan: parsed ? normalizeGoalPlan(parsed, { maxDueInDays }) : null,
+        refused,
+        usage: toUsage(message.model, message.usage),
+      };
+    },
+
+    async generateDevelopmentPlan({ system, prompt }) {
+      // Un plan complet est long : en flux, pour rester sous le délai d'une
+      // requête simple, avec la sortie structurée lue à la fin
+      const stream = client.beta.messages.stream({
+        model: CLAUDE_MODEL,
+        max_tokens: 32000,
+        output_config: {
+          effort: "medium",
+          format: betaZodOutputFormat(aiDevelopmentPlanSchema),
+        },
+        system,
+        messages: [{ role: "user", content: prompt }],
+        betas: [FALLBACK_BETA],
+        fallbacks: "default",
+      });
+      const message = await stream.finalMessage();
+
+      const refused = message.stop_reason === "refusal";
+      // Réponse coupée : le JSON est incomplet, rien n'est gardé
+      const parsed =
+        refused || message.stop_reason === "max_tokens"
+          ? null
+          : message.parsed_output;
+      return {
+        plan: parsed ? normalizeDevelopmentPlan(parsed) : null,
+        crisis: parsed?.crisis ?? false,
         refused,
         usage: toUsage(message.model, message.usage),
       };
