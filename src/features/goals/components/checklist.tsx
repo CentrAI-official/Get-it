@@ -48,10 +48,8 @@ export function ChecklistItem({
   return (
     <li
       className={cn(
-        "flex items-center gap-3 rounded-2xl border py-1.5 pr-1.5 pl-3 transition-[opacity,background-color,border-color]",
-        optimisticDone
-          ? "border-primary/30 bg-primary/[0.07]"
-          : "border-white/8 bg-white/[0.035]",
+        "flex items-center gap-3 border-b border-white/8 py-1.5 transition-opacity",
+        optimisticDone ? "text-muted-foreground" : null,
         isDeleting && "opacity-50",
       )}
     >

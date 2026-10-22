@@ -1,12 +1,14 @@
-import { MessageCircle } from "lucide-react";
+import { ChevronRight, MessageCircle, UserPlus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContactsView } from "@/features/contacts/components/contacts-view";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { Link } from "@/i18n/navigation";
 import { getCommunityMember } from "@/server/community/members";
+import { countContactRequests, listContacts } from "@/server/contacts/service";
 import { getConversation, listInbox } from "@/server/messages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ConversationView } from "./conversation-view";
@@ -36,8 +38,34 @@ export async function MessagesHome() {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinFirst />;
-  const inbox = await listInbox(profile.id);
-  return <Inbox initial={inbox.items} loadedAt={inbox.loadedAt} />;
+  const [inbox, contactRequests, t] = await Promise.all([
+    listInbox(profile.id),
+    countContactRequests(profile.id),
+    getTranslations("Contacts"),
+  ]);
+  return (
+    <>
+      {contactRequests > 0 ? (
+        <Link
+          href="/messages/contacts"
+          className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-3 text-sm font-medium transition-colors outline-none hover:bg-primary/15 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <UserPlus
+            aria-hidden="true"
+            className="size-5 shrink-0 text-primary"
+          />
+          <span className="flex-1">
+            {t("requestsLink", { count: contactRequests })}
+          </span>
+          <ChevronRight
+            aria-hidden="true"
+            className="size-4 text-muted-foreground"
+          />
+        </Link>
+      ) : null}
+      <Inbox initial={inbox.items} loadedAt={inbox.loadedAt} />
+    </>
+  );
 }
 
 export async function NewMessageGate() {
@@ -45,6 +73,14 @@ export async function NewMessageGate() {
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinFirst />;
   return <NewMessage />;
+}
+
+export async function ContactsGate() {
+  const profile = await getCurrentProfile();
+  const member = await getCommunityMember(profile.id);
+  if (!member?.joined) return <JoinFirst />;
+  const lists = await listContacts(profile.id);
+  return <ContactsView {...lists} />;
 }
 
 export async function ConversationLoader({ id }: { id: string }) {

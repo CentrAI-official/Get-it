@@ -31,7 +31,7 @@ export async function HabitsOverview() {
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
-          <ul className="grid gap-3 md:grid-cols-2">
+          <ul className="grid md:grid-cols-2 md:gap-x-8">
             {active.map((habit) => (
               <li key={habit.id}>
                 <HabitCard habit={habit} today={today} />
@@ -52,13 +52,13 @@ export async function HabitsOverview() {
             />
             {t("sections.archived", { count: archived.length })}
           </summary>
-          <ul className="mt-4 flex flex-col gap-2">
+          <ul className="mt-2 flex flex-col">
             {archived.map((habit) => {
               const Icon = pillarIcons[habit.pillar];
               return (
                 <li
                   key={habit.id}
-                  className="flex flex-wrap items-center gap-3 rounded-2xl glass p-3"
+                  className="flex flex-wrap items-center gap-3 border-b border-white/8 py-3"
                 >
                   <Icon aria-hidden="true" className="size-4 text-silver" />
                   <div className="min-w-0 flex-1">

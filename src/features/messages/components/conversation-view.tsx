@@ -11,6 +11,9 @@ import {
   ShieldAlert,
   Trash2,
   Trophy,
+  UserCheck,
+  UserMinus,
+  UserPlus,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
@@ -31,6 +34,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { blockUserAction } from "@/features/community/actions";
+import {
+  removeContactAction,
+  requestContactAction,
+  respondContactAction,
+} from "@/features/contacts/actions";
 import { ReportDialog } from "@/features/community/components/report-dialog";
 import type { ProgressData } from "@/features/community/rules";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -80,6 +88,7 @@ function meta(state: ConversationState) {
     canWrite: state.canWrite,
     pact: state.pact,
     pactCount: state.pactCount,
+    contact: state.contact,
   };
 }
 
@@ -122,6 +131,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
   const [picker, setPicker] = useState(false);
   const [proposing, setProposing] = useState(false);
   const tPacts = useTranslations("Messages.pacts");
+  const tContacts = useTranslations("Contacts");
   const [confirm, setConfirm] = useState<"block" | "clear" | null>(null);
   const [report, setReport] = useState<{
     type: "message" | "user";
@@ -319,6 +329,29 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
     }
   }
 
+  /** Ajouter, accepter, annuler ou retirer le contact, selon la relation. */
+  async function toggleContact() {
+    setBusy(true);
+    setNotice(null);
+    const current = state.contact;
+    let next: typeof current | null = null;
+    if (current === "none") {
+      const result = await requestContactAction(other.id);
+      if (result.ok) next = result.state;
+      else setNotice(tContacts(`errors.${result.error}`));
+    } else if (current === "received") {
+      if (await respondContactAction(other.id, true)) next = "contact";
+    } else if (await removeContactAction(other.id)) {
+      next = "none";
+    }
+    setBusy(false);
+    if (next === null) return;
+    setNotice(tContacts(`notice.${next}`, { handle }));
+    refreshUnreadCount();
+    // Devenir contacts accepte aussi la demande de message en attente
+    await refreshNow();
+  }
+
   async function confirmAction() {
     setBusy(true);
     const done =
@@ -382,6 +415,21 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
+            {state.canWrite || state.contact !== "none" ? (
+              <DropdownMenuItem
+                disabled={busy}
+                onSelect={() => void toggleContact()}
+              >
+                {state.contact === "none" ? (
+                  <UserPlus aria-hidden="true" />
+                ) : state.contact === "received" ? (
+                  <UserCheck aria-hidden="true" />
+                ) : (
+                  <UserMinus aria-hidden="true" />
+                )}
+                {tContacts(`menu.${state.contact}`, { handle })}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuItem
               onSelect={() => setReport({ type: "user", id: other.id })}
             >
@@ -526,7 +574,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
         {gone ? (
           <p className="text-sm text-muted-foreground">{t("gone")}</p>
         ) : state.viewerStatus === "request" ? (
-          <div className="flex flex-col gap-3 rounded-2xl glass p-4">
+          <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <p className="font-semibold">{t("requestTitle", { name })}</p>
               <p className="text-sm text-muted-foreground">

@@ -62,11 +62,11 @@ export function DayGoals({
       </div>
 
       {achieved.length > 0 ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {achieved.map(({ goal, xp: earned }) => (
             <li
               key={goal.id}
-              className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/[0.07] p-3"
+              className="flex items-center gap-3 border-b border-white/8 py-3"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground glow-primary">
                 <Trophy aria-hidden="true" className="size-5" />
@@ -91,14 +91,14 @@ export function DayGoals({
       ) : null}
 
       {active.length === 0 && achieved.length === 0 ? (
-        <div className="flex flex-col items-start gap-3 rounded-2xl glass p-4">
+        <div className="flex flex-col items-start gap-3 py-2">
           <p className="text-sm text-muted-foreground">{t("empty")}</p>
           <Button asChild variant="outline" size="sm">
             <Link href="/goals/new">{t("create")}</Link>
           </Button>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {active.map((goal) => {
             const Icon = pillarIcons[goal.pillar];
             const next = goal.nextMilestone;
@@ -112,7 +112,7 @@ export function DayGoals({
             return (
               <li
                 key={goal.id}
-                className="flex flex-col gap-2 rounded-2xl border border-white/8 bg-white/[0.035] p-3"
+                className="flex flex-col gap-2 border-b border-white/8 py-3"
               >
                 <div className="flex items-start gap-3">
                   <ProgressRing

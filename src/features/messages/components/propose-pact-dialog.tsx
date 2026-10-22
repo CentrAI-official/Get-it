@@ -186,7 +186,7 @@ function ProposeForm({
             {t("loading")}
           </p>
         ) : habits.length === 0 ? (
-          <div className="flex flex-col items-start gap-2 rounded-2xl glass p-4">
+          <div className="flex flex-col items-start gap-2">
             <p className="text-sm text-muted-foreground">{t("noHabits")}</p>
             <Button asChild variant="outline" size="sm">
               <Link href="/habits/new">{t("createHabit")}</Link>

@@ -18,7 +18,7 @@ export function AiConsentCard() {
   return (
     <section
       aria-labelledby="ai-consent-title"
-      className="flex max-w-2xl flex-col gap-5 rounded-3xl glass p-5 sm:p-6"
+      className="flex max-w-2xl flex-col gap-5"
     >
       <div className="flex items-center gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 glow-primary">
@@ -36,7 +36,7 @@ export function AiConsentCard() {
         <p>{t("data")}</p>
         <p>{t("processor")}</p>
         <p>{t("control")}</p>
-        <p className="flex items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-muted-foreground">
+        <p className="flex items-start gap-2 text-muted-foreground">
           <ShieldCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("disclaimer")}
         </p>

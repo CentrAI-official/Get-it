@@ -30,7 +30,7 @@ export function GoalCard({ goal }: { goal: GoalSummary }) {
   return (
     <Link
       href={`/goals/${goal.id}`}
-      className="flex h-full items-center gap-4 rounded-3xl glass p-4 transition-[border-color,translate] outline-none hover:border-white/20 focus-visible:ring-3 focus-visible:ring-ring/50 motion-safe:hover:-translate-y-0.5"
+      className="-mx-3 flex h-full items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <ProgressRing value={total > 0 ? done / total : 0} className="size-14">
         <Icon aria-hidden="true" className="size-5 text-silver" />

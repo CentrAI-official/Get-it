@@ -125,7 +125,7 @@ export function QuestList({
       </div>
 
       {quests.length > 0 ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col">
           {quests.map((quest) => (
             <QuestRow
               key={quest.key}
@@ -139,7 +139,7 @@ export function QuestList({
           ))}
         </ul>
       ) : (
-        <div className="flex flex-col items-start gap-3 rounded-2xl glass p-4">
+        <div className="flex flex-col items-start gap-3 py-2">
           <p className="text-sm text-muted-foreground">
             {filter ? t("emptyFiltered", { pillar: pillarName }) : t("empty")}
           </p>
@@ -235,10 +235,8 @@ export function QuestRow({
   return (
     <li
       className={cn(
-        "relative flex items-center gap-2 rounded-2xl border p-2 transition-colors duration-200",
-        quest.done
-          ? "border-primary/30 bg-primary/[0.07]"
-          : "border-white/8 bg-white/[0.035]",
+        "relative flex items-center gap-2 border-b border-white/8 py-2 transition-colors duration-200",
+        quest.done ? "text-muted-foreground" : null,
       )}
     >
       <button

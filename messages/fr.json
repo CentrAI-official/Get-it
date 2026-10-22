@@ -135,6 +135,7 @@
       "groups": "Groupes",
       "events": "Événements",
       "coach": "Get iT AI",
+      "contacts": "Contacts",
       "newMessage": "Nouveau message",
       "shopServices": "Magasiner des services",
       "settings": "Réglages"
@@ -1026,7 +1027,7 @@
     }
   },
   "Messages": {
-    "unreadLabel": "{count, plural, one {# conversation non lue} other {# conversations non lues}}",
+    "unreadLabel": "{count, plural, one {# nouveauté dans la Messagerie} other {# nouveautés dans la Messagerie}}",
     "inbox": {
       "tabsLabel": "Boîte de réception",
       "chats": "Discussions",
@@ -1056,7 +1057,8 @@
       "placeholder": "Prénom ou @nom d’utilisateur",
       "hint": "Cherche un membre du Centre par son prénom ou son nom d’utilisateur.",
       "empty": "Aucun membre trouvé.",
-      "searching": "Recherche…"
+      "searching": "Recherche…",
+      "contact": "Contact"
     },
     "conversation": {
       "back": "Retour aux messages",
@@ -1218,6 +1220,58 @@
         "keep": "Continuer le pacte",
         "quitConfirm": "Quitter"
       }
+    }
+  },
+  "Contacts": {
+    "title": "Contacts",
+    "description": "Tes contacts t’écrivent directement, sans passer par les demandes. Ta liste reste privée.",
+    "back": "Messages",
+    "tabsLabel": "Contacts et demandes",
+    "tabs": {
+      "contacts": "Contacts ({count, number})",
+      "received": "Reçues ({count, number})",
+      "sent": "Envoyées ({count, number})"
+    },
+    "empty": {
+      "contacts": "Aucun contact pour l’instant. Cherche un membre du Centre pour l’ajouter.",
+      "received": "Aucune demande reçue.",
+      "sent": "Aucune demande envoyée en attente."
+    },
+    "level": "Niveau {level, number}",
+    "write": "Écrire",
+    "remove": "Retirer",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "cancel": "Annuler la demande",
+    "addTitle": "Ajouter un contact",
+    "searchLabel": "Rechercher un membre à ajouter",
+    "searchPlaceholder": "Prénom ou @nom d’utilisateur",
+    "searching": "Recherche…",
+    "noResult": "Aucun membre trouvé.",
+    "add": "Ajouter",
+    "alreadyContact": "Contact",
+    "requested": "Demande envoyée",
+    "addHandle": "Ajouter {handle} en contact",
+    "requestsLink": "{count, plural, one {# demande de contact à voir} other {# demandes de contact à voir}}",
+    "menu": {
+      "none": "Ajouter {handle} en contact",
+      "received": "Accepter la demande de {handle}",
+      "sent": "Annuler la demande de contact",
+      "contact": "Retirer {handle} des contacts"
+    },
+    "notice": {
+      "none": "{handle} ne fait plus partie de tes contacts.",
+      "sent": "Demande de contact envoyée à {handle}.",
+      "received": "{handle} t’a envoyé une demande de contact.",
+      "contact": "{handle} fait partie de tes contacts."
+    },
+    "errors": {
+      "notJoined": "Rejoins le Centre Get iT pour ajouter des contacts.",
+      "suspended": "Ton compte est suspendu pour l’instant : tu ne peux pas ajouter de contacts.",
+      "blocked": "Impossible d’ajouter cette personne.",
+      "notFound": "Ce membre n’est plus disponible.",
+      "contactLimit": "Tu as envoyé beaucoup de demandes aujourd’hui. Réessaie demain.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },
   "NotFound": {

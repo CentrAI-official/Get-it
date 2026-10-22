@@ -199,13 +199,13 @@ export function GoalsStep({ draft, update }: StepProps) {
           </p>
         </div>
         {draft.goals.length > 0 ? (
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col">
             {draft.goals.map((goal) => {
               const Icon = pillarIcons[goal.pillar];
               return (
                 <li
                   key={goal.title}
-                  className="flex items-center gap-3 rounded-lg border bg-card/60 py-2 pr-2 pl-3"
+                  className="flex items-center gap-3 border-b border-white/8 py-2"
                 >
                   <Icon
                     aria-hidden="true"

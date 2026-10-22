@@ -39,7 +39,7 @@ export function CheckInTrends({ days }: CheckInTrendsProps) {
   return (
     <section
       aria-labelledby="check-in-trends-title"
-      className="flex flex-col gap-4 rounded-3xl glass p-5"
+      className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1">
         <h3 id="check-in-trends-title" className="font-heading font-bold">
@@ -57,7 +57,7 @@ export function CheckInTrends({ days }: CheckInTrendsProps) {
         </div>
       ) : (
         <>
-          <ul className="grid grid-cols-2 gap-3">
+          <ul className="grid grid-cols-2 gap-x-6 gap-y-5">
             {CHECK_IN_METRICS.map((metric) => (
               <li key={metric}>
                 <MetricTile metric={metric} days={days} dateLabel={dateLabel} />
@@ -159,7 +159,7 @@ function MetricTile({ metric, days, dateLabel }: MetricTileProps) {
   const activeScore = activeDay?.scores?.[metric] ?? null;
 
   return (
-    <div className="flex h-full flex-col gap-2 rounded-2xl border border-white/8 bg-white/[0.035] p-3">
+    <div className="flex h-full flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
         <span className="text-sm font-medium">{name}</span>
         <span className="font-heading text-lg font-bold">

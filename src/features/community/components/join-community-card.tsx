@@ -27,7 +27,7 @@ export function JoinCommunityCard() {
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className="flex max-w-2xl flex-col gap-5 rounded-3xl glass p-5 sm:p-6"
+      className="flex max-w-2xl flex-col gap-5"
     >
       <div className="flex items-center gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 glow-primary">
@@ -75,7 +75,7 @@ export function JoinCommunityCard() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+        <div className="flex flex-col gap-3 border-t border-white/8 pt-5">
           <h3 className="flex items-center gap-2 font-semibold">
             <ShieldCheck aria-hidden="true" className="size-4 text-silver" />
             {t("rulesTitle")}

@@ -96,7 +96,7 @@ export function Inbox({ initial, loadedAt }: InboxProps) {
           }
         />
       ) : (
-        <p className="rounded-2xl glass p-4 text-sm text-muted-foreground">
+        <p className="py-2 text-sm text-muted-foreground">
           {t("requestsEmpty")}
         </p>
       )}
@@ -121,7 +121,7 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
   return (
     <Link
       href={`/messages/${item.id}`}
-      className="flex items-center gap-3 rounded-2xl p-3 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <span
         aria-hidden="true"

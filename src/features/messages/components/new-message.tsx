@@ -17,7 +17,9 @@ export function NewMessage() {
   const router = useRouter();
   const id = useId();
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<MessagePerson[] | null>(null);
+  const [results, setResults] = useState<
+    (MessagePerson & { contact: boolean })[] | null
+  >(null);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<MessageError | null>(null);
   const [pending, startTransition] = useTransition();
@@ -108,13 +110,18 @@ export function NewMessage() {
                     >
                       {name.charAt(0)}
                     </span>
-                    <span className="flex min-w-0 flex-col">
+                    <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate font-semibold">{name}</span>
                       <span className="truncate text-sm text-muted-foreground">
                         @{person.username} ·{" "}
                         {tInbox("level", { level: person.level })}
                       </span>
                     </span>
+                    {person.contact ? (
+                      <span className="shrink-0 rounded-full bg-white/6 px-2.5 py-1 text-xs text-muted-foreground">
+                        {t("contact")}
+                      </span>
+                    ) : null}
                   </button>
                 </li>
               );

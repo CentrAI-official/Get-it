@@ -40,11 +40,11 @@ export async function CommunitySettings() {
           {blocked.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("blockedEmpty")}</p>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col">
               {blocked.map((person) => (
                 <li
                   key={person.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-3 py-2"
+                  className="flex items-center justify-between gap-3 border-b border-white/8 py-2"
                 >
                   <span className="min-w-0 text-sm break-words">
                     {person.displayName}{" "}

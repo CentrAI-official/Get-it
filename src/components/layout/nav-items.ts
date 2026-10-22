@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  Contact,
   Handshake,
   MessageCircle,
   Settings,
@@ -47,7 +48,13 @@ export const appNavItems = [
 ] as const satisfies readonly AppNavItem[];
 
 export type TopActionKey =
-  "groups" | "events" | "coach" | "newMessage" | "shopServices" | "settings";
+  | "groups"
+  | "events"
+  | "coach"
+  | "contacts"
+  | "newMessage"
+  | "shopServices"
+  | "settings";
 
 export type TopAction = {
   key: TopActionKey;
@@ -60,6 +67,7 @@ export const topActions = {
   groups: { key: "groups", href: "/groups", icon: UsersRound },
   events: { key: "events", href: "/events", icon: CalendarDays },
   coach: { key: "coach", href: "/coach", icon: Sparkles },
+  contacts: { key: "contacts", href: "/messages/contacts", icon: Contact },
   newMessage: { key: "newMessage", href: "/messages/new", icon: SquarePen },
   shopServices: {
     key: "shopServices",
@@ -72,7 +80,7 @@ export const topActions = {
 /** Boutons du haut propres à chaque catégorie ; Get iT AI est partout. */
 export const categoryActions: Record<AppNavKey, readonly TopActionKey[]> = {
   community: ["groups", "events", "coach"],
-  messages: ["newMessage", "coach"],
+  messages: ["contacts", "newMessage", "coach"],
   services: ["shopServices", "coach"],
   marketplace: ["coach"],
   profile: ["settings", "coach"],

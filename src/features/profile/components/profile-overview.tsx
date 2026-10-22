@@ -45,7 +45,7 @@ export async function ProfileOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-5 rounded-3xl glass p-5 sm:p-6">
+      <div className="flex flex-col gap-5 border-t border-white/8 pt-6">
         <div className="flex items-center gap-4 sm:gap-5">
           {/* L'anneau autour de l'initiale avance avec le niveau */}
           <ProgressRing
@@ -102,7 +102,7 @@ export async function ProfileOverview({
       <div className="grid gap-6 lg:grid-cols-2">
         <section
           aria-labelledby="profile-pillars"
-          className="flex flex-col gap-4 rounded-3xl glass p-5 sm:p-6"
+          className="flex flex-col gap-4 border-t border-white/8 pt-6"
         >
           <h2 id="profile-pillars" className="font-heading text-lg font-bold">
             {t("pillarsTitle")}
@@ -133,7 +133,7 @@ export async function ProfileOverview({
 
         <section
           aria-labelledby="profile-starting-point"
-          className="flex flex-col gap-4 rounded-3xl glass p-5 sm:p-6"
+          className="flex flex-col gap-4 border-t border-white/8 pt-6"
         >
           <div className="flex flex-col gap-1">
             <h2

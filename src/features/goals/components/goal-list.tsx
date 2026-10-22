@@ -5,9 +5,9 @@ import { GoalCard } from "./goal-card";
 /** Grille de cartes d'objectifs. */
 export function GoalList({ goals }: { goals: GoalSummary[] }) {
   return (
-    <ul className="grid gap-3 sm:grid-cols-2">
+    <ul className="grid sm:grid-cols-2 sm:gap-x-8">
       {goals.map((goal) => (
-        <li key={goal.id}>
+        <li key={goal.id} className="border-b border-white/8">
           <GoalCard goal={goal} />
         </li>
       ))}

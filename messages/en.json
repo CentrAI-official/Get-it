@@ -135,6 +135,7 @@
       "groups": "Groups",
       "events": "Events",
       "coach": "Get iT AI",
+      "contacts": "Contacts",
       "newMessage": "New message",
       "shopServices": "Shop for services",
       "settings": "Settings"
@@ -1026,7 +1027,7 @@
     }
   },
   "Messages": {
-    "unreadLabel": "{count, plural, one {# unread conversation} other {# unread conversations}}",
+    "unreadLabel": "{count, plural, one {# new item in Messages} other {# new items in Messages}}",
     "inbox": {
       "tabsLabel": "Inbox",
       "chats": "Chats",
@@ -1056,7 +1057,8 @@
       "placeholder": "First name or @username",
       "hint": "Search for a Hub member by first name or username.",
       "empty": "No member found.",
-      "searching": "Searching…"
+      "searching": "Searching…",
+      "contact": "Contact"
     },
     "conversation": {
       "back": "Back to messages",
@@ -1218,6 +1220,58 @@
         "keep": "Keep the pact",
         "quitConfirm": "Leave"
       }
+    }
+  },
+  "Contacts": {
+    "title": "Contacts",
+    "description": "Your contacts can message you directly, without a request. Your list stays private.",
+    "back": "Messages",
+    "tabsLabel": "Contacts and requests",
+    "tabs": {
+      "contacts": "Contacts ({count, number})",
+      "received": "Received ({count, number})",
+      "sent": "Sent ({count, number})"
+    },
+    "empty": {
+      "contacts": "No contacts yet. Search for a Centre member to add them.",
+      "received": "No requests received.",
+      "sent": "No pending requests sent."
+    },
+    "level": "Level {level, number}",
+    "write": "Message",
+    "remove": "Remove",
+    "accept": "Accept",
+    "decline": "Decline",
+    "cancel": "Cancel request",
+    "addTitle": "Add a contact",
+    "searchLabel": "Search for a member to add",
+    "searchPlaceholder": "First name or @username",
+    "searching": "Searching…",
+    "noResult": "No member found.",
+    "add": "Add",
+    "alreadyContact": "Contact",
+    "requested": "Request sent",
+    "addHandle": "Add {handle} as a contact",
+    "requestsLink": "{count, plural, one {# contact request to review} other {# contact requests to review}}",
+    "menu": {
+      "none": "Add {handle} as a contact",
+      "received": "Accept {handle}’s request",
+      "sent": "Cancel contact request",
+      "contact": "Remove {handle} from contacts"
+    },
+    "notice": {
+      "none": "{handle} is no longer one of your contacts.",
+      "sent": "Contact request sent to {handle}.",
+      "received": "{handle} sent you a contact request.",
+      "contact": "{handle} is one of your contacts."
+    },
+    "errors": {
+      "notJoined": "Join the Get iT Centre to add contacts.",
+      "suspended": "Your account is suspended for now: you can’t add contacts.",
+      "blocked": "You can’t add this person.",
+      "notFound": "This member is no longer available.",
+      "contactLimit": "You’ve sent a lot of requests today. Try again tomorrow.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   },
   "NotFound": {

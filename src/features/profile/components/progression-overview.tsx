@@ -35,7 +35,7 @@ export async function ProgressionOverview() {
   return (
     <section
       aria-labelledby="progression-title"
-      className="flex flex-col gap-4"
+      className="flex flex-col gap-6 border-t border-white/8 pt-6"
     >
       <h2 id="progression-title" className="font-heading text-lg font-bold">
         {t("title")}
@@ -43,7 +43,7 @@ export async function ProgressionOverview() {
 
       <section
         aria-labelledby="pillar-levels-title"
-        className="flex flex-col gap-4 rounded-3xl glass p-5 sm:p-6"
+        className="flex flex-col gap-4"
       >
         <div className="flex flex-col gap-1">
           <h3 id="pillar-levels-title" className="font-heading font-bold">
@@ -85,7 +85,7 @@ export async function ProgressionOverview() {
         </ul>
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-start">
+      <div className="grid gap-8 lg:grid-cols-2 lg:items-start lg:gap-10">
         <XpHistoryChart
           days={days.map((day) => ({ day, xp: xpByDay.get(day) ?? 0 }))}
         />

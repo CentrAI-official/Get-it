@@ -63,7 +63,7 @@ export function CommunityFeed({
   }
 
   return (
-    <section aria-label={t("label")} className="flex flex-col gap-4">
+    <section aria-label={t("label")} className="flex flex-col gap-5">
       <p role="status" className={notice ? "text-sm text-primary" : "sr-only"}>
         {notice}
       </p>

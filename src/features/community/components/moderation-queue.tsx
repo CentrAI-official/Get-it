@@ -26,7 +26,7 @@ export function ModerationQueue({ items }: { items: ReportedItem[] }) {
     );
   }
   return (
-    <ul className="flex flex-col gap-4">
+    <ul className="flex flex-col divide-y divide-white/8">
       {items.map((item) => (
         <li key={`${item.target.type}:${item.target.id}`}>
           <ReportedCard item={item} />
@@ -55,7 +55,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
   }
 
   return (
-    <article className="flex flex-col gap-3 rounded-3xl glass p-4 sm:p-5">
+    <article className="flex flex-col gap-3 py-5">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-heading font-bold">
           {t(`targets.${item.target.type}`)} ·{" "}
@@ -72,7 +72,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
         </p>
       ) : null}
       {item.body ? (
-        <blockquote className="rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm break-words whitespace-pre-wrap">
+        <blockquote className="border-l-2 border-white/15 pl-3 text-sm break-words whitespace-pre-wrap">
           {item.body}
         </blockquote>
       ) : null}

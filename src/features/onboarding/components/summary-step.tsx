@@ -98,11 +98,11 @@ export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
   ];
 
   return (
-    <dl className="flex flex-col divide-y divide-white/5 rounded-2xl border border-white/10 bg-white/[0.03]">
+    <dl className="flex flex-col divide-y divide-white/8">
       {rows.map((row) => (
         <div
           key={row.label}
-          className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 px-4 py-3 sm:grid-cols-[10rem_1fr_auto]"
+          className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 py-3 sm:grid-cols-[10rem_1fr_auto]"
         >
           <dt className="text-sm text-muted-foreground sm:pt-0.5">
             {row.label}

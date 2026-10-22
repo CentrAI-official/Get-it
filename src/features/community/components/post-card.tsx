@@ -9,6 +9,7 @@ import {
   LoaderCircle,
   MessageCircle,
   Trash2,
+  UserPlus,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -35,6 +36,7 @@ import {
   deletePostAction,
   setReactionAction,
 } from "../actions";
+import { requestContactAction } from "@/features/contacts/actions";
 import { startConversationAction } from "@/features/messages/actions";
 import { useRouter } from "@/i18n/navigation";
 import { PostComments } from "./post-comments";
@@ -74,6 +76,7 @@ export function PostCard({
   const [pending, startTransition] = useTransition();
   const router = useRouter();
   const tMessages = useTranslations("Messages.errors");
+  const tContacts = useTranslations("Contacts");
 
   function message() {
     startTransition(async () => {
@@ -84,6 +87,17 @@ export function PostCard({
   }
   const name = post.author.displayName ?? post.author.username ?? "";
   const handle = `@${post.author.username ?? ""}`;
+
+  function addContact() {
+    startTransition(async () => {
+      const result = await requestContactAction(post.author.id);
+      onNotice(
+        result.ok
+          ? tContacts(`notice.${result.state}`, { handle })
+          : tContacts(`errors.${result.error}`),
+      );
+    });
+  }
 
   function toggleReaction() {
     const next = !reaction.on;
@@ -109,7 +123,7 @@ export function PostCard({
   return (
     <article
       aria-labelledby={`post-${post.id}`}
-      className="flex flex-col gap-3 rounded-3xl glass p-4 sm:p-5"
+      className="flex flex-col gap-3 border-t border-white/8 pt-5"
     >
       <header className="flex items-start gap-3">
         <span
@@ -159,10 +173,16 @@ export function PostCard({
             ) : (
               <>
                 {canWrite ? (
-                  <DropdownMenuItem onSelect={message}>
-                    <MessageCircle aria-hidden="true" />
-                    {t("message")}
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onSelect={message}>
+                      <MessageCircle aria-hidden="true" />
+                      {t("message")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={addContact}>
+                      <UserPlus aria-hidden="true" />
+                      {tContacts("addHandle", { handle })}
+                    </DropdownMenuItem>
+                  </>
                 ) : null}
                 <DropdownMenuItem
                   onSelect={() => onReport({ type: "post", id: post.id })}
@@ -192,7 +212,7 @@ export function PostCard({
       </header>
 
       {post.hidden ? (
-        <p className="flex items-start gap-2 rounded-2xl border border-white/10 bg-white/[0.03] p-3 text-sm text-muted-foreground">
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
           <EyeOff aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           {t("hidden")}
         </p>

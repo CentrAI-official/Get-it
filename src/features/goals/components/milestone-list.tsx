@@ -19,7 +19,7 @@ export function MilestoneList({ goalId, milestones }: MilestoneListProps) {
   return (
     <div className="flex flex-col gap-3">
       {milestones.length > 0 ? (
-        <ol className="flex flex-col gap-2">
+        <ol className="flex flex-col">
           {milestones.map((milestone) => (
             <ChecklistItem
               key={milestone.id}

@@ -248,9 +248,9 @@ export function CoachChat({
     <div className="flex flex-col gap-3">
       <section
         aria-labelledby="coach-title"
-        className="flex min-h-[60dvh] flex-col rounded-3xl glass"
+        className="flex min-h-[60dvh] flex-col"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-white/5 px-4 py-3 sm:px-5">
+        <div className="flex items-center justify-between gap-3 border-b border-white/8 py-3">
           <h2
             id="coach-title"
             className="flex items-center gap-2.5 font-heading font-bold"
@@ -272,7 +272,7 @@ export function CoachChat({
           role="log"
           aria-label={t("logLabel")}
           aria-busy={streaming}
-          className="flex flex-1 flex-col gap-5 px-4 py-5 sm:px-5"
+          className="flex flex-1 flex-col gap-5 py-5"
         >
           {messages.length === 0 ? (
             <div className="flex flex-1 flex-col items-center justify-center gap-5 py-6 text-center">
@@ -380,7 +380,7 @@ export function CoachChat({
         {/* Zone de saisie : reste visible au-dessus de la barre flottante */}
         <form
           onSubmit={onSubmit}
-          className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col gap-2 rounded-b-3xl border-t border-white/5 bg-card/95 p-3 backdrop-blur-xl sm:p-4 lg:bottom-4"
+          className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-white/8 bg-background/95 py-3 backdrop-blur-xl lg:bottom-4"
         >
           {error ? (
             <p

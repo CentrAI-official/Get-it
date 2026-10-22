@@ -150,11 +150,7 @@ export function OnboardingWizard() {
   });
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="flex flex-col gap-8 rounded-3xl glass p-5 sm:p-8"
-    >
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <p className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase">
           {stepLabel}

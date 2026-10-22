@@ -24,7 +24,7 @@ export function SituationStep({ draft, update }: StepProps) {
           <section
             key={pillar}
             aria-labelledby={headingId}
-            className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4"
+            className="flex flex-col gap-3 border-t border-white/8 pt-5"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h2

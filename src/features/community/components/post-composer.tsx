@@ -78,10 +78,7 @@ export function PostComposer({
 
   return (
     <>
-      <section
-        aria-label={t("label")}
-        className="flex items-center gap-3 rounded-3xl glass p-3"
-      >
+      <section aria-label={t("label")} className="flex items-center gap-3">
         <span
           aria-hidden="true"
           className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"

@@ -89,6 +89,8 @@ model Profile {
   messagesSent         Message[]
   messageReactions     MessageReaction[]
   mediaUploads         MediaUpload[]
+  contactsRequested    Contact[]            @relation("ContactRequester")
+  contactsReceived     Contact[]            @relation("ContactAddressee")
   pactsProposed        Pact[]               @relation("PactProposer")
   pactsEnded           Pact[]               @relation("PactEnder")
   pactMembers          PactMember[]
@@ -737,4 +739,29 @@ model PostMedia {
 
   @@index([postId, position])
   @@map("post_media")
+}
+
+enum ContactStatus {
+  /// Demande envoyée, en attente de réponse.
+  pending
+  accepted
+}
+
+/// Contact (ami) entre deux membres du Centre : une demande, puis une relation acceptée.
+model Contact {
+  id          String        @id @default(uuid(7)) @db.Uuid
+  requesterId String        @map("requester_id") @db.Uuid
+  addresseeId String        @map("addressee_id") @db.Uuid
+  /// Les deux identifiants triés, « idA:idB » : une seule relation par paire.
+  pairKey     String        @unique @map("pair_key")
+  status      ContactStatus @default(pending)
+  respondedAt DateTime?     @map("responded_at") @db.Timestamptz(3)
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  requester Profile @relation("ContactRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee Profile @relation("ContactAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
+  @@map("contacts")
 }

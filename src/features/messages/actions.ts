@@ -5,6 +5,7 @@ import { progressShareSchema } from "@/features/community/rules";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
 import { listShareableProgress } from "@/server/community/posts";
+import { countContactRequests } from "@/server/contacts/service";
 import {
   cancelPact,
   listPactHabits,
@@ -51,7 +52,7 @@ type Result<T> = ({ ok: true } & T) | { ok: false; error: MessageError };
 
 export async function searchMembersAction(
   query: unknown,
-): Promise<MessagePerson[]> {
+): Promise<(MessagePerson & { contact: boolean })[]> {
   const user = await requireUser();
   const parsed = memberSearchSchema.safeParse(query);
   if (!parsed.success) return [];
@@ -80,7 +81,11 @@ export async function listInboxAction(): Promise<InboxItem[]> {
 
 export async function countUnreadAction(): Promise<number> {
   const user = await requireUser();
-  return countUnread(user.id).catch(() => 0);
+  const [unread, requests] = await Promise.all([
+    countUnread(user.id).catch(() => 0),
+    countContactRequests(user.id).catch(() => 0),
+  ]);
+  return unread + requests;
 }
 
 /** État à jour d'une conversation (rafraîchissement régulier). */

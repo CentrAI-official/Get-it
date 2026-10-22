@@ -18,6 +18,12 @@ import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { freezeProgress, type ProgressSource } from "@/server/community/posts";
 import { db } from "@/server/db";
+import type { ContactState } from "@/features/contacts/rules";
+import {
+  areContacts,
+  contactIds,
+  getContactState,
+} from "@/server/contacts/service";
 import { getLevels } from "@/server/xp/service";
 import {
   getOpenPact,
@@ -84,6 +90,8 @@ export type ConversationState = {
   canWrite: boolean;
   messages: ChatMessage[];
   hasMore: boolean;
+  /** Relation de contact avec l'autre personne. */
+  contact: ContactState;
   /** Pacte proposé ou en cours dans la conversation. */
   pact: PactBanner | null;
   /** Pactes déjà proposés ici (la suggestion « Faites-le ensemble » n'apparaît qu'au début). */
@@ -196,8 +204,11 @@ async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
 export async function searchMembers(
   viewerId: string,
   query: string,
-): Promise<MessagePerson[]> {
-  const blocked = await getBlockedIds(viewerId);
+): Promise<(MessagePerson & { contact: boolean })[]> {
+  const [blocked, contacts] = await Promise.all([
+    getBlockedIds(viewerId),
+    contactIds(viewerId),
+  ]);
   const handle = query.replace(/^@/, "").toLowerCase();
   const found = await db.profile.findMany({
     where: {
@@ -210,11 +221,17 @@ export async function searchMembers(
       ],
     },
     orderBy: { username: "asc" },
-    take: 10,
+    take: 20,
     select: { id: true },
   });
   const byId = await people(found.map((person) => person.id));
-  return found.flatMap((person) => byId.get(person.id) ?? []);
+  return found
+    .flatMap((person) => {
+      const found = byId.get(person.id);
+      return found ? [{ ...found, contact: contacts.has(person.id) }] : [];
+    })
+    .sort((a, b) => Number(b.contact) - Number(a.contact))
+    .slice(0, 10);
 }
 
 /**
@@ -241,6 +258,7 @@ export async function startConversation(
   });
   if (existing) return { ok: true, id: existing.id };
 
+  const contact = await areContacts(viewerId, otherId);
   const started = await db.conversation.count({
     where: { createdById: viewerId, createdAt: { gte: since24h() } },
   });
@@ -255,7 +273,7 @@ export async function startConversation(
         members: {
           create: [
             { userId: viewerId, status: "accepted" },
-            { userId: otherId, status: "request" },
+            { userId: otherId, status: contact ? "accepted" : "request" },
           ],
         },
       },
@@ -410,15 +428,17 @@ export async function getConversation(
   const membership = await loadMembership(viewerId, conversationId);
   if (!membership) return null;
   await settlePacts(conversationId, viewerId);
-  const [byId, viewerMessages, page, allowed, open] = await Promise.all([
-    people([membership.other.userId]),
-    db.message.count({
-      where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
-    }),
-    messagesPage(viewerId, conversationId, membership.viewer.clearedAt),
-    canWrite(viewerId),
-    getOpenPact(viewerId, conversationId),
-  ]);
+  const [byId, viewerMessages, page, allowed, open, contact] =
+    await Promise.all([
+      people([membership.other.userId]),
+      db.message.count({
+        where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
+      }),
+      messagesPage(viewerId, conversationId, membership.viewer.clearedAt),
+      canWrite(viewerId),
+      getOpenPact(viewerId, conversationId),
+      getContactState(viewerId, membership.other.userId),
+    ]);
   const other = byId.get(membership.other.userId);
   if (!other) return null;
   return {
@@ -434,6 +454,7 @@ export async function getConversation(
     canWrite: allowed.ok,
     messages: page.messages,
     hasMore: page.hasMore,
+    contact,
     pact: open.pact,
     pactCount: open.count,
     loadedAt: Date.now(),

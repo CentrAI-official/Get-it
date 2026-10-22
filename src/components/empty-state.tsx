@@ -28,7 +28,7 @@ export function EmptyState({
   className,
 }: EmptyStateProps) {
   return (
-    <Empty className={cn("rounded-3xl border-solid glass py-14", className)}>
+    <Empty className={cn("border-0 py-14", className)}>
       <EmptyHeader>
         <EmptyMedia
           variant="icon"

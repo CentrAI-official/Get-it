@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,31 +12,80 @@ import {
 import { cn } from "@/lib/utils";
 import type { FeedMedia } from "@/server/community/media";
 
+/** La vidéo en cours de lecture : une seule à la fois dans l'application. */
+let playing: HTMLVideoElement | null = null;
+
+/** Part visible sous laquelle une vidéo se met en pause (défilement du fil). */
+const MIN_VISIBLE = 0.25;
+
+type FullscreenVideo = HTMLVideoElement & {
+  /** Plein écran natif de l'iPhone (hors API Fullscreen). */
+  webkitDisplayingFullscreen?: boolean;
+};
+
 /**
- * Photos (grille, plein écran au toucher) ou vidéo d'une publication. La vidéo
- * ne démarre jamais seule, et jamais avec le son.
+ * Vidéo d'une publication. Elle ne démarre jamais seule, et se met en pause
+ * quand on change de page, quand elle sort de l'écran ou quand une autre
+ * vidéo démarre.
  */
+function PostVideo({ video }: { video: FeedMedia }) {
+  const ref = useRef<HTMLVideoElement>(null);
+
+  // Next garde la page précédente cachée dans le DOM (Activity) au lieu de la
+  // retirer : sans ce nettoyage, le son continuerait dans une autre catégorie.
+  useLayoutEffect(() => {
+    const element: FullscreenVideo | null = ref.current;
+    if (!element) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const fullscreen =
+          document.fullscreenElement === element ||
+          element.webkitDisplayingFullscreen === true;
+        if (entry && entry.intersectionRatio < MIN_VISIBLE && !fullscreen) {
+          element.pause();
+        }
+      },
+      { threshold: MIN_VISIBLE },
+    );
+    observer.observe(element);
+    return () => {
+      observer.disconnect();
+      element.pause();
+      if (playing === element) playing = null;
+    };
+  }, []);
+
+  function onPlay(event: React.SyntheticEvent<HTMLVideoElement>) {
+    const element = event.currentTarget;
+    if (playing && playing !== element) playing.pause();
+    playing = element;
+  }
+
+  return (
+    <video
+      ref={ref}
+      src={video.url}
+      poster={video.posterUrl ?? undefined}
+      controls
+      playsInline
+      preload="metadata"
+      onPlay={onPlay}
+      className="max-h-[70dvh] w-full rounded-2xl bg-black object-contain"
+      style={{ aspectRatio: `${video.width} / ${video.height}` }}
+    >
+      <track kind="captions" />
+    </video>
+  );
+}
+
+/** Photos (grille, plein écran au toucher) ou vidéo d'une publication. */
 export function PostMedia({ media }: { media: FeedMedia[] }) {
   const t = useTranslations("Community.media");
   const [open, setOpen] = useState<number | null>(null);
   const video = media.find((item) => item.kind === "video");
   const images = media.filter((item) => item.kind === "image");
 
-  if (video) {
-    return (
-      <video
-        src={video.url}
-        poster={video.posterUrl ?? undefined}
-        controls
-        playsInline
-        preload="metadata"
-        className="max-h-[70dvh] w-full rounded-2xl bg-black object-contain"
-        style={{ aspectRatio: `${video.width} / ${video.height}` }}
-      >
-        <track kind="captions" />
-      </video>
-    );
-  }
+  if (video) return <PostVideo video={video} />;
   if (images.length === 0) return null;
 
   const current = open === null ? undefined : images[open];

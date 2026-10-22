@@ -73,7 +73,7 @@ export function TaskList({
   return (
     <div className="flex flex-col gap-3">
       {open.length > 0 ? (
-        <ul className="flex flex-col gap-2">{open.map(renderTask)}</ul>
+        <ul className="flex flex-col">{open.map(renderTask)}</ul>
       ) : (
         <p className="text-sm text-muted-foreground">
           {emptyMessage ?? t("empty")}
@@ -96,7 +96,7 @@ export function TaskList({
             />
             {t("doneCount", { count: done.length })}
           </summary>
-          <ul className="mt-2 flex flex-col gap-2">{done.map(renderTask)}</ul>
+          <ul className="mt-2 flex flex-col">{done.map(renderTask)}</ul>
         </details>
       ) : null}
     </div>

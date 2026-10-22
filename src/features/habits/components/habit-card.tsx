@@ -32,7 +32,7 @@ export function HabitCard({ habit, today }: HabitCardProps) {
   );
 
   return (
-    <article className="flex flex-col gap-4 rounded-3xl glass p-4 sm:p-5">
+    <article className="flex flex-col gap-4 border-b border-white/8 py-5">
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb text-silver">
           <Icon aria-hidden="true" className="size-5" />

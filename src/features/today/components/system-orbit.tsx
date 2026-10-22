@@ -59,7 +59,7 @@ export function SystemOrbit({
     <section
       aria-labelledby="system-title"
       className={cn(
-        "flex flex-col gap-2 rounded-3xl glass p-4 sm:p-5",
+        "flex flex-col gap-2 border-t border-white/8 pt-6",
         className,
       )}
     >

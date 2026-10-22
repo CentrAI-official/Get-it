@@ -26,7 +26,7 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
     <section
       id="check-in"
       aria-labelledby="check-in-title"
-      className="flex scroll-mt-24 flex-col gap-4 rounded-3xl glass p-4 sm:p-5"
+      className="flex scroll-mt-24 flex-col gap-4 border-t border-white/8 pt-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">

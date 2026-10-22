@@ -77,6 +77,7 @@ src/i18n/                 configuration des langues
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
 - [x] 9f0. Photos et vidéos dans les publications
+- [x] 9f0b. Contacts (amis) : demandes, liste privée, écrire sans demande
 - [ ] 9f1. Groupes (création, fil, rôles)
 - [ ] 9f2. Discussions de groupe (Messagerie)
 - [ ] 9f3. Pactes à plusieurs

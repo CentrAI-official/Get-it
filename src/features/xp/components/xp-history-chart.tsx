@@ -28,8 +28,7 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
    * Hauteur d'une colonne, en % de la zone du graphique : 65 % au plus, le haut
    * reste libre pour la bulle de détail.
    */
-  const barHeight = (xp: number) =>
-    xp > 0 ? Math.max(3, (xp / max) * 65) : 0;
+  const barHeight = (xp: number) => (xp > 0 ? Math.max(3, (xp / max) * 65) : 0);
 
   // Jour du calendrier : formaté en UTC pour ne pas glisser d'un jour
   const dateLabel = (day: string) =>
@@ -41,10 +40,7 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
     });
 
   return (
-    <section
-      aria-labelledby="xp-chart-title"
-      className="flex flex-col gap-4 rounded-3xl glass p-5"
-    >
+    <section aria-labelledby="xp-chart-title" className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
         <h3 id="xp-chart-title" className="font-heading font-bold">
           {t("title")}

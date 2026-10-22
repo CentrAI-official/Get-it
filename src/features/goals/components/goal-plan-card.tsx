@@ -96,7 +96,7 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
     <section
       aria-labelledby={`${idPrefix}-title`}
       aria-busy={state.step === "loading"}
-      className="flex flex-col gap-4 rounded-3xl border-primary/25! glass p-4 sm:p-5"
+      className="flex flex-col gap-4 border-t border-white/8 pt-6"
     >
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 glow-primary">
@@ -198,7 +198,7 @@ function Proposal({
     return (
       <li
         key={key}
-        className="flex items-start gap-3 rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-2.5"
+        className="flex items-start gap-3 border-b border-white/8 py-2.5"
       >
         <Checkbox
           id={id}
@@ -254,7 +254,7 @@ function Proposal({
           <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
             {t(`groups.${group.key}`)}
           </h3>
-          <ul className="flex flex-col gap-2">{group.items}</ul>
+          <ul className="flex flex-col">{group.items}</ul>
         </div>
       ))}
       <div className="flex flex-wrap items-center gap-2">
