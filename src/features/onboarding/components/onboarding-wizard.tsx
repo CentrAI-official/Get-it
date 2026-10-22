@@ -19,6 +19,7 @@ import {
 } from "../actions";
 import {
   aboutStepSchema,
+  accountStepSchema,
   goalsStepSchema,
   MAX_GOALS,
   onboardingSchema,
@@ -26,6 +27,7 @@ import {
   type OnboardingDraft,
 } from "../schemas";
 import { AboutStep } from "./about-step";
+import { AccountStep } from "./account-step";
 import { GoalsStep } from "./goals-step";
 import { PillarsStep } from "./pillars-step";
 import { ONBOARDING_STEPS, type OnboardingStep } from "./steps";
@@ -34,6 +36,7 @@ import { SummaryStep } from "./summary-step";
 import { TimeStep } from "./time-step";
 
 const EMPTY_DRAFT: OnboardingDraft = {
+  accountType: null,
   displayName: "",
   occupation: null,
   pillars: [],
@@ -45,6 +48,8 @@ const EMPTY_DRAFT: OnboardingDraft = {
 /** Vrai si l'étape est assez remplie pour continuer (le serveur revalide tout). */
 function isStepComplete(step: OnboardingStep, draft: OnboardingDraft) {
   switch (step) {
+    case "account":
+      return accountStepSchema.safeParse(draft).success;
     case "about":
       return aboutStepSchema.safeParse(draft).success;
     case "pillars":
@@ -72,7 +77,7 @@ export function OnboardingWizard() {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const hasNavigated = useRef(false);
 
-  const step = ONBOARDING_STEPS[stepIndex] ?? "about";
+  const step = ONBOARDING_STEPS[stepIndex] ?? "account";
   const isLastStep = stepIndex === ONBOARDING_STEPS.length - 1;
   const canContinue = isStepComplete(step, draft);
 
@@ -125,6 +130,10 @@ export function OnboardingWizard() {
     OnboardingStep,
     { title: string; description: string }
   > = {
+    account: {
+      title: t("account.title"),
+      description: t("account.description"),
+    },
     about: { title: t("about.title"), description: t("about.description") },
     pillars: {
       title: t("pillars.title"),
@@ -174,6 +183,9 @@ export function OnboardingWizard() {
         </p>
       </div>
 
+      {step === "account" ? (
+        <AccountStep draft={draft} update={update} />
+      ) : null}
       {step === "about" ? <AboutStep draft={draft} update={update} /> : null}
       {step === "pillars" ? (
         <PillarsStep draft={draft} update={update} setPillars={setPillars} />

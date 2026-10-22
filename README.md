@@ -72,7 +72,7 @@ src/i18n/                 configuration des langues
 - [x] 8. Get iT AI
 - [x] 9. Centre Get iT : fil social de base et modération
 - [x] 9b. Réorganisation : Communauté en accueil, popup « Ma journée », Profil (objectifs, habitudes, progression)
-- [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mes services, Marketplace, Profil
+- [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mon développement (anciennement Mes services), Marketplace, Profil
 - [ ] 9d. Journal (dans Profil)
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
@@ -82,7 +82,8 @@ src/i18n/                 configuration des langues
 - [ ] 9f2. Discussions de groupe (Messagerie)
 - [ ] 9f3. Pactes à plusieurs
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
-- [ ] 9g. Marketplace › Gear (vitrine, sans paiement dans l’application)
-- [ ] 9h. Groupes
-- [ ] 9i. Services : annuaire, réservations, Mes services, notes de session
+- [x] 9g1. Marketplace (lot 1) : comptes affiliés, catalogue Services et Gear, filtres, formulaire de vente, approbation par l’équipe Get iT
+- [ ] 9g2. Paiement dans l’application (Stripe Connect : commission ou abonnement des vendeurs)
+- [ ] 9g3. Avis et vérification des affiliés
+- [ ] 9i. Mon développement : plans personnalisés par Get iT AI (Physique, Mental, Social, Financier et entreprise), puis suivi par un professionnel (rendez-vous, notes de session)
 - [ ] 10. Finitions, analytics et déploiement

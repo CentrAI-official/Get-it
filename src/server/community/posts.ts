@@ -63,28 +63,32 @@ export async function createPost(
   const verified = await verifyMedia(userId, input.media);
   if (!verified.ok) return verified;
   const { rows, uploadIds } = verified.media;
-  await db.$transaction(async (tx) => {
-    const post = await tx.post.create({
-      data: {
-        userId,
-        kind: input.kind,
-        body: input.body,
-        pillar: input.pillar ?? null,
-        mediaCount: rows.length,
-      },
-      select: { id: true },
-    });
-    if (rows.length === 0) return;
-    await tx.postMedia.createMany({
-      data: rows.map((row) => ({ ...row, postId: post.id })),
-    });
-    const { count } = await tx.mediaUpload.updateMany({
-      where: { id: { in: uploadIds }, userId, usedAt: null },
-      data: { usedAt: new Date() },
-    });
-    // Un même envoi ne sert qu'une fois
-    if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
-  });
+  await db.$transaction(
+    async (tx) => {
+      const post = await tx.post.create({
+        data: {
+          userId,
+          kind: input.kind,
+          body: input.body,
+          pillar: input.pillar ?? null,
+          mediaCount: rows.length,
+        },
+        select: { id: true },
+      });
+      if (rows.length === 0) return;
+      await tx.postMedia.createMany({
+        data: rows.map((row) => ({ ...row, postId: post.id })),
+      });
+      const { count } = await tx.mediaUpload.updateMany({
+        where: { id: { in: uploadIds }, userId, usedAt: null },
+        data: { usedAt: new Date() },
+      });
+      // Un même envoi ne sert qu'une fois
+      if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
+      // Même marge que les annonces : la limite de 5 s par défaut est trop juste
+    },
+    { maxWait: 10_000, timeout: 20_000 },
+  );
   return { ok: true };
 }
 

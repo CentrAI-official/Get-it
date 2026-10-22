@@ -4,7 +4,9 @@ import { getLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { Pillar } from "@/config/pillars";
+import type { AccountType } from "@/features/marketplace/rules";
 import type { Occupation } from "@/features/onboarding/schemas";
+import type { UserRole } from "@/generated/prisma/client";
 import { routing } from "@/i18n/routing";
 import { isValidTimeZone } from "@/lib/time-zone";
 import { requireUser } from "@/server/auth/session";
@@ -71,6 +73,9 @@ export type CurrentProfile = {
   createdAt: Date;
   timeZone: string;
   dailyMinutes: number | null;
+  /** Consommateur, ou affilié (peut vendre dans le Marketplace). */
+  accountType: AccountType;
+  role: UserRole;
 };
 
 /**
@@ -88,6 +93,8 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
       focusPillars: true,
       onboardedAt: true,
       createdAt: true,
+      accountType: true,
+      role: true,
       settings: { select: { timeZone: true, dailyMinutes: true } },
     },
   });
@@ -106,6 +113,8 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
     createdAt: profile.createdAt,
     timeZone: profile.settings?.timeZone ?? "America/Toronto",
     dailyMinutes: profile.settings?.dailyMinutes ?? null,
+    accountType: profile.accountType,
+    role: profile.role,
   };
 });
 

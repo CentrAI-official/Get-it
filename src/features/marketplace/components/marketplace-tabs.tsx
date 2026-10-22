@@ -2,11 +2,11 @@ import { useTranslations } from "next-intl";
 import { SectionTabs } from "@/components/layout/section-tabs";
 
 const TABS = [
-  { key: "gear", href: "/marketplace" },
-  { key: "services", href: "/marketplace/services" },
+  { key: "services", href: "/marketplace" },
+  { key: "gear", href: "/marketplace/gear" },
 ] as const;
 
-/** Onglets de la Marketplace : Gear (produits) et Services (professionnels). */
+/** Onglets de la Marketplace : Services (professionnels) et Gear (produits). */
 export function MarketplaceTabs({
   current,
 }: {

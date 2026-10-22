@@ -126,7 +126,8 @@
       "label": "Navigation principale",
       "community": "Communauté",
       "messages": "Messagerie",
-      "services": "Mes services",
+      "services": "Mon développement",
+      "servicesShort": "Développement",
       "marketplace": "Marketplace",
       "profile": "Profil"
     },
@@ -138,6 +139,7 @@
       "contacts": "Contacts",
       "newMessage": "Nouveau message",
       "shopServices": "Magasiner des services",
+      "sell": "Vendre",
       "settings": "Réglages"
     },
     "profileTabs": {
@@ -177,10 +179,10 @@
       "soonDescription": "Écris en privé aux membres du Centre. Le premier message d’une personne que tu ne connais pas t’arrivera comme une demande, que tu pourras accepter ou refuser."
     },
     "services": {
-      "title": "Mes services",
-      "question": "Qui m’accompagne dans ma progression?",
-      "soonTitle": "Tes services arrivent bientôt",
-      "soonDescription": "Ton coach fitness, ton conseiller financier et les autres professionnels qui t’accompagnent : tes prochains rendez-vous, les notes de ta dernière session et un accès direct pour les contacter.",
+      "title": "Mon développement",
+      "question": "Comment je progresse, et avec qui?",
+      "soonTitle": "Ton développement arrive bientôt",
+      "soonDescription": "Des plans personnalisés par Get iT AI pour chaque pilier (entraînement, mental, social, finances), puis le suivi avec tes professionnels.",
       "shop": "Magasiner des services"
     },
     "groups": {
@@ -198,20 +200,16 @@
     "marketplace": {
       "tabs": {
         "label": "Sections de la marketplace",
-        "gear": "Gear",
-        "services": "Services"
+        "services": "Services",
+        "gear": "Gear"
       },
       "gear": {
         "title": "Marketplace",
-        "question": "Qu’est-ce qui peut m’aider à progresser?",
-        "soonTitle": "Le Gear arrive bientôt",
-        "soonDescription": "Vêtements de sport, machines d’entraînement, livres éducatifs : une sélection de produits pour chaque pilier."
+        "question": "Qu’est-ce qui peut m’aider à progresser?"
       },
       "services": {
         "title": "Marketplace",
-        "question": "Qui peut m’accompagner?",
-        "soonTitle": "Les services arrivent bientôt",
-        "soonDescription": "Coachs fitness, conseillers financiers, psychologues et autres professionnels vérifiés par Get iT : tu pourras voir leurs offres et réserver."
+        "question": "Qui peut m’accompagner?"
       }
     },
     "profile": {
@@ -263,6 +261,10 @@
         "cancel": "Annuler",
         "deleteError": "La suppression a échoué. Réessaie dans un instant.",
         "conversations": "{count, plural, =0 {Aucune conversation enregistrée.} one {# conversation enregistrée.} other {# conversations enregistrées.}}"
+      },
+      "accountType": {
+        "title": "Type de compte",
+        "description": "Un compte affilié peut aussi vendre des services ou du gear dans le Marketplace."
       }
     }
   },
@@ -354,6 +356,20 @@
       "invalid": "Certaines réponses sont incomplètes. Vérifie chaque étape.",
       "unexpected": "Impossible d’enregistrer tes réponses. Réessaie dans un instant."
     },
+    "account": {
+      "title": "Comment veux-tu utiliser Get iT?",
+      "description": "Tu pourras changer ce choix dans Réglages.",
+      "types": {
+        "consumer": {
+          "title": "Consommateur",
+          "description": "Je veux progresser : objectifs, habitudes, communauté et services."
+        },
+        "affiliate": {
+          "title": "Affilié",
+          "description": "Je veux aussi vendre mes services ou du gear dans le Marketplace."
+        }
+      }
+    },
     "about": {
       "title": "Bienvenue dans Get iT",
       "description": "Quelques questions pour adapter ton parcours. Ça prend deux minutes.",
@@ -437,6 +453,7 @@
       }
     },
     "summary": {
+      "account": "Type de compte",
       "title": "Ton point de départ",
       "description": "Vérifie tes réponses, puis passe à l’action.",
       "name": "Prénom",
@@ -1013,6 +1030,7 @@
     },
     "media": {
       "gallery": "Photo/vidéo",
+      "galleryPhotos": "Galerie",
       "photo": "Photo",
       "video": "Vidéo",
       "limits": "Jusqu’à 4 photos ou 1 vidéo de 60 secondes. La position GPS des photos est retirée.",
@@ -1023,7 +1041,8 @@
       "viewer": "Photo agrandie",
       "close": "Fermer",
       "previous": "Photo précédente",
-      "next": "Photo suivante"
+      "next": "Photo suivante",
+      "limitsPhotos": "Jusqu’à 4 photos. La position GPS des photos est retirée."
     }
   },
   "Messages": {
@@ -1272,6 +1291,233 @@
       "notFound": "Ce membre n’est plus disponible.",
       "contactLimit": "Tu as envoyé beaucoup de demandes aujourd’hui. Réessaie demain.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Marketplace": {
+    "price": {
+      "range": "{min} – {max}",
+      "units": {
+        "session": "/ séance",
+        "hour": "/ heure",
+        "month": "/ mois",
+        "package": "/ forfait"
+      }
+    },
+    "categories": {
+      "fitness_coach": "Coach fitness",
+      "nutritionist": "Nutritionniste",
+      "financial_advisor": "Conseiller financier",
+      "psychologist": "Psychologue",
+      "other": "Autre",
+      "clothing": "Vêtements",
+      "equipment": "Équipement",
+      "books": "Livres et ebooks"
+    },
+    "regions": {
+      "online": "En ligne / à distance",
+      "bas_saint_laurent": "Bas-Saint-Laurent",
+      "saguenay_lac_saint_jean": "Saguenay–Lac-Saint-Jean",
+      "capitale_nationale": "Capitale-Nationale",
+      "mauricie": "Mauricie",
+      "estrie": "Estrie",
+      "montreal": "Montréal",
+      "outaouais": "Outaouais",
+      "abitibi_temiscamingue": "Abitibi-Témiscamingue",
+      "cote_nord": "Côte-Nord",
+      "nord_du_quebec": "Nord-du-Québec",
+      "gaspesie_iles_de_la_madeleine": "Gaspésie–Îles-de-la-Madeleine",
+      "chaudiere_appalaches": "Chaudière-Appalaches",
+      "laval": "Laval",
+      "lanaudiere": "Lanaudière",
+      "laurentides": "Laurentides",
+      "monteregie": "Montérégie",
+      "centre_du_quebec": "Centre-du-Québec"
+    },
+    "moreRegions": "+{count, number}",
+    "filters": {
+      "pillar": "Pilier",
+      "all": "Tous",
+      "region": "Région",
+      "anyRegion": "Toutes les régions",
+      "price": "Prix",
+      "anyPrice": "Tous les prix",
+      "prices": {
+        "under50": "Moins de 50 $",
+        "from50": "50 $ à 100 $",
+        "from100": "100 $ à 200 $",
+        "over200": "200 $ et plus"
+      },
+      "clear": "Effacer les filtres",
+      "loading": "Chargement…"
+    },
+    "catalog": {
+      "more": "Voir plus",
+      "sell": "Vendre",
+      "emptyTitle": {
+        "service": "Aucun service pour l’instant",
+        "gear": "Aucun gear pour l’instant"
+      },
+      "emptyDescription": "Les premières annonces arrivent. Tu as un service ou un produit à offrir?",
+      "noMatchTitle": "Aucune annonce ne correspond",
+      "noMatchDescription": "Essaie un autre pilier, une autre région ou une autre tranche de prix."
+    },
+    "mine": {
+      "link": "Mes annonces",
+      "title": "Mes annonces",
+      "description": "Tes services et ton gear, et où en est leur approbation.",
+      "back": "Marketplace",
+      "emptyTitle": "Aucune annonce",
+      "emptyDescription": "Propose un service ou un produit : l’équipe Get iT le vérifie avant sa mise en ligne."
+    },
+    "approvals": {
+      "link": "{count, plural, =0 {Aucune annonce à approuver} one {# annonce à approuver} other {# annonces à approuver}}",
+      "title": "Annonces à approuver",
+      "description": "Vérifie chaque annonce avant sa mise en ligne.",
+      "back": "Marketplace",
+      "emptyTitle": "Rien à approuver",
+      "emptyDescription": "Les nouvelles annonces des affiliés arriveront ici.",
+      "private": "Pour l’équipe Get iT",
+      "name": "Nom complet",
+      "email": "Courriel",
+      "license": "Permis",
+      "licenseHint": "Vérifie ce numéro sur le registre public de l’ordre professionnel ou de l’AMF avant d’approuver.",
+      "approve": "Approuver",
+      "reject": "Refuser",
+      "rejectConfirm": "Refuser l’annonce",
+      "cancel": "Annuler",
+      "noteLabel": "Raison du refus (montrée au vendeur)",
+      "notePlaceholder": "Ex. ajoute ton numéro de permis.",
+      "failed": "La décision n’a pas pu être enregistrée. Réessaie."
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "En ligne",
+      "rejected": "Refusée",
+      "archived": "Retirée",
+      "pendingNotice": "L’équipe Get iT vérifie ton annonce : elle sera visible une fois approuvée.",
+      "rejectedNotice": "Ton annonce a été refusée.",
+      "approvedNotice": "Ton annonce est en ligne.",
+      "archivedNotice": "Cette annonce est retirée de la vente."
+    },
+    "detail": {
+      "back": "Marketplace",
+      "regions": "Régions desservies",
+      "description": "Description",
+      "seller": "Vendeur",
+      "website": "Site web",
+      "social": "Réseau social",
+      "contact": "Contacter le vendeur",
+      "delete": "Supprimer l’annonce",
+      "deleteTitle": "Supprimer cette annonce?",
+      "deleteDescription": "Elle disparaît du Marketplace avec ses photos. Cette action est définitive.",
+      "deleteConfirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "affiliate": {
+      "title": "Deviens affilié pour vendre",
+      "description": "Les comptes affiliés peuvent offrir leurs services ou vendre du gear aux membres de Get iT.",
+      "points": {
+        "sell": "Publie tes services (coaching, nutrition, finances…) ou tes produits.",
+        "review": "Chaque annonce est vérifiée par l’équipe Get iT avant sa mise en ligne.",
+        "verify": "La vérification des affiliés et le paiement dans l’application arrivent bientôt."
+      },
+      "action": "Devenir affilié"
+    },
+    "sell": {
+      "title": "Vendre",
+      "description": "Propose un service ou un produit aux membres de Get iT.",
+      "back": "Marketplace",
+      "joinTitle": "Rejoins d’abord le Centre Get iT",
+      "joinDescription": "Les acheteurs voient ton nom d’utilisateur et peuvent t’écrire dans la Messagerie.",
+      "joinAction": "Rejoindre le Centre",
+      "suspended": "Ton compte est suspendu pour l’instant : tu ne peux pas publier d’annonce."
+    },
+    "form": {
+      "kind": "Type d’annonce",
+      "kinds": {
+        "service": "Un service",
+        "gear": "Du gear"
+      },
+      "kindHints": {
+        "service": "Coaching, nutrition, conseils, thérapie…",
+        "gear": "Vêtements, équipement, livres…"
+      },
+      "category": "Catégorie",
+      "pillar": "Pilier",
+      "title": "Titre",
+      "titlePlaceholder": {
+        "service": "Ex. Coaching en musculation",
+        "gear": "Ex. Ensemble de bandes élastiques"
+      },
+      "summary": "Courte description",
+      "summaryHint": "Affichée dans le catalogue (160 caractères au plus).",
+      "description": "Description complète",
+      "descriptionPlaceholder": {
+        "service": "Ton approche, ton expérience, ce qui est inclus…",
+        "gear": "État, taille, ce qui est inclus, livraison ou cueillette…"
+      },
+      "priceTitle": "Prix",
+      "price": "Prix ($)",
+      "priceFrom": "À partir de ($)",
+      "priceTo": "Jusqu’à ($)",
+      "unit": "Par",
+      "units": {
+        "session": "Séance",
+        "hour": "Heure",
+        "month": "Mois",
+        "package": "Forfait"
+      },
+      "priceHint": "En dollars canadiens. Le paiement dans l’application arrive bientôt ; d’ici là, les acheteurs te contactent dans la Messagerie.",
+      "regions": "Régions desservies",
+      "license": "Numéro de permis",
+      "licenseHint": "Obligatoire pour les nutritionnistes, conseillers financiers et psychologues (ordre professionnel ou AMF). Jamais affiché.",
+      "optional": "Facultatif",
+      "photos": "Photos",
+      "linksTitle": "Liens",
+      "website": "Site web",
+      "social": "Réseau social",
+      "privateTitle": "Pour l’équipe Get iT",
+      "privateDescription": "Ces renseignements servent à vérifier ton annonce. Ils ne sont jamais montrés aux acheteurs.",
+      "contactName": "Nom complet",
+      "contactEmail": "Courriel",
+      "reviewNotice": "L’équipe Get iT vérifie chaque annonce avant sa mise en ligne.",
+      "submit": "Soumettre l’annonce",
+      "errors": {
+        "notAffiliate": "Passe en compte affilié pour vendre.",
+        "notJoined": "Rejoins le Centre Get iT pour vendre.",
+        "suspended": "Ton compte est suspendu pour l’instant : tu ne peux pas publier d’annonce.",
+        "listingLimit": "Tu as atteint 20 annonces actives. Supprimes-en une pour en ajouter une autre.",
+        "dailyLimit": "Tu as soumis 5 annonces aujourd’hui. Réessaie demain.",
+        "invalid": "Vérifie les champs en rouge.",
+        "mediaUnavailable": "Les photos ne sont pas disponibles pour l’instant.",
+        "mediaMissing": "Une photo n’a pas été envoyée. Retire-la et réessaie.",
+        "mediaTooMany": "4 photos au plus.",
+        "mediaType": "Seules les photos sont acceptées.",
+        "mediaTooLarge": "Une photo est trop lourde.",
+        "uploadLimit": "Trop d’envois aujourd’hui. Réessaie demain.",
+        "notFound": "Cette annonce n’existe plus.",
+        "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+        "priceOrder": "Le prix maximum doit être plus grand que le prix minimum.",
+        "licenseRequired": "Le numéro de permis est obligatoire pour cette profession."
+      },
+      "fieldErrors": {
+        "kind": "Choisis un type d’annonce.",
+        "category": "Choisis une catégorie.",
+        "pillar": "Choisis un pilier.",
+        "title": "Entre un titre de 3 à 80 caractères.",
+        "summary": "Entre une courte description de 10 à 160 caractères.",
+        "description": "Décris ton annonce en 20 à 3 000 caractères.",
+        "priceMin": "Entre un prix valide (ex. 80 ou 79,99).",
+        "priceMax": "Entre un prix valide, ou laisse vide.",
+        "priceUnit": "Choisis une unité.",
+        "regions": "Choisis au moins une région.",
+        "licenseNumber": "Entre un numéro de permis valide.",
+        "website": "Entre une adresse de site valide.",
+        "socialUrl": "Entre une adresse valide.",
+        "contactName": "Entre ton nom complet.",
+        "contactEmail": "Entre un courriel valide.",
+        "media": "Vérifie tes photos."
+      }
     }
   },
   "NotFound": {

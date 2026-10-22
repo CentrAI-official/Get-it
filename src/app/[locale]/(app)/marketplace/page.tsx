@@ -1,27 +1,34 @@
-import { ShoppingBag } from "lucide-react";
 import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { Suspense } from "react";
+import { PageHeader } from "@/components/layout/page-header";
+import {
+  CatalogPanel,
+  CatalogSkeleton,
+} from "@/features/marketplace/components/marketplace-panels";
 import { MarketplaceTabs } from "@/features/marketplace/components/marketplace-tabs";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("App.marketplace.gear");
+  const t = await getTranslations("App.marketplace.services");
   return { title: t("title") };
 }
 
-// Marketplace › Gear : vêtements, équipement, livres (lot à venir)
-export default function MarketplaceGearPage() {
-  const t = useTranslations("App.marketplace.gear");
+// Marketplace › Services : coachs, nutritionnistes, conseillers, psychologues
+export default function MarketplaceServicesPage({
+  searchParams,
+}: PageProps<"/[locale]/marketplace">) {
+  const t = useTranslations("App.marketplace.services");
 
   return (
-    <ComingSoon
-      title={t("title")}
-      description={t("question")}
-      icon={ShoppingBag}
-      soonTitle={t("soonTitle")}
-      soonDescription={t("soonDescription")}
-      tabs={<MarketplaceTabs current="gear" />}
-    />
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <div className="flex flex-col gap-4">
+        <MarketplaceTabs current="services" />
+        <PageHeader title={t("title")} description={t("question")} />
+      </div>
+      <Suspense fallback={<CatalogSkeleton />}>
+        <CatalogPanel kind="service" searchParams={searchParams} />
+      </Suspense>
+    </div>
   );
 }

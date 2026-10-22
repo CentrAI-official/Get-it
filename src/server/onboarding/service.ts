@@ -17,6 +17,7 @@ export async function completeOnboarding(
     const { count } = await tx.profile.updateMany({
       where: { id: userId, onboardedAt: null },
       data: {
+        accountType: input.accountType,
         displayName: input.displayName,
         occupation: input.occupation,
         focusPillars: input.pillars,

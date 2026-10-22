@@ -24,7 +24,7 @@ export default function ServicesPage() {
       soonDescription={t("soonDescription")}
       action={
         <Button asChild variant="outline">
-          <Link href="/marketplace/services">
+          <Link href="/marketplace">
             <Store aria-hidden="true" />
             {t("shop")}
           </Link>

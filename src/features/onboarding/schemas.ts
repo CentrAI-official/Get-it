@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PILLARS, type Pillar } from "@/config/pillars";
+import { ACCOUNT_TYPES, type AccountType } from "@/features/marketplace/rules";
 import {
   GOAL_TITLE_MAX_LENGTH,
   GOAL_TITLE_MIN_LENGTH,
@@ -41,6 +42,11 @@ export const DISPLAY_NAME_MAX_LENGTH = 50;
 export const MAX_GOALS = 5;
 
 const pillar = z.enum(PILLARS);
+
+/** Consommateur, ou affilié (peut aussi vendre dans le Marketplace). */
+export const accountStepSchema = z.object({
+  accountType: z.enum(ACCOUNT_TYPES),
+});
 
 export const aboutStepSchema = z.object({
   displayName: z.string().trim().min(1).max(DISPLAY_NAME_MAX_LENGTH),
@@ -88,6 +94,7 @@ export const timeStepSchema = z.object({
 /** Réponses complètes, revalidées par le serveur avant tout enregistrement. */
 export const onboardingSchema = z
   .object({
+    ...accountStepSchema.shape,
     ...aboutStepSchema.shape,
     ...pillarsStepSchema.shape,
     ...goalsStepSchema.shape,
@@ -110,6 +117,7 @@ export type OnboardingInput = z.infer<typeof onboardingSchema>;
 
 /** Réponses en cours dans l'assistant (étapes pas encore toutes remplies). */
 export type OnboardingDraft = {
+  accountType: AccountType | null;
   displayName: string;
   occupation: Occupation | null;
   pillars: Pillar[];

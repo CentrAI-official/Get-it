@@ -5,6 +5,7 @@ import { PILLARS } from "@/config/pillars";
 import { GOAL_SUGGESTIONS, MAX_GOALS, onboardingSchema } from "./schemas";
 
 const valid = {
+  accountType: "consumer",
   displayName: "  Max ",
   occupation: "entrepreneur",
   pillars: ["physical", "financial"],

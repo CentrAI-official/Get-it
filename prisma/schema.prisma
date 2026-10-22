@@ -49,11 +49,18 @@ enum UserRole {
   admin
 }
 
+/// Type de compte choisi à l'inscription : un affilié peut aussi vendre dans le Marketplace.
+enum AccountType {
+  consumer
+  affiliate
+}
+
 model Profile {
   id             String      @id @db.Uuid
   /// Nom d'utilisateur public du Centre Get iT (minuscules, chiffres, « _ »).
   username       String?     @unique
   role           UserRole    @default(user)
+  accountType    AccountType @default(consumer) @map("account_type")
   /// Suspension du Centre Get iT par la modération ; null : pas suspendu.
   suspendedUntil DateTime?   @map("suspended_until") @db.Timestamptz(3)
   /// Prénom ou nom affiché, demandé à l'onboarding.
@@ -94,6 +101,8 @@ model Profile {
   pactsProposed        Pact[]               @relation("PactProposer")
   pactsEnded           Pact[]               @relation("PactEnder")
   pactMembers          PactMember[]
+  listings             Listing[]            @relation("ListingSeller")
+  listingsReviewed     Listing[]            @relation("ListingReviewer")
 
   @@map("profiles")
 }
@@ -764,4 +773,84 @@ model Contact {
   @@index([addresseeId, status])
   @@index([requesterId, status])
   @@map("contacts")
+}
+
+enum ListingKind {
+  /// Service d'un professionnel (coach, nutritionniste, conseiller, psychologue…).
+  service
+  /// Produit : vêtements, équipement, livres…
+  gear
+}
+
+enum ListingStatus {
+  /// En attente de l'approbation de l'équipe Get iT.
+  pending
+  approved
+  rejected
+  /// Retirée par son vendeur.
+  archived
+}
+
+/// Annonce du Marketplace, proposée par un affilié. Visible seulement une fois
+/// approuvée par l'équipe Get iT ; les coordonnées (nom, courriel, permis) ne
+/// servent qu'à l'équipe et ne sont jamais montrées aux acheteurs.
+model Listing {
+  id            String        @id @default(uuid(7)) @db.Uuid
+  sellerId      String        @map("seller_id") @db.Uuid
+  kind          ListingKind
+  status        ListingStatus @default(pending)
+  pillar        Pillar
+  /// Type d'annonce (ex. « fitness_coach », « clothing ») : voir src/features/marketplace/rules.ts.
+  category      String
+  title         String
+  /// Courte description affichée dans le catalogue.
+  summary       String
+  description   String
+  /// Prix (gear) ou début de la fourchette (service), en cents.
+  priceMinCents Int           @map("price_min_cents")
+  /// Fin de la fourchette d'un service ; null : prix unique.
+  priceMaxCents Int?          @map("price_max_cents")
+  currency      String        @default("CAD")
+  /// « session », « hour », « month », « package » (service) ou « item » (gear).
+  priceUnit     String        @map("price_unit")
+  /// Régions desservies (services) : codes de src/features/marketplace/rules.ts.
+  regions       String[]      @default([])
+  contactName   String        @map("contact_name")
+  contactEmail  String        @map("contact_email")
+  website       String?
+  socialUrl     String?       @map("social_url")
+  /// Numéro de permis d'une profession réglementée (ordre professionnel, AMF).
+  licenseNumber String?       @map("license_number")
+  mediaCount    Int           @default(0) @map("media_count") @db.SmallInt
+  /// Raison d'un refus, montrée au vendeur.
+  reviewNote    String?       @map("review_note")
+  reviewedById  String?       @map("reviewed_by_id") @db.Uuid
+  reviewedAt    DateTime?     @map("reviewed_at") @db.Timestamptz(3)
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  seller   Profile        @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  reviewer Profile?       @relation("ListingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  media    ListingMedia[]
+
+  @@index([status, kind, pillar, createdAt])
+  @@index([sellerId, createdAt])
+  @@map("listings")
+}
+
+/// Photo d'une annonce (fichier privé, lu par des liens temporaires).
+model ListingMedia {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  path      String
+  width     Int
+  height    Int
+  sizeBytes Int      @map("size_bytes")
+  position  Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, position])
+  @@map("listing_media")
 }

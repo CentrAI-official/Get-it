@@ -18,6 +18,8 @@ type MediaPickerProps = {
   onAdd: (files: FileList | null) => void;
   onRemove: (id: string) => void;
   disabled?: boolean;
+  /** Photos seulement : pas de bouton vidéo (ex. annonces du Marketplace). */
+  photosOnly?: boolean;
 };
 
 const pick =
@@ -32,6 +34,7 @@ export function MediaPicker({
   onAdd,
   onRemove,
   disabled,
+  photosOnly = false,
 }: MediaPickerProps) {
   const t = useTranslations("Community.media");
   const tErrors = useTranslations("Community.errors");
@@ -117,14 +120,14 @@ export function MediaPicker({
         <label className={pick}>
           <input
             type="file"
-            accept="image/*,video/*"
+            accept={photosOnly ? "image/*" : "image/*,video/*"}
             multiple
             disabled={disabled}
             onChange={choose}
             className="sr-only"
           />
           <ImagePlus aria-hidden="true" className="size-4 text-primary" />
-          {t("gallery")}
+          {t(photosOnly ? "galleryPhotos" : "gallery")}
         </label>
         <label className={pick}>
           <input
@@ -138,21 +141,25 @@ export function MediaPicker({
           <Camera aria-hidden="true" className="size-4 text-primary" />
           {t("photo")}
         </label>
-        <label className={pick}>
-          <input
-            type="file"
-            // Sans « capture » : iPhone et Samsung ouvraient la caméra en mode photo.
-            // Le téléphone propose alors « Prendre une vidéo » / « Caméscope ».
-            accept="video/*"
-            disabled={disabled}
-            onChange={choose}
-            className="sr-only"
-          />
-          <Video aria-hidden="true" className="size-4 text-primary" />
-          {t("video")}
-        </label>
+        {photosOnly ? null : (
+          <label className={pick}>
+            <input
+              type="file"
+              // Sans « capture » : iPhone et Samsung ouvraient la caméra en mode photo.
+              // Le téléphone propose alors « Prendre une vidéo » / « Caméscope ».
+              accept="video/*"
+              disabled={disabled}
+              onChange={choose}
+              className="sr-only"
+            />
+            <Video aria-hidden="true" className="size-4 text-primary" />
+            {t("video")}
+          </label>
+        )}
       </div>
-      <p className="text-xs text-muted-foreground">{t("limits")}</p>
+      <p className="text-xs text-muted-foreground">
+        {t(photosOnly ? "limitsPhotos" : "limits")}
+      </p>
     </div>
   );
 }

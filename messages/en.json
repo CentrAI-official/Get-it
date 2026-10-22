@@ -126,7 +126,8 @@
       "label": "Main navigation",
       "community": "Community",
       "messages": "Messages",
-      "services": "My services",
+      "services": "My development",
+      "servicesShort": "Development",
       "marketplace": "Marketplace",
       "profile": "Profile"
     },
@@ -138,6 +139,7 @@
       "contacts": "Contacts",
       "newMessage": "New message",
       "shopServices": "Shop for services",
+      "sell": "Sell",
       "settings": "Settings"
     },
     "profileTabs": {
@@ -177,10 +179,10 @@
       "soonDescription": "Write privately to Hub members. A first message from someone you don’t know will arrive as a request you can accept or decline."
     },
     "services": {
-      "title": "My services",
-      "question": "Who supports my progress?",
-      "soonTitle": "Your services are coming soon",
-      "soonDescription": "Your fitness coach, your financial advisor and the other professionals who support you: your upcoming appointments, notes from your last session and a direct way to contact them.",
+      "title": "My development",
+      "question": "How am I growing, and with whom?",
+      "soonTitle": "Your development is coming soon",
+      "soonDescription": "Plans personalized by Get iT AI for each pillar (training, mental, social, finances), then follow-up with your professionals.",
       "shop": "Shop for services"
     },
     "groups": {
@@ -198,20 +200,16 @@
     "marketplace": {
       "tabs": {
         "label": "Marketplace sections",
-        "gear": "Gear",
-        "services": "Services"
+        "services": "Services",
+        "gear": "Gear"
       },
       "gear": {
         "title": "Marketplace",
-        "question": "What can help me make progress?",
-        "soonTitle": "Gear is coming soon",
-        "soonDescription": "Sportswear, training machines, educational books: a selection of products for every pillar."
+        "question": "What can help me make progress?"
       },
       "services": {
         "title": "Marketplace",
-        "question": "Who can support me?",
-        "soonTitle": "Services are coming soon",
-        "soonDescription": "Fitness coaches, financial advisors, psychologists and other professionals verified by Get iT: you’ll see their offers and book."
+        "question": "Who can support me?"
       }
     },
     "profile": {
@@ -263,6 +261,10 @@
         "cancel": "Cancel",
         "deleteError": "Deletion failed. Try again in a moment.",
         "conversations": "{count, plural, =0 {No saved conversations.} one {# saved conversation.} other {# saved conversations.}}"
+      },
+      "accountType": {
+        "title": "Account type",
+        "description": "An affiliate account can also sell services or gear in the Marketplace."
       }
     }
   },
@@ -354,6 +356,20 @@
       "invalid": "Some answers are incomplete. Check each step.",
       "unexpected": "We couldn’t save your answers. Try again in a moment."
     },
+    "account": {
+      "title": "How do you want to use Get iT?",
+      "description": "You can change this choice in Settings.",
+      "types": {
+        "consumer": {
+          "title": "Consumer",
+          "description": "I want to grow: goals, habits, community and services."
+        },
+        "affiliate": {
+          "title": "Affiliate",
+          "description": "I also want to sell my services or gear in the Marketplace."
+        }
+      }
+    },
     "about": {
       "title": "Welcome to Get iT",
       "description": "A few questions to tailor your journey. It takes two minutes.",
@@ -437,6 +453,7 @@
       }
     },
     "summary": {
+      "account": "Account type",
       "title": "Your starting point",
       "description": "Review your answers, then take action.",
       "name": "First name",
@@ -1013,6 +1030,7 @@
     },
     "media": {
       "gallery": "Photo/video",
+      "galleryPhotos": "Gallery",
       "photo": "Photo",
       "video": "Video",
       "limits": "Up to 4 photos or 1 video of 60 seconds. GPS location is removed from photos.",
@@ -1023,7 +1041,8 @@
       "viewer": "Enlarged photo",
       "close": "Close",
       "previous": "Previous photo",
-      "next": "Next photo"
+      "next": "Next photo",
+      "limitsPhotos": "Up to 4 photos. GPS location is removed from photos."
     }
   },
   "Messages": {
@@ -1272,6 +1291,233 @@
       "notFound": "This member is no longer available.",
       "contactLimit": "You’ve sent a lot of requests today. Try again tomorrow.",
       "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Marketplace": {
+    "price": {
+      "range": "{min} – {max}",
+      "units": {
+        "session": "/ session",
+        "hour": "/ hour",
+        "month": "/ month",
+        "package": "/ package"
+      }
+    },
+    "categories": {
+      "fitness_coach": "Fitness coach",
+      "nutritionist": "Nutritionist",
+      "financial_advisor": "Financial advisor",
+      "psychologist": "Psychologist",
+      "other": "Other",
+      "clothing": "Clothing",
+      "equipment": "Equipment",
+      "books": "Books and ebooks"
+    },
+    "regions": {
+      "online": "Online / remote",
+      "bas_saint_laurent": "Bas-Saint-Laurent",
+      "saguenay_lac_saint_jean": "Saguenay–Lac-Saint-Jean",
+      "capitale_nationale": "Capitale-Nationale",
+      "mauricie": "Mauricie",
+      "estrie": "Estrie",
+      "montreal": "Montréal",
+      "outaouais": "Outaouais",
+      "abitibi_temiscamingue": "Abitibi-Témiscamingue",
+      "cote_nord": "Côte-Nord",
+      "nord_du_quebec": "Nord-du-Québec",
+      "gaspesie_iles_de_la_madeleine": "Gaspésie–Îles-de-la-Madeleine",
+      "chaudiere_appalaches": "Chaudière-Appalaches",
+      "laval": "Laval",
+      "lanaudiere": "Lanaudière",
+      "laurentides": "Laurentides",
+      "monteregie": "Montérégie",
+      "centre_du_quebec": "Centre-du-Québec"
+    },
+    "moreRegions": "+{count, number}",
+    "filters": {
+      "pillar": "Pillar",
+      "all": "All",
+      "region": "Region",
+      "anyRegion": "All regions",
+      "price": "Price",
+      "anyPrice": "Any price",
+      "prices": {
+        "under50": "Under $50",
+        "from50": "$50 to $100",
+        "from100": "$100 to $200",
+        "over200": "$200 and up"
+      },
+      "clear": "Clear filters",
+      "loading": "Loading…"
+    },
+    "catalog": {
+      "more": "See more",
+      "sell": "Sell",
+      "emptyTitle": {
+        "service": "No services yet",
+        "gear": "No gear yet"
+      },
+      "emptyDescription": "The first listings are on their way. Do you have a service or product to offer?",
+      "noMatchTitle": "No listing matches",
+      "noMatchDescription": "Try another pillar, region or price range."
+    },
+    "mine": {
+      "link": "My listings",
+      "title": "My listings",
+      "description": "Your services and gear, and where their approval stands.",
+      "back": "Marketplace",
+      "emptyTitle": "No listings",
+      "emptyDescription": "Offer a service or a product: the Get iT team checks it before it goes live."
+    },
+    "approvals": {
+      "link": "{count, plural, =0 {No listings to approve} one {# listing to approve} other {# listings to approve}}",
+      "title": "Listings to approve",
+      "description": "Check each listing before it goes live.",
+      "back": "Marketplace",
+      "emptyTitle": "Nothing to approve",
+      "emptyDescription": "New listings from affiliates will show up here.",
+      "private": "For the Get iT team",
+      "name": "Full name",
+      "email": "Email",
+      "license": "License",
+      "licenseHint": "Check this number on the public register of the professional order or the AMF before approving.",
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectConfirm": "Reject the listing",
+      "cancel": "Cancel",
+      "noteLabel": "Reason for rejection (shown to the seller)",
+      "notePlaceholder": "E.g. add your license number.",
+      "failed": "The decision couldn’t be saved. Try again."
+    },
+    "status": {
+      "pending": "Pending",
+      "approved": "Live",
+      "rejected": "Rejected",
+      "archived": "Withdrawn",
+      "pendingNotice": "The Get iT team is reviewing your listing: it will be visible once approved.",
+      "rejectedNotice": "Your listing was rejected.",
+      "approvedNotice": "Your listing is live.",
+      "archivedNotice": "This listing has been withdrawn."
+    },
+    "detail": {
+      "back": "Marketplace",
+      "regions": "Regions served",
+      "description": "Description",
+      "seller": "Seller",
+      "website": "Website",
+      "social": "Social media",
+      "contact": "Contact the seller",
+      "delete": "Delete the listing",
+      "deleteTitle": "Delete this listing?",
+      "deleteDescription": "It disappears from the Marketplace with its photos. This can’t be undone.",
+      "deleteConfirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "affiliate": {
+      "title": "Become an affiliate to sell",
+      "description": "Affiliate accounts can offer their services or sell gear to Get iT members.",
+      "points": {
+        "sell": "Publish your services (coaching, nutrition, finances…) or your products.",
+        "review": "Every listing is checked by the Get iT team before it goes live.",
+        "verify": "Affiliate verification and in-app payment are coming soon."
+      },
+      "action": "Become an affiliate"
+    },
+    "sell": {
+      "title": "Sell",
+      "description": "Offer a service or a product to Get iT members.",
+      "back": "Marketplace",
+      "joinTitle": "Join the Get iT Centre first",
+      "joinDescription": "Buyers see your username and can message you.",
+      "joinAction": "Join the Centre",
+      "suspended": "Your account is suspended for now: you can’t publish listings."
+    },
+    "form": {
+      "kind": "Listing type",
+      "kinds": {
+        "service": "A service",
+        "gear": "Gear"
+      },
+      "kindHints": {
+        "service": "Coaching, nutrition, advice, therapy…",
+        "gear": "Clothing, equipment, books…"
+      },
+      "category": "Category",
+      "pillar": "Pillar",
+      "title": "Title",
+      "titlePlaceholder": {
+        "service": "E.g. Strength coaching",
+        "gear": "E.g. Resistance band set"
+      },
+      "summary": "Short description",
+      "summaryHint": "Shown in the catalogue (160 characters max).",
+      "description": "Full description",
+      "descriptionPlaceholder": {
+        "service": "Your approach, your experience, what’s included…",
+        "gear": "Condition, size, what’s included, shipping or pickup…"
+      },
+      "priceTitle": "Price",
+      "price": "Price ($)",
+      "priceFrom": "From ($)",
+      "priceTo": "Up to ($)",
+      "unit": "Per",
+      "units": {
+        "session": "Session",
+        "hour": "Hour",
+        "month": "Month",
+        "package": "Package"
+      },
+      "priceHint": "In Canadian dollars. In-app payment is coming soon; until then, buyers contact you through Messages.",
+      "regions": "Regions served",
+      "license": "License number",
+      "licenseHint": "Required for nutritionists, financial advisors and psychologists (professional order or AMF). Never shown.",
+      "optional": "Optional",
+      "photos": "Photos",
+      "linksTitle": "Links",
+      "website": "Website",
+      "social": "Social media",
+      "privateTitle": "For the Get iT team",
+      "privateDescription": "This information is used to check your listing. It is never shown to buyers.",
+      "contactName": "Full name",
+      "contactEmail": "Email",
+      "reviewNotice": "The Get iT team checks every listing before it goes live.",
+      "submit": "Submit the listing",
+      "errors": {
+        "notAffiliate": "Switch to an affiliate account to sell.",
+        "notJoined": "Join the Get iT Centre to sell.",
+        "suspended": "Your account is suspended for now: you can’t publish listings.",
+        "listingLimit": "You’ve reached 20 active listings. Delete one to add another.",
+        "dailyLimit": "You’ve submitted 5 listings today. Try again tomorrow.",
+        "invalid": "Check the fields in red.",
+        "mediaUnavailable": "Photos aren’t available right now.",
+        "mediaMissing": "A photo wasn’t uploaded. Remove it and try again.",
+        "mediaTooMany": "4 photos max.",
+        "mediaType": "Only photos are accepted.",
+        "mediaTooLarge": "A photo is too large.",
+        "uploadLimit": "Too many uploads today. Try again tomorrow.",
+        "notFound": "This listing no longer exists.",
+        "unexpected": "Something went wrong. Try again in a moment.",
+        "priceOrder": "The maximum price must be higher than the minimum price.",
+        "licenseRequired": "A license number is required for this profession."
+      },
+      "fieldErrors": {
+        "kind": "Choose a listing type.",
+        "category": "Choose a category.",
+        "pillar": "Choose a pillar.",
+        "title": "Enter a title of 3 to 80 characters.",
+        "summary": "Enter a short description of 10 to 160 characters.",
+        "description": "Describe your listing in 20 to 3,000 characters.",
+        "priceMin": "Enter a valid price (e.g. 80 or 79.99).",
+        "priceMax": "Enter a valid price, or leave it empty.",
+        "priceUnit": "Choose a unit.",
+        "regions": "Choose at least one region.",
+        "licenseNumber": "Enter a valid license number.",
+        "website": "Enter a valid website address.",
+        "socialUrl": "Enter a valid address.",
+        "contactName": "Enter your full name.",
+        "contactEmail": "Enter a valid email.",
+        "media": "Check your photos."
+      }
     }
   },
   "NotFound": {

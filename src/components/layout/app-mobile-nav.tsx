@@ -36,7 +36,7 @@ function Tabs({ pathname }: { pathname: string | null }) {
       {appNavItems.map((item) => {
         const { key, href, icon: Icon } = item;
         const active = pathname !== null && isActiveItem(pathname, item);
-        // « Mes services » au centre : une bulle surélevée, comme une orbite
+        // « Mon développement » au centre : une bulle surélevée, comme une orbite
         const center = key === "services";
         return (
           <li key={key}>
@@ -67,7 +67,8 @@ function Tabs({ pathname }: { pathname: string | null }) {
                   ) : null}
                 </span>
               )}
-              {t(key)}
+              {/* Nom court : « Mon développement » ne tient pas dans la barre */}
+              {t(center ? "servicesShort" : key)}
             </Link>
           </li>
         );

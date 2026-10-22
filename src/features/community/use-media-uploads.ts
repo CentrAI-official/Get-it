@@ -27,11 +27,21 @@ export type MediaItem = {
   durationMs?: number;
 };
 
+type UploadOptions = {
+  /** Photos seulement (ex. annonces du Marketplace). */
+  photosOnly?: boolean;
+  /** Autorisation d'envoi : celle des publications par défaut. */
+  request?: typeof requestUploadsAction;
+};
+
 /**
  * Photos ou vidéo d'une publication : préparation, autorisation d'envoi et
  * envoi de chaque fichier dès qu'il est choisi.
  */
-export function useMediaUploads() {
+export function useMediaUploads({
+  photosOnly = false,
+  request: requestUploads = requestUploadsAction,
+}: UploadOptions = {}) {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [error, setError] = useState<CommunityError | null>(null);
   const previews = useRef(new Set<string>());
@@ -54,7 +64,7 @@ export function useMediaUploads() {
     try {
       if (item.kind === "image") {
         const image = await prepareImage(file);
-        const slots = await requestUploadsAction([
+        const slots = await requestUploads([
           { mimeType: image.blob.type, size: image.blob.size },
         ]);
         if (!slots.ok)
@@ -78,7 +88,7 @@ export function useMediaUploads() {
         return;
       }
       const video = await prepareVideo(file);
-      const slots = await requestUploadsAction([
+      const slots = await requestUploads([
         { mimeType: video.mimeType, size: video.file.size },
         ...(video.poster
           ? [
@@ -131,6 +141,10 @@ export function useMediaUploads() {
         kindOf(file.type) ??
         (file.type.startsWith("video/") ? "video" : "image"),
     );
+    if (photosOnly && kinds.includes("video")) {
+      setError("mediaType");
+      return;
+    }
     const next = [
       ...items
         .filter((item) => item.status !== "error")

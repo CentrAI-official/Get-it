@@ -8,6 +8,7 @@ import {
   Sparkles,
   SquarePen,
   Store,
+  Tag,
   UserRound,
   Users,
   UsersRound,
@@ -54,6 +55,7 @@ export type TopActionKey =
   | "contacts"
   | "newMessage"
   | "shopServices"
+  | "sell"
   | "settings";
 
 export type TopAction = {
@@ -69,11 +71,8 @@ export const topActions = {
   coach: { key: "coach", href: "/coach", icon: Sparkles },
   contacts: { key: "contacts", href: "/messages/contacts", icon: Contact },
   newMessage: { key: "newMessage", href: "/messages/new", icon: SquarePen },
-  shopServices: {
-    key: "shopServices",
-    href: "/marketplace/services",
-    icon: Store,
-  },
+  shopServices: { key: "shopServices", href: "/marketplace", icon: Store },
+  sell: { key: "sell", href: "/marketplace/sell", icon: Tag },
   settings: { key: "settings", href: "/settings", icon: Settings },
 } as const satisfies Record<TopActionKey, TopAction>;
 
@@ -82,7 +81,7 @@ export const categoryActions: Record<AppNavKey, readonly TopActionKey[]> = {
   community: ["groups", "events", "coach"],
   messages: ["contacts", "newMessage", "coach"],
   services: ["shopServices", "coach"],
-  marketplace: ["coach"],
+  marketplace: ["sell", "coach"],
   profile: ["settings", "coach"],
 };
 

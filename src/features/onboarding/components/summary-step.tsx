@@ -27,6 +27,13 @@ export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
 
   const rows: { step: OnboardingStep; label: string; value: ReactNode }[] = [
     {
+      step: "account",
+      label: t("summary.account"),
+      value: draft.accountType
+        ? t(`account.types.${draft.accountType}.title`)
+        : t("summary.notProvided"),
+    },
+    {
       step: "about",
       label: t("summary.name"),
       value: draft.displayName.trim(),
