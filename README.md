@@ -86,5 +86,6 @@ src/i18n/                 configuration des langues
 - [ ] 9g2. Paiement dans l’application (Stripe Connect : commission ou abonnement des vendeurs)
 - [ ] 9g3. Avis et vérification des affiliés
 - [x] 9i1. Mon développement : plans personnalisés par Get iT AI (entraînement, mental, social, financier, entreprise)
+- [x] 9i1b. Calendriers : principal (tout) et par plan (séances, tâches, habitudes, objectifs)
 - [ ] 9i2. Mon développement : suivi par un professionnel (rendez-vous, notes de session)
 - [ ] 10. Finitions, analytics et déploiement

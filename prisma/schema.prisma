@@ -133,26 +133,30 @@ model UserSettings {
 
 /// Objectif de l'utilisateur, découpé en jalons et en tâches.
 model Goal {
-  id          String     @id @default(uuid(7)) @db.Uuid
-  userId      String     @map("user_id") @db.Uuid
-  title       String
-  description String?
-  pillar      Pillar
-  status      GoalStatus @default(active)
+  id                String     @id @default(uuid(7)) @db.Uuid
+  userId            String     @map("user_id") @db.Uuid
+  title             String
+  description       String?
+  pillar            Pillar
+  status            GoalStatus @default(active)
   /// Jour visé : une date du calendrier, sans heure ni fuseau.
-  targetDate  DateTime?  @map("target_date") @db.Date
-  completedAt DateTime?  @map("completed_at") @db.Timestamptz(3)
-  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  targetDate        DateTime?  @map("target_date") @db.Date
+  completedAt       DateTime?  @map("completed_at") @db.Timestamptz(3)
+  /// Plan de « Mon développement » d'où vient l'objectif ; détaché si le plan est supprimé.
+  developmentPlanId String?    @map("development_plan_id") @db.Uuid
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  milestones GoalMilestone[]
-  tasks      Task[]
-  habits     Habit[]
+  profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  developmentPlan DevelopmentPlan? @relation(fields: [developmentPlanId], references: [id], onDelete: SetNull)
+  milestones      GoalMilestone[]
+  tasks           Task[]
+  habits          Habit[]
   /// XP de l'objectif atteint.
-  xpEvent    XpEvent?
+  xpEvent         XpEvent?
 
   @@index([userId, status])
+  @@index([developmentPlanId])
   @@map("goals")
 }
 
@@ -176,22 +180,27 @@ model GoalMilestone {
 
 /// Action concrète, rattachée à un objectif ou indépendante (étape 6 : page Aujourd'hui).
 model Task {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  goalId      String?   @map("goal_id") @db.Uuid
-  title       String
+  id                String    @id @default(uuid(7)) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
+  goalId            String?   @map("goal_id") @db.Uuid
+  title             String
   /// Jour d'échéance : une date du calendrier, sans heure ni fuseau.
-  dueDate     DateTime? @map("due_date") @db.Date
-  completedAt DateTime? @map("completed_at") @db.Timestamptz(3)
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  dueDate           DateTime? @map("due_date") @db.Date
+  completedAt       DateTime? @map("completed_at") @db.Timestamptz(3)
+  /// Plan de « Mon développement » d'où vient la tâche ; détachée si le plan est supprimé.
+  developmentPlanId String?   @map("development_plan_id") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal    Goal?    @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  xpEvent XpEvent?
+  profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal            Goal?            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  developmentPlan DevelopmentPlan? @relation(fields: [developmentPlanId], references: [id], onDelete: SetNull)
+  xpEvent         XpEvent?
 
   @@index([userId, completedAt])
+  @@index([userId, dueDate])
   @@index([goalId])
+  @@index([developmentPlanId])
   @@map("tasks")
 }
 
@@ -211,26 +220,30 @@ model PillarAssessment {
 
 /// Habitude à répéter certains jours de la semaine.
 model Habit {
-  id         String    @id @default(uuid(7)) @db.Uuid
-  userId     String    @map("user_id") @db.Uuid
+  id                String    @id @default(uuid(7)) @db.Uuid
+  userId            String    @map("user_id") @db.Uuid
   /// Objectif soutenu par l'habitude ; détaché si l'objectif est supprimé.
-  goalId     String?   @map("goal_id") @db.Uuid
-  title      String
-  pillar     Pillar
+  goalId            String?   @map("goal_id") @db.Uuid
+  title             String
+  pillar            Pillar
   /// Jours prévus, de 1 (lundi) à 7 (dimanche). Les sept : tous les jours.
-  weekdays   Int[]
+  weekdays          Int[]
   /// Habitude mise en pause : elle n'apparaît plus dans le suivi.
-  archivedAt DateTime? @map("archived_at") @db.Timestamptz(3)
-  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  archivedAt        DateTime? @map("archived_at") @db.Timestamptz(3)
+  /// Plan de « Mon développement » d'où vient l'habitude ; détachée si le plan est supprimé.
+  developmentPlanId String?   @map("development_plan_id") @db.Uuid
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile     Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goal        Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
-  completions HabitCompletion[]
-  pactMembers PactMember[]
+  profile         Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal            Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  developmentPlan DevelopmentPlan?  @relation(fields: [developmentPlanId], references: [id], onDelete: SetNull)
+  completions     HabitCompletion[]
+  pactMembers     PactMember[]
 
   @@index([userId, archivedAt])
   @@index([goalId])
+  @@index([developmentPlanId])
   @@map("habits")
 }
 
@@ -877,10 +890,16 @@ model DevelopmentPlan {
   answers   Json
   /// Plan normalisé (src/features/development/plan.ts).
   plan      Json
+  /// Période du plan dans le calendrier : la semaine type s'y répète.
+  startsOn  DateTime        @map("starts_on") @db.Date
+  endsOn    DateTime        @map("ends_on") @db.Date
   createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals   Goal[]
+  habits  Habit[]
+  tasks   Task[]
 
   @@unique([userId, kind])
   @@map("development_plans")

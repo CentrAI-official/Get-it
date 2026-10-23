@@ -24,13 +24,17 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Link } from "@/i18n/navigation";
 import { applyPlanAction, deletePlanAction } from "../actions";
+import type { CalendarData } from "../calendar";
 import type { DevelopmentPlan } from "../plan";
 import type { DevelopmentKind } from "../questionnaires";
+import { CalendarView } from "./calendar-view";
 
 type PlanViewProps = {
   kind: DevelopmentKind;
   plan: DevelopmentPlan;
   updatedAt: string;
+  /** Calendrier de ce plan (mois en cours). */
+  calendar: CalendarData;
   /** Plan financier d'une personne qui a ou veut une entreprise. */
   suggestBusiness: boolean;
   onRedo: () => void;
@@ -41,16 +45,25 @@ export function PlanView({
   kind,
   plan,
   updatedAt,
+  calendar,
   suggestBusiness,
   onRedo,
 }: PlanViewProps) {
   const t = useTranslations("Development.plan");
-  const tWeekdays = useTranslations("Development.weekdays");
+  const tCalendar = useTranslations("Development.calendar");
   const format = useFormatter();
 
   return (
     <article className="flex max-w-2xl flex-col gap-8">
-      <header className="flex flex-col gap-2">
+      {/* En haut : le calendrier de ce plan seulement (séance du jour choisi) */}
+      <section aria-labelledby="plan-calendar" className="flex flex-col gap-2">
+        <h2 id="plan-calendar" className="sr-only">
+          {tCalendar("planTitle")}
+        </h2>
+        <CalendarView initial={calendar} scope={kind} />
+      </section>
+
+      <header className="flex flex-col gap-2 border-t border-white/8 pt-6">
         <p className="text-sm text-muted-foreground">
           {t("updated", { date: new Date(updatedAt) })}
         </p>
@@ -69,40 +82,6 @@ export function PlanView({
             </div>
           ))}
         </dl>
-      ) : null}
-
-      {plan.schedule.length > 0 ? (
-        <section className="flex flex-col gap-4 border-t border-white/8 pt-6">
-          <h3 className="font-heading text-lg font-bold">{t("week")}</h3>
-          <ol className="flex flex-col">
-            {plan.schedule.map((day) => (
-              <li
-                key={day.weekday}
-                className="flex flex-col gap-2 border-b border-white/8 py-4 first:pt-0 last:border-b-0 last:pb-0"
-              >
-                <p className="flex flex-wrap items-baseline gap-x-2">
-                  <span className="font-mono text-xs tracking-wide text-primary uppercase">
-                    {tWeekdays(String(day.weekday) as "1")}
-                  </span>
-                  <span className="font-semibold">{day.title}</span>
-                </p>
-                <ul className="flex flex-col gap-1.5">
-                  {day.items.map((entry, index) => (
-                    <li key={`${entry.name}-${index}`} className="text-sm">
-                      <span className="font-medium">{entry.name}</span>
-                      {entry.detail ? (
-                        <span className="text-muted-foreground">
-                          {" "}
-                          — {entry.detail}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ))}
-          </ol>
-        </section>
       ) : null}
 
       {plan.sections.map((section) => (

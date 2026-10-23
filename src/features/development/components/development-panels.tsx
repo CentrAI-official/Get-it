@@ -15,13 +15,18 @@ import { pillarIcons } from "@/config/pillars";
 import { AiConsentCard } from "@/features/coach/components/ai-consent-card";
 import { Link } from "@/i18n/navigation";
 import { isAiConfigured } from "@/server/ai/provider";
-import { getPlanPage, listPlans } from "@/server/development/service";
+import {
+  getCalendar,
+  getPlanPage,
+  listPlans,
+} from "@/server/development/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import {
   DEVELOPMENT_KINDS,
   KIND_PILLAR,
   type DevelopmentKind,
 } from "../questionnaires";
+import { CalendarView } from "./calendar-view";
 import { DevelopmentFlow } from "./development-flow";
 
 // Pages de « Mon développement ». Chacune lit la session : à placer dans un <Suspense>.
@@ -29,8 +34,9 @@ import { DevelopmentFlow } from "./development-flow";
 /** Accueil : un plan par pilier (le plan d'entreprise sous le financier), puis les professionnels. */
 export async function DevelopmentHub() {
   const profile = await getCurrentProfile();
-  const [plans, t, format] = await Promise.all([
+  const [plans, calendar, t, format] = await Promise.all([
     listPlans(profile.id),
+    getCalendar(profile.id, "all"),
     getTranslations("Development"),
     getFormatter(),
   ]);
@@ -47,9 +53,27 @@ export async function DevelopmentHub() {
           {t("errors.notConfigured")}
         </p>
       )}
+      {/* Calendrier principal : tous les plans, tâches, habitudes et objectifs */}
+      <section
+        aria-labelledby="development-calendar"
+        className="flex flex-col gap-2"
+      >
+        <h2
+          id="development-calendar"
+          className="font-heading text-lg font-bold"
+        >
+          {t("calendar.title")}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {t("calendar.description")}
+        </p>
+        <div className="mt-2">
+          <CalendarView initial={calendar} scope="all" />
+        </div>
+      </section>
       <section
         aria-labelledby="development-plans"
-        className="flex flex-col gap-2"
+        className="flex flex-col gap-2 border-t border-white/8 pt-6"
       >
         <h2 id="development-plans" className="font-heading text-lg font-bold">
           {t("hub.plansTitle")}
@@ -161,8 +185,9 @@ const isKind = (value: string): value is DevelopmentKind =>
 export async function DevelopmentLoader({ kind }: { kind: string }) {
   if (!isKind(kind)) notFound();
   const profile = await getCurrentProfile();
-  const [page, t] = await Promise.all([
+  const [page, calendar, t] = await Promise.all([
     getPlanPage(profile.id, kind),
+    getCalendar(profile.id, kind),
     getTranslations("Development"),
   ]);
   const header = (
@@ -206,6 +231,7 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
         plan={page.stored?.plan ?? null}
         answers={page.stored?.answers ?? null}
         updatedAt={page.stored?.updatedAt ?? null}
+        calendar={calendar}
         minDate={page.minDate}
         suggestBusiness={
           kind === "financial" &&

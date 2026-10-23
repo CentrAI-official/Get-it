@@ -1567,6 +1567,23 @@
       "emergency": "En danger immédiat : compose le 911.",
       "back": "Revenir au questionnaire"
     },
+    "calendar": {
+      "title": "Mon calendrier",
+      "description": "Tes plans, tes tâches, tes habitudes et tes objectifs, jour par jour. Touche une date pour voir ce qui est prévu.",
+      "planTitle": "Calendrier du plan",
+      "period": "Ton plan va du {from} au {to}. Touche une date pour voir ce qui est prévu.",
+      "previous": "Mois précédent",
+      "next": "Mois suivant",
+      "today": "Aujourd’hui",
+      "loading": "Chargement…",
+      "empty": "Rien de prévu ce jour-là.",
+      "goalDue": "date visée",
+      "goalDone": "objectif atteint",
+      "tasks": "Tâches",
+      "habits": "Habitudes",
+      "future": "Se coche le jour même.",
+      "tooOld": "Trop ancien pour être coché."
+    },
     "hub": {
       "plansTitle": "Tes plans personnalisés",
       "plansDescription": "Get iT AI crée un plan complet à partir de tes réponses. Tu choisis ensuite ce que tu ajoutes à tes objectifs et habitudes.",
@@ -1579,7 +1596,6 @@
     },
     "plan": {
       "updated": "Plan créé le {date, date, long}",
-      "week": "Ta semaine type",
       "businessCta": "Tu as ou tu veux une entreprise? Crée aussi ton plan d’entreprise.",
       "redo": "Refaire mon plan",
       "addTitle": "Ajouter à mon Get iT",
@@ -1596,15 +1612,6 @@
       "deleteDescription": "Le plan et tes réponses au questionnaire seront effacés. Ce que tu as déjà ajouté à tes objectifs et habitudes reste.",
       "deleteConfirm": "Supprimer",
       "cancel": "Annuler"
-    },
-    "weekdays": {
-      "1": "Lundi",
-      "2": "Mardi",
-      "3": "Mercredi",
-      "4": "Jeudi",
-      "5": "Vendredi",
-      "6": "Samedi",
-      "7": "Dimanche"
     },
     "weekdaysShort": {
       "1": "lun.",

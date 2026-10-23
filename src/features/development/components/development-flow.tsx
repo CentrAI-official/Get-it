@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { CalendarData } from "../calendar";
 import type { DevelopmentPlan } from "../plan";
 import type { Answers, DevelopmentKind } from "../questionnaires";
 import { CrisisResources } from "./crisis-resources";
@@ -12,6 +13,8 @@ type DevelopmentFlowProps = {
   plan: DevelopmentPlan | null;
   answers: Answers | null;
   updatedAt: string | null;
+  /** Calendrier du plan (mois en cours). */
+  calendar: CalendarData;
   minDate: string;
   suggestBusiness: boolean;
 };
@@ -22,6 +25,7 @@ export function DevelopmentFlow({
   plan,
   answers,
   updatedAt,
+  calendar,
   minDate,
   suggestBusiness,
 }: DevelopmentFlowProps) {
@@ -38,6 +42,7 @@ export function DevelopmentFlow({
         kind={kind}
         plan={plan}
         updatedAt={updatedAt}
+        calendar={calendar}
         suggestBusiness={suggestBusiness}
         onRedo={() => {
           setMode("form");

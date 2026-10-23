@@ -7,6 +7,7 @@ import {
   applyPlan,
   deletePlan,
   generatePlan,
+  getCalendar,
   type DevelopmentError,
 } from "@/server/development/service";
 import { developmentSelectionSchema } from "./plan";
@@ -66,4 +67,18 @@ export async function deletePlanAction(kind: unknown) {
   const done = await deletePlan(user.id, parsedKind.data).catch(() => false);
   if (done) refresh();
   return done;
+}
+
+/** Un autre mois du calendrier (tous les plans, ou un seul). */
+export async function loadCalendarAction(scope: unknown, month: unknown) {
+  const user = await requireUser();
+  const parsedScope = z.union([z.literal("all"), kindSchema]).safeParse(scope);
+  const parsedMonth = z
+    .string()
+    .regex(/^\d{4}-(0[1-9]|1[0-2])$/)
+    .safeParse(month);
+  if (!parsedScope.success || !parsedMonth.success) return null;
+  return getCalendar(user.id, parsedScope.data, parsedMonth.data).catch(
+    () => null,
+  );
 }

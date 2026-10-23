@@ -1567,6 +1567,23 @@
       "emergency": "In immediate danger: dial 911.",
       "back": "Back to the questionnaire"
     },
+    "calendar": {
+      "title": "My calendar",
+      "description": "Your plans, tasks, habits and goals, day by day. Tap a date to see what’s planned.",
+      "planTitle": "Plan calendar",
+      "period": "Your plan runs from {from} to {to}. Tap a date to see what’s planned.",
+      "previous": "Previous month",
+      "next": "Next month",
+      "today": "Today",
+      "loading": "Loading…",
+      "empty": "Nothing planned that day.",
+      "goalDue": "target date",
+      "goalDone": "goal reached",
+      "tasks": "Tasks",
+      "habits": "Habits",
+      "future": "Can be checked on the day.",
+      "tooOld": "Too old to check."
+    },
     "hub": {
       "plansTitle": "Your personalized plans",
       "plansDescription": "Get iT AI creates a complete plan from your answers. Then you choose what to add to your goals and habits.",
@@ -1579,7 +1596,6 @@
     },
     "plan": {
       "updated": "Plan created on {date, date, long}",
-      "week": "Your typical week",
       "businessCta": "Have or want a business? Create your business plan too.",
       "redo": "Redo my plan",
       "addTitle": "Add to my Get iT",
@@ -1596,15 +1612,6 @@
       "deleteDescription": "The plan and your questionnaire answers will be erased. What you already added to your goals and habits stays.",
       "deleteConfirm": "Delete",
       "cancel": "Cancel"
-    },
-    "weekdays": {
-      "1": "Monday",
-      "2": "Tuesday",
-      "3": "Wednesday",
-      "4": "Thursday",
-      "5": "Friday",
-      "6": "Saturday",
-      "7": "Sunday"
     },
     "weekdaysShort": {
       "1": "Mon",

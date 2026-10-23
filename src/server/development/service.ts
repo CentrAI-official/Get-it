@@ -15,7 +15,15 @@ import {
   type Answers,
   type DevelopmentKind,
 } from "@/features/development/questionnaires";
-import { addDays, toCalendarDay, toDbDate } from "@/lib/dates";
+import {
+  monthOf,
+  monthRange,
+  planPeriod,
+  type CalendarData,
+  type Month,
+} from "@/features/development/calendar";
+import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
+import { getUserTimeZone } from "@/server/profile/service";
 import { getAiProvider } from "@/server/ai/provider";
 import {
   getAiProfile,
@@ -154,10 +162,26 @@ export async function generatePlan(
   if (result.crisis) return { ok: false, error: "crisis" };
   if (!result.plan) return { ok: false, error: "unexpected" };
 
+  // La semaine type se répète d'aujourd'hui jusqu'à la date visée
+  const period = planPeriod(
+    today,
+    parsed.answers.targetDate,
+    result.plan.goal?.targetInDays ?? null,
+  );
+  const dates = {
+    startsOn: toDbDate(period.startsOn),
+    endsOn: toDbDate(period.endsOn),
+  };
   await db.developmentPlan.upsert({
     where: { userId_kind: { userId, kind } },
-    create: { userId, kind, answers: parsed.answers, plan: result.plan },
-    update: { answers: parsed.answers, plan: result.plan },
+    create: {
+      userId,
+      kind,
+      answers: parsed.answers,
+      plan: result.plan,
+      ...dates,
+    },
+    update: { answers: parsed.answers, plan: result.plan, ...dates },
   });
   return { ok: true };
 }
@@ -190,7 +214,7 @@ export async function applyPlan(
     async (tx) => {
       const row = await tx.developmentPlan.findUnique({
         where: { userId_kind: { userId, kind } },
-        select: { id: true, plan: true },
+        select: { id: true, plan: true, endsOn: true },
       });
       const stored = row ? storedPlanSchema.safeParse(row.plan) : null;
       if (!row || !stored?.success) return false;
@@ -212,15 +236,19 @@ export async function applyPlan(
                 userId,
                 title: plan.goal.title,
                 pillar,
-                targetDate: toDbDate(addDays(today, plan.goal.targetInDays)),
+                // L'objectif tombe à la fin du plan dans le calendrier
+                targetDate: row.endsOn,
+                developmentPlanId: row.id,
               },
               select: { id: true },
             })
           : null;
+      // Liés au plan : ils apparaissent dans son calendrier
       await tx.habit.createMany({
         data: habits.map((habit) => ({
           userId,
           goalId: goal?.id ?? null,
+          developmentPlanId: row.id,
           title: habit.title,
           pillar,
           weekdays: [...habit.weekdays].sort((a, b) => a - b),
@@ -230,6 +258,7 @@ export async function applyPlan(
         data: tasks.map((task) => ({
           userId,
           goalId: goal?.id ?? null,
+          developmentPlanId: row.id,
           title: task.title,
           dueDate: toDbDate(addDays(today, task.dueInDays)),
         })),
@@ -279,4 +308,141 @@ export async function getAnswers(userId: string, kind: DevelopmentKind) {
     select: { answers: true },
   });
   return (row?.answers as Answers | undefined) ?? null;
+}
+
+/**
+ * Un mois du calendrier : les plans (tous, ou celui d'un type) et ce qui
+ * tombe dans le mois. Pour un plan, seuls les objectifs, habitudes et tâches
+ * ajoutés depuis ce plan ; pour le calendrier principal, tout.
+ */
+export async function getCalendar(
+  userId: string,
+  scope: DevelopmentKind | "all",
+  /** Mois voulu ; le mois en cours par défaut. */
+  requested?: Month,
+): Promise<CalendarData> {
+  const timeZone = await getUserTimeZone(userId);
+  const today = toCalendarDay(new Date(), timeZone);
+  const month = requested ?? monthOf(today);
+  const { first, last } = monthRange(month);
+  const range = { gte: toDbDate(first), lte: toDbDate(last) };
+
+  const planRows = await db.developmentPlan.findMany({
+    where: { userId, kind: scope === "all" ? undefined : scope },
+    select: { id: true, kind: true, plan: true, startsOn: true, endsOn: true },
+  });
+  const plans = planRows.flatMap((row) => {
+    const plan = storedPlanSchema.safeParse(row.plan);
+    return plan.success
+      ? [
+          {
+            id: row.id,
+            kind: row.kind,
+            title: plan.data.title,
+            startsOn: fromDbDate(row.startsOn),
+            endsOn: fromDbDate(row.endsOn),
+            schedule: plan.data.schedule,
+          },
+        ]
+      : [];
+  });
+  const empty = { month, today, plans, tasks: [], habits: [], goals: [] };
+  // Le calendrier d'un plan qui n'existe pas encore est vide
+  const planId = scope === "all" ? undefined : plans[0]?.id;
+  if (scope !== "all" && !planId) return empty;
+  const kindById = new Map(planRows.map((row) => [row.id, row.kind]));
+  const planKind = (id: string | null) =>
+    id ? (kindById.get(id) ?? null) : null;
+
+  const [tasks, habits, goals] = await Promise.all([
+    db.task.findMany({
+      where: { userId, dueDate: range, developmentPlanId: planId },
+      orderBy: { createdAt: "asc" },
+      take: 500,
+      select: {
+        id: true,
+        title: true,
+        dueDate: true,
+        completedAt: true,
+        developmentPlanId: true,
+      },
+    }),
+    db.habit.findMany({
+      where: {
+        userId,
+        developmentPlanId: planId,
+        OR: [{ archivedAt: null }, { archivedAt: { gte: toDbDate(first) } }],
+      },
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        title: true,
+        weekdays: true,
+        createdAt: true,
+        archivedAt: true,
+        developmentPlanId: true,
+        completions: { where: { day: range }, select: { day: true } },
+      },
+    }),
+    db.goal.findMany({
+      where: {
+        userId,
+        targetDate: range,
+        status: { not: "archived" },
+        developmentPlanId: planId,
+      },
+      select: {
+        id: true,
+        title: true,
+        targetDate: true,
+        status: true,
+        developmentPlanId: true,
+      },
+    }),
+  ]);
+
+  return {
+    ...empty,
+    tasks: tasks.flatMap((task) =>
+      task.dueDate
+        ? [
+            {
+              id: task.id,
+              title: task.title,
+              dueDate: fromDbDate(task.dueDate),
+              done: task.completedAt !== null,
+              planKind: planKind(task.developmentPlanId),
+            },
+          ]
+        : [],
+    ),
+    habits: habits
+      .map((habit) => ({
+        id: habit.id,
+        title: habit.title,
+        weekdays: habit.weekdays,
+        from: toCalendarDay(habit.createdAt, timeZone),
+        until: habit.archivedAt
+          ? toCalendarDay(habit.archivedAt, timeZone)
+          : null,
+        doneDays: habit.completions.map((completion) =>
+          fromDbDate(completion.day),
+        ),
+        planKind: planKind(habit.developmentPlanId),
+      }))
+      .filter((habit) => habit.from <= last),
+    goals: goals.flatMap((goal) =>
+      goal.targetDate
+        ? [
+            {
+              id: goal.id,
+              title: goal.title,
+              targetDate: fromDbDate(goal.targetDate),
+              done: goal.status === "completed",
+              planKind: planKind(goal.developmentPlanId),
+            },
+          ]
+        : [],
+    ),
+  };
 }
