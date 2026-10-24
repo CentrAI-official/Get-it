@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+import { Avatar } from "@/components/avatar";
 import { ProgressRing } from "@/components/progress-ring";
 import { Link } from "@/i18n/navigation";
 import type { LevelProgress } from "../rules";
@@ -7,12 +8,13 @@ type LevelBadgeProps = {
   level: LevelProgress;
   /** XP totale. */
   xp: number;
-  /** Initiale affichée dans l'anneau. */
-  initial: string;
+  /** Nom (pour l'initiale) et photo affichés dans l'anneau. */
+  name: string;
+  avatarUrl: string | null;
 };
 
-/** Niveau et XP, avec l'anneau d'avancement autour de l'initiale : mène au profil. */
-export function LevelBadge({ level, xp, initial }: LevelBadgeProps) {
+/** Niveau et XP, avec l'anneau d'avancement autour de la photo : mène au profil. */
+export function LevelBadge({ level, xp, name, avatarUrl }: LevelBadgeProps) {
   const t = useTranslations("Xp");
 
   return (
@@ -30,9 +32,13 @@ export function LevelBadge({ level, xp, initial }: LevelBadgeProps) {
         </span>
       </span>
       <ProgressRing value={level.progress} className="size-12 p-[2.5px]">
-        <span className="font-heading text-lg font-bold uppercase">
-          {initial}
-        </span>
+        {avatarUrl ? (
+          <Avatar name={name} url={avatarUrl} className="size-full" />
+        ) : (
+          <span className="font-heading text-lg font-bold uppercase">
+            {name.charAt(0)}
+          </span>
+        )}
       </ProgressRing>
     </Link>
   );

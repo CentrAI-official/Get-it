@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -396,12 +397,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             <ArrowLeft aria-hidden="true" />
           </Link>
         </Button>
-        <span
-          aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-        >
-          {name.charAt(0)}
-        </span>
+        <Avatar name={name} url={other.avatarUrl} className="size-10" />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="truncate font-heading font-bold">{name}</h1>
           <p className="truncate text-xs text-muted-foreground">
@@ -490,12 +486,11 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
 
         {messages.length === 0 ? (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-3 py-10 text-center">
-            <span
-              aria-hidden="true"
-              className="flex size-16 items-center justify-center rounded-full orb font-heading text-2xl font-bold uppercase"
-            >
-              {name.charAt(0)}
-            </span>
+            <Avatar
+              name={name}
+              url={other.avatarUrl}
+              className="size-16 text-2xl"
+            />
             {state.otherStatus === "request" ? (
               <p className="text-sm">{t("firstMessage", { name })}</p>
             ) : null}

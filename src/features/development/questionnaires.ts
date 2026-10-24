@@ -416,6 +416,14 @@ export const QUESTIONNAIRES: Record<DevelopmentKind, readonly Section[]> = {
       id: "project",
       fields: [
         { id: "domain", type: "text", maxLength: 200, required: true },
+        // Pour bien saisir le projet ou l'entreprise déjà en démarrage
+        {
+          id: "description",
+          type: "text",
+          maxLength: 1000,
+          multiline: true,
+          required: true,
+        },
         {
           id: "stage",
           type: "choice",

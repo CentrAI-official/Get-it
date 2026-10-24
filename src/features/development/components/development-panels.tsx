@@ -26,6 +26,8 @@ import {
   KIND_PILLAR,
   type DevelopmentKind,
 } from "../questionnaires";
+import { planWeek } from "../calendar";
+import { colorsOf } from "../colors";
 import { CalendarView } from "./calendar-view";
 import { DevelopmentFlow } from "./development-flow";
 
@@ -70,6 +72,50 @@ export async function DevelopmentHub() {
         <div className="mt-2">
           <CalendarView initial={calendar} scope="all" />
         </div>
+        {calendar.plans.length > 0 ? (
+          // Raccourcis : chaque plan et sa semaine en cours
+          <nav
+            aria-label={t("calendar.plansLabel")}
+            className="-mx-4 mt-3 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
+          >
+            {calendar.plans.map((plan) => {
+              const progress = planWeek(plan, calendar.today);
+              return (
+                <Link
+                  key={plan.id}
+                  href={`/services/${plan.kind}`}
+                  aria-label={
+                    progress
+                      ? t("calendar.planWeekLabel", {
+                          title: plan.title,
+                          week: progress.week,
+                          weeks: progress.weeks,
+                        })
+                      : plan.title
+                  }
+                  className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-white/[0.06] px-3.5 text-sm font-semibold outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`size-2 rounded-full ${colorsOf(plan.kind).dot}`}
+                  />
+                  <span className="max-w-48 truncate">{plan.title}</span>
+                  {progress ? (
+                    <span
+                      aria-hidden="true"
+                      className="font-mono text-xs text-muted-foreground"
+                    >
+                      {t("calendar.planWeek", {
+                        week: progress.week,
+                        weeks: progress.weeks,
+                      })}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </nav>
+        ) : null}
       </section>
       <section
         aria-labelledby="development-plans"

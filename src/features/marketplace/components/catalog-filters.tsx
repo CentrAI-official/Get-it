@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   PRICE_RANGE_KEYS,
   REGIONS,
+  SERVICE_MODES,
   type CatalogFilters,
   type ListingKind,
 } from "../rules";
@@ -36,13 +37,20 @@ export function CatalogFilterBar({
   const id = useId();
   const [pending, startTransition] = useTransition();
   const base = kind === "service" ? "/marketplace" : "/marketplace/gear";
-  const active = Boolean(filters.pillar || filters.region || filters.price);
+  const active = Boolean(
+    filters.pillar || filters.mode || filters.region || filters.price,
+  );
 
   function apply(next: CatalogFilters) {
     const params = new URLSearchParams();
     if (next.pillar) params.set("pillar", next.pillar);
+    if (kind === "service" && next.mode) params.set("mode", next.mode);
     if (kind === "service" && next.region) params.set("region", next.region);
     if (kind === "service" && next.price) params.set("price", next.price);
+    // La recherche, la catégorie et « Tout voir » restent quand un filtre change
+    if (next.category) params.set("category", next.category);
+    if (next.q) params.set("q", next.q);
+    if (next.view) params.set("view", next.view);
     const query = params.toString();
     startTransition(() => {
       router.replace(query ? `${base}?${query}` : base, { scroll: false });
@@ -77,6 +85,35 @@ export function CatalogFilterBar({
           );
         })}
       </div>
+
+      {kind === "service" ? (
+        <div
+          role="radiogroup"
+          aria-label={t("mode")}
+          className="flex flex-wrap gap-2"
+        >
+          {[undefined, ...SERVICE_MODES].map((mode) => {
+            const checked = filters.mode === mode;
+            return (
+              <button
+                key={mode ?? "both"}
+                type="button"
+                role="radio"
+                aria-checked={checked}
+                onClick={() => apply({ ...filters, mode })}
+                className={cn(
+                  chip,
+                  checked
+                    ? "border-primary bg-primary/15 text-foreground"
+                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t(`modes.${mode ?? "both"}`)}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {kind === "service" ? (
         <div className="grid grid-cols-2 gap-2">
@@ -132,7 +169,13 @@ export function CatalogFilterBar({
           {active ? (
             <button
               type="button"
-              onClick={() => apply({})}
+              onClick={() =>
+                apply({
+                  category: filters.category,
+                  q: filters.q,
+                  view: filters.view,
+                })
+              }
               className="flex items-center gap-1 rounded-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X aria-hidden="true" className="size-4" />

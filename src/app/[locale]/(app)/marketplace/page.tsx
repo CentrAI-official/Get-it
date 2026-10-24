@@ -7,7 +7,6 @@ import {
   CatalogPanel,
   CatalogSkeleton,
 } from "@/features/marketplace/components/marketplace-panels";
-import { MarketplaceTabs } from "@/features/marketplace/components/marketplace-tabs";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("App.marketplace.services");
@@ -22,10 +21,7 @@ export default function MarketplaceServicesPage({
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <div className="flex flex-col gap-4">
-        <MarketplaceTabs current="services" />
-        <PageHeader title={t("title")} description={t("question")} />
-      </div>
+      <PageHeader title={t("title")} description={t("question")} />
       <Suspense fallback={<CatalogSkeleton />}>
         <CatalogPanel kind="service" searchParams={searchParams} />
       </Suspense>

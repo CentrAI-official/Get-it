@@ -7,6 +7,7 @@ import {
 import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { avatarUrls } from "@/server/profile/avatar";
 import { getLevels } from "@/server/xp/service";
 import { mediaForPosts, type FeedMedia } from "./media";
 import { getBlockedIds } from "./members";
@@ -18,6 +19,8 @@ export type FeedAuthor = {
   id: string;
   displayName: string | null;
   username: string | null;
+  /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
+  avatarUrl: string | null;
   level: number;
 };
 
@@ -62,10 +65,91 @@ function visibleTo(viewerId: string) {
   };
 }
 
-/** Une page du fil, de la plus récente à la plus ancienne. */
+/** Colonnes d'une publication du fil, vue par `viewerId`. */
+export function postSelect(viewerId: string, blocked: readonly string[]) {
+  return {
+    id: true,
+    kind: true,
+    body: true,
+    pillar: true,
+    progress: true,
+    status: true,
+    mediaCount: true,
+    createdAt: true,
+    userId: true,
+    profile: {
+      select: { displayName: true, username: true, avatarPath: true },
+    },
+    reactions: { where: { userId: viewerId }, select: { userId: true } },
+    _count: {
+      select: {
+        reactions: true,
+        comments: {
+          where: {
+            status: "visible" as const,
+            ...(blocked.length > 0 ? { userId: { notIn: [...blocked] } } : {}),
+          },
+        },
+      },
+    },
+  } satisfies Prisma.PostSelect;
+}
+
+type PostRow = Prisma.PostGetPayload<{
+  select: ReturnType<typeof postSelect>;
+}>;
+
+/** Publications prêtes à afficher : médias, niveaux et photos des auteurs. */
+export async function toFeedPosts(
+  rows: readonly PostRow[],
+  viewerId: string,
+): Promise<FeedPost[]> {
+  const media = await mediaForPosts(
+    rows.filter((post) => post.mediaCount > 0).map((post) => post.id),
+  );
+  const [levels, avatars] = await Promise.all([
+    getLevels([...new Set(rows.map((post) => post.userId))]),
+    avatarUrls(rows.map((post) => post.profile.avatarPath)),
+  ]);
+
+  return rows.map((post) => {
+    const progress = post.progress
+      ? progressDataSchema.safeParse(post.progress)
+      : null;
+    return {
+      id: post.id,
+      kind: post.kind,
+      body: post.body,
+      pillar: post.pillar,
+      progress: progress?.success ? progress.data : null,
+      hidden: post.status === "hidden",
+      createdAt: post.createdAt.toISOString(),
+      author: {
+        id: post.userId,
+        displayName: post.profile.displayName,
+        username: post.profile.username,
+        avatarUrl: post.profile.avatarPath
+          ? (avatars.get(post.profile.avatarPath) ?? null)
+          : null,
+        level: levels.get(post.userId) ?? 1,
+      },
+      reactions: post._count.reactions,
+      reacted: post.reactions.length > 0,
+      comments: post._count.comments,
+      mine: post.userId === viewerId,
+      media: media.get(post.id) ?? [],
+    };
+  });
+}
+
+/**
+ * Une page du fil, de la plus récente à la plus ancienne ; avec `authorId`,
+ * seulement les publications de cette personne (son profil).
+ */
 export async function listFeed(
   viewerId: string,
   cursor?: FeedCursor,
+  authorId?: string,
 ): Promise<{
   posts: FeedPost[];
   nextCursor: FeedCursor | null;
@@ -77,6 +161,7 @@ export async function listFeed(
     AND: [
       visibleTo(viewerId),
       blocked.length > 0 ? { userId: { notIn: blocked } } : {},
+      authorId ? { userId: authorId } : {},
       cursor
         ? {
             OR: [
@@ -92,65 +177,14 @@ export async function listFeed(
     where,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: FEED_PAGE_SIZE + 1,
-    select: {
-      id: true,
-      kind: true,
-      body: true,
-      pillar: true,
-      progress: true,
-      status: true,
-      mediaCount: true,
-      createdAt: true,
-      userId: true,
-      profile: { select: { displayName: true, username: true } },
-      reactions: { where: { userId: viewerId }, select: { userId: true } },
-      _count: {
-        select: {
-          reactions: true,
-          comments: {
-            where: {
-              status: "visible",
-              ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
-            },
-          },
-        },
-      },
-    },
+    select: postSelect(viewerId, blocked),
   });
 
   const page = rows.slice(0, FEED_PAGE_SIZE);
-  const media = await mediaForPosts(
-    page.filter((post) => post.mediaCount > 0).map((post) => post.id),
-  );
-  const levels = await getLevels([...new Set(page.map((post) => post.userId))]);
   const last = page.at(-1);
 
   return {
-    posts: page.map((post) => {
-      const progress = post.progress
-        ? progressDataSchema.safeParse(post.progress)
-        : null;
-      return {
-        id: post.id,
-        kind: post.kind,
-        body: post.body,
-        pillar: post.pillar,
-        progress: progress?.success ? progress.data : null,
-        hidden: post.status === "hidden",
-        createdAt: post.createdAt.toISOString(),
-        author: {
-          id: post.userId,
-          displayName: post.profile.displayName,
-          username: post.profile.username,
-          level: levels.get(post.userId) ?? 1,
-        },
-        reactions: post._count.reactions,
-        reacted: post.reactions.length > 0,
-        comments: post._count.comments,
-        mine: post.userId === viewerId,
-        media: media.get(post.id) ?? [],
-      };
-    }),
+    posts: await toFeedPosts(page, viewerId),
     nextCursor:
       rows.length > FEED_PAGE_SIZE && last
         ? { createdAt: last.createdAt.toISOString(), id: last.id }
@@ -189,9 +223,14 @@ export async function listComments(
       status: true,
       createdAt: true,
       userId: true,
-      profile: { select: { displayName: true, username: true } },
+      profile: {
+        select: { displayName: true, username: true, avatarPath: true },
+      },
     },
   });
+  const avatars = await avatarUrls(
+    comments.map((comment) => comment.profile.avatarPath),
+  );
   return comments.map((comment) => ({
     id: comment.id,
     body: comment.body,
@@ -201,6 +240,9 @@ export async function listComments(
       id: comment.userId,
       displayName: comment.profile.displayName,
       username: comment.profile.username,
+      avatarUrl: comment.profile.avatarPath
+        ? (avatars.get(comment.profile.avatarPath) ?? null)
+        : null,
     },
     mine: comment.userId === viewerId,
   }));

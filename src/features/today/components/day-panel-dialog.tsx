@@ -20,7 +20,8 @@ type DayPanelDialogProps = {
   autoOpen: boolean;
   stamp: string;
   greeting: string;
-  initial: string;
+  name: string;
+  avatarUrl: string | null;
 };
 
 /** Popup « Ma journée » : s'ouvre une fois par jour, puis depuis ses boutons. */
@@ -29,7 +30,8 @@ export function DayPanelDialog({
   autoOpen,
   stamp,
   greeting,
-  initial,
+  name,
+  avatarUrl,
 }: DayPanelDialogProps) {
   const t = useTranslations("Today.panel");
   const { open } = useDayPanel();
@@ -53,7 +55,8 @@ export function DayPanelDialog({
     >
       <DialogContent
         closeLabel={t("close")}
-        className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain p-5 sm:max-w-2xl sm:p-6"
+        // Plein écran sur téléphone (mode Focus), fenêtre haute sur ordinateur
+        className="inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-y-auto overscroll-contain rounded-none p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:p-6 sm:ring-1"
         onClickCapture={(event) => {
           // Un lien mène ailleurs : le popup se ferme
           if (
@@ -68,7 +71,8 @@ export function DayPanelDialog({
           plan={plan}
           stamp={stamp}
           greeting={greeting}
-          initial={initial}
+          name={name}
+          avatarUrl={avatarUrl}
         />
       </DialogContent>
     </Dialog>

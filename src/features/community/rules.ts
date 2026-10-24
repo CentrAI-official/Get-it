@@ -21,6 +21,11 @@ export const REPORT_DETAILS_MAX_LENGTH = 500;
 /** Publications chargées à la fois (« Voir plus », jamais de défilement infini). */
 export const FEED_PAGE_SIZE = 20;
 
+/** « Progrès du jour » : progrès partagés par les contacts depuis 24 heures. */
+export const STORY_WINDOW_HOURS = 24;
+/** Progrès du jour chargés au plus (toutes personnes confondues). */
+export const STORY_POSTS_MAX = 60;
+
 /** Durée d'une suspension décidée par la modération. */
 export const SUSPENSION_DAYS = 7;
 

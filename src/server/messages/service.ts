@@ -24,6 +24,7 @@ import {
   contactIds,
   getContactState,
 } from "@/server/contacts/service";
+import { avatarUrls } from "@/server/profile/avatar";
 import { getLevels } from "@/server/xp/service";
 import {
   getOpenPact,
@@ -46,6 +47,8 @@ export type MessagePerson = {
   id: string;
   displayName: string | null;
   username: string | null;
+  /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
+  avatarUrl: string | null;
   level: number;
 };
 
@@ -188,14 +191,21 @@ async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
   const [profiles, levels] = await Promise.all([
     db.profile.findMany({
       where: { id: { in: ids } },
-      select: { id: true, displayName: true, username: true },
+      select: { id: true, displayName: true, username: true, avatarPath: true },
     }),
     getLevels(ids),
   ]);
+  const avatars = await avatarUrls(
+    profiles.map((profile) => profile.avatarPath),
+  );
   return new Map(
-    profiles.map((profile) => [
+    profiles.map(({ avatarPath, ...profile }) => [
       profile.id,
-      { ...profile, level: levels.get(profile.id) ?? 1 },
+      {
+        ...profile,
+        avatarUrl: avatarPath ? (avatars.get(avatarPath) ?? null) : null,
+        level: levels.get(profile.id) ?? 1,
+      },
     ]),
   );
 }

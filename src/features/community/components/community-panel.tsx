@@ -3,14 +3,17 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { avatarUrl } from "@/server/profile/avatar";
 import { listFeed } from "@/server/community/feed";
 import { storageEnabled } from "@/server/storage/service";
 import { getCommunityMember, isModerator } from "@/server/community/members";
 import { listShareableProgress } from "@/server/community/posts";
+import { listProgressStories } from "@/server/community/stories";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CommunityFeed } from "./community-feed";
 import { JoinCommunityCard } from "./join-community-card";
 import { PostComposer } from "./post-composer";
+import { ProgressStories } from "./progress-stories";
 
 /**
  * Le Centre Get iT : rejoindre (nom d'utilisateur et règles), publier, puis le
@@ -27,19 +30,32 @@ export async function CommunityPanel({
     return <JoinCommunityCard />;
   }
 
-  const [params, feed, shareable, t, format] = await Promise.all([
-    searchParams,
-    listFeed(profile.id),
-    member.suspendedUntil ? [] : listShareableProgress(profile.id),
-    getTranslations("Community"),
-    getFormatter(),
-  ]);
+  // L'heure courante est lue après la session : jamais pendant le prérendu
+  const now = new Date();
+  const [params, feed, stories, shareable, myAvatar, t, format] =
+    await Promise.all([
+      searchParams,
+      listFeed(profile.id),
+      listProgressStories(profile.id, now),
+      member.suspendedUntil ? [] : listShareableProgress(profile.id),
+      avatarUrl(profile.avatarPath),
+      getTranslations("Community"),
+      getFormatter(),
+    ]);
   // « ?partager=goal:<id> » : lien « Partager » depuis un objectif ou un niveau
   const preselected =
     typeof params.partager === "string" ? params.partager : null;
 
   return (
     <div className="flex flex-col gap-5">
+      <ProgressStories
+        stories={stories}
+        name={profile.displayName ?? member.username ?? ""}
+        avatarUrl={myAvatar}
+        canWrite={!member.suspendedUntil}
+        now={feed.loadedAt}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {t("signedInAs", { username: member.username ?? "" })}
@@ -75,6 +91,7 @@ export async function CommunityPanel({
           shareable={shareable}
           preselected={preselected}
           name={profile.displayName ?? member.username ?? ""}
+          avatarUrl={myAvatar}
           mediaEnabled={storageEnabled()}
         />
       )}

@@ -140,13 +140,16 @@
       "newMessage": "Nouveau message",
       "shopServices": "Magasiner des services",
       "sell": "Vendre",
-      "settings": "Réglages"
+      "settings": "Réglages",
+      "favorites": "Mes favoris"
     },
     "profileTabs": {
       "label": "Sections du profil",
       "overview": "Aperçu",
+      "posts": "Publications",
       "goals": "Objectifs",
-      "habits": "Habitudes"
+      "habits": "Habitudes",
+      "journal": "Journal"
     },
     "today": {
       "greeting": "{period, select, morning {Bonjour} afternoon {Bon après-midi} other {Bonsoir}}, {name}."
@@ -192,14 +195,9 @@
       "title": "Événements",
       "question": "Où rencontrer des gens qui avancent comme moi?",
       "soonTitle": "Les événements arrivent bientôt",
-      "soonDescription": "Réseautage, compétitions, ateliers et rencontres : tu pourras bientôt découvrir les événements de la communauté et proposer les tiens."
+      "soonDescription": "Réseautage, compétitions, ateliers et rencontres : tu pourras bientôt découvrir les événements de la communauté et proposer les tiens."
     },
     "marketplace": {
-      "tabs": {
-        "label": "Sections de la marketplace",
-        "services": "Services",
-        "gear": "Gear"
-      },
       "gear": {
         "title": "Marketplace",
         "question": "Qu’est-ce qui peut m’aider à progresser?"
@@ -207,17 +205,39 @@
       "services": {
         "title": "Marketplace",
         "question": "Qui peut m’accompagner?"
+      },
+      "favorites": {
+        "title": "Mes favoris",
+        "question": "Ce que tu as gardé pour plus tard."
       }
     },
     "profile": {
       "title": "Profil",
       "question": "Qui suis-je en train de devenir?",
       "memberSince": "Membre depuis {date, date, long}",
-      "pillarsTitle": "Tes piliers prioritaires",
-      "dailyTime": "Temps par jour",
-      "startingPointTitle": "Ton point de départ",
-      "startingPointDescription": "Ton autoévaluation au début de ton parcours, sur 5.",
-      "score": "{score, number}/5"
+      "contacts": "{count, plural, =0 {Aucun contact} one {# contact} other {# contacts}}",
+      "viewPublic": "Voir mon profil public",
+      "editor": {
+        "open": "Modifier le profil",
+        "title": "Modifier le profil",
+        "description": "Ta photo et ta présentation sont visibles par les membres du Centre Get iT.",
+        "uploading": "Envoi de la photo…",
+        "change": "Changer la photo",
+        "add": "Ajouter une photo",
+        "remove": "Retirer la photo",
+        "photosUnavailable": "Les photos ne sont pas encore disponibles.",
+        "bio": "Courte présentation",
+        "bioPlaceholder": "Ce qui te motive, ce que tu bâtis en ce moment…",
+        "save": "Enregistrer",
+        "saved": "C’est enregistré.",
+        "close": "Fermer"
+      },
+      "posts": {
+        "title": "Mes publications",
+        "description": "Ce que tu as partagé dans le Centre Get iT.",
+        "emptyTitle": "Aucune publication pour l’instant",
+        "emptyDescription": "Partage un progrès ou pose une question dans Communauté : tes publications apparaîtront ici."
+      }
     },
     "settings": {
       "title": "Réglages",
@@ -616,6 +636,13 @@
         "workweek": "En semaine",
         "weekend": "La fin de semaine"
       },
+      "momentLabel": "À quel moment?",
+      "moments": {
+        "morning": "Le matin",
+        "noon": "Le midi",
+        "evening": "Le soir",
+        "none": "N’importe quand"
+      },
       "goalLabel": "Objectif lié",
       "optional": "facultatif",
       "noGoal": "Aucun",
@@ -648,6 +675,31 @@
     }
   },
   "Today": {
+    "focus": {
+      "description": "Une quête à la fois : fais-la ou garde-la pour plus tard.",
+      "doneBadge": "Faite",
+      "counter": "Quête {n, number} sur {total, number}",
+      "segment": "Quête {n, number} : {title}",
+      "segmentDone": "Quête {n, number} : {title}, faite",
+      "segmentLater": "Quête {n, number} : {title}, gardée pour plus tard",
+      "segments": "Quêtes du jour",
+      "list": "Liste",
+      "listLabel": "Voir toutes les quêtes du jour",
+      "task": "Tâche",
+      "late": "En retard",
+      "days": "{count, number} derniers jours",
+      "done": "C’est fait",
+      "later": "Plus tard",
+      "next": "Suivante",
+      "recap": "Voir le récap",
+      "undo": "Annuler la coche",
+      "allDoneTitle": "Journée bouclée.",
+      "allDoneBody": "Tout ce qui était prévu aujourd’hui est fait. On se voit demain!",
+      "xpToday": "+{xp, number} XP aujourd’hui",
+      "restTitle": "Le reste t’attend.",
+      "restBody": "{left, plural, one {Il te reste # quête.} other {Il te reste # quêtes.}} Ce que tu gardes pour plus tard reste dans ta liste, sans pénalité.",
+      "resume": "Reprendre"
+    },
     "panel": {
       "button": "Ma journée",
       "description": "Coche ce que tu as fait aujourd’hui.",
@@ -752,29 +804,24 @@
   },
   "Progress": {
     "title": "Ta progression",
-    "pillarsTitle": "Tes niveaux par pilier",
-    "pillarsDescription": "Chaque pilier monte avec l’XP de ses habitudes, et des tâches, jalons et objectifs qui lui sont liés.",
+    "description": "Où en est chaque pilier avant son prochain niveau.",
+    "orbit": {
+      "levelLabel": "Niveau",
+      "levelShort": "Niv. {level, number}",
+      "centerSummary": "Niveau global {level, number} : {percent} fait vers le niveau {next, number}.",
+      "bubble": "{pillar} : niveau {level, number}, {percent} fait vers le niveau {next, number} ({xp, number} XP).",
+      "howTitle": "Comment c’est calculé",
+      "how": "Chaque bulle montre le pourcentage fait vers le prochain niveau du pilier. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. Au centre, ton niveau global."
+    },
     "xpChart": {
       "title": "XP des 14 derniers jours",
       "chartLabel": "XP gagnée chaque jour, sur 14 jours. Flèches gauche et droite pour parcourir.",
       "dayValue": "{date} : {xp, number} XP",
       "today": "Aujourd’hui",
-      "empty": "Coche tes premières quêtes : ton XP apparaîtra ici.",
+      "empty": "Coche tes premières quêtes : ton XP apparaîtra ici.",
       "table": "Voir les données",
       "colDay": "Jour",
       "colXp": "XP"
-    },
-    "checkIns": {
-      "title": "Tes check-ins",
-      "description": "Les 14 derniers jours, notes sur 5.",
-      "chartLabel": "{metric} sur 14 jours. Flèches gauche et droite pour parcourir.",
-      "dayValue": "{date} : {score, number}/5",
-      "noValue": "{date} : pas de check-in",
-      "average": "Moyenne {value}/5",
-      "empty": "Fais ton check-in chaque jour pour suivre ici ton humeur, ton énergie, ton stress et ton sommeil.",
-      "emptyCta": "Faire mon check-in",
-      "table": "Voir les données",
-      "colDay": "Jour"
     }
   },
   "Coach": {
@@ -851,6 +898,22 @@
     }
   },
   "Community": {
+    "stories": {
+      "label": "Progrès du jour",
+      "myDay": "Ta journée",
+      "myDayLabel": "Ouvrir Ma journée : {done, number} sur {total, number} quêtes faites",
+      "myDayOpen": "Ouvrir Ma journée",
+      "badge": "{done, number}/{total, number}",
+      "open": "Progrès du jour de {name}",
+      "openNew": "Progrès du jour de {name}, nouveau",
+      "addContacts": "Contacts",
+      "addContactsLabel": "Ajouter des contacts pour voir leurs progrès du jour",
+      "viewerDescription": "Les progrès que {name} a partagés depuis 24 heures.",
+      "position": "{n, number} sur {total, number}",
+      "previous": "Progrès précédent",
+      "next": "Progrès suivant",
+      "close": "Fermer"
+    },
     "signedInAs": "Connecté en tant que @{username}",
     "moderationLink": "Modération",
     "suspended": "Ton compte est suspendu du Centre jusqu’au {date}. Tu peux lire le fil, mais pas publier, commenter ni réagir.",
@@ -1040,6 +1103,24 @@
       "previous": "Photo précédente",
       "next": "Photo suivante",
       "limitsPhotos": "Jusqu’à 4 photos. La position GPS des photos est retirée."
+    },
+    "profile": {
+      "back": "Communauté",
+      "level": "Niveau {level, number}",
+      "contacts": "{count, plural, =0 {Aucun contact} one {# contact} other {# contacts}}",
+      "memberSince": "Membre depuis {date}",
+      "edit": "Modifier mon profil",
+      "write": "Écrire",
+      "addContact": "Ajouter en contact",
+      "accept": "Accepter en contact",
+      "requested": "Demande envoyée",
+      "isContact": "Contact",
+      "pillars": "Piliers",
+      "focus": "En ce moment, priorité à : {pillars}",
+      "posts": "Publications",
+      "emptyTitle": "Aucune publication",
+      "emptyDescription": "{name} n’a encore rien partagé.",
+      "openProfile": "Voir le profil de {name}"
     }
   },
   "Messages": {
@@ -1062,7 +1143,7 @@
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
-      "description": "La Messagerie est réservée aux membres du Centre Get iT : choisis ton nom d’utilisateur et accepte les règles.",
+      "description": "La Messagerie est réservée aux membres du Centre Get iT : choisis ton nom d’utilisateur et accepte les règles.",
       "action": "Rejoindre le Centre"
     },
     "search": {
@@ -1106,13 +1187,13 @@
       "reported": "Merci! La modération va examiner ce signalement.",
       "gone": "Cette conversation n’est plus disponible.",
       "firstMessage": "Dis bonjour à {name}! Ton premier message lui arrivera comme une demande.",
-      "privacy": "Messages privés : jamais partagés dans le Centre ni envoyés à Get iT AI. Pas de « Vu » ni de « En ligne » : réponds à ton rythme.",
+      "privacy": "Messages privés : jamais partagés dans le Centre ni envoyés à Get iT AI. Pas de « Vu » ni de « En ligne » : réponds à ton rythme.",
       "requestTitle": "{name} veut t’écrire",
       "requestDescription": "Accepte pour lui répondre. Tant que tu n’acceptes pas, cette personne ne sait pas si tu as lu son message.",
       "accept": "Accepter",
       "decline": "Refuser",
       "pending": "Demande envoyée. Tu pourras écrire de nouveau quand {handle} l’aura acceptée.",
-      "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire."
+      "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire."
     },
     "reactions": {
       "bravo": "Bravo",
@@ -1140,7 +1221,7 @@
       "acceptFirst": "Accepte d’abord la demande pour répondre.",
       "requestPending": "Ta demande n’a pas encore été acceptée.",
       "messageLimit": "Tu as atteint la limite de 200 messages par 24 heures.",
-      "conversationLimit": "Tu as commencé 20 nouvelles conversations aujourd’hui : c’est la limite.",
+      "conversationLimit": "Tu as commencé 20 nouvelles conversations aujourd’hui : c’est la limite.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
       "pactOpen": "Un pacte est déjà proposé ou en cours dans cette conversation.",
       "pactLimit": "Tu as proposé assez de pactes pour aujourd’hui.",
@@ -1151,7 +1232,7 @@
     "pacts": {
       "propose": "Proposer un pacte",
       "proposeTitle": "Proposer un pacte à {name}",
-      "proposeDescription": "Un défi à deux : chacun fait son habitude chaque jour, et voit si l’autre a tenu sa part.",
+      "proposeDescription": "Un défi à deux : chacun fait son habitude chaque jour, et voit si l’autre a tenu sa part.",
       "challenge": "Le défi",
       "challengePlaceholder": "Ex. Méditer 10 minutes",
       "duration": "Durée",
@@ -1164,7 +1245,7 @@
       "rule": "Le pacte est réussi si…",
       "rules": {
         "daily": "Chaque jour",
-        "dailyHint": "Strict : aucun jour manqué",
+        "dailyHint": "Strict : aucun jour manqué",
         "most": "80 % des jours",
         "mostHint": "Un jour off, ça arrive"
       },
@@ -1174,7 +1255,7 @@
       "close": "Fermer",
       "hint": "Faites-le ensemble.",
       "hintText": "Propose un pacte à {name} : chacun fait son habitude, chaque jour.",
-      "encouragement": "Petit rappel amical : on garde notre pacte en vie aujourd’hui! On lâche pas.",
+      "encouragement": "Petit rappel amical : on garde notre pacte en vie aujourd’hui! On lâche pas.",
       "card": {
         "proposedToMe": "{name} te propose un pacte",
         "proposedByMe": "Tu proposes un pacte",
@@ -1211,10 +1292,10 @@
         "doneAt": "fait à {time}",
         "notYet": "pas encore",
         "bothDone": "Vous avez tous les deux tenu votre part aujourd’hui!",
-        "streak": "Série commune : <strong>{count, plural, one {# jour} other {# jours}}</strong>",
+        "streak": "Série commune : <strong>{count, plural, one {# jour} other {# jours}}</strong>",
         "doMyPart": "Faire ma part",
         "encourage": "Encourager {name}",
-        "habitMissing": "Ton habitude reliée a été supprimée : tes jours ne comptent plus."
+        "habitMissing": "Ton habitude reliée a été supprimée : tes jours ne comptent plus."
       },
       "detail": {
         "close": "Fermer",
@@ -1291,6 +1372,41 @@
     }
   },
   "Marketplace": {
+    "vitrine": {
+      "searchLabel": "Rechercher dans la Marketplace",
+      "searchPlaceholder": "Que veux-tu accomplir?",
+      "clear": "Effacer la recherche",
+      "approved": "Approuvé",
+      "forPlan": "Pour ton plan {pillar}",
+      "forPillar": "Pour toi · {pillar}",
+      "latest": "Nouveautés",
+      "seeAll": "Tout voir",
+      "results": "Toutes les annonces",
+      "resultsFor": "Résultats pour « {q} »",
+      "back": "Revenir à la vitrine",
+      "categories": {
+        "label": "Catégories",
+        "all": "Tout",
+        "services": "Services",
+        "gear": "Gear",
+        "fitness_coach": "Coachs",
+        "nutritionist": "Nutrition",
+        "financial_advisor": "Finances",
+        "psychologist": "Psychologie",
+        "clothing": "Vêtements",
+        "equipment": "Équipement",
+        "books": "Livres"
+      }
+    },
+    "favorites": {
+      "add": "Ajouter aux favoris : {title}",
+      "remove": "Retirer des favoris : {title}",
+      "limit": "Tu as atteint la limite de favoris. Retires-en un pour en garder un autre.",
+      "failed": "Le favori n’a pas été enregistré. Réessaie.",
+      "emptyTitle": "Aucun favori pour l’instant",
+      "emptyDescription": "Touche le cœur d’une annonce pour la retrouver ici. Tes favoris restent privés.",
+      "browse": "Explorer la Marketplace"
+    },
     "price": {
       "range": "{min} – {max}",
       "units": {
@@ -1334,6 +1450,12 @@
     "filters": {
       "pillar": "Pilier",
       "all": "Tous",
+      "mode": "Où",
+      "modes": {
+        "both": "En ligne et en présentiel",
+        "online": "En ligne",
+        "in_person": "En présentiel"
+      },
       "region": "Région",
       "anyRegion": "Toutes les régions",
       "price": "Prix",
@@ -1582,7 +1704,32 @@
       "tasks": "Tâches",
       "habits": "Habitudes",
       "future": "Se coche le jour même.",
-      "tooOld": "Trop ancien pour être coché."
+      "tooOld": "Trop ancien pour être coché.",
+      "week": "Semaine",
+      "month": "Mois",
+      "viewLabel": "Affichage du calendrier",
+      "weekLabel": "Jours de la semaine",
+      "previousWeek": "Semaine précédente",
+      "nextWeek": "Semaine suivante",
+      "moments": {
+        "morning": "Matin",
+        "noon": "Midi",
+        "evening": "Soir",
+        "none": "Dans la journée"
+      },
+      "momentMenu": "Moment de la journée : {title}",
+      "daySummary": "{done, number} sur {total, number} faites",
+      "dayPlanned": "{total, plural, one {# prévue} other {# prévues}}",
+      "exercises": "Séance · {count, plural, =0 {à ta façon} one {# exercice} other {# exercices}}",
+      "showSession": "Voir la séance : {title}",
+      "hideSession": "Masquer la séance : {title}",
+      "habit": "Habitude",
+      "task": "Tâche",
+      "check": "Marquer comme fait : {title}",
+      "uncheck": "Annuler : {title}",
+      "plansLabel": "Mes plans",
+      "planWeek": "{week, number}/{weeks, number}",
+      "planWeekLabel": "{title}, semaine {week, number} sur {weeks, number}"
     },
     "hub": {
       "plansTitle": "Tes plans personnalisés",
@@ -1612,6 +1759,23 @@
       "deleteDescription": "Le plan et tes réponses au questionnaire seront effacés. Ce que tu as déjà ajouté à tes objectifs et habitudes reste.",
       "deleteConfirm": "Supprimer",
       "cancel": "Annuler"
+    },
+    "revise": {
+      "title": "Modifier mon plan",
+      "description": "Écris ce que tu veux changer : Get iT AI ajuste ton plan et garde le reste.",
+      "label": "Ce que tu veux changer",
+      "placeholder": {
+        "physical": "Ex. remplace la course par du vélo, et fais 3 séances au lieu de 4.",
+        "mental": "Ex. je préfère des exercices le matin, 10 minutes au plus.",
+        "social": "Ex. ajoute des idées pour rencontrer du monde au gym.",
+        "financial": "Ex. je veux rembourser ma carte de crédit en premier.",
+        "business": "Ex. ajoute une étape pour trouver mes 10 premiers clients en ligne."
+      },
+      "submit": "Modifier avec Get iT AI",
+      "loading": "Get iT AI modifie ton plan… Ça peut prendre une minute ou deux.",
+      "done": "Ton plan a été modifié.",
+      "tooShort": "Décris en quelques mots ce que tu veux changer.",
+      "notice": "Une modification compte comme une demande à Get iT AI, mais pas dans tes 3 plans par jour."
     },
     "weekdaysShort": {
       "1": "lun.",
@@ -1989,6 +2153,10 @@
           "label": "Dans quel domaine?",
           "hint": "Ex. coaching sportif, vêtements, application mobile."
         },
+        "description": {
+          "label": "Décris ton entreprise ou ton projet",
+          "hint": "Ce que tu offres, à qui, ce qui te distingue, et où tu en es. Plus c’est précis, meilleur sera le plan."
+        },
         "stage": {
           "label": "Où en es-tu?",
           "options": {
@@ -2026,5 +2194,93 @@
     "title": "Quelque chose s’est mal passé",
     "description": "Une erreur inattendue est survenue. Tu peux réessayer.",
     "retry": "Réessayer"
+  },
+  "Journal": {
+    "title": "Journal",
+    "description": "Une page par jour, rien que pour toi.",
+    "private": "Ton journal est privé : personne d’autre ne le voit, pas même Get iT AI.",
+    "streak": "{count, plural, =0 {Aucune série en cours} one {Série de # jour} other {Série de # jours}}",
+    "prompts": {
+      "gratitude": {
+        "label": "Gratitude",
+        "hint": "Qu’est-ce qui t’a fait du bien aujourd’hui?"
+      },
+      "win": {
+        "label": "Victoire du jour",
+        "hint": "Même petite, qu’est-ce que tu as réussi?"
+      },
+      "lesson": {
+        "label": "Leçon ou défi",
+        "hint": "Qu’est-ce qui a été difficile, ou qu’as-tu appris?"
+      },
+      "intention": {
+        "label": "Intention pour demain",
+        "hint": "Sur quoi veux-tu te concentrer demain?"
+      },
+      "body": {
+        "label": "Écris librement",
+        "hint": "Tes pensées, ce que tu ressens, ce que tu veux garder de ta journée.",
+        "placeholder": "Aujourd’hui…"
+      }
+    },
+    "editor": {
+      "save": "Enregistrer la page",
+      "saved": "Page enregistrée.",
+      "savedXp": "Page enregistrée · +{xp, number} XP",
+      "cleared": "Page vidée : elle a été retirée de ton journal.",
+      "unsaved": "Modifications non enregistrées",
+      "errors": {
+        "locked": "Cette page ne se modifie plus (plus de 7 jours).",
+        "invalid": "Un texte est trop long. Raccourcis-le, puis réessaie.",
+        "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      }
+    },
+    "day": {
+      "today": "Aujourd’hui",
+      "backToToday": "Revenir à aujourd’hui",
+      "previous": "Jour précédent",
+      "next": "Jour suivant",
+      "recapLink": "Récap et anciennes pages",
+      "locked": "Page de plus de 7 jours : elle se relit, mais ne se modifie plus.",
+      "emptyTitle": "Pas de page ce jour-là",
+      "emptyDescription": "Tu n’as rien écrit ce jour-là. Les pages se modifient jusqu’à 7 jours après.",
+      "writeToday": "Écrire la page d’aujourd’hui",
+      "checkIn": "Check-in de ce jour-là"
+    },
+    "recap": {
+      "title": "Récap du journal",
+      "description": "Ce que tu as écrit, semaine après semaine.",
+      "back": "Page d’aujourd’hui",
+      "periodLabel": "Période",
+      "periods": {
+        "week": "Semaine",
+        "month": "Mois"
+      },
+      "previous": {
+        "week": "Semaine précédente",
+        "month": "Mois précédent"
+      },
+      "next": {
+        "week": "Semaine suivante",
+        "month": "Mois suivant"
+      },
+      "written": "Pages écrites",
+      "writtenValue": "{written, number}/{elapsed, number}",
+      "streak": "Série en cours",
+      "days": "{count, plural, one {# jour} other {# jours}}",
+      "words": "Mots écrits",
+      "mood": "Humeur moyenne",
+      "energy": "Énergie moyenne",
+      "score": "{value, number}/5",
+      "noCheckIn": "—",
+      "pages": "Pages de la période",
+      "wordsCount": "{count, plural, one {# mot} other {# mots}}",
+      "empty": {
+        "week": "Aucune page cette semaine",
+        "month": "Aucune page ce mois-là"
+      },
+      "emptyDescription": "Une page par jour suffit : quelques lignes, et ta série commence.",
+      "writeToday": "Écrire la page d’aujourd’hui"
+    }
   }
 }

@@ -4,6 +4,7 @@ import { ImagePlus, LoaderCircle, Send, Trophy } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/avatar";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,8 @@ type PostComposerProps = {
   preselected: string | null;
   /** Prénom affiché dans la barre : « Quoi de neuf, Max? » */
   name: string;
+  /** Photo de profil de la personne connectée. */
+  avatarUrl: string | null;
   /** Stockage configuré : photos et vidéos possibles. */
   mediaEnabled: boolean;
 };
@@ -58,6 +61,7 @@ export function PostComposer({
   shareable,
   preselected,
   name,
+  avatarUrl,
   mediaEnabled,
 }: PostComposerProps) {
   const t = useTranslations("Community.composer");
@@ -79,12 +83,7 @@ export function PostComposer({
   return (
     <>
       <section aria-label={t("label")} className="flex items-center gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-        >
-          {name.charAt(0)}
-        </span>
+        <Avatar name={name} url={avatarUrl} className="size-10" />
         <button
           type="button"
           onClick={() => start("post")}
@@ -300,7 +299,7 @@ function ProgressForm({
   shareable,
   preselected,
   onDone,
-}: Omit<PostComposerProps, "name" | "mediaEnabled"> & FormProps) {
+}: Omit<PostComposerProps, "name" | "avatarUrl" | "mediaEnabled"> & FormProps) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const locale = useLocale();

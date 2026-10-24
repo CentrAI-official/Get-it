@@ -3,8 +3,10 @@
 import { Flag, LoaderCircle, Send, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
+import { Avatar } from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Link } from "@/i18n/navigation";
 import type { FeedComment } from "@/server/community/feed";
 import {
   addCommentAction,
@@ -114,11 +116,34 @@ export function PostComments({
               key={comment.id}
               className="flex items-start gap-2 rounded-2xl bg-white/[0.04] px-3 py-2"
             >
+              {comment.author.username ? (
+                <Link
+                  href={`/community/members/${comment.author.username}`}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  className="mt-0.5 shrink-0"
+                >
+                  <Avatar
+                    name={comment.author.displayName ?? comment.author.username}
+                    url={comment.author.avatarUrl}
+                    className="size-7 text-xs"
+                  />
+                </Link>
+              ) : null}
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <p className="flex flex-wrap items-baseline gap-x-2 text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {comment.author.displayName ?? comment.author.username}
-                  </span>
+                  {comment.author.username ? (
+                    <Link
+                      href={`/community/members/${comment.author.username}`}
+                      className="rounded-sm font-semibold text-foreground outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                    >
+                      {comment.author.displayName ?? comment.author.username}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-foreground">
+                      {comment.author.displayName}
+                    </span>
+                  )}
                   <span>@{comment.author.username}</span>
                   <time dateTime={comment.createdAt}>
                     {format.relativeTime(new Date(comment.createdAt), now)}

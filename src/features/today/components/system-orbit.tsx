@@ -7,21 +7,7 @@ import { ringBackground } from "@/components/progress-ring";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { cn } from "@/lib/utils";
 import { ratio, type Progress } from "../day-plan";
-
-// Géométrie de la maquette (322 × 300), en pourcentages : l'orbite suit la largeur disponible
-const BOX = { width: 322, height: 300 };
-const CENTER = { x: 161, y: 150 };
-const RADIUS = 112;
-/** Position de chaque bulle sur l'orbite, en degrés (0 à droite, sens horaire). */
-const ANGLES: Record<Pillar, number> = {
-  physical: -135,
-  mental: -45,
-  financial: 45,
-  social: 135,
-};
-
-const toX = (px: number) => `${(px / BOX.width) * 100}%`;
-const toY = (px: number) => `${(px / BOX.height) * 100}%`;
+import { OrbitFrame, orbitPosition, orbitWidth } from "./orbit-frame";
 
 type SystemOrbitProps = {
   /** Score de chaque pilier, de 0 à 100 ; null tant qu'il n'y a pas de données. */
@@ -78,43 +64,7 @@ export function SystemOrbit({
         ) : null}
       </div>
 
-      <div className="@container relative mx-auto aspect-[322/300] w-full max-w-[380px]">
-        <svg
-          viewBox={`0 0 ${BOX.width} ${BOX.height}`}
-          aria-hidden="true"
-          className="absolute inset-0 size-full"
-        >
-          <circle
-            cx={CENTER.x}
-            cy={CENTER.y}
-            r={RADIUS}
-            fill="none"
-            stroke="rgb(255 255 255 / 0.1)"
-            strokeDasharray="3 6"
-          />
-          <circle
-            cx={CENTER.x}
-            cy={CENTER.y}
-            r={70}
-            fill="none"
-            className="stroke-primary/20"
-          />
-        </svg>
-
-        {/* Satellite qui fait le tour de l'orbite */}
-        <div
-          aria-hidden="true"
-          className="absolute motion-safe:animate-orbit"
-          style={{
-            left: toX(CENTER.x - RADIUS),
-            top: toY(CENTER.y - RADIUS),
-            width: toX(RADIUS * 2),
-            height: toY(RADIUS * 2),
-          }}
-        >
-          <span className="absolute top-0 left-1/2 size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_10px_var(--primary)]" />
-        </div>
-
+      <OrbitFrame>
         {/* Avancement de la journée */}
         <div
           aria-hidden="true"
@@ -139,7 +89,6 @@ export function SystemOrbit({
           const name = tPillars(`${pillar}.name`);
           // Plus le score est haut, plus la bulle est grosse
           const size = 46 + (score ?? 40) * 0.3;
-          const angle = (ANGLES[pillar] * Math.PI) / 180;
 
           const label = t("bubble", {
             pillar: name,
@@ -167,9 +116,8 @@ export function SystemOrbit({
                   : "hover:scale-105",
               )}
               style={{
-                left: toX(CENTER.x + RADIUS * Math.cos(angle)),
-                top: toY(CENTER.y + RADIUS * Math.sin(angle)),
-                width: toX(size),
+                ...orbitPosition(pillar),
+                width: orbitWidth(size),
                 background: ringBackground(ratio(progress)),
               }}
             >
@@ -192,7 +140,7 @@ export function SystemOrbit({
             </Bubble>
           );
         })}
-      </div>
+      </OrbitFrame>
 
       {onFilterChange ? (
         <p className="text-center text-xs text-muted-foreground">{t("hint")}</p>

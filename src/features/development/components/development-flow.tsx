@@ -48,6 +48,7 @@ export function DevelopmentFlow({
           setMode("form");
           window.scrollTo({ top: 0 });
         }}
+        onCrisis={() => setMode("crisis")}
       />
     );
   }

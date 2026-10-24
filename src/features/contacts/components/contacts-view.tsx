@@ -4,6 +4,7 @@ import { LoaderCircle, MessageCircle, Search, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/avatar";
 import { Input } from "@/components/ui/input";
 import {
   searchMembersAction,
@@ -95,12 +96,7 @@ function Person({
   const name = person.displayName ?? person.username ?? "";
   return (
     <div className="flex items-center gap-3 py-3">
-      <span
-        aria-hidden="true"
-        className="flex size-11 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-      >
-        {name.charAt(0)}
-      </span>
+      <Avatar name={name} url={person.avatarUrl} className="size-11" />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold">{name}</span>
         <span className="truncate text-sm text-muted-foreground">

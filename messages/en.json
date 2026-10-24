@@ -140,13 +140,16 @@
       "newMessage": "New message",
       "shopServices": "Shop for services",
       "sell": "Sell",
+      "favorites": "My favorites",
       "settings": "Settings"
     },
     "profileTabs": {
       "label": "Profile sections",
       "overview": "Overview",
+      "posts": "Posts",
       "goals": "Goals",
-      "habits": "Habits"
+      "habits": "Habits",
+      "journal": "Journal"
     },
     "today": {
       "greeting": "{period, select, morning {Good morning} afternoon {Good afternoon} other {Good evening}}, {name}."
@@ -195,11 +198,6 @@
       "soonDescription": "Networking, competitions, workshops and meetups: soon you’ll discover community events and propose your own."
     },
     "marketplace": {
-      "tabs": {
-        "label": "Marketplace sections",
-        "services": "Services",
-        "gear": "Gear"
-      },
       "gear": {
         "title": "Marketplace",
         "question": "What can help me make progress?"
@@ -207,17 +205,39 @@
       "services": {
         "title": "Marketplace",
         "question": "Who can support me?"
+      },
+      "favorites": {
+        "title": "My favorites",
+        "question": "What you saved for later."
       }
     },
     "profile": {
       "title": "Profile",
       "question": "Who am I becoming?",
       "memberSince": "Member since {date, date, long}",
-      "pillarsTitle": "Your priority pillars",
-      "dailyTime": "Time per day",
-      "startingPointTitle": "Your starting point",
-      "startingPointDescription": "Your self-assessment at the start of your journey, out of 5.",
-      "score": "{score, number}/5"
+      "contacts": "{count, plural, =0 {No contacts} one {# contact} other {# contacts}}",
+      "viewPublic": "View my public profile",
+      "editor": {
+        "open": "Edit profile",
+        "title": "Edit profile",
+        "description": "Your photo and bio are visible to members of the Get iT Hub.",
+        "uploading": "Uploading photo…",
+        "change": "Change photo",
+        "add": "Add a photo",
+        "remove": "Remove photo",
+        "photosUnavailable": "Photos aren’t available yet.",
+        "bio": "Short bio",
+        "bioPlaceholder": "What drives you, what you’re building right now…",
+        "save": "Save",
+        "saved": "Saved.",
+        "close": "Close"
+      },
+      "posts": {
+        "title": "My posts",
+        "description": "What you’ve shared in the Get iT Hub.",
+        "emptyTitle": "No posts yet",
+        "emptyDescription": "Share a win or ask a question in Community: your posts will show up here."
+      }
     },
     "settings": {
       "title": "Settings",
@@ -616,6 +636,13 @@
         "workweek": "Weekdays",
         "weekend": "Weekends"
       },
+      "momentLabel": "What time of day?",
+      "moments": {
+        "morning": "Morning",
+        "noon": "Noon",
+        "evening": "Evening",
+        "none": "Any time"
+      },
       "goalLabel": "Linked goal",
       "optional": "optional",
       "noGoal": "None",
@@ -648,6 +675,31 @@
     }
   },
   "Today": {
+    "focus": {
+      "description": "One quest at a time: do it or keep it for later.",
+      "doneBadge": "Done",
+      "counter": "Quest {n, number} of {total, number}",
+      "segment": "Quest {n, number}: {title}",
+      "segmentDone": "Quest {n, number}: {title}, done",
+      "segmentLater": "Quest {n, number}: {title}, kept for later",
+      "segments": "Today’s quests",
+      "list": "List",
+      "listLabel": "See all of today’s quests",
+      "task": "Task",
+      "late": "Overdue",
+      "days": "Last {count, number} days",
+      "done": "Done",
+      "later": "Later",
+      "next": "Next",
+      "recap": "See the recap",
+      "undo": "Undo",
+      "allDoneTitle": "Day complete.",
+      "allDoneBody": "Everything planned for today is done. See you tomorrow!",
+      "xpToday": "+{xp, number} XP today",
+      "restTitle": "The rest is waiting.",
+      "restBody": "{left, plural, one {# quest left.} other {# quests left.}} Whatever you keep for later stays in your list, no penalty.",
+      "resume": "Pick up again"
+    },
     "panel": {
       "button": "My day",
       "description": "Check off what you did today.",
@@ -752,8 +804,15 @@
   },
   "Progress": {
     "title": "Your progress",
-    "pillarsTitle": "Your level in each pillar",
-    "pillarsDescription": "Each pillar levels up with the XP from its habits, and from the tasks, milestones and goals linked to it.",
+    "description": "How close each pillar is to its next level.",
+    "orbit": {
+      "levelLabel": "Level",
+      "levelShort": "Lv. {level, number}",
+      "centerSummary": "Overall level {level, number}: {percent} of the way to level {next, number}.",
+      "bubble": "{pillar}: level {level, number}, {percent} of the way to level {next, number} ({xp, number} XP).",
+      "howTitle": "How it’s calculated",
+      "how": "Each bubble shows how far you are toward the pillar’s next level. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. In the center, your overall level."
+    },
     "xpChart": {
       "title": "XP over the last 14 days",
       "chartLabel": "XP earned each day over 14 days. Use the left and right arrows to browse.",
@@ -763,18 +822,6 @@
       "table": "Show the data",
       "colDay": "Day",
       "colXp": "XP"
-    },
-    "checkIns": {
-      "title": "Your check-ins",
-      "description": "The last 14 days, rated out of 5.",
-      "chartLabel": "{metric} over 14 days. Use the left and right arrows to browse.",
-      "dayValue": "{date}: {score, number}/5",
-      "noValue": "{date}: no check-in",
-      "average": "Average {value}/5",
-      "empty": "Do your check-in every day to follow your mood, energy, stress and sleep here.",
-      "emptyCta": "Do my check-in",
-      "table": "Show the data",
-      "colDay": "Day"
     }
   },
   "Coach": {
@@ -851,6 +898,22 @@
     }
   },
   "Community": {
+    "stories": {
+      "label": "Today’s progress",
+      "myDay": "Your day",
+      "myDayLabel": "Open My day: {done, number} of {total, number} quests done",
+      "myDayOpen": "Open My day",
+      "badge": "{done, number}/{total, number}",
+      "open": "{name}’s progress today",
+      "openNew": "{name}’s progress today, new",
+      "addContacts": "Contacts",
+      "addContactsLabel": "Add contacts to see their progress of the day",
+      "viewerDescription": "The progress {name} shared in the last 24 hours.",
+      "position": "{n, number} of {total, number}",
+      "previous": "Previous progress",
+      "next": "Next progress",
+      "close": "Close"
+    },
     "signedInAs": "Signed in as @{username}",
     "moderationLink": "Moderation",
     "suspended": "Your account is suspended from the Hub until {date}. You can read the feed, but not post, comment or react.",
@@ -1040,6 +1103,24 @@
       "previous": "Previous photo",
       "next": "Next photo",
       "limitsPhotos": "Up to 4 photos. GPS location is removed from photos."
+    },
+    "profile": {
+      "back": "Community",
+      "level": "Level {level, number}",
+      "contacts": "{count, plural, =0 {No contacts} one {# contact} other {# contacts}}",
+      "memberSince": "Member since {date}",
+      "edit": "Edit my profile",
+      "write": "Message",
+      "addContact": "Add contact",
+      "accept": "Accept contact",
+      "requested": "Request sent",
+      "isContact": "Contact",
+      "pillars": "Pillars",
+      "focus": "Current focus: {pillars}",
+      "posts": "Posts",
+      "emptyTitle": "No posts",
+      "emptyDescription": "{name} hasn’t shared anything yet.",
+      "openProfile": "View {name}’s profile"
     }
   },
   "Messages": {
@@ -1291,6 +1372,41 @@
     }
   },
   "Marketplace": {
+    "vitrine": {
+      "searchLabel": "Search the Marketplace",
+      "searchPlaceholder": "What do you want to achieve?",
+      "clear": "Clear search",
+      "approved": "Approved",
+      "forPlan": "For your {pillar} plan",
+      "forPillar": "For you · {pillar}",
+      "latest": "New",
+      "seeAll": "See all",
+      "results": "All listings",
+      "resultsFor": "Results for “{q}”",
+      "back": "Back to the showcase",
+      "categories": {
+        "label": "Categories",
+        "all": "All",
+        "services": "Services",
+        "gear": "Gear",
+        "fitness_coach": "Coaches",
+        "nutritionist": "Nutrition",
+        "financial_advisor": "Finance",
+        "psychologist": "Psychology",
+        "clothing": "Clothing",
+        "equipment": "Equipment",
+        "books": "Books"
+      }
+    },
+    "favorites": {
+      "add": "Add to favorites: {title}",
+      "remove": "Remove from favorites: {title}",
+      "limit": "You’ve reached the favorites limit. Remove one to keep another.",
+      "failed": "The favorite wasn’t saved. Try again.",
+      "emptyTitle": "No favorites yet",
+      "emptyDescription": "Tap the heart on a listing to find it here. Your favorites stay private.",
+      "browse": "Explore the Marketplace"
+    },
     "price": {
       "range": "{min} – {max}",
       "units": {
@@ -1334,6 +1450,12 @@
     "filters": {
       "pillar": "Pillar",
       "all": "All",
+      "mode": "Where",
+      "modes": {
+        "both": "Online and in person",
+        "online": "Online",
+        "in_person": "In person"
+      },
       "region": "Region",
       "anyRegion": "All regions",
       "price": "Price",
@@ -1582,7 +1704,32 @@
       "tasks": "Tasks",
       "habits": "Habits",
       "future": "Can be checked on the day.",
-      "tooOld": "Too old to check."
+      "tooOld": "Too old to check.",
+      "week": "Week",
+      "month": "Month",
+      "viewLabel": "Calendar view",
+      "weekLabel": "Days of the week",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "moments": {
+        "morning": "Morning",
+        "noon": "Noon",
+        "evening": "Evening",
+        "none": "Any time"
+      },
+      "momentMenu": "Time of day: {title}",
+      "daySummary": "{done, number} of {total, number} done",
+      "dayPlanned": "{total, number} planned",
+      "exercises": "Session · {count, plural, =0 {your way} one {# exercise} other {# exercises}}",
+      "showSession": "Show session: {title}",
+      "hideSession": "Hide session: {title}",
+      "habit": "Habit",
+      "task": "Task",
+      "check": "Mark as done: {title}",
+      "uncheck": "Undo: {title}",
+      "plansLabel": "My plans",
+      "planWeek": "{week, number}/{weeks, number}",
+      "planWeekLabel": "{title}, week {week, number} of {weeks, number}"
     },
     "hub": {
       "plansTitle": "Your personalized plans",
@@ -1612,6 +1759,23 @@
       "deleteDescription": "The plan and your questionnaire answers will be erased. What you already added to your goals and habits stays.",
       "deleteConfirm": "Delete",
       "cancel": "Cancel"
+    },
+    "revise": {
+      "title": "Edit my plan",
+      "description": "Write what you want to change: Get iT AI adjusts your plan and keeps the rest.",
+      "label": "What you want to change",
+      "placeholder": {
+        "physical": "E.g. replace running with cycling, and do 3 sessions instead of 4.",
+        "mental": "E.g. I prefer exercises in the morning, 10 minutes at most.",
+        "social": "E.g. add ideas to meet people at the gym.",
+        "financial": "E.g. I want to pay off my credit card first.",
+        "business": "E.g. add a step to find my first 10 customers online."
+      },
+      "submit": "Edit with Get iT AI",
+      "loading": "Get iT AI is editing your plan… This can take a minute or two.",
+      "done": "Your plan has been updated.",
+      "tooShort": "Describe in a few words what you want to change.",
+      "notice": "An edit counts as one Get iT AI request, but not toward your 3 plans per day."
     },
     "weekdaysShort": {
       "1": "Mon",
@@ -1989,6 +2153,10 @@
           "label": "In which field?",
           "hint": "E.g. fitness coaching, clothing, mobile app."
         },
+        "description": {
+          "label": "Describe your business or project",
+          "hint": "What you offer, to whom, what sets you apart, and where you’re at. The more specific, the better the plan."
+        },
         "stage": {
           "label": "Where are you at?",
           "options": {
@@ -2026,5 +2194,93 @@
     "title": "Something went wrong",
     "description": "An unexpected error occurred. You can try again.",
     "retry": "Try again"
+  },
+  "Journal": {
+    "title": "Journal",
+    "description": "One page a day, just for you.",
+    "private": "Your journal is private: no one else sees it, not even Get iT AI.",
+    "streak": "{count, plural, =0 {No streak yet} one {# day streak} other {# day streak}}",
+    "prompts": {
+      "gratitude": {
+        "label": "Gratitude",
+        "hint": "What made you feel good today?"
+      },
+      "win": {
+        "label": "Today’s win",
+        "hint": "Even a small one: what did you get done?"
+      },
+      "lesson": {
+        "label": "Lesson or challenge",
+        "hint": "What was hard, or what did you learn?"
+      },
+      "intention": {
+        "label": "Intention for tomorrow",
+        "hint": "What do you want to focus on tomorrow?"
+      },
+      "body": {
+        "label": "Free writing",
+        "hint": "Your thoughts, how you feel, what you want to remember about today.",
+        "placeholder": "Today…"
+      }
+    },
+    "editor": {
+      "save": "Save page",
+      "saved": "Page saved.",
+      "savedXp": "Page saved · +{xp, number} XP",
+      "cleared": "Page cleared: it was removed from your journal.",
+      "unsaved": "Unsaved changes",
+      "errors": {
+        "locked": "This page can no longer be edited (older than 7 days).",
+        "invalid": "One of the texts is too long. Shorten it and try again.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      }
+    },
+    "day": {
+      "today": "Today",
+      "backToToday": "Back to today",
+      "previous": "Previous day",
+      "next": "Next day",
+      "recapLink": "Recap and past pages",
+      "locked": "This page is older than 7 days: you can read it, but not edit it.",
+      "emptyTitle": "No page that day",
+      "emptyDescription": "You didn’t write anything that day. Pages can be edited up to 7 days later.",
+      "writeToday": "Write today’s page",
+      "checkIn": "Check-in that day"
+    },
+    "recap": {
+      "title": "Journal recap",
+      "description": "What you wrote, week after week.",
+      "back": "Today’s page",
+      "periodLabel": "Period",
+      "periods": {
+        "week": "Week",
+        "month": "Month"
+      },
+      "previous": {
+        "week": "Previous week",
+        "month": "Previous month"
+      },
+      "next": {
+        "week": "Next week",
+        "month": "Next month"
+      },
+      "written": "Pages written",
+      "writtenValue": "{written, number}/{elapsed, number}",
+      "streak": "Current streak",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "words": "Words written",
+      "mood": "Average mood",
+      "energy": "Average energy",
+      "score": "{value, number}/5",
+      "noCheckIn": "—",
+      "pages": "Pages in this period",
+      "wordsCount": "{count, plural, one {# word} other {# words}}",
+      "empty": {
+        "week": "No pages this week",
+        "month": "No pages that month"
+      },
+      "emptyDescription": "One page a day is enough: a few lines, and your streak begins.",
+      "writeToday": "Write today’s page"
+    }
   }
 }

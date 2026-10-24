@@ -55,10 +55,10 @@ Fill every field of the requested format:
 - title: a short, motivating plan name.
 - summary: 2 to 4 sentences addressed to the user, explaining the approach and why it fits them.
 - highlights: 3 to 6 key figures (short label, short value).
-- schedule: as described above; weekday from 1 (Monday) to 7 (Sunday).
+- schedule: as described above; weekday from 1 (Monday) to 7 (Sunday); moment: when in the day it fits best from their answers ("morning", "noon" or "evening"), or null if it doesn't matter.
 - sections: as described above; each item has a short title and a detail of one to three sentences.
 - goal: the main goal to add to the app (title, and targetInDays from today, matching their target date when they gave one), or null.
-- habits: 0 to 3 small recurring actions from the plan (title, weekdays from 1 to 7).
+- habits: 0 to 3 small recurring actions from the plan (title, weekdays from 1 to 7, moment as for schedule).
 - tasks: 0 to 5 concrete first actions for the next weeks (title, dueInDays from today, at most 30).
 - caution: one or two sentences of safety advice when relevant, otherwise an empty string.
 
@@ -102,4 +102,46 @@ ${request.occupation ? `Occupation: ${request.occupation}\n` : ""}Time they want
 
 Questionnaire answers:
 ${lines.join("\n")}`;
+}
+
+/** Longueur d'une demande de modification. */
+export const REVISION_MAX_LENGTH = 1000;
+
+/** Consignes d'une modification : celles du type de plan, plus la règle de révision. */
+export function revisionInstructions(
+  kind: DevelopmentKind,
+  locale: AiLocale,
+): string {
+  return `${developmentInstructions(kind, locale)}
+
+This time the user already has a plan and asks for changes. Apply exactly the changes they request and keep everything else as it is: same structure, same days, same exercises and same advice wherever the request doesn't affect them. Return the complete updated plan in the same format. For goal, habits and tasks, only propose items that are not already in the app (listed in the request), or none. If the request asks for something unsafe or unrelated to the plan, keep the plan unchanged and say so briefly in the summary.`;
+}
+
+export type RevisionRequest = DevelopmentRequest & {
+  /** Plan actuel, tel qu'enregistré. */
+  plan: unknown;
+  /** Ce qui vient déjà du plan dans l'application. */
+  added: { goals: string[]; habits: string[]; tasks: string[] };
+  /** Les mots de l'utilisateur. */
+  changes: string;
+};
+
+/** La demande de modification : le questionnaire, le plan actuel et les changements voulus. */
+export function revisionPrompt(request: RevisionRequest): string {
+  const list = (items: string[]) =>
+    items.length > 0
+      ? items.map((item) => JSON.stringify(item)).join(", ")
+      : "none";
+  return `${developmentPrompt(request)}
+
+Current plan (JSON):
+${JSON.stringify(request.plan)}
+
+Already added to the app from this plan:
+- goals: ${list(request.added.goals)}
+- habits: ${list(request.added.habits)}
+- tasks: ${list(request.added.tasks)}
+
+Changes the user wants (their own words, about the plan):
+${JSON.stringify(request.changes)}`;
 }

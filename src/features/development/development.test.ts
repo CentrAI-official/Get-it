@@ -4,9 +4,16 @@ import fr from "../../../messages/fr.json";
 import {
   DEVELOPMENT_PLAN_LIMITS,
   normalizeDevelopmentPlan,
+  storedPlanSchema,
+  withoutAdded,
   type AiDevelopmentPlan,
 } from "./plan";
-import { developmentInstructions, developmentPrompt } from "./prompts";
+import {
+  developmentInstructions,
+  developmentPrompt,
+  revisionInstructions,
+  revisionPrompt,
+} from "./prompts";
 import {
   allFields,
   DEVELOPMENT_KINDS,
@@ -153,16 +160,18 @@ const rawPlan = (
   schedule: [
     {
       weekday: 3,
+      moment: "evening",
       title: "Jambes",
       items: [{ name: "Squats", detail: "4 × 8" }],
     },
     {
       weekday: 1,
+      moment: null,
       title: "Haut",
       items: [{ name: "Pompes", detail: "3 × 10" }],
     },
-    { weekday: 1, title: "Doublon", items: [] },
-    { weekday: 9, title: "Jour invalide", items: [] },
+    { weekday: 1, moment: null, title: "Doublon", items: [] },
+    { weekday: 9, moment: null, title: "Jour invalide", items: [] },
   ],
   sections: [
     {
@@ -174,6 +183,7 @@ const rawPlan = (
   habits: Array.from({ length: 5 }, (_, index) => ({
     title: `Habitude ${index}`,
     weekdays: [8, 2, 2],
+    moment: index === 0 ? ("morning" as const) : null,
   })),
   tasks: [{ title: "Acheter des espadrilles", dueInDays: 90 }],
   caution: "",
@@ -185,6 +195,8 @@ describe("normalizeDevelopmentPlan", () => {
     const plan = normalizeDevelopmentPlan(rawPlan());
     expect(plan?.title).toBe("Plan remise en forme");
     expect(plan?.schedule.map((day) => day.weekday)).toEqual([1, 3]);
+    expect(plan?.schedule.map((day) => day.moment)).toEqual([null, "evening"]);
+    expect(plan?.habits[0]?.moment).toBe("morning");
     expect(plan?.habits).toHaveLength(DEVELOPMENT_PLAN_LIMITS.habits);
     expect(plan?.habits[0]?.weekdays).toEqual([2]);
     expect(plan?.tasks[0]?.dueInDays).toBe(
@@ -198,6 +210,44 @@ describe("normalizeDevelopmentPlan", () => {
     expect(
       normalizeDevelopmentPlan(rawPlan({ schedule: [], sections: [] })),
     ).toBeNull();
+  });
+});
+
+describe("storedPlanSchema", () => {
+  it("relit un plan enregistré avant les moments : « dans la journée »", () => {
+    const plan = storedPlanSchema.parse({
+      title: "Ancien plan",
+      summary: "",
+      highlights: [],
+      schedule: [{ weekday: 1, title: "Haut", items: [] }],
+      sections: [],
+      goal: null,
+      habits: [{ title: "Marcher", weekdays: [1, 3] }],
+      tasks: [],
+      caution: "",
+    });
+    expect(plan.schedule[0]?.moment).toBeNull();
+    expect(plan.habits[0]?.moment).toBeNull();
+  });
+});
+
+describe("withoutAdded", () => {
+  it("retire d'un plan modifié ce qui est déjà dans l'application", () => {
+    const plan = normalizeDevelopmentPlan(rawPlan());
+    if (!plan) throw new Error("plan attendu");
+    const [habit, other] = plan.habits;
+    const revised = withoutAdded(plan, {
+      goals: [plan.goal?.title.toUpperCase() ?? ""],
+      habits: [`  ${habit?.title ?? ""} `],
+      tasks: [],
+    });
+    expect(revised.goal).toBeNull();
+    expect(revised.habits.map((item) => item.title)).not.toContain(
+      habit?.title,
+    );
+    expect(revised.habits.map((item) => item.title)).toContain(other?.title);
+    expect(revised.tasks).toEqual(plan.tasks);
+    expect(revised.schedule).toEqual(plan.schedule);
   });
 });
 
@@ -217,6 +267,29 @@ describe("prompts", () => {
     expect(prompt).toContain('- mainGoal: "other" (other: "Courir 10 km")');
     expect(prompt).toContain('- breakfast: "Œufs"');
     expect(prompt).toContain("Plan type: physical");
+  });
+
+  it("la modification cite le plan actuel, ce qui est déjà ajouté et les changements", () => {
+    const prompt = revisionPrompt({
+      kind: "physical",
+      today: TODAY,
+      answers: { mainGoal: "strength" },
+      occupation: null,
+      dailyMinutes: 30,
+      plan: { title: "Plan force" },
+      added: {
+        goals: ["Squat 100 kg"],
+        habits: [],
+        tasks: ["Acheter des poids"],
+      },
+      changes: 'Remplace le vendredi par du "cardio"',
+    });
+    expect(prompt).toContain('{"title":"Plan force"}');
+    expect(prompt).toContain('- goals: "Squat 100 kg"');
+    expect(prompt).toContain("- habits: none");
+    // Les mots de l'utilisateur restent une chaîne citée, jamais des consignes
+    expect(prompt).toContain('"Remplace le vendredi par du \\"cardio\\""');
+    expect(revisionInstructions("physical", "fr")).toContain("crisis: true");
   });
 
   it("chaque consigne prévoit la détresse et la langue de l'utilisateur", () => {

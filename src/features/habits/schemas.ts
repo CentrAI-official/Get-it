@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DAY_MOMENTS } from "@/config/moments";
 import { PILLARS } from "@/config/pillars";
 import { routing } from "@/i18n/routing";
 import { fieldErrorsFrom } from "@/lib/form-errors";
@@ -57,6 +58,13 @@ export const habitFormSchema = z.object({
     .max(HABIT_TITLE_MAX_LENGTH, error("titleTooLong")),
   pillar: z.enum(PILLARS, error("pillarRequired")),
   weekdays: weekdaysSchema,
+  /** Moment de la journée, facultatif : champ vide → null (dans la journée). */
+  moment: z
+    .preprocess(
+      (value) => (value === "" || value === undefined ? null : value),
+      z.enum(DAY_MOMENTS).nullable(),
+    )
+    .catch(null),
   /** Objectif lié, facultatif : champ vide → null. */
   goalId: z
     .preprocess(

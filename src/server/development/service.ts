@@ -2,12 +2,15 @@ import "server-only";
 import {
   DAILY_DEVELOPMENT_PLANS,
   storedPlanSchema,
+  withoutAdded,
   type DevelopmentPlan,
   type DevelopmentSelection,
 } from "@/features/development/plan";
 import {
   developmentInstructions,
   developmentPrompt,
+  revisionInstructions,
+  revisionPrompt,
 } from "@/features/development/prompts";
 import {
   KIND_PILLAR,
@@ -22,6 +25,7 @@ import {
   type CalendarData,
   type Month,
 } from "@/features/development/calendar";
+import type { DayMoment } from "@/config/moments";
 import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getUserTimeZone } from "@/server/profile/service";
 import { getAiProvider } from "@/server/ai/provider";
@@ -252,6 +256,7 @@ export async function applyPlan(
           title: habit.title,
           pillar,
           weekdays: [...habit.weekdays].sort((a, b) => a - b),
+          moment: habit.moment,
         })),
       });
       await tx.task.createMany({
@@ -364,6 +369,7 @@ export async function getCalendar(
         title: true,
         dueDate: true,
         completedAt: true,
+        moment: true,
         developmentPlanId: true,
       },
     }),
@@ -378,6 +384,7 @@ export async function getCalendar(
         id: true,
         title: true,
         weekdays: true,
+        moment: true,
         createdAt: true,
         archivedAt: true,
         developmentPlanId: true,
@@ -411,6 +418,7 @@ export async function getCalendar(
               title: task.title,
               dueDate: fromDbDate(task.dueDate),
               done: task.completedAt !== null,
+              moment: task.moment,
               planKind: planKind(task.developmentPlanId),
             },
           ]
@@ -421,6 +429,7 @@ export async function getCalendar(
         id: habit.id,
         title: habit.title,
         weekdays: habit.weekdays,
+        moment: habit.moment,
         from: toCalendarDay(habit.createdAt, timeZone),
         until: habit.archivedAt
           ? toCalendarDay(habit.archivedAt, timeZone)
@@ -445,4 +454,111 @@ export async function getCalendar(
         : [],
     ),
   };
+}
+
+/**
+ * Moment de la journée de la séance d'un jour de la semaine type (calendrier
+ * « Semaine »). Faux si le plan ou la séance n'existe pas.
+ */
+export async function setSessionMoment(
+  userId: string,
+  kind: DevelopmentKind,
+  weekday: number,
+  moment: DayMoment | null,
+) {
+  return db.$transaction(async (tx) => {
+    const row = await tx.developmentPlan.findUnique({
+      where: { userId_kind: { userId, kind } },
+      select: { id: true, plan: true },
+    });
+    const stored = row ? storedPlanSchema.safeParse(row.plan) : null;
+    if (!row || !stored?.success) return false;
+    const plan = stored.data;
+    if (!plan.schedule.some((session) => session.weekday === weekday)) {
+      return false;
+    }
+    const updated: DevelopmentPlan = {
+      ...plan,
+      schedule: plan.schedule.map((session) =>
+        session.weekday === weekday ? { ...session, moment } : session,
+      ),
+    };
+    await tx.developmentPlan.update({
+      where: { id: row.id },
+      data: { plan: updated },
+    });
+    return true;
+  });
+}
+
+/**
+ * Modifie un plan existant selon la demande de l'utilisateur. Compte dans la
+ * limite quotidienne de Get iT AI, mais pas dans les plans du jour ; la
+ * période du plan dans le calendrier ne change pas.
+ */
+export async function revisePlan(
+  userId: string,
+  kind: DevelopmentKind,
+  changes: string,
+): Promise<{ ok: true } | { ok: false; error: DevelopmentError }> {
+  const provider = getAiProvider();
+  if (!provider) return { ok: false, error: "notConfigured" };
+  const profile = await getAiProfile(userId);
+  if (!profile) return { ok: false, error: "notFound" };
+  if (!profile.consented) return { ok: false, error: "consentRequired" };
+  const row = await db.developmentPlan.findUnique({
+    where: { userId_kind: { userId, kind } },
+    select: {
+      id: true,
+      answers: true,
+      plan: true,
+      goals: { select: { title: true } },
+      habits: { select: { title: true } },
+      tasks: { select: { title: true } },
+    },
+  });
+  const current = row ? storedPlanSchema.safeParse(row.plan) : null;
+  if (!row || !current?.success) return { ok: false, error: "notFound" };
+
+  const reservation = await reserveAiRequest(
+    userId,
+    "development_revision",
+    profile.timeZone,
+  );
+  if (!reservation) return { ok: false, error: "limitReached" };
+  const today = toCalendarDay(new Date(), profile.timeZone);
+  const added = {
+    goals: row.goals.map((goal) => goal.title),
+    habits: row.habits.map((habit) => habit.title),
+    tasks: row.tasks.map((task) => task.title),
+  };
+  const result = await provider
+    .generateDevelopmentPlan({
+      system: revisionInstructions(kind, profile.locale),
+      prompt: revisionPrompt({
+        kind,
+        today,
+        answers: row.answers as Answers,
+        occupation: profile.occupation,
+        dailyMinutes: profile.dailyMinutes,
+        plan: current.data,
+        added,
+        changes,
+      }),
+    })
+    .catch(async (error: unknown) => {
+      await releaseAiRequest(reservation.id).catch(() => {});
+      throw error;
+    });
+  await recordAiUsage(reservation.id, result.usage);
+
+  if (result.refused) return { ok: false, error: "refused" };
+  if (result.crisis) return { ok: false, error: "crisis" };
+  if (!result.plan) return { ok: false, error: "unexpected" };
+  // Jamais de doublon : ce qui est déjà ajouté ne se propose plus
+  await db.developmentPlan.update({
+    where: { id: row.id },
+    data: { plan: withoutAdded(result.plan, added) },
+  });
+  return { ok: true };
 }

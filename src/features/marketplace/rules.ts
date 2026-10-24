@@ -213,13 +213,63 @@ export const listingInputSchema = z.discriminatedUnion("kind", [
 export type ListingInput = z.infer<typeof listingInputSchema>;
 
 /** Filtres du catalogue, lus dans l'adresse (valeurs inconnues ignorées). */
+/** Où se donne un service : en ligne ou en présentiel (sans choix : les deux). */
+export const SERVICE_MODES = ["online", "in_person"] as const;
+export type ServiceMode = (typeof SERVICE_MODES)[number];
+/** Régions où l'on se rencontre en personne (toutes sauf « en ligne »). */
+export const IN_PERSON_REGIONS = REGIONS.filter(
+  (region) => region !== "online",
+);
+
+/** Longueur d'une recherche (« Que veux-tu accomplir? »). */
+export const SEARCH_MIN_LENGTH = 2;
+export const SEARCH_MAX_LENGTH = 60;
+
 export const catalogFiltersSchema = z.object({
   pillar: z.enum(PILLARS).optional().catch(undefined),
+  mode: z.enum(SERVICE_MODES).optional().catch(undefined),
   region: z.enum(REGIONS).optional().catch(undefined),
   price: z.enum(PRICE_RANGE_KEYS).optional().catch(undefined),
+  category: z
+    .enum([...SERVICE_CATEGORIES, ...GEAR_CATEGORIES])
+    .optional()
+    .catch(undefined),
+  /** Recherche dans le titre et le résumé ; trop courte ou trop longue : ignorée. */
+  q: z
+    .string()
+    .trim()
+    .min(SEARCH_MIN_LENGTH)
+    .max(SEARCH_MAX_LENGTH)
+    .optional()
+    .catch(undefined),
+  /** « Tout voir » : la liste complète plutôt que la vitrine. */
+  view: z.literal("list").optional().catch(undefined),
 });
 
 export type CatalogFilters = z.infer<typeof catalogFiltersSchema>;
+
+/** Vrai quand la page montre une liste filtrée plutôt que la vitrine. */
+export function isFiltered(filters: CatalogFilters) {
+  return Object.values(filters).some((value) => value !== undefined);
+}
+
+/** Catégories de la rangée d'icônes de la vitrine (« Autre » reste dans « Tout »). */
+export const VITRINE_CATEGORIES = {
+  service: [
+    "fitness_coach",
+    "nutritionist",
+    "financial_advisor",
+    "psychologist",
+  ],
+  gear: ["clothing", "equipment", "books"],
+} as const satisfies Record<ListingKind, readonly ListingCategory[]>;
+
+/** Annonces par collection de la vitrine, et collections « Pour ton plan » au plus. */
+export const VITRINE_COLLECTION_SIZE = 8;
+export const VITRINE_PLAN_COLLECTIONS = 2;
+
+/** Favoris gardés au plus par personne. */
+export const FAVORITES_MAX = 200;
 
 export const MARKETPLACE_ERRORS = [
   "notAffiliate",

@@ -65,6 +65,10 @@ model Profile {
   suspendedUntil DateTime?   @map("suspended_until") @db.Timestamptz(3)
   /// Prénom ou nom affiché, demandé à l'onboarding.
   displayName    String?     @map("display_name")
+  /// Courte présentation, visible des membres du Centre (160 caractères au plus).
+  bio            String?
+  /// Photo de profil dans le compartiment privé « media » (lue par lien temporaire).
+  avatarPath     String?     @map("avatar_path")
   occupation     Occupation?
   /// Piliers que l'utilisateur veut améliorer en priorité.
   focusPillars   Pillar[]    @default([]) @map("focus_pillars")
@@ -78,6 +82,7 @@ model Profile {
   tasks                Task[]
   habits               Habit[]
   checkIns             DailyCheckIn[]
+  journalEntries       JournalEntry[]
   assessments          PillarAssessment[]
   xpEvents             XpEvent[]
   aiRequests           AiRequest[]
@@ -103,6 +108,7 @@ model Profile {
   pactMembers          PactMember[]
   listings             Listing[]            @relation("ListingSeller")
   listingsReviewed     Listing[]            @relation("ListingReviewer")
+  listingFavorites     ListingFavorite[]
   developmentPlans     DevelopmentPlan[]
 
   @@map("profiles")
@@ -179,18 +185,27 @@ model GoalMilestone {
 }
 
 /// Action concrète, rattachée à un objectif ou indépendante (étape 6 : page Aujourd'hui).
+/// Moment de la journée d'une habitude, d'une tâche ou d'une séance de plan.
+enum DayMoment {
+  morning
+  noon
+  evening
+}
+
 model Task {
-  id                String    @id @default(uuid(7)) @db.Uuid
-  userId            String    @map("user_id") @db.Uuid
-  goalId            String?   @map("goal_id") @db.Uuid
+  id                String     @id @default(uuid(7)) @db.Uuid
+  userId            String     @map("user_id") @db.Uuid
+  goalId            String?    @map("goal_id") @db.Uuid
   title             String
   /// Jour d'échéance : une date du calendrier, sans heure ni fuseau.
-  dueDate           DateTime? @map("due_date") @db.Date
-  completedAt       DateTime? @map("completed_at") @db.Timestamptz(3)
+  dueDate           DateTime?  @map("due_date") @db.Date
+  completedAt       DateTime?  @map("completed_at") @db.Timestamptz(3)
+  /// Moment de la journée choisi (calendrier « Semaine ») ; null : dans la journée.
+  moment            DayMoment?
   /// Plan de « Mon développement » d'où vient la tâche ; détachée si le plan est supprimé.
-  developmentPlanId String?   @map("development_plan_id") @db.Uuid
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  developmentPlanId String?    @map("development_plan_id") @db.Uuid
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal            Goal?            @relation(fields: [goalId], references: [id], onDelete: Cascade)
@@ -220,20 +235,22 @@ model PillarAssessment {
 
 /// Habitude à répéter certains jours de la semaine.
 model Habit {
-  id                String    @id @default(uuid(7)) @db.Uuid
-  userId            String    @map("user_id") @db.Uuid
+  id                String     @id @default(uuid(7)) @db.Uuid
+  userId            String     @map("user_id") @db.Uuid
   /// Objectif soutenu par l'habitude ; détaché si l'objectif est supprimé.
-  goalId            String?   @map("goal_id") @db.Uuid
+  goalId            String?    @map("goal_id") @db.Uuid
   title             String
   pillar            Pillar
   /// Jours prévus, de 1 (lundi) à 7 (dimanche). Les sept : tous les jours.
   weekdays          Int[]
   /// Habitude mise en pause : elle n'apparaît plus dans le suivi.
-  archivedAt        DateTime? @map("archived_at") @db.Timestamptz(3)
+  archivedAt        DateTime?  @map("archived_at") @db.Timestamptz(3)
+  /// Moment de la journée choisi (calendrier « Semaine ») ; null : dans la journée.
+  moment            DayMoment?
   /// Plan de « Mon développement » d'où vient l'habitude ; détachée si le plan est supprimé.
-  developmentPlanId String?   @map("development_plan_id") @db.Uuid
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  developmentPlanId String?    @map("development_plan_id") @db.Uuid
+  createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile         Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
   goal            Goal?             @relation(fields: [goalId], references: [id], onDelete: SetNull)
@@ -282,6 +299,30 @@ model DailyCheckIn {
   @@map("daily_check_ins")
 }
 
+/// Page du journal : une par jour, privée (jamais envoyée à Get iT AI ni
+/// montrée à quelqu'un d'autre). Réponses aux questions guidées et texte libre.
+model JournalEntry {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// Jour du calendrier dans le fuseau de l'utilisateur.
+  day       DateTime @db.Date
+  gratitude String?
+  win       String?
+  lesson    String?
+  intention String?
+  body      String?
+  /// Mots écrits (récap), recalculé à chaque enregistrement.
+  words     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xpEvent XpEvent?
+
+  @@unique([userId, day])
+  @@map("journal_entries")
+}
+
 /// Action qui rapporte de l'XP (§6).
 enum XpSource {
   habit_day
@@ -289,6 +330,7 @@ enum XpSource {
   milestone
   goal
   check_in
+  journal
 }
 
 /// XP gagnée par une action (§54 XPEvent). Chaque ligne pointe vers son action
@@ -307,6 +349,7 @@ model XpEvent {
   milestoneId       String?  @unique @map("milestone_id") @db.Uuid
   goalId            String?  @unique @map("goal_id") @db.Uuid
   checkInId         String?  @unique @map("check_in_id") @db.Uuid
+  journalEntryId    String?  @unique @map("journal_entry_id") @db.Uuid
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -315,6 +358,7 @@ model XpEvent {
   milestone       GoalMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
   goal            Goal?            @relation(fields: [goalId], references: [id], onDelete: Cascade)
   checkIn         DailyCheckIn?    @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  journalEntry    JournalEntry?    @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
 
   @@index([userId, day])
   @@index([userId, source, day])
@@ -326,6 +370,8 @@ enum AiRequestKind {
   coach
   goal_plan
   development_plan
+  /// Modification d'un plan existant : ne compte pas dans les 3 plans par jour.
+  development_revision
 }
 
 /// Requête faite à Get iT AI : limite quotidienne et suivi des coûts (jetons).
@@ -844,9 +890,10 @@ model Listing {
   createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  seller   Profile        @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
-  reviewer Profile?       @relation("ListingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
-  media    ListingMedia[]
+  seller    Profile           @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  reviewer  Profile?          @relation("ListingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  media     ListingMedia[]
+  favorites ListingFavorite[]
 
   @@index([status, kind, pillar, createdAt])
   @@index([sellerId, createdAt])
@@ -903,4 +950,19 @@ model DevelopmentPlan {
 
   @@unique([userId, kind])
   @@map("development_plans")
+}
+
+/// Annonce gardée en favori par un acheteur. Privé : jamais montré au vendeur ni aux autres.
+model ListingFavorite {
+  userId    String   @map("user_id") @db.Uuid
+  listingId String   @map("listing_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@id([userId, listingId])
+  @@index([listingId])
+  @@index([userId, createdAt])
+  @@map("listing_favorites")
 }

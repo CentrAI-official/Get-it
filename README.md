@@ -73,7 +73,8 @@ src/i18n/                 configuration des langues
 - [x] 9. Centre Get iT : fil social de base et modération
 - [x] 9b. Réorganisation : Communauté en accueil, popup « Ma journée », Profil (objectifs, habitudes, progression)
 - [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mon développement (anciennement Mes services), Marketplace, Profil
-- [ ] 9d. Journal (dans Profil)
+- [x] 9d. Journal (dans Profil) : une page par jour, questions guidées, récap de la semaine et du mois
+- [x] 9d2. Profil public : photo, courte présentation, nombre de contacts, onglet Publications
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
 - [x] 9f0. Photos et vidéos dans les publications
@@ -87,5 +88,6 @@ src/i18n/                 configuration des langues
 - [ ] 9g3. Avis et vérification des affiliés
 - [x] 9i1. Mon développement : plans personnalisés par Get iT AI (entraînement, mental, social, financier, entreprise)
 - [x] 9i1b. Calendriers : principal (tout) et par plan (séances, tâches, habitudes, objectifs)
+- [x] 9i1c. Modifier un plan avec ses propres mots ; description du projet dans le plan d’entreprise
 - [ ] 9i2. Mon développement : suivi par un professionnel (rendez-vous, notes de session)
 - [ ] 10. Finitions, analytics et déploiement

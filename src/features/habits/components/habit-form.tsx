@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { DAY_MOMENTS, momentIcons, type DayMoment } from "@/config/moments";
 import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ type HabitFormProps = {
     pillar: Pillar;
     weekdays: number[];
     goalId: string;
+    moment: DayMoment | null;
   };
   submitLabel: string;
   pendingLabel: string;
@@ -74,6 +76,9 @@ export function HabitForm({
   const [weekdays, setWeekdays] = useState<number[]>(
     defaults?.weekdays ?? [...WEEKDAYS],
   );
+  const [moment, setMoment] = useState<DayMoment | null>(
+    defaults?.moment ?? null,
+  );
   const errors = state.fieldErrors ?? {};
 
   function toggleWeekday(weekday: number) {
@@ -93,6 +98,7 @@ export function HabitForm({
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="pillar" value={pillar} />
       <input type="hidden" name="weekdays" value={weekdays.join(",")} />
+      <input type="hidden" name="moment" value={moment ?? ""} />
       {state.error ? (
         <Alert variant="destructive">
           <CircleAlert aria-hidden="true" />
@@ -219,6 +225,44 @@ export function HabitForm({
               {t(`errors.${errors.weekdays}`)}
             </FieldError>
           ) : null}
+        </FieldSet>
+
+        {/* Moment de la journée : place l'habitude dans la vue « Semaine » */}
+        <FieldSet>
+          <FieldLegend variant="label">
+            {t("form.momentLabel")}
+            <span className="font-normal text-muted-foreground">
+              ({t("form.optional")})
+            </span>
+          </FieldLegend>
+          <div
+            role="radiogroup"
+            aria-label={t("form.momentLabel")}
+            className="flex flex-wrap gap-2"
+          >
+            {[...DAY_MOMENTS, null].map((value) => {
+              const Icon = value ? momentIcons[value] : null;
+              const active = moment === value;
+              return (
+                <button
+                  key={value ?? "none"}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => setMoment(value)}
+                  className={cn(
+                    "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    active
+                      ? "border-primary bg-primary/10 text-foreground"
+                      : "border-input text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {Icon ? <Icon aria-hidden="true" className="size-4" /> : null}
+                  {t(`form.moments.${value ?? "none"}`)}
+                </button>
+              );
+            })}
+          </div>
         </FieldSet>
 
         {goals.length > 0 ? (

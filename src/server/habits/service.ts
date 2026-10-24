@@ -1,4 +1,5 @@
 import "server-only";
+import type { DayMoment } from "@/config/moments";
 import type { Pillar } from "@/config/pillars";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
 import { habitDayXp } from "@/features/xp/rules";
@@ -66,6 +67,7 @@ export async function getHabit(userId: string, habitId: string) {
       title: true,
       pillar: true,
       weekdays: true,
+      moment: true,
       goal: { select: { id: true, title: true } },
       archivedAt: true,
     },
@@ -73,11 +75,25 @@ export async function getHabit(userId: string, habitId: string) {
   return habit ? { ...habit, archived: habit.archivedAt !== null } : null;
 }
 
+/** Moment de la journée d'une habitude (calendrier « Semaine »). Faux si elle n'existe pas. */
+export async function setHabitMoment(
+  userId: string,
+  habitId: string,
+  moment: DayMoment | null,
+) {
+  const { count } = await db.habit.updateMany({
+    where: { id: habitId, userId },
+    data: { moment },
+  });
+  return count > 0;
+}
+
 type HabitFields = {
   title: string;
   pillar: Pillar;
   weekdays: number[];
   goalId: string | null;
+  moment: DayMoment | null;
 };
 
 /** Seulement les colonnes de l'habitude (l'entrée validée contient aussi la langue). */
@@ -87,6 +103,7 @@ function toHabitData(input: HabitFields) {
     pillar: input.pillar,
     weekdays: input.weekdays,
     goalId: input.goalId,
+    moment: input.moment,
   };
 }
 

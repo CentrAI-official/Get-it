@@ -4,6 +4,7 @@ import { MessageCircle, SquarePen } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
+import { Avatar } from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -123,12 +124,11 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
       href={`/messages/${item.id}`}
       className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <span
-        aria-hidden="true"
-        className="flex size-12 shrink-0 items-center justify-center rounded-full orb font-heading text-lg font-bold uppercase"
-      >
-        {name.charAt(0)}
-      </span>
+      <Avatar
+        name={name}
+        url={item.other.avatarUrl}
+        className="size-12 text-lg"
+      />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-2">

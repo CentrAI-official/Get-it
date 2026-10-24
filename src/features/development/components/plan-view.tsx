@@ -28,6 +28,7 @@ import type { CalendarData } from "../calendar";
 import type { DevelopmentPlan } from "../plan";
 import type { DevelopmentKind } from "../questionnaires";
 import { CalendarView } from "./calendar-view";
+import { RevisePlan } from "./revise-plan";
 
 type PlanViewProps = {
   kind: DevelopmentKind;
@@ -38,6 +39,8 @@ type PlanViewProps = {
   /** Plan financier d'une personne qui a ou veut une entreprise. */
   suggestBusiness: boolean;
   onRedo: () => void;
+  /** Détresse signalée pendant une modification : ressources d'aide. */
+  onCrisis: () => void;
 };
 
 /** Un plan de « Mon développement » et ce qu'on peut en ajouter à Get iT. */
@@ -48,6 +51,7 @@ export function PlanView({
   calendar,
   suggestBusiness,
   onRedo,
+  onCrisis,
 }: PlanViewProps) {
   const t = useTranslations("Development.plan");
   const tCalendar = useTranslations("Development.calendar");
@@ -135,6 +139,8 @@ export function PlanView({
           {t("businessCta")}
         </Link>
       ) : null}
+
+      <RevisePlan kind={kind} onCrisis={onCrisis} />
 
       <div className="flex flex-wrap gap-2 border-t border-white/8 pt-6">
         <Button variant="outline" onClick={onRedo}>

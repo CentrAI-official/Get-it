@@ -16,6 +16,10 @@ type CommunityFeedProps = {
   /** Heure du serveur au rendu (affichage « il y a 5 minutes »). */
   now: number;
   canWrite: boolean;
+  /** Seulement les publications de cette personne (profil, onglet Publications). */
+  authorId?: string;
+  /** Textes de l'état vide, à la place de ceux du fil. */
+  empty?: { title: string; description: string };
 };
 
 /** Fil chronologique du Centre, page par page (« Voir plus »). */
@@ -24,6 +28,8 @@ export function CommunityFeed({
   initialCursor,
   now,
   canWrite,
+  authorId,
+  empty,
 }: CommunityFeedProps) {
   const t = useTranslations("Community.feed");
   const [posts, setPosts] = useState(initialPosts);
@@ -38,7 +44,7 @@ export function CommunityFeed({
   function loadMore() {
     if (!cursor) return;
     startLoading(async () => {
-      const page = await loadMorePostsAction(cursor);
+      const page = await loadMorePostsAction(cursor, authorId);
       setPosts((current) => [
         ...current,
         ...page.posts.filter((post) => !current.some((p) => p.id === post.id)),
@@ -70,8 +76,8 @@ export function CommunityFeed({
       {posts.length === 0 ? (
         <EmptyState
           icon={MessagesSquare}
-          title={t("emptyTitle")}
-          description={t("emptyDescription")}
+          title={empty?.title ?? t("emptyTitle")}
+          description={empty?.description ?? t("emptyDescription")}
         />
       ) : (
         posts.map((post) => (

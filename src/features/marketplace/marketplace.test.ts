@@ -1,14 +1,18 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  catalogFiltersSchema,
   dollarsToCents,
   GEAR_CATEGORIES,
+  IN_PERSON_REGIONS,
   inPriceRange,
+  isFiltered,
   listingInputSchema,
   PRICE_RANGES,
   REGIONS,
   SERVICE_CATEGORIES,
   SERVICE_PRICE_UNITS,
+  VITRINE_CATEGORIES,
 } from "./rules";
 
 const UPLOAD = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b";
@@ -144,6 +148,64 @@ describe("listingInputSchema", () => {
       listingInputSchema.safeParse({ ...service, category: "clothing" })
         .success,
     ).toBe(false);
+  });
+});
+
+describe("catalogFiltersSchema", () => {
+  it("accepte en ligne ou en personne, et ignore une valeur inconnue", () => {
+    expect(catalogFiltersSchema.parse({ mode: "online" }).mode).toBe("online");
+    expect(catalogFiltersSchema.parse({ mode: "in_person" }).mode).toBe(
+      "in_person",
+    );
+    expect(
+      catalogFiltersSchema.parse({ mode: "partout" }).mode,
+    ).toBeUndefined();
+  });
+
+  it("en personne : toutes les régions sauf « en ligne »", () => {
+    expect(IN_PERSON_REGIONS).not.toContain("online");
+    expect(IN_PERSON_REGIONS).toHaveLength(REGIONS.length - 1);
+  });
+});
+
+describe("vitrine", () => {
+  it("garde une recherche rognée, ignore une recherche trop courte ou trop longue", () => {
+    expect(catalogFiltersSchema.parse({ q: "  courir 10 km " }).q).toBe(
+      "courir 10 km",
+    );
+    expect(catalogFiltersSchema.parse({ q: "a" }).q).toBeUndefined();
+    expect(catalogFiltersSchema.parse({ q: "x".repeat(61) }).q).toBeUndefined();
+  });
+
+  it("accepte une catégorie connue, ignore les autres", () => {
+    expect(
+      catalogFiltersSchema.parse({ category: "nutritionist" }).category,
+    ).toBe("nutritionist");
+    expect(
+      catalogFiltersSchema.parse({ category: "dentist" }).category,
+    ).toBeUndefined();
+  });
+
+  it("montre la vitrine sans filtre, la liste avec une recherche, une catégorie ou « Tout voir »", () => {
+    expect(isFiltered(catalogFiltersSchema.parse({}))).toBe(false);
+    expect(isFiltered(catalogFiltersSchema.parse({ q: "yoga" }))).toBe(true);
+    expect(isFiltered(catalogFiltersSchema.parse({ category: "books" }))).toBe(
+      true,
+    );
+    expect(isFiltered(catalogFiltersSchema.parse({ view: "list" }))).toBe(true);
+    // Une valeur invalide est ignorée : retour à la vitrine
+    expect(isFiltered(catalogFiltersSchema.parse({ view: "grid" }))).toBe(
+      false,
+    );
+  });
+
+  it("n'affiche que des catégories de son onglet", () => {
+    for (const category of VITRINE_CATEGORIES.service) {
+      expect(SERVICE_CATEGORIES).toContain(category);
+    }
+    for (const category of VITRINE_CATEGORIES.gear) {
+      expect(GEAR_CATEGORIES).toContain(category);
+    }
   });
 });
 

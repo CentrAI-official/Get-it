@@ -2,6 +2,7 @@ import {
   CalendarDays,
   Contact,
   Handshake,
+  Heart,
   MessageCircle,
   Settings,
   ShoppingBag,
@@ -56,6 +57,7 @@ export type TopActionKey =
   | "newMessage"
   | "shopServices"
   | "sell"
+  | "favorites"
   | "settings";
 
 export type TopAction = {
@@ -73,6 +75,7 @@ export const topActions = {
   newMessage: { key: "newMessage", href: "/messages/new", icon: SquarePen },
   shopServices: { key: "shopServices", href: "/marketplace", icon: Store },
   sell: { key: "sell", href: "/marketplace/sell", icon: Tag },
+  favorites: { key: "favorites", href: "/marketplace/favorites", icon: Heart },
   settings: { key: "settings", href: "/settings", icon: Settings },
 } as const satisfies Record<TopActionKey, TopAction>;
 
@@ -81,7 +84,7 @@ export const categoryActions: Record<AppNavKey, readonly TopActionKey[]> = {
   community: ["groups", "events", "coach"],
   messages: ["contacts", "newMessage", "coach"],
   services: ["shopServices", "coach"],
-  marketplace: ["sell", "coach"],
+  marketplace: ["favorites", "sell", "coach"],
   profile: ["settings", "coach"],
 };
 

@@ -7,6 +7,14 @@ import {
   summarizePlannedDay,
 } from "./day-plan";
 import { formatDayStamp } from "./day-stamp";
+import {
+  FOCUS_DAYS,
+  focusOrder,
+  habitDays,
+  mergeOrder,
+  nextFocus,
+  segmentState,
+} from "./focus";
 import { computePillarScores } from "./pillar-scores";
 import { CHECK_IN_METRICS, checkInSchema } from "./schemas";
 
@@ -201,5 +209,66 @@ describe("checkInSchema", () => {
         expect(messages.Today.checkIn.high[metric]).toBeTruthy();
       }
     }
+  });
+});
+
+describe("mode Focus", () => {
+  const quests = [
+    { key: "habit:a", done: false },
+    { key: "habit:b", done: true },
+    { key: "task:c", done: false },
+  ];
+
+  it("met les quêtes faites en premier, puis les autres dans l'ordre reçu", () => {
+    expect(focusOrder(quests)).toEqual(["habit:b", "habit:a", "task:c"]);
+  });
+
+  it("retire les quêtes supprimées et ajoute les nouvelles à la fin", () => {
+    expect(
+      mergeOrder(
+        ["habit:b", "habit:a", "task:c"],
+        ["habit:a", "task:d", "habit:b"],
+      ),
+    ).toEqual(["habit:b", "habit:a", "task:d"]);
+  });
+
+  it("passe à la prochaine quête à faire, en sautant celles gardées pour plus tard", () => {
+    const order = ["habit:b", "habit:a", "task:c", "task:d"];
+    const done = { "habit:b": true };
+    expect(nextFocus(order, done, new Set(), null)).toBe("habit:a");
+    expect(nextFocus(order, done, new Set(["task:c"]), "habit:a")).toBe(
+      "task:d",
+    );
+    // Après la dernière, on repart du début
+    expect(nextFocus(order, done, new Set(), "task:d")).toBe("habit:a");
+  });
+
+  it("ne montre plus rien quand tout est fait ou gardé pour plus tard", () => {
+    const order = ["habit:a", "task:c"];
+    expect(
+      nextFocus(order, { "habit:a": true }, new Set(["task:c"]), null),
+    ).toBe(null);
+    expect(nextFocus([], {}, new Set(), null)).toBe(null);
+  });
+
+  it("donne l'état de chaque segment", () => {
+    const done = { "habit:b": true };
+    const later = new Set(["task:c"]);
+    expect(segmentState("habit:b", "habit:a", done, later)).toBe("done");
+    expect(segmentState("habit:a", "habit:a", done, later)).toBe("current");
+    expect(segmentState("task:c", "habit:a", done, later)).toBe("later");
+    expect(segmentState("task:d", "habit:a", done, later)).toBe("todo");
+  });
+
+  it("donne les derniers jours d'une habitude, jusqu'à aujourd'hui", () => {
+    // Le jeudi seulement ; faite le jeudi 1er octobre et aujourd'hui
+    const days = habitDays(new Set(["2026-10-01", today]), [4], today);
+    expect(days).toHaveLength(FOCUS_DAYS);
+    expect(days.at(-1)).toEqual({ day: today, done: true, planned: true });
+    expect(days.at(0)?.day).toBe("2026-09-25");
+    expect(days.filter((day) => day.planned).map((day) => day.day)).toEqual([
+      "2026-10-01",
+      today,
+    ]);
   });
 });

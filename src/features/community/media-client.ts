@@ -157,3 +157,39 @@ export function uploadFile(
     request.send(body);
   });
 }
+
+/** Côté d'une photo de profil, en pixels. */
+const AVATAR_SIZE = 512;
+
+/**
+ * Photo de profil : le centre de l'image en carré, 512 px au plus, réencodée
+ * (sans métadonnées, donc sans position GPS).
+ */
+export async function prepareAvatar(file: Blob): Promise<PreparedImage> {
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    throw new MediaError("mediaType");
+  }
+  const side = Math.min(bitmap.width, bitmap.height);
+  const size = Math.min(AVATAR_SIZE, side);
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext("2d");
+  if (!context) throw new MediaError("mediaType");
+  context.drawImage(
+    bitmap,
+    (bitmap.width - side) / 2,
+    (bitmap.height - side) / 2,
+    side,
+    side,
+    0,
+    0,
+    size,
+    size,
+  );
+  bitmap.close();
+  return { blob: await encode(canvas), width: size, height: size };
+}

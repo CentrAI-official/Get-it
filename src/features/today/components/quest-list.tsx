@@ -17,6 +17,7 @@ import { addTaskAction } from "@/features/tasks/actions";
 import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import type { FocusDay } from "../focus";
 
 type QuestBase = {
   /** « habit:<id> » ou « task:<id> » */
@@ -33,6 +34,8 @@ export type HabitQuest = QuestBase & {
   pillar: Pillar;
   /** Série en cours, recalculée à chaque clic. */
   streak: number;
+  /** Derniers jours, pour le mode Focus de Ma journée. */
+  days?: FocusDay[];
   late: false;
   /** Pacte en cours sur cette habitude (Messagerie). */
   pact?: {
@@ -179,31 +182,14 @@ export function QuestList({
   );
 }
 
-type QuestRowProps = {
-  quest: Quest;
-  onToggle: () => void;
-  /** Seules les tâches se suppriment d'ici. */
-  onDelete?: () => void;
-  deleteLabel?: string;
-};
-
-/** Une quête à cocher (aussi utilisée dans l'aperçu du site public). */
-export function QuestRow({
-  quest,
-  onToggle,
-  onDelete,
-  deleteLabel,
-}: QuestRowProps) {
+/**
+ * Ligne d'information d'une quête : « Habitude · Physique · série de 12 j »,
+ * « En retard · 12 oct. · Objectif ».
+ */
+export function useQuestMeta() {
   const t = useTranslations("Today.quests");
   const tPillars = useTranslations("Pillars");
   const format = useFormatter();
-  // Chaque coche qui rapporte de l'XP relance la petite animation « +10 XP »
-  const [burst, setBurst] = useState(0);
-
-  function toggle() {
-    if (!quest.done && quest.xp > 0) setBurst((count) => count + 1);
-    onToggle();
-  }
 
   function taskMeta(task: TaskQuest) {
     const due =
@@ -229,7 +215,57 @@ export function QuestRow({
       : meta;
   }
 
-  const meta = quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
+  return (quest: Quest) =>
+    quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
+}
+
+/** Pacte en cours sur une habitude : jour du pacte et part du partenaire. */
+export function QuestPact({ pact }: { pact: NonNullable<HabitQuest["pact"]> }) {
+  const t = useTranslations("Today.quests");
+  return (
+    <span className="flex items-start gap-1.5 text-xs text-primary">
+      <Handshake aria-hidden="true" className="mt-px size-3.5 shrink-0" />
+      <span className="break-words">
+        {t("pact", {
+          name: pact.partnerName,
+          day: pact.dayIndex,
+          days: pact.days,
+        })}
+        {" · "}
+        {pact.partnerDone
+          ? t("pactPartnerDone", { name: pact.partnerName })
+          : t("pactPartnerPending", { name: pact.partnerName })}
+      </span>
+    </span>
+  );
+}
+
+type QuestRowProps = {
+  quest: Quest;
+  onToggle: () => void;
+  /** Seules les tâches se suppriment d'ici. */
+  onDelete?: () => void;
+  deleteLabel?: string;
+};
+
+/** Une quête à cocher (aussi utilisée dans l'aperçu du site public). */
+export function QuestRow({
+  quest,
+  onToggle,
+  onDelete,
+  deleteLabel,
+}: QuestRowProps) {
+  const t = useTranslations("Today.quests");
+  const questMeta = useQuestMeta();
+  // Chaque coche qui rapporte de l'XP relance la petite animation « +10 XP »
+  const [burst, setBurst] = useState(0);
+
+  function toggle() {
+    if (!quest.done && quest.xp > 0) setBurst((count) => count + 1);
+    onToggle();
+  }
+
+  const meta = questMeta(quest);
   const pact = quest.kind === "habit" ? quest.pact : undefined;
 
   return (
@@ -267,25 +303,7 @@ export function QuestRow({
           >
             {quest.title}
           </span>
-          {pact ? (
-            <span className="flex items-start gap-1.5 text-xs text-primary">
-              <Handshake
-                aria-hidden="true"
-                className="mt-px size-3.5 shrink-0"
-              />
-              <span className="break-words">
-                {t("pact", {
-                  name: pact.partnerName,
-                  day: pact.dayIndex,
-                  days: pact.days,
-                })}
-                {" · "}
-                {pact.partnerDone
-                  ? t("pactPartnerDone", { name: pact.partnerName })
-                  : t("pactPartnerPending", { name: pact.partnerName })}
-              </span>
-            </span>
-          ) : null}
+          {pact ? <QuestPact pact={pact} /> : null}
           <span
             className={cn(
               "text-xs break-words",

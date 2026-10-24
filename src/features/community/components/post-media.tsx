@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -28,7 +28,13 @@ type FullscreenVideo = HTMLVideoElement & {
  * quand on change de page, quand elle sort de l'écran ou quand une autre
  * vidéo démarre.
  */
-function PostVideo({ video }: { video: FeedMedia }) {
+function PostVideo({
+  video,
+  className,
+}: {
+  video: FeedMedia;
+  className?: string;
+}) {
   const ref = useRef<HTMLVideoElement>(null);
 
   // Next garde la page précédente cachée dans le DOM (Activity) au lieu de la
@@ -70,7 +76,10 @@ function PostVideo({ video }: { video: FeedMedia }) {
       playsInline
       preload="metadata"
       onPlay={onPlay}
-      className="max-h-[70dvh] w-full rounded-2xl bg-black object-contain"
+      className={cn(
+        "max-h-[70dvh] w-full rounded-2xl bg-black object-contain",
+        className,
+      )}
       style={{ aspectRatio: `${video.width} / ${video.height}` }}
     >
       <track kind="captions" />
@@ -78,14 +87,58 @@ function PostVideo({ video }: { video: FeedMedia }) {
   );
 }
 
+/** Deux touchers plus rapprochés que ce délai : double-tap (« Bravo »). */
+const DOUBLE_TAP_MS = 280;
+
+type PostMediaProps = {
+  media: FeedMedia[];
+  /** Coins et marges (ex. bord à bord sur téléphone). */
+  className?: string;
+  /**
+   * Double-tap sur une photo. Avec lui, un toucher simple ouvre la photo un
+   * court instant plus tard, le temps de reconnaître un deuxième toucher.
+   */
+  onDoubleTap?: () => void;
+};
+
 /** Photos (grille, plein écran au toucher) ou vidéo d'une publication. */
-export function PostMedia({ media }: { media: FeedMedia[] }) {
+export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
   const t = useTranslations("Community.media");
   const [open, setOpen] = useState<number | null>(null);
+  const lastTap = useRef(0);
+  const pendingOpen = useRef<number | null>(null);
   const video = media.find((item) => item.kind === "video");
   const images = media.filter((item) => item.kind === "image");
 
-  if (video) return <PostVideo video={video} />;
+  // Un toucher en attente ne doit pas ouvrir la photo après avoir quitté la page
+  useEffect(
+    () => () => {
+      if (pendingOpen.current !== null) clearTimeout(pendingOpen.current);
+    },
+    [],
+  );
+
+  /** `at` : moment du toucher (horodatage de l'événement). */
+  function tap(index: number, at: number) {
+    if (!onDoubleTap) {
+      setOpen(index);
+      return;
+    }
+    if (at - lastTap.current < DOUBLE_TAP_MS) {
+      if (pendingOpen.current !== null) clearTimeout(pendingOpen.current);
+      pendingOpen.current = null;
+      lastTap.current = 0;
+      onDoubleTap();
+      return;
+    }
+    lastTap.current = at;
+    pendingOpen.current = window.setTimeout(() => {
+      pendingOpen.current = null;
+      setOpen(index);
+    }, DOUBLE_TAP_MS);
+  }
+
+  if (video) return <PostVideo video={video} className={className} />;
   if (images.length === 0) return null;
 
   const current = open === null ? undefined : images[open];
@@ -96,6 +149,7 @@ export function PostMedia({ media }: { media: FeedMedia[] }) {
         className={cn(
           "grid gap-1 overflow-hidden rounded-2xl",
           images.length === 1 ? "grid-cols-1" : "grid-cols-2",
+          className,
         )}
       >
         {images.map((image, index) => (
@@ -105,7 +159,7 @@ export function PostMedia({ media }: { media: FeedMedia[] }) {
           >
             <button
               type="button"
-              onClick={() => setOpen(index)}
+              onClick={(event) => tap(index, event.timeStamp)}
               aria-label={t("open", { index: index + 1, total: images.length })}
               className="block size-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >

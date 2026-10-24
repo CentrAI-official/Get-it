@@ -1,30 +1,30 @@
 "use client";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  Dumbbell,
-  Flag,
-  LoaderCircle,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useOptimistic, useState, useTransition } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { DayMoment } from "@/config/moments";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
 import { setHabitDayAction } from "@/features/habits/actions";
 import { setTaskDoneAction } from "@/features/tasks/actions";
-import { daysBetween, toDbDate } from "@/lib/dates";
+import { addDays, daysBetween, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import { loadCalendarAction } from "../actions";
+import { loadCalendarAction, setMomentAction } from "../actions";
 import {
   addMonths,
   dayEntries,
+  dayTimeline,
   markedDays,
   monthGrid,
   monthOf,
+  weekOf,
   type CalendarData,
+  type MomentChange,
+  type TimelineItem,
 } from "../calendar";
 import type { DevelopmentKind } from "../questionnaires";
+import { colorsOf } from "../colors";
+import { CalendarDay, kindOfItem } from "./calendar-day";
 
 type CalendarViewProps = {
   /** Mois en cours, préparé par le serveur (rafraîchi après chaque coche). */
@@ -32,33 +32,38 @@ type CalendarViewProps = {
   scope: DevelopmentKind | "all";
 };
 
+type View = "week" | "month";
+
 const asDate = (day: string) => toDbDate(day);
 
 /**
- * Calendrier de « Mon développement » : un mois, un point les jours où une
- * séance, une tâche ou un objectif est prévu, et le détail du jour choisi.
+ * Calendrier de « Mon développement ». Vue « Semaine » par défaut : la bande
+ * des 7 jours, puis le jour choisi en matin, midi et soir. Vue « Mois » : la
+ * grille du mois, avec un point les jours de séance, de tâche ou d'objectif.
  */
 export function CalendarView({ initial, scope }: CalendarViewProps) {
   const t = useTranslations("Development.calendar");
-  const tKinds = useTranslations("Development.kinds");
-  const tWeekdays = useTranslations("Development.weekdaysShort");
   const format = useFormatter();
   const today = initial.today;
-  const [month, setMonth] = useState(initial.month);
+  const [view, setView] = useState<View>("week");
   const [selected, setSelected] = useState(today);
   const [cache, setCache] = useState<Record<string, CalendarData>>({});
   const [loading, setLoading] = useState(false);
-  // Coches affichées tout de suite, en attendant la réponse du serveur
+  // Coches et moments affichés tout de suite, en attendant le serveur
   const [optimistic, applyOptimistic] = useOptimistic<
     Record<string, boolean>,
     { key: string; done: boolean }
   >({}, (current, change) => ({ ...current, [change.key]: change.done }));
+  const [moments, applyMoment] = useOptimistic<
+    Record<string, DayMoment | null>,
+    { key: string; moment: DayMoment | null }
+  >({}, (current, change) => ({ ...current, [change.key]: change.moment }));
   const [, startTransition] = useTransition();
 
-  const data = month === initial.month ? initial : cache[month];
-  const marked = data ? markedDays(data) : new Set<string>();
-  const entries =
-    data && monthOf(selected) === month ? dayEntries(data, selected) : null;
+  const month = monthOf(selected);
+  const dataFor = (target: string) =>
+    target === initial.month ? initial : cache[target];
+  const week = weekOf(selected);
   const plan = scope === "all" ? null : (initial.plans[0] ?? null);
 
   async function reload(target: string) {
@@ -67,36 +72,130 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
     if (fresh) setCache((current) => ({ ...current, [target]: fresh }));
   }
 
-  async function goTo(target: string) {
-    setMonth(target);
-    setSelected(target === monthOf(today) ? today : `${target}-01`);
-    if (target === initial.month || cache[target]) return;
+  /** Charge les mois qui manquent (une semaine peut toucher deux mois). */
+  async function ensure(targets: string[]) {
+    const missing = [...new Set(targets)].filter(
+      (target) => target !== initial.month && !cache[target],
+    );
+    if (missing.length === 0) return;
     setLoading(true);
-    await reload(target);
+    await Promise.all(missing.map(reload));
     setLoading(false);
   }
 
-  function toggleTask(id: string, done: boolean) {
-    startTransition(async () => {
-      applyOptimistic({ key: `task:${id}`, done });
-      await setTaskDoneAction(id, done);
-      await reload(month);
+  function select(day: string) {
+    setSelected(day);
+    void ensure(weekOf(day).map(monthOf));
+  }
+
+  function goToMonth(target: string) {
+    select(target === monthOf(today) ? today : `${target}-01`);
+  }
+
+  function changeView(next: View) {
+    setView(next);
+    void ensure(next === "week" ? week.map(monthOf) : [month]);
+  }
+
+  /** Le jour avec les moments choisis à l'instant, avant la réponse du serveur. */
+  function groupsOf(day: string) {
+    const data = dataFor(monthOf(day));
+    if (!data) return null;
+    const entries = dayEntries(data, day);
+    const pick = <T,>(key: string, saved: T) =>
+      key in moments ? (moments[key] as T) : saved;
+    return dayTimeline({
+      ...entries,
+      sessions: entries.sessions.map((entry) => ({
+        ...entry,
+        session: {
+          ...entry.session,
+          moment: pick(`session:${entry.plan.id}`, entry.session.moment),
+        },
+      })),
+      habits: entries.habits.map((entry) => ({
+        ...entry,
+        habit: {
+          ...entry.habit,
+          moment: pick(`habit:${entry.habit.id}`, entry.habit.moment),
+        },
+      })),
+      tasks: entries.tasks.map((task) => ({
+        ...task,
+        moment: pick(`task:${task.id}`, task.moment),
+      })),
     });
   }
 
-  function toggleHabit(id: string, day: string, done: boolean) {
+  function stateOf(item: TimelineItem, day: string) {
+    if (item.type === "task") {
+      return {
+        done: optimistic[`task:${item.task.id}`] ?? item.task.done,
+        editable: true,
+        hint: null,
+      };
+    }
+    if (item.type === "habit") {
+      const age = daysBetween(day, today);
+      const editable = age >= 0 && age < EDITABLE_DAYS;
+      return {
+        done: optimistic[`habit:${item.habit.id}:${day}`] ?? item.done,
+        editable,
+        hint: editable ? null : t(age < 0 ? "future" : "tooOld"),
+      };
+    }
+    if (item.type === "goal") {
+      return { done: item.goal.done, editable: false, hint: null };
+    }
+    return null;
+  }
+
+  function toggle(item: TimelineItem, done: boolean, day: string) {
     startTransition(async () => {
-      applyOptimistic({ key: `habit:${id}:${day}`, done });
-      await setHabitDayAction(id, day, done);
-      await reload(month);
+      if (item.type === "task") {
+        applyOptimistic({ key: `task:${item.task.id}`, done });
+        await setTaskDoneAction(item.task.id, done);
+      } else if (item.type === "habit") {
+        applyOptimistic({ key: `habit:${item.habit.id}:${day}`, done });
+        await setHabitDayAction(item.habit.id, day, done);
+      }
+      await reload(monthOf(day));
     });
   }
 
-  const monthLabel = format.dateTime(asDate(`${month}-01`), {
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
+  function changeMoment(change: MomentChange, key: string) {
+    startTransition(async () => {
+      applyMoment({ key, moment: change.moment });
+      await setMomentAction(change);
+      // Une séance revient chaque semaine : tous les mois chargés changent
+      await Promise.all(Object.keys(cache).map(reload));
+    });
+  }
+
+  const longDay = (day: string) =>
+    format.dateTime(asDate(day), {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      timeZone: "UTC",
+    });
+  const title = format.dateTime(
+    asDate(view === "week" ? selected : `${month}-01`),
+    {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    },
+  );
+  const onCurrentPeriod =
+    view === "week" ? week.includes(today) : month === monthOf(today);
+  const groups = groupsOf(selected);
+  const counted = (groups ?? [])
+    .flatMap((group) => group.items)
+    .map((item) => stateOf(item, selected))
+    .filter((state) => state !== null && state.editable);
+  const doneCount = counted.filter((state) => state?.done).length;
+  const future = selected > today;
 
   return (
     <div className="flex flex-col gap-4">
@@ -118,12 +217,12 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
         </p>
       ) : null}
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex min-h-9 items-center justify-between gap-2">
         <h3
           className="font-heading text-lg font-bold capitalize"
           aria-live="polite"
         >
-          {monthLabel}
+          {title}
         </h3>
         <div className="flex items-center gap-1">
           {loading ? (
@@ -132,246 +231,257 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
               className="size-4 animate-spin text-muted-foreground"
             />
           ) : null}
-          {month !== monthOf(today) ? (
+          {onCurrentPeriod ? null : (
             <button
               type="button"
-              onClick={() => void goTo(monthOf(today))}
+              onClick={() => select(today)}
               className="h-9 rounded-full px-3 text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               {t("today")}
             </button>
-          ) : null}
-          {[
-            [-1, t("previous"), ChevronLeft],
-            [1, t("next"), ChevronRight],
-          ].map(([delta, label, Icon]) => {
-            const Arrow = Icon as typeof ChevronLeft;
-            return (
-              <button
-                key={String(delta)}
-                type="button"
-                aria-label={label as string}
-                onClick={() => void goTo(addMonths(month, delta as number))}
-                className="flex size-9 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-white/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <Arrow aria-hidden="true" className="size-5" />
-              </button>
-            );
-          })}
+          )}
         </div>
       </div>
 
-      <div role="grid" aria-label={monthLabel} className="flex flex-col gap-1">
-        <div role="row" className="grid grid-cols-7">
-          {[1, 2, 3, 4, 5, 6, 7].map((weekday) => (
-            <span
-              key={weekday}
-              role="columnheader"
-              className="text-center text-xs text-muted-foreground"
+      <div className="-mt-2 flex items-center justify-between gap-2">
+        <div
+          role="radiogroup"
+          aria-label={t("viewLabel")}
+          className="flex gap-0.5 rounded-full bg-white/5 p-1"
+        >
+          {(["week", "month"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={view === value}
+              onClick={() => changeView(value)}
+              className={cn(
+                "h-8 rounded-full px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                view === value
+                  ? "bg-white/12 text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
             >
-              {tWeekdays(String(weekday) as "1")}
-            </span>
+              {t(value)}
+            </button>
           ))}
         </div>
-        {monthGrid(month).map((week, index) => (
-          <div key={index} role="row" className="grid grid-cols-7 gap-1">
-            {week.map((day, column) =>
-              day ? (
-                <button
-                  key={day}
-                  type="button"
-                  role="gridcell"
-                  data-day={day}
-                  data-marked={marked.has(day) ? "" : undefined}
-                  aria-selected={day === selected}
-                  aria-label={format.dateTime(asDate(day), {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    timeZone: "UTC",
-                  })}
-                  onClick={() => setSelected(day)}
-                  className={cn(
-                    "relative flex h-11 flex-col items-center justify-center rounded-xl font-mono text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                    day === selected
-                      ? "bg-primary font-bold text-primary-foreground"
-                      : "hover:bg-white/5",
-                    day === today &&
-                      day !== selected &&
-                      "ring-1 ring-primary/60",
-                  )}
-                >
-                  {Number(day.slice(8))}
-                  {marked.has(day) ? (
-                    <span
-                      aria-hidden="true"
-                      className={cn(
-                        "absolute bottom-1.5 size-1 rounded-full",
-                        day === selected
-                          ? "bg-primary-foreground"
-                          : "bg-foreground/70",
-                      )}
-                    />
-                  ) : null}
-                </button>
-              ) : (
-                <span
-                  key={`empty-${column}`}
-                  role="gridcell"
-                  aria-hidden="true"
-                />
-              ),
-            )}
-          </div>
-        ))}
+        <div className="-mr-2 flex items-center">
+          {(
+            [
+              [
+                -1,
+                view === "week" ? t("previousWeek") : t("previous"),
+                ChevronLeft,
+              ],
+              [1, view === "week" ? t("nextWeek") : t("next"), ChevronRight],
+            ] as const
+          ).map(([delta, label, Arrow]) => (
+            <button
+              key={delta}
+              type="button"
+              aria-label={label}
+              onClick={() =>
+                view === "week"
+                  ? select(addDays(selected, delta * 7))
+                  : goToMonth(addMonths(month, delta))
+              }
+              className="flex size-10 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-white/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <Arrow aria-hidden="true" className="size-5" />
+            </button>
+          ))}
+        </div>
       </div>
+
+      {view === "week" ? (
+        <ol aria-label={t("weekLabel")} className="grid grid-cols-7 gap-1">
+          {week.map((day) => {
+            const dayGroups = groupsOf(day);
+            const items = (dayGroups ?? []).flatMap((group) => group.items);
+            const isSelected = day === selected;
+            return (
+              <li key={day}>
+                <button
+                  type="button"
+                  data-day={day}
+                  aria-pressed={isSelected}
+                  aria-label={`${longDay(day)}${day === today ? ` · ${t("today")}` : ""}`}
+                  onClick={() => select(day)}
+                  className="flex w-full flex-col items-center gap-1.5 rounded-2xl py-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                >
+                  <span
+                    className={cn(
+                      "text-xs uppercase",
+                      day === today ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    {format.dateTime(asDate(day), {
+                      weekday: "narrow",
+                      timeZone: "UTC",
+                    })}
+                  </span>
+                  <span
+                    className={cn(
+                      "flex size-10 items-center justify-center rounded-full border-2 text-base font-bold transition-colors",
+                      isSelected
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : day === today
+                          ? "border-primary"
+                          : "border-transparent",
+                      !isSelected && day < today && "text-silver",
+                    )}
+                  >
+                    {Number(day.slice(8))}
+                  </span>
+                  <span aria-hidden="true" className="flex h-1.5 gap-[3px]">
+                    {items.slice(0, 3).map((item) => {
+                      const state = stateOf(item, day);
+                      const dim =
+                        day > today ||
+                        (state !== null && state.editable && !state.done);
+                      return (
+                        <span
+                          key={item.key}
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            colorsOf(kindOfItem(item)).dot,
+                            dim && "opacity-40",
+                          )}
+                        />
+                      );
+                    })}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+      ) : (
+        <MonthGrid
+          month={month}
+          data={dataFor(month)}
+          selected={selected}
+          today={today}
+          onSelect={select}
+        />
+      )}
 
       {/* Le jour choisi */}
       <section
         aria-live="polite"
-        className="flex flex-col gap-4 border-t border-white/8 pt-4"
+        className="flex flex-col gap-3 border-t border-white/8 pt-4"
       >
-        <h4 className="font-semibold capitalize">
-          {format.dateTime(asDate(selected), {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-            timeZone: "UTC",
-          })}
-        </h4>
-        {!entries ? (
+        <div className="flex items-baseline justify-between gap-3">
+          <h4 className="font-semibold capitalize">{longDay(selected)}</h4>
+          {groups && counted.length > 0 ? (
+            <span className="shrink-0 text-sm text-muted-foreground">
+              {future
+                ? t("dayPlanned", { total: counted.length })
+                : t("daySummary", { done: doneCount, total: counted.length })}
+            </span>
+          ) : null}
+        </div>
+        {!groups ? (
           <p className="text-sm text-muted-foreground">{t("loading")}</p>
-        ) : entries.sessions.length +
-            entries.goals.length +
-            entries.tasks.length +
-            entries.habits.length ===
-          0 ? (
+        ) : groups.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
-          <>
-            {entries.sessions.map(({ plan: source, session }) => (
-              <div key={source.id} className="flex flex-col gap-2">
-                <p className="flex flex-wrap items-baseline gap-x-2">
-                  <Dumbbell
-                    aria-hidden="true"
-                    className="size-4 translate-y-0.5 text-primary"
-                  />
-                  <span className="font-semibold">{session.title}</span>
-                  {scope === "all" ? (
-                    <span className="text-xs text-muted-foreground">
-                      {tKinds(`${source.kind}.title`)}
-                    </span>
-                  ) : null}
-                </p>
-                <ul className="flex flex-col gap-1.5 pl-6">
-                  {session.items.map((entry, index) => (
-                    <li key={`${entry.name}-${index}`} className="text-sm">
-                      <span className="font-medium">{entry.name}</span>
-                      {entry.detail ? (
-                        <span className="text-muted-foreground">
-                          {" "}
-                          — {entry.detail}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {entries.goals.map((goal) => (
-              <p key={goal.id} className="flex items-start gap-2 text-sm">
-                <Flag
-                  aria-hidden="true"
-                  className="mt-0.5 size-4 shrink-0 text-primary"
-                />
-                <span>
-                  <span className="font-medium">{goal.title}</span>
-                  <span className="text-muted-foreground">
-                    {" "}
-                    · {t(goal.done ? "goalDone" : "goalDue")}
-                  </span>
-                </span>
-              </p>
-            ))}
-
-            {entries.tasks.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {t("tasks")}
-                </p>
-                <ul className="flex flex-col divide-y divide-white/8">
-                  {entries.tasks.map((task) => {
-                    const done = optimistic[`task:${task.id}`] ?? task.done;
-                    return (
-                      <li key={task.id}>
-                        <label className="flex items-center gap-3 py-2.5 text-sm">
-                          <Checkbox
-                            checked={done}
-                            onCheckedChange={(value) =>
-                              toggleTask(task.id, value === true)
-                            }
-                          />
-                          <span
-                            className={cn(
-                              done && "text-muted-foreground line-through",
-                            )}
-                          >
-                            {task.title}
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : null}
-
-            {entries.habits.length > 0 ? (
-              <div className="flex flex-col gap-1">
-                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  {t("habits")}
-                </p>
-                <ul className="flex flex-col divide-y divide-white/8">
-                  {entries.habits.map(({ habit, done: saved }) => {
-                    const key = `habit:${habit.id}:${selected}`;
-                    const done = optimistic[key] ?? saved;
-                    const age = daysBetween(selected, today);
-                    const editable = age >= 0 && age < EDITABLE_DAYS;
-                    return (
-                      <li key={habit.id}>
-                        <label className="flex items-center gap-3 py-2.5 text-sm">
-                          <Checkbox
-                            checked={done}
-                            disabled={!editable}
-                            onCheckedChange={(value) =>
-                              toggleHabit(habit.id, selected, value === true)
-                            }
-                          />
-                          <span className="flex flex-col">
-                            <span
-                              className={cn(
-                                done && "text-muted-foreground line-through",
-                              )}
-                            >
-                              {habit.title}
-                            </span>
-                            {editable ? null : (
-                              <span className="text-xs text-muted-foreground">
-                                {t(age < 0 ? "future" : "tooOld")}
-                              </span>
-                            )}
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ) : null}
-          </>
+          <CalendarDay
+            groups={groups}
+            showPlan={scope === "all"}
+            stateOf={(item) => stateOf(item, selected)}
+            onToggle={(item, done) => toggle(item, done, selected)}
+            onMoment={changeMoment}
+          />
         )}
       </section>
+    </div>
+  );
+}
+
+type MonthGridProps = {
+  month: string;
+  data: CalendarData | undefined;
+  selected: string;
+  today: string;
+  onSelect: (day: string) => void;
+};
+
+/** Le mois : un point les jours de séance, de tâche ou d'objectif. */
+function MonthGrid({ month, data, selected, today, onSelect }: MonthGridProps) {
+  const tWeekdays = useTranslations("Development.weekdaysShort");
+  const format = useFormatter();
+  const marked = data ? markedDays(data) : new Set<string>();
+  const label = format.dateTime(asDate(`${month}-01`), {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+
+  return (
+    <div role="grid" aria-label={label} className="flex flex-col gap-1">
+      <div role="row" className="grid grid-cols-7">
+        {[1, 2, 3, 4, 5, 6, 7].map((weekday) => (
+          <span
+            key={weekday}
+            role="columnheader"
+            className="text-center text-xs text-muted-foreground"
+          >
+            {tWeekdays(String(weekday) as "1")}
+          </span>
+        ))}
+      </div>
+      {monthGrid(month).map((week, index) => (
+        <div key={index} role="row" className="grid grid-cols-7 gap-1">
+          {week.map((day, column) =>
+            day ? (
+              <button
+                key={day}
+                type="button"
+                role="gridcell"
+                data-day={day}
+                data-marked={marked.has(day) ? "" : undefined}
+                aria-selected={day === selected}
+                aria-label={format.dateTime(asDate(day), {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                  timeZone: "UTC",
+                })}
+                onClick={() => onSelect(day)}
+                className={cn(
+                  "relative flex h-11 flex-col items-center justify-center rounded-xl font-mono text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                  day === selected
+                    ? "bg-primary font-bold text-primary-foreground"
+                    : "hover:bg-white/5",
+                  day === today && day !== selected && "ring-1 ring-primary/60",
+                )}
+              >
+                {Number(day.slice(8))}
+                {marked.has(day) ? (
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      "absolute bottom-1.5 size-1 rounded-full",
+                      day === selected
+                        ? "bg-primary-foreground"
+                        : "bg-foreground/70",
+                    )}
+                  />
+                ) : null}
+              </button>
+            ) : (
+              <span
+                key={`empty-${column}`}
+                role="gridcell"
+                aria-hidden="true"
+              />
+            ),
+          )}
+        </div>
+      ))}
     </div>
   );
 }

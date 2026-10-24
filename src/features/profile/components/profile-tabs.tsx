@@ -3,13 +3,15 @@ import { SectionTabs } from "@/components/layout/section-tabs";
 
 const TABS = [
   { key: "overview", href: "/profile" },
+  { key: "posts", href: "/profile/posts" },
   { key: "goals", href: "/goals" },
   { key: "habits", href: "/habits" },
+  { key: "journal", href: "/profile/journal" },
 ] as const;
 
 export type ProfileTab = (typeof TABS)[number]["key"];
 
-/** Sections de la catégorie Profil : aperçu, objectifs et habitudes. */
+/** Sections de la catégorie Profil : aperçu, publications, objectifs, habitudes et journal. */
 export function ProfileTabs({ current }: { current: ProfileTab }) {
   const t = useTranslations("App.profileTabs");
 

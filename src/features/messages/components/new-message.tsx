@@ -4,6 +4,7 @@ import { LoaderCircle, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useState, useTransition } from "react";
 import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/avatar";
 import { useRouter } from "@/i18n/navigation";
 import type { MessagePerson } from "@/server/messages/service";
 import { searchMembersAction, startConversationAction } from "../actions";
@@ -104,12 +105,11 @@ export function NewMessage() {
                     onClick={() => open(person)}
                     className="flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
                   >
-                    <span
-                      aria-hidden="true"
-                      className="flex size-11 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-                    >
-                      {name.charAt(0)}
-                    </span>
+                    <Avatar
+                      name={name}
+                      url={person.avatarUrl}
+                      className="size-11"
+                    />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate font-semibold">{name}</span>
                       <span className="truncate text-sm text-muted-foreground">

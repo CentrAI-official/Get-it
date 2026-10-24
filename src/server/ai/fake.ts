@@ -100,10 +100,12 @@ export function createFakeProvider(): AiProvider {
         return { plan: null, crisis: true, refused: false, usage };
       }
       const kind = /Plan type: (\w+)/.exec(prompt)?.[1] ?? "physical";
+      // Demande de modification : un titre différent, pour la reconnaître
+      const revised = prompt.includes("Changes the user wants");
       return {
         plan: normalizeDevelopmentPlan({
           crisis: false,
-          title: `Plan de test (${kind})`,
+          title: revised ? `Plan modifié (${kind})` : `Plan de test (${kind})`,
           summary: "Un plan de test, généré sans appel à Get iT AI.",
           highlights: [
             { label: "Séances par semaine", value: "3" },
@@ -112,6 +114,7 @@ export function createFakeProvider(): AiProvider {
           schedule: [
             {
               weekday: 1,
+              moment: "morning",
               title: "Haut du corps",
               items: [
                 { name: "Échauffement", detail: "5 min de vélo" },
@@ -120,6 +123,7 @@ export function createFakeProvider(): AiProvider {
             },
             {
               weekday: 4,
+              moment: null,
               title: "Bas du corps",
               items: [{ name: "Squats", detail: "3 × 12, repos 60 s" }],
             },
@@ -136,7 +140,9 @@ export function createFakeProvider(): AiProvider {
             },
           ],
           goal: { title: "Objectif de test", targetInDays: 90 },
-          habits: [{ title: "Habitude de test", weekdays: [1, 4] }],
+          habits: [
+            { title: "Habitude de test", weekdays: [1, 4], moment: "evening" },
+          ],
           tasks: [{ title: "Tâche de test", dueInDays: 2 }],
           caution: "Consulte un professionnel au besoin.",
         }),

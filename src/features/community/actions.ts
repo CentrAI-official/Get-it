@@ -170,14 +170,19 @@ export async function shareProgressAction(
 
 const cursorSchema = z.object({ createdAt: z.iso.datetime(), id: z.uuid() });
 
-/** Page suivante du fil (« Voir plus »). */
+/** Page suivante du fil (« Voir plus »), ou des publications d'une personne. */
 export async function loadMorePostsAction(
   cursor: FeedCursor,
+  authorId?: unknown,
 ): Promise<{ posts: FeedPost[]; nextCursor: FeedCursor | null }> {
   const user = await requireUser();
   const parsed = cursorSchema.safeParse(cursor);
-  if (!parsed.success) return { posts: [], nextCursor: null };
-  return listFeed(user.id, parsed.data);
+  const author =
+    authorId === undefined ? undefined : z.uuid().safeParse(authorId);
+  if (!parsed.success || (author && !author.success)) {
+    return { posts: [], nextCursor: null };
+  }
+  return listFeed(user.id, parsed.data, author?.data);
 }
 
 export async function deletePostAction(postId: string) {

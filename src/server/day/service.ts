@@ -43,7 +43,7 @@ export async function getDayPlan(
   const today = toCalendarDay(now, timeZone);
   const [habits, tasks, goals, xpTotals, taskXpLeft] = await Promise.all([
     listHabits(userId, timeZone),
-    listDayTasks(userId, today),
+    listDayTasks(userId, today, timeZone),
     listActiveGoalsWithNextMilestone(userId),
     getXpTotals(userId),
     getTaskXpLeft(userId, today),

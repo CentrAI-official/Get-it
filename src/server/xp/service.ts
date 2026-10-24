@@ -148,6 +148,18 @@ export async function awardCheckIn(tx: Tx, checkInId: string, award: Award) {
   });
 }
 
+export async function awardJournal(
+  tx: Tx,
+  journalEntryId: string,
+  award: Award,
+) {
+  await tx.xpEvent.upsert({
+    where: { journalEntryId },
+    update: {},
+    create: { ...toEventData(award), source: "journal", journalEntryId },
+  });
+}
+
 /** Action annulée (tâche décochée, objectif repris…) : son XP est retirée. */
 export async function revokeXp(
   tx: Tx,

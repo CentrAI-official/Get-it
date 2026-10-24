@@ -9,6 +9,7 @@ import { directKey } from "@/features/messages/rules";
 import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
+import { avatarUrls } from "@/server/profile/avatar";
 import { getLevels } from "@/server/xp/service";
 
 // Contacts (amis) entre membres du Centre. Chaque fonction reçoit l'userId de
@@ -20,6 +21,8 @@ export type ContactPerson = {
   id: string;
   displayName: string | null;
   username: string | null;
+  /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
+  avatarUrl: string | null;
   level: number;
 };
 
@@ -205,14 +208,21 @@ export async function listContacts(viewerId: string) {
   const [profiles, levels] = await Promise.all([
     db.profile.findMany({
       where: { id: { in: ids } },
-      select: { id: true, displayName: true, username: true },
+      select: { id: true, displayName: true, username: true, avatarPath: true },
     }),
     getLevels(ids),
   ]);
+  const avatars = await avatarUrls(
+    profiles.map((profile) => profile.avatarPath),
+  );
   const byId = new Map(
-    profiles.map((profile) => [
+    profiles.map(({ avatarPath, ...profile }) => [
       profile.id,
-      { ...profile, level: levels.get(profile.id) ?? 1 },
+      {
+        ...profile,
+        avatarUrl: avatarPath ? (avatars.get(avatarPath) ?? null) : null,
+        level: levels.get(profile.id) ?? 1,
+      },
     ]),
   );
   const group = (state: ContactState) =>

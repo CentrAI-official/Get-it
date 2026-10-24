@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,15 @@ import { Link } from "@/i18n/navigation";
 import type { DayPlan } from "@/server/day/service";
 import type { DayGoal } from "@/server/goals/service";
 import { ratio, summarizeDay } from "../day-plan";
+import {
+  focusOrder,
+  habitDays,
+  mergeOrder,
+  nextFocus,
+  segmentState,
+} from "../focus";
 import { DayGoals } from "./day-goals";
+import { FocusQuest } from "./focus-quest";
 import { QuestList, type Quest, type TaskQuest } from "./quest-list";
 
 type DayBoardProps = {
@@ -34,7 +43,8 @@ type DayBoardProps = {
   /** « Bonsoir, Max. » */
   greeting: string;
   /** Initiale de l'utilisateur, dans l'anneau de niveau. */
-  initial: string;
+  name: string;
+  avatarUrl: string | null;
 };
 
 const NO_KEYS: ReadonlySet<string> = new Set();
@@ -47,9 +57,19 @@ const pillarRank = (pillar: Pillar | null) =>
  * Le contenu de « Ma journée ». Un seul état optimiste pour les habitudes, les
  * tâches, les jalons et les objectifs : un clic met à jour la case, l'avancement
  * du jour et l'XP d'un coup.
+ *
+ * Mode Focus d'abord : une quête à la fois, puis le récap (liste complète,
+ * objectifs, nouvelle tâche) quand il ne reste rien à montrer.
  */
-export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
+export function DayBoard({
+  plan,
+  stamp,
+  greeting,
+  name,
+  avatarUrl,
+}: DayBoardProps) {
   const t = useTranslations("Today.panel");
+  const tFocus = useTranslations("Today.focus");
   const format = useFormatter();
   const { today, habits, tasks, goals, xp } = plan;
   // Dernier niveau fêté : une coche qui le dépasse affiche la bannière
@@ -101,6 +121,7 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
         xp: xp.items[key] ?? 0,
         late: false,
         streak: current,
+        days: habitDays(completions, habit.weekdays, today),
         pact: plan.pacts[habit.id],
       };
     }),
@@ -122,6 +143,22 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
         };
       }),
   ].sort((a, b) => pillarRank(a.pillar) - pillarRank(b.pillar));
+
+  // Mode Focus : ordre de passage figé à l'ouverture, « Plus tard » le temps
+  // de l'ouverture seulement
+  const [snapshot] = useState(() => focusOrder(quests));
+  const order = mergeOrder(
+    snapshot,
+    quests.map((quest) => quest.key),
+  );
+  const [later, setLater] = useState<ReadonlySet<string>>(NO_KEYS);
+  const [current, setCurrent] = useState(() =>
+    nextFocus(snapshot, done, NO_KEYS, null),
+  );
+  const [showList, setShowList] = useState(false);
+  const focused = showList
+    ? undefined
+    : quests.find((quest) => quest.key === current);
 
   const { day } = summarizeDay(quests);
   // XP affichée : l'enregistrée, plus ou moins les coches en cours
@@ -169,6 +206,84 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
     });
   }
 
+  function completeFocused(quest: Quest) {
+    setCurrent(
+      nextFocus(order, { ...done, [quest.key]: true }, later, quest.key),
+    );
+    toggle(quest);
+  }
+
+  function keepForLater(quest: Quest) {
+    const next = new Set(later).add(quest.key);
+    setLater(next);
+    setCurrent(nextFocus(order, done, next, quest.key));
+  }
+
+  function jumpTo(key: string) {
+    setLater((current) => {
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
+    setCurrent(key);
+  }
+
+  function resume() {
+    setShowList(false);
+    setLater(NO_KEYS);
+    setCurrent((key) =>
+      key !== null && done[key] === false
+        ? key
+        : nextFocus(order, done, NO_KEYS, null),
+    );
+  }
+
+  const levelUp = (
+    <LevelUpBanner
+      level={level.level > celebrated ? level.level : null}
+      onClose={() => setCelebrated(level.level)}
+    />
+  );
+
+  if (focused) {
+    return (
+      <div className="flex flex-1 flex-col">
+        <FocusQuest
+          quest={focused}
+          segments={order.map((key) => ({
+            key,
+            title: quests.find((quest) => quest.key === key)?.title ?? "",
+            state: segmentState(key, focused.key, done, later),
+          }))}
+          heading={
+            <>
+              <DialogTitle className="text-base leading-tight font-semibold">
+                {greeting}
+              </DialogTitle>
+              <DialogDescription className="sr-only">
+                {tFocus("description")}
+              </DialogDescription>
+            </>
+          }
+          banner={levelUp}
+          hasNext={nextFocus(order, done, later, focused.key) !== null}
+          onDone={() => completeFocused(focused)}
+          onLater={() => keepForLater(focused)}
+          onNext={() => setCurrent(nextFocus(order, done, later, focused.key))}
+          onUndo={() => toggle(focused)}
+          onJump={jumpTo}
+          onShowList={() => setShowList(true)}
+        />
+      </div>
+    );
+  }
+
+  const left = quests.filter((quest) => !quest.done).length;
+  const xpToday = quests.reduce(
+    (sum, quest) => sum + (quest.done ? quest.xp : 0),
+    0,
+  );
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-4 pr-10">
@@ -181,8 +296,46 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
           </DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </div>
-        <LevelBadge level={level} xp={xpNow} initial={initial} />
+        <LevelBadge
+          level={level}
+          xp={xpNow}
+          name={name}
+          avatarUrl={avatarUrl}
+        />
       </div>
+
+      {quests.length > 0 && left === 0 ? (
+        <div className="flex items-center gap-4 border-b border-white/8 pb-5 motion-safe:animate-level-up">
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground glow-primary">
+            <Check aria-hidden="true" className="size-8" strokeWidth={3} />
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <p className="font-heading text-2xl font-bold">
+              {tFocus("allDoneTitle")}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {tFocus("allDoneBody")}
+            </p>
+            {xpToday > 0 ? (
+              <p className="font-mono text-sm font-bold text-primary">
+                {tFocus("xpToday", { xp: xpToday })}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : left > 0 ? (
+        <div className="flex flex-col items-start gap-3 border-b border-white/8 pb-5">
+          <p className="font-heading text-2xl font-bold">
+            {tFocus("restTitle")}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {tFocus("restBody", { left })}
+          </p>
+          <Button size="lg" className="rounded-full px-6" onClick={resume}>
+            {tFocus("resume")}
+          </Button>
+        </div>
+      ) : null}
 
       {day.total > 0 ? (
         <div className="flex flex-col gap-2">
@@ -201,17 +354,14 @@ export function DayBoard({ plan, stamp, greeting, initial }: DayBoardProps) {
         </div>
       ) : null}
 
-      <LevelUpBanner
-        level={level.level > celebrated ? level.level : null}
-        onClose={() => setCelebrated(level.level)}
-      />
+      {levelUp}
 
       <QuestList
         quests={quests}
         filter={null}
         today={today}
         pending={pending}
-        allDone={day.total > 0 && day.done === day.total}
+        allDone={false}
         hasHabits={plan.hasHabits}
         onToggle={toggle}
         onDelete={remove}

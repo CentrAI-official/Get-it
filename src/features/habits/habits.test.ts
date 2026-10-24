@@ -83,8 +83,19 @@ describe("habitFormSchema", () => {
       title: "Méditer 10 minutes",
       pillar: "mental",
       weekdays: [1, 3, 5],
+      moment: null,
       goalId: null,
     });
+  });
+
+  it("garde un moment de la journée valide, sinon « n'importe quand »", () => {
+    expect(habitFormSchema.parse({ ...valid, moment: "evening" }).moment).toBe(
+      "evening",
+    );
+    expect(habitFormSchema.parse({ ...valid, moment: "" }).moment).toBeNull();
+    expect(
+      habitFormSchema.parse({ ...valid, moment: "nuit" }).moment,
+    ).toBeNull();
   });
 
   it("exige au moins un jour valide", () => {

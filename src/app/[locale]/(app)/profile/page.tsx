@@ -7,10 +7,6 @@ import {
   ProfileOverview,
   ProfileOverviewSkeleton,
 } from "@/features/profile/components/profile-overview";
-import {
-  ProfileToday,
-  ProfileTodaySkeleton,
-} from "@/features/profile/components/profile-today";
 import { ProfileTabs } from "@/features/profile/components/profile-tabs";
 import { ProgressionOverview } from "@/features/profile/components/progression-overview";
 import { DayPanelCard } from "@/features/today/components/day-panel-card";
@@ -31,14 +27,7 @@ export default function ProfilePage() {
       </div>
       <DayPanelCard />
       <Suspense fallback={<ProfileOverviewSkeleton />}>
-        <ProfileOverview
-          today={
-            <Suspense fallback={<ProfileTodaySkeleton />}>
-              <ProfileToday />
-            </Suspense>
-          }
-          progression={<ProgressionOverview />}
-        />
+        <ProfileOverview progression={<ProgressionOverview />} />
       </Suspense>
     </div>
   );

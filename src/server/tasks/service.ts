@@ -1,4 +1,5 @@
 import "server-only";
+import type { DayMoment } from "@/config/moments";
 import type { Pillar } from "@/config/pillars";
 import { XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
@@ -20,17 +21,27 @@ export type DayTask = {
 
 /**
  * Tâches de la page Aujourd'hui : celles dues aujourd'hui (faites ou non) et
- * celles en retard encore à faire, les plus anciennes d'abord.
+ * celles en retard encore à faire ou faites aujourd'hui (elles restent dans la
+ * journée jusqu'à minuit), les plus anciennes d'abord.
  */
 export async function listDayTasks(
   userId: string,
   today: string,
+  timeZone: string,
 ): Promise<DayTask[]> {
   const day = toDbDate(today);
-  const tasks = await db.task.findMany({
+  const rows = await db.task.findMany({
     where: {
       userId,
-      OR: [{ dueDate: day }, { dueDate: { lt: day }, completedAt: null }],
+      OR: [
+        { dueDate: day },
+        { dueDate: { lt: day }, completedAt: null },
+        // Faites depuis au plus 48 h : le jour exact est vérifié dans le fuseau
+        {
+          dueDate: { lt: day },
+          completedAt: { gte: new Date(day.getTime() - 2 * 86_400_000) },
+        },
+      ],
     },
     orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
     select: {
@@ -42,6 +53,12 @@ export async function listDayTasks(
     },
   });
 
+  const tasks = rows.filter(
+    (task) =>
+      task.completedAt === null ||
+      (task.dueDate !== null && task.dueDate.getTime() === day.getTime()) ||
+      toCalendarDay(task.completedAt, timeZone) === today,
+  );
   return tasks.map((task) => ({
     id: task.id,
     title: task.title,
@@ -111,6 +128,19 @@ export async function addTask(
     },
   });
   return true;
+}
+
+/** Moment de la journée d'une tâche (calendrier « Semaine »). Faux si elle n'existe pas. */
+export async function setTaskMoment(
+  userId: string,
+  taskId: string,
+  moment: DayMoment | null,
+) {
+  const { count } = await db.task.updateMany({
+    where: { id: taskId, userId },
+    data: { moment },
+  });
+  return count > 0;
 }
 
 /**

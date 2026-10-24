@@ -40,7 +40,7 @@ export async function buildCoachContext(
   const [habits, tasks, recentTasks, assessments, xp, checkIns, goals] =
     await Promise.all([
       listHabits(userId, profile.timeZone),
-      listDayTasks(userId, today),
+      listDayTasks(userId, today, profile.timeZone),
       listGoalTasksDueBetween(userId, scoreDays.from, scoreDays.to),
       getLatestAssessments(userId),
       getXpTotals(userId),

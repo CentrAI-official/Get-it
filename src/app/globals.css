@@ -170,6 +170,8 @@
   --animate-orbit: orbit 40s linear infinite;
   --animate-pulse-ring: pulse-ring 3s ease-in-out infinite;
   --animate-xp-float: xp-float 900ms ease-out forwards;
+  --animate-bravo-burst: bravo-burst 900ms cubic-bezier(0.2, 0.8, 0.2, 1)
+    forwards;
   --animate-level-up: level-up 600ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 
   @keyframes orbit {
@@ -178,6 +180,25 @@
     }
   }
   /* « +10 XP » qui s'envole quand on coche une quête */
+  /* « Bravo » donné d'un double-tap sur une photo (mode Focus du fil) */
+  @keyframes bravo-burst {
+    0% {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    30% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    70% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.1);
+    }
+  }
   @keyframes xp-float {
     0% {
       opacity: 1;

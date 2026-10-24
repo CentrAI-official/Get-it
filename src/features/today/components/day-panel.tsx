@@ -3,6 +3,7 @@ import { ONBOARDING_PATH } from "@/features/auth/access";
 import { redirect } from "@/i18n/navigation";
 import { getDayPeriod } from "@/lib/day-period";
 import { getDayPlan, isDayPanelDue } from "@/server/day/service";
+import { avatarUrl } from "@/server/profile/avatar";
 import { getCurrentProfile } from "@/server/profile/service";
 import { formatDayStamp } from "../day-stamp";
 import { DayPanelDialog } from "./day-panel-dialog";
@@ -19,8 +20,9 @@ export async function DayPanel() {
   }
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const now = new Date();
-  const [plan, locale, t] = await Promise.all([
+  const [plan, photo, locale, t] = await Promise.all([
     getDayPlan(profile.id, profile.timeZone, now),
+    avatarUrl(profile.avatarPath),
     getLocale(),
     getTranslations("App.today"),
   ]);
@@ -35,7 +37,8 @@ export async function DayPanel() {
         period: getDayPeriod(now, profile.timeZone),
         name: profile.displayName ?? "",
       })}
-      initial={(profile.displayName ?? profile.email ?? "").charAt(0)}
+      name={profile.displayName ?? profile.email ?? ""}
+      avatarUrl={photo}
     />
   );
 }

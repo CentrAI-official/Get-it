@@ -4,6 +4,8 @@ import type { UploadRequest } from "@/features/community/media";
 import {
   CATALOG_PAGE_SIZE,
   DAILY_LISTINGS,
+  FAVORITES_MAX,
+  IN_PERSON_REGIONS,
   MARKETPLACE_ERRORS,
   MAX_ACTIVE_LISTINGS,
   PRICE_RANGES,
@@ -21,6 +23,7 @@ import {
 } from "@/server/community/media";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
+import { avatarUrls } from "@/server/profile/avatar";
 import { removeFiles, signedUrls } from "@/server/storage/service";
 
 // Marketplace : chaque fonction reçoit l'userId de la session. Une annonce
@@ -48,7 +51,14 @@ export type ListingSummary = {
   priceUnit: string;
   regions: string[];
   photo: ListingPhoto | null;
-  seller: { displayName: string | null; username: string | null };
+  /** Gardée dans « Mes favoris » par la personne connectée. */
+  favorite: boolean;
+  seller: {
+    displayName: string | null;
+    username: string | null;
+    /** Photo de profil (lien temporaire), ou null. */
+    avatarUrl: string | null;
+  };
 };
 
 export type ListingDetail = ListingSummary & {
@@ -118,8 +128,26 @@ const summarySelect = {
   priceMaxCents: true,
   priceUnit: true,
   regions: true,
-  seller: { select: { displayName: true, username: true } },
+  seller: { select: { displayName: true, username: true, avatarPath: true } },
 } satisfies Prisma.ListingSelect;
+
+type SellerRow = {
+  displayName: string | null;
+  username: string | null;
+  avatarPath: string | null;
+};
+
+/** Vendeurs avec le lien de leur photo (le chemin du fichier ne sort pas du serveur). */
+async function sellerAvatars(rows: { seller: SellerRow }[]) {
+  const avatars = await avatarUrls(rows.map((row) => row.seller.avatarPath));
+  return (seller: SellerRow) => ({
+    displayName: seller.displayName,
+    username: seller.username,
+    avatarUrl: seller.avatarPath
+      ? (avatars.get(seller.avatarPath) ?? null)
+      : null,
+  });
+}
 
 /** Photos de plusieurs annonces, avec leurs liens de lecture temporaires. */
 async function photosFor(listingIds: string[], firstOnly: boolean) {
@@ -156,26 +184,41 @@ export async function listCatalog(
 ) {
   const blocked = await getBlockedIds(viewerId);
   const range = PRICE_RANGES.find((item) => item.key === filters.price);
+  const service = kind === "service";
+  const and: Prisma.ListingWhereInput[] = [];
+  if (service && filters.region) and.push({ regions: { has: filters.region } });
+  if (filters.category) and.push({ category: filters.category });
+  // « Que veux-tu accomplir? » : dans le titre ou le résumé, sans tenir compte de la casse
+  if (filters.q) {
+    and.push({
+      OR: [
+        { title: { contains: filters.q, mode: "insensitive" } },
+        { summary: { contains: filters.q, mode: "insensitive" } },
+      ],
+    });
+  }
+  // En ligne : la région « online » ; en présentiel : au moins une vraie région
+  if (service && filters.mode === "online") {
+    and.push({ regions: { has: "online" } });
+  }
+  if (service && filters.mode === "in_person") {
+    and.push({ regions: { hasSome: IN_PERSON_REGIONS } });
+  }
+  // La fourchette d'une annonce touche la tranche choisie
+  if (range) {
+    if (range.max !== null) and.push({ priceMinCents: { lt: range.max } });
+    and.push({
+      OR: [
+        { priceMaxCents: { gte: range.min } },
+        { priceMaxCents: null, priceMinCents: { gte: range.min } },
+      ],
+    });
+  }
   const where: Prisma.ListingWhereInput = {
     ...visibleWhere(blocked),
     kind,
     pillar: filters.pillar,
-    regions:
-      kind === "service" && filters.region
-        ? { has: filters.region }
-        : undefined,
-    // La fourchette d'une annonce touche la tranche choisie
-    AND: range
-      ? [
-          range.max === null ? {} : { priceMinCents: { lt: range.max } },
-          {
-            OR: [
-              { priceMaxCents: { gte: range.min } },
-              { priceMaxCents: null, priceMinCents: { gte: range.min } },
-            ],
-          },
-        ]
-      : undefined,
+    AND: and,
   };
   const rows = await db.listing.findMany({
     where,
@@ -185,14 +228,18 @@ export async function listCatalog(
     select: summarySelect,
   });
   const page = rows.slice(0, CATALOG_PAGE_SIZE);
-  const photos = await photosFor(
-    page.map((row) => row.id),
-    true,
-  );
+  const ids = page.map((row) => row.id);
+  const [photos, seller, favorites] = await Promise.all([
+    photosFor(ids, true),
+    sellerAvatars(page),
+    favoriteIdsAmong(viewerId, ids),
+  ]);
   return {
     items: page.map((row): ListingSummary => ({
       ...row,
+      seller: seller(row.seller),
       photo: photos.get(row.id)?.[0] ?? null,
+      favorite: favorites.has(row.id),
     })),
     nextCursor:
       rows.length > CATALOG_PAGE_SIZE ? (page.at(-1)?.id ?? null) : null,
@@ -229,11 +276,18 @@ export async function getListing(
     });
     if (visible === 0) return null;
   }
-  const photos = (await photosFor([row.id], false)).get(row.id) ?? [];
+  const [photoMap, seller, favorites] = await Promise.all([
+    photosFor([row.id], false),
+    sellerAvatars([row]),
+    favoriteIdsAmong(viewerId, [row.id]),
+  ]);
+  const photos = photoMap.get(row.id) ?? [];
   return {
     ...row,
+    seller: seller(row.seller),
     createdAt: row.createdAt.toISOString(),
     photo: photos[0] ?? null,
+    favorite: favorites.has(row.id),
     photos,
     mine,
     reviewNote: mine ? row.reviewNote : null,
@@ -247,13 +301,81 @@ export async function listMyListings(userId: string) {
     orderBy: { createdAt: "desc" },
     select: { ...summarySelect, status: true, reviewNote: true },
   });
-  const photos = await photosFor(
-    rows.map((row) => row.id),
-    true,
-  );
+  const [photos, seller] = await Promise.all([
+    photosFor(
+      rows.map((row) => row.id),
+      true,
+    ),
+    sellerAvatars(rows),
+  ]);
   return rows.map((row) => ({
     ...row,
+    seller: seller(row.seller),
     photo: photos.get(row.id)?.[0] ?? null,
+    favorite: false,
+  }));
+}
+
+/** Annonces gardées en favori parmi `listingIds`. */
+async function favoriteIdsAmong(userId: string, listingIds: string[]) {
+  if (listingIds.length === 0) return new Set<string>();
+  const rows = await db.listingFavorite.findMany({
+    where: { userId, listingId: { in: listingIds } },
+    select: { listingId: true },
+  });
+  return new Set(rows.map((row) => row.listingId));
+}
+
+/**
+ * Ajoute une annonce visible à « Mes favoris », ou l'en retire. Privé : le
+ * vendeur ne sait pas qui garde son annonce.
+ */
+export async function setFavorite(
+  userId: string,
+  listingId: string,
+  on: boolean,
+): Promise<{ ok: true } | { ok: false; error: "notFound" | "favoritesLimit" }> {
+  if (!on) {
+    await db.listingFavorite.deleteMany({ where: { userId, listingId } });
+    return { ok: true };
+  }
+  const blocked = await getBlockedIds(userId);
+  const visible = await db.listing.count({
+    where: { id: listingId, ...visibleWhere(blocked) },
+  });
+  if (visible === 0) return { ok: false, error: "notFound" };
+  const count = await db.listingFavorite.count({ where: { userId } });
+  if (count >= FAVORITES_MAX) return { ok: false, error: "favoritesLimit" };
+  await db.listingFavorite.upsert({
+    where: { userId_listingId: { userId, listingId } },
+    create: { userId, listingId },
+    update: {},
+  });
+  return { ok: true };
+}
+
+/** « Mes favoris » : les annonces gardées et toujours visibles, la plus récente d'abord. */
+export async function listFavorites(userId: string): Promise<ListingSummary[]> {
+  const blocked = await getBlockedIds(userId);
+  const rows = await db.listingFavorite.findMany({
+    where: { userId, listing: visibleWhere(blocked) },
+    orderBy: { createdAt: "desc" },
+    take: FAVORITES_MAX,
+    select: { listing: { select: summarySelect } },
+  });
+  const listings = rows.map((row) => row.listing);
+  const [photos, seller] = await Promise.all([
+    photosFor(
+      listings.map((listing) => listing.id),
+      true,
+    ),
+    sellerAvatars(listings),
+  ]);
+  return listings.map((listing) => ({
+    ...listing,
+    seller: seller(listing.seller),
+    photo: photos.get(listing.id)?.[0] ?? null,
+    favorite: true,
   }));
 }
 
@@ -402,18 +524,23 @@ export async function listPendingListings(
       licenseNumber: true,
     },
   });
-  const photos = await photosFor(
-    rows.map((row) => row.id),
-    false,
-  );
+  const [photos, seller] = await Promise.all([
+    photosFor(
+      rows.map((row) => row.id),
+      false,
+    ),
+    sellerAvatars(rows),
+  ]);
   return rows.map((row) => {
     const list = photos.get(row.id) ?? [];
     return {
       ...row,
+      seller: seller(row.seller),
       createdAt: row.createdAt.toISOString(),
       photo: list[0] ?? null,
       photos: list,
       mine: row.sellerId === adminId,
+      favorite: false,
     };
   });
 }

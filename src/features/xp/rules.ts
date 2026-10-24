@@ -14,6 +14,8 @@ export const XP_REWARDS = {
   goal: 100,
   /** Une fois par jour. */
   checkIn: 5,
+  /** Une page du journal (une par jour). */
+  journal: 5,
 } as const;
 
 /**

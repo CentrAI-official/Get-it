@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,17 +32,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { FeedPost } from "@/server/community/feed";
-import {
-  blockUserAction,
-  deletePostAction,
-  setReactionAction,
-} from "../actions";
+import { blockUserAction, deletePostAction } from "../actions";
 import { requestContactAction } from "@/features/contacts/actions";
 import { startConversationAction } from "@/features/messages/actions";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useBravo } from "../reaction-store";
 import { PostComments } from "./post-comments";
 import { PostMedia } from "./post-media";
-import { ProgressShare } from "./progress-share";
+import { ProgressBadge, ProgressHero } from "./progress-share";
 
 type PostCardProps = {
   post: FeedPost;
@@ -54,7 +52,11 @@ type PostCardProps = {
   onNotice: (text: string) => void;
 };
 
-/** Publication du fil : auteur, contenu, « Bravo », commentaires et menu. */
+/**
+ * Publication du fil : auteur, contenu, « Bravo », commentaires et menu. Mode
+ * Focus : les photos vont d'un bord à l'autre sur téléphone, « Bravo » et les
+ * commentaires sont posés dessus, et un double-tap dit bravo.
+ */
 export function PostCard({
   post,
   now,
@@ -66,10 +68,10 @@ export function PostCard({
   const t = useTranslations("Community.post");
   const tPillars = useTranslations("Pillars");
   const format = useFormatter();
-  const [reaction, setReaction] = useState({
-    on: post.reacted,
-    count: post.reactions,
-  });
+  // Partagé avec la visionneuse des progrès du jour
+  const { reaction, setBravo } = useBravo(post);
+  // Chaque double-tap relance l'animation « Bravo » sur la photo
+  const [burst, setBurst] = useState(0);
   const [comments, setComments] = useState(post.comments);
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<"delete" | "block" | null>(null);
@@ -87,6 +89,9 @@ export function PostCard({
   }
   const name = post.author.displayName ?? post.author.username ?? "";
   const handle = `@${post.author.username ?? ""}`;
+  const profileHref = post.author.username
+    ? `/community/members/${post.author.username}`
+    : null;
 
   function addContact() {
     startTransition(async () => {
@@ -99,13 +104,18 @@ export function PostCard({
     });
   }
 
+  const canReact = canWrite && !post.hidden && !post.mine;
+  // Photos sans vidéo : affichage immersif, actions posées sur la photo
+  const photos =
+    post.media.length > 0 && post.media.every((item) => item.kind === "image");
+
   function toggleReaction() {
-    const next = !reaction.on;
-    setReaction({ on: next, count: reaction.count + (next ? 1 : -1) });
-    startTransition(async () => {
-      const result = await setReactionAction(post.id, next);
-      if (!result.ok) setReaction(reaction);
-    });
+    setBravo(!reaction.on);
+  }
+
+  function doubleTap() {
+    setBurst((count) => count + 1);
+    setBravo(true);
   }
 
   function confirmAction() {
@@ -126,18 +136,38 @@ export function PostCard({
       className="flex flex-col gap-3 border-t border-white/8 pt-5"
     >
       <header className="flex items-start gap-3">
-        <span
-          aria-hidden="true"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-        >
-          {name.charAt(0)}
-        </span>
+        {/* La photo et le nom mènent au profil public de l'auteur */}
+        {profileHref ? (
+          <Link
+            href={profileHref}
+            tabIndex={-1}
+            aria-hidden="true"
+            className="shrink-0"
+          >
+            <Avatar
+              name={name}
+              url={post.author.avatarUrl}
+              className="size-10"
+            />
+          </Link>
+        ) : (
+          <Avatar name={name} url={post.author.avatarUrl} className="size-10" />
+        )}
         <div className="flex min-w-0 flex-1 flex-col">
           <p
             id={`post-${post.id}`}
             className="flex flex-wrap items-baseline gap-x-2"
           >
-            <span className="font-semibold break-words">{name}</span>
+            {profileHref ? (
+              <Link
+                href={profileHref}
+                className="rounded-sm font-semibold break-words outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {name}
+              </Link>
+            ) : (
+              <span className="font-semibold break-words">{name}</span>
+            )}
             <span className="text-sm text-muted-foreground">{handle}</span>
           </p>
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
@@ -233,44 +263,126 @@ export function PostCard({
         </div>
       ) : null}
 
-      {post.progress ? <ProgressShare progress={post.progress} /> : null}
-      {post.media.length > 0 ? <PostMedia media={post.media} /> : null}
+      {post.progress && !photos ? (
+        <ProgressHero progress={post.progress} />
+      ) : null}
+      {post.media.length > 0 ? (
+        // Bord à bord sur téléphone (la page a une marge de 1 rem)
+        <div className="relative -mx-4 sm:mx-0">
+          <PostMedia
+            media={post.media}
+            className="rounded-none sm:rounded-2xl"
+            onDoubleTap={photos && canReact ? doubleTap : undefined}
+          />
+          {photos ? (
+            <>
+              {burst > 0 ? (
+                // Retiré à la fin de l'animation ; jamais affiché si les animations sont réduites
+                <span
+                  key={burst}
+                  aria-hidden="true"
+                  onAnimationEnd={() => setBurst(0)}
+                  className="pointer-events-none absolute inset-0 m-auto hidden size-28 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 ring-6 ring-black/40 motion-safe:flex motion-safe:animate-bravo-burst"
+                >
+                  <HandHeart className="size-14" />
+                </span>
+              ) : null}
+              {post.progress ? (
+                <ProgressBadge
+                  progress={post.progress}
+                  className="absolute bottom-3 left-3 max-w-[calc(100%-6rem)]"
+                />
+              ) : null}
+              <div className="absolute right-3 bottom-3 flex flex-col items-center gap-3 font-mono text-xs font-bold [text-shadow:0_1px_3px_rgb(0_0_0/0.8)]">
+                {post.mine ? (
+                  <span className="flex flex-col items-center gap-1">
+                    <span className="flex size-12 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm">
+                      <HandHeart aria-hidden="true" className="size-6" />
+                    </span>
+                    <span className="sr-only">
+                      {t("bravoCount", { count: reaction.count })}
+                    </span>
+                    <span aria-hidden="true">{reaction.count}</span>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    aria-pressed={reaction.on}
+                    disabled={!canReact}
+                    onClick={toggleReaction}
+                    className="group flex flex-col items-center gap-1 outline-none disabled:opacity-60"
+                  >
+                    <span
+                      className={cn(
+                        "flex size-12 items-center justify-center rounded-full backdrop-blur-sm transition-colors group-focus-visible:ring-3 group-focus-visible:ring-ring/50",
+                        reaction.on
+                          ? "bg-primary text-primary-foreground ring-2 ring-black/60"
+                          : "bg-black/70",
+                      )}
+                    >
+                      <HandHeart aria-hidden="true" className="size-6" />
+                    </span>
+                    <span className="sr-only">{t("bravo")}</span>
+                    <span>{reaction.count}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => setOpen(!open)}
+                  className="group flex flex-col items-center gap-1 outline-none"
+                >
+                  <span className="flex size-12 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm group-focus-visible:ring-3 group-focus-visible:ring-ring/50">
+                    <MessageCircle aria-hidden="true" className="size-6" />
+                  </span>
+                  <span className="sr-only">
+                    {t("comments", { count: comments })}
+                  </span>
+                  <span aria-hidden="true">{comments}</span>
+                </button>
+              </div>
+            </>
+          ) : null}
+        </div>
+      ) : null}
       {post.body ? (
         <p className="break-words whitespace-pre-wrap">{post.body}</p>
       ) : null}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {post.mine ? (
-          <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
-            <HandHeart aria-hidden="true" className="size-4" />
-            {t("bravoCount", { count: reaction.count })}
-          </span>
-        ) : (
+      {photos ? null : (
+        <div className="flex flex-wrap items-center gap-2">
+          {post.mine ? (
+            <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
+              <HandHeart aria-hidden="true" className="size-4" />
+              {t("bravoCount", { count: reaction.count })}
+            </span>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-pressed={reaction.on}
+              disabled={!canWrite || post.hidden}
+              onClick={toggleReaction}
+              className={cn(
+                reaction.on && "bg-primary/15 text-primary hover:bg-primary/20",
+              )}
+            >
+              <HandHeart aria-hidden="true" />
+              {t("bravo")}
+              <span className="font-mono">{reaction.count}</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="sm"
-            aria-pressed={reaction.on}
-            disabled={!canWrite || post.hidden}
-            onClick={toggleReaction}
-            className={cn(
-              reaction.on && "bg-primary/15 text-primary hover:bg-primary/20",
-            )}
+            aria-expanded={open}
+            onClick={() => setOpen(!open)}
           >
-            <HandHeart aria-hidden="true" />
-            {t("bravo")}
-            <span className="font-mono">{reaction.count}</span>
+            <MessageCircle aria-hidden="true" />
+            {t("comments", { count: comments })}
           </Button>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        >
-          <MessageCircle aria-hidden="true" />
-          {t("comments", { count: comments })}
-        </Button>
-      </div>
+        </div>
+      )}
 
       {open ? (
         <PostComments

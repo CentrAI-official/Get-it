@@ -76,6 +76,9 @@ export type CurrentProfile = {
   /** Consommateur, ou affilié (peut vendre dans le Marketplace). */
   accountType: AccountType;
   role: UserRole;
+  /** Courte présentation et chemin de la photo (lien : `avatarUrl`). */
+  bio: string | null;
+  avatarPath: string | null;
 };
 
 /**
@@ -95,6 +98,8 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
       createdAt: true,
       accountType: true,
       role: true,
+      bio: true,
+      avatarPath: true,
       settings: { select: { timeZone: true, dailyMinutes: true } },
     },
   });
@@ -115,6 +120,8 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
     dailyMinutes: profile.settings?.dailyMinutes ?? null,
     accountType: profile.accountType,
     role: profile.role,
+    bio: profile.bio,
+    avatarPath: profile.avatarPath,
   };
 });
 

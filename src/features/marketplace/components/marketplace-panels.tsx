@@ -1,6 +1,7 @@
 import {
   ClipboardCheck,
   ExternalLink,
+  Heart,
   ListChecks,
   MapPin,
   Store,
@@ -10,6 +11,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { EmptyState } from "@/components/empty-state";
+import { Avatar } from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostMedia } from "@/features/community/components/post-media";
@@ -20,6 +22,7 @@ import {
   countPendingListings,
   getListing,
   listCatalog,
+  listFavorites,
   listMyListings,
   listPendingListings,
   type ListingDetail,
@@ -29,6 +32,8 @@ import { getCurrentProfile } from "@/server/profile/service";
 import { storageEnabled } from "@/server/storage/service";
 import {
   catalogFiltersSchema,
+  isFiltered,
+  type CatalogFilters,
   type ListingCategory,
   type ListingKind,
   type Region,
@@ -41,6 +46,9 @@ import { ListingCard } from "./listing-card";
 import { ListingForm } from "./listing-form";
 import { ListingPrice } from "./listing-price";
 import { ReviewControls } from "./review-controls";
+import { FavoriteButton } from "./favorite-button";
+import { CategoryRow, VitrineCollections } from "./vitrine";
+import { VitrineSearch } from "./vitrine-search";
 
 // Pages du Marketplace. Chacune lit la session : à placer dans un <Suspense>.
 
@@ -62,7 +70,11 @@ const asMedia = (photos: ListingPhoto[]) =>
 const link =
   "flex items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50";
 
-/** Catalogue d'un onglet : liens du vendeur et de l'équipe, filtres, annonces. */
+/**
+ * Onglet de la Marketplace (design « Vitrine ») : recherche « Que veux-tu
+ * accomplir? », catégories en icônes, puis les collections ; avec une
+ * recherche, une catégorie ou un filtre, la liste des annonces.
+ */
 export async function CatalogPanel({
   kind,
   searchParams,
@@ -74,15 +86,30 @@ export async function CatalogPanel({
   const params = await searchParams;
   const filters = catalogFiltersSchema.parse({
     pillar: one(params.pillar),
+    mode: kind === "service" ? one(params.mode) : undefined,
     region: kind === "service" ? one(params.region) : undefined,
     price: kind === "service" ? one(params.price) : undefined,
+    category: one(params.category),
+    q: one(params.q),
+    view: one(params.view),
   });
-  const [page, pending, t] = await Promise.all([
-    listCatalog(profile.id, kind, filters),
+  const [pending, t] = await Promise.all([
     countPendingListings(profile.id),
     getTranslations("Marketplace"),
   ]);
-  const filtered = Boolean(filters.pillar || filters.region || filters.price);
+  const base = kind === "service" ? "/marketplace" : "/marketplace/gear";
+  const empty = (
+    <EmptyState
+      icon={Store}
+      title={t(`catalog.emptyTitle.${kind}`)}
+      description={t("catalog.emptyDescription")}
+      action={
+        <Button asChild>
+          <Link href="/marketplace/sell">{t("catalog.sell")}</Link>
+        </Button>
+      }
+    />
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -103,26 +130,63 @@ export async function CatalogPanel({
         </div>
       ) : null}
 
-      <CatalogFilterBar kind={kind} filters={filters} />
+      <VitrineSearch
+        // Nouvelle recherche : le champ reprend la valeur de l'adresse
+        key={filters.q ?? ""}
+        base={base}
+        defaultValue={filters.q ?? ""}
+      />
+      <CategoryRow kind={kind} current={filters.category} />
 
+      {isFiltered(filters) ? (
+        <CatalogResults kind={kind} filters={filters} viewerId={profile.id} />
+      ) : (
+        ((await VitrineCollections({
+          kind,
+          viewerId: profile.id,
+          focusPillars: profile.focusPillars,
+        })) ?? empty)
+      )}
+    </div>
+  );
+}
+
+/** Liste des annonces d'une recherche, d'une catégorie ou de filtres. */
+async function CatalogResults({
+  kind,
+  filters,
+  viewerId,
+}: {
+  kind: ListingKind;
+  filters: CatalogFilters;
+  viewerId: string;
+}) {
+  const [page, t] = await Promise.all([
+    listCatalog(viewerId, kind, filters),
+    getTranslations("Marketplace"),
+  ]);
+  const base = kind === "service" ? "/marketplace" : "/marketplace/gear";
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="font-heading text-lg font-bold break-words">
+          {filters.q
+            ? t("vitrine.resultsFor", { q: filters.q })
+            : filters.category
+              ? t(`vitrine.categories.${filters.category as "fitness_coach"}`)
+              : t("vitrine.results")}
+        </h2>
+        <Link href={base} className={link}>
+          {t("vitrine.back")}
+        </Link>
+      </div>
+      <CatalogFilterBar kind={kind} filters={filters} />
       {page.items.length === 0 ? (
         <EmptyState
           icon={Store}
-          title={t(
-            filtered ? "catalog.noMatchTitle" : `catalog.emptyTitle.${kind}`,
-          )}
-          description={t(
-            filtered
-              ? "catalog.noMatchDescription"
-              : "catalog.emptyDescription",
-          )}
-          action={
-            filtered ? null : (
-              <Button asChild>
-                <Link href="/marketplace/sell">{t("catalog.sell")}</Link>
-              </Button>
-            )
-          }
+          title={t("catalog.noMatchTitle")}
+          description={t("catalog.noMatchDescription")}
         />
       ) : (
         <CatalogList
@@ -134,6 +198,36 @@ export async function CatalogPanel({
         />
       )}
     </div>
+  );
+}
+
+/** « Mes favoris » : les annonces gardées et toujours visibles. */
+export async function FavoritesPanel() {
+  const profile = await getCurrentProfile();
+  const [items, t] = await Promise.all([
+    listFavorites(profile.id),
+    getTranslations("Marketplace.favorites"),
+  ]);
+
+  return items.length === 0 ? (
+    <EmptyState
+      icon={Heart}
+      title={t("emptyTitle")}
+      description={t("emptyDescription")}
+      action={
+        <Button asChild>
+          <Link href="/marketplace">{t("browse")}</Link>
+        </Button>
+      }
+    />
+  ) : (
+    <ul className="flex flex-col">
+      {items.map((listing) => (
+        <li key={listing.id} className="border-b border-white/8">
+          <ListingCard listing={listing} />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -229,12 +323,11 @@ async function ListingBody({
       <section className="flex flex-col gap-3 border-t border-white/8 pt-6">
         <h2 className="font-heading text-lg font-bold">{t("detail.seller")}</h2>
         <p className="flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full orb font-heading font-bold uppercase"
-          >
-            {seller.charAt(0)}
-          </span>
+          <Avatar
+            name={seller}
+            url={listing.seller.avatarUrl}
+            className="size-10"
+          />
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-semibold">{seller}</span>
             <span className="truncate text-sm text-muted-foreground">
@@ -296,7 +389,15 @@ export async function ListingLoader({ id }: { id: string }) {
             {listing.mine ? (
               <DeleteListing listingId={listing.id} />
             ) : (
-              <ContactSeller sellerId={listing.sellerId} />
+              <>
+                <ContactSeller sellerId={listing.sellerId} />
+                <FavoriteButton
+                  listingId={listing.id}
+                  title={listing.title}
+                  initial={listing.favorite}
+                  className="border border-white/12"
+                />
+              </>
             )}
           </div>
         }
@@ -376,7 +477,7 @@ export async function MyListingsPanel() {
     <ul className="flex flex-col">
       {listings.map((listing) => (
         <li key={listing.id} className="border-b border-white/8 pb-3">
-          <ListingCard listing={listing} />
+          <ListingCard listing={listing} showFavorite={false} />
           <p className="flex flex-wrap items-center gap-2 text-sm">
             <span
               className={

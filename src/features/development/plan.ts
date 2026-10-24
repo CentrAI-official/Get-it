@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DAY_MOMENTS, asDayMoment, type DayMoment } from "@/config/moments";
 import {
   GOAL_TITLE_MAX_LENGTH,
   ITEM_TITLE_MAX_LENGTH,
@@ -36,10 +37,11 @@ export const aiDevelopmentPlanSchema = z.object({
   title: z.string(),
   summary: z.string(),
   highlights: z.array(z.object({ label: z.string(), value: z.string() })),
-  /** Semaine type : 1 (lundi) à 7 (dimanche). */
+  /** Semaine type : 1 (lundi) à 7 (dimanche), et le moment de la journée. */
   schedule: z.array(
     z.object({
       weekday: z.number().int(),
+      moment: z.enum(DAY_MOMENTS).nullable(),
       title: z.string(),
       items: z.array(z.object({ name: z.string(), detail: z.string() })),
     }),
@@ -49,7 +51,11 @@ export const aiDevelopmentPlanSchema = z.object({
     .object({ title: z.string(), targetInDays: z.number().int() })
     .nullable(),
   habits: z.array(
-    z.object({ title: z.string(), weekdays: z.array(z.number().int()) }),
+    z.object({
+      title: z.string(),
+      weekdays: z.array(z.number().int()),
+      moment: z.enum(DAY_MOMENTS).nullable(),
+    }),
   ),
   tasks: z.array(z.object({ title: z.string(), dueInDays: z.number().int() })),
   caution: z.string(),
@@ -63,12 +69,14 @@ export type DevelopmentPlan = {
   highlights: { label: string; value: string }[];
   schedule: {
     weekday: number;
+    /** Null : dans la journée (plans créés avant les moments, ou sans préférence). */
+    moment: DayMoment | null;
     title: string;
     items: { name: string; detail: string }[];
   }[];
   sections: { title: string; items: { title: string; detail: string }[] }[];
   goal: { title: string; targetInDays: number } | null;
-  habits: { title: string; weekdays: number[] }[];
+  habits: { title: string; weekdays: number[]; moment: DayMoment | null }[];
   tasks: { title: string; dueInDays: number }[];
   caution: string;
 };
@@ -127,6 +135,7 @@ export function normalizeDevelopmentPlan(
     )
       .map((day) => ({
         weekday: day.weekday,
+        moment: asDayMoment(day.moment),
         title: clean(day.title, 80),
         items: day.items
           .map((entry) => ({
@@ -165,6 +174,7 @@ export function normalizeDevelopmentPlan(
       raw.habits.map((habit) => ({
         title: clean(habit.title, HABIT_TITLE_MAX_LENGTH),
         weekdays: validWeekdays(habit.weekdays),
+        moment: asDayMoment(habit.moment),
       })),
       (habit) => habit.title,
       L.habits,
@@ -184,6 +194,40 @@ export function normalizeDevelopmentPlan(
   return empty ? null : plan;
 }
 
+/** Titre comparé sans casse ni espaces superflus. */
+const titleKey = (title: string) =>
+  title.replace(/s+/g, " ").trim().toLocaleLowerCase();
+
+/**
+ * Plan modifié : retire ce qui est déjà dans l'application (objectif,
+ * habitudes et tâches venus de ce plan), même si Get iT AI le propose encore.
+ */
+export function withoutAdded(
+  plan: DevelopmentPlan,
+  added: { goals: string[]; habits: string[]; tasks: string[] },
+): DevelopmentPlan {
+  const known = (titles: string[]) => {
+    const keys = new Set(titles.map(titleKey));
+    return (title: string) => keys.has(titleKey(title));
+  };
+  const goal = known(added.goals);
+  const habit = known(added.habits);
+  const task = known(added.tasks);
+  return {
+    ...plan,
+    goal: plan.goal && !goal(plan.goal.title) ? plan.goal : null,
+    habits: plan.habits.filter((item) => !habit(item.title)),
+    tasks: plan.tasks.filter((item) => !task(item.title)),
+  };
+}
+
+/** Moment enregistré : absent des plans créés avant les moments. */
+const storedMoment = z
+  .enum(DAY_MOMENTS)
+  .nullable()
+  .optional()
+  .transform((moment) => moment ?? null);
+
 /** Plan relu depuis la base (déjà normalisé à l'enregistrement). */
 export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
   title: z.string(),
@@ -192,6 +236,7 @@ export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
   schedule: z.array(
     z.object({
       weekday: z.number().int(),
+      moment: storedMoment,
       title: z.string(),
       items: z.array(z.object({ name: z.string(), detail: z.string() })),
     }),
@@ -201,7 +246,11 @@ export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
     .object({ title: z.string(), targetInDays: z.number().int() })
     .nullable(),
   habits: z.array(
-    z.object({ title: z.string(), weekdays: z.array(z.number().int()) }),
+    z.object({
+      title: z.string(),
+      weekdays: z.array(z.number().int()),
+      moment: storedMoment,
+    }),
   ),
   tasks: z.array(z.object({ title: z.string(), dueInDays: z.number().int() })),
   caution: z.string(),

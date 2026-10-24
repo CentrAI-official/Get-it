@@ -8,9 +8,15 @@ import {
   deletePlan,
   generatePlan,
   getCalendar,
+  revisePlan,
+  setSessionMoment,
   type DevelopmentError,
 } from "@/server/development/service";
+import { setHabitMoment } from "@/server/habits/service";
+import { setTaskMoment } from "@/server/tasks/service";
+import { momentChangeSchema } from "./calendar";
 import { developmentSelectionSchema } from "./plan";
+import { REVISION_MAX_LENGTH } from "./prompts";
 import { DEVELOPMENT_KINDS } from "./questionnaires";
 
 // Points d'entrée publics : session et entrées revalidées ici, réponses du
@@ -81,4 +87,53 @@ export async function loadCalendarAction(scope: unknown, month: unknown) {
   return getCalendar(user.id, parsedScope.data, parsedMonth.data).catch(
     () => null,
   );
+}
+
+/** Moment de la journée d'une habitude, d'une tâche ou d'une séance (vue « Semaine »). */
+export async function setMomentAction(change: unknown) {
+  const user = await requireUser();
+  const parsed = momentChangeSchema.safeParse(change);
+  if (!parsed.success) return false;
+  const input = parsed.data;
+  const done = await (
+    input.type === "habit"
+      ? setHabitMoment(user.id, input.id, input.moment)
+      : input.type === "task"
+        ? setTaskMoment(user.id, input.id, input.moment)
+        : setSessionMoment(user.id, input.kind, input.weekday, input.moment)
+  ).catch((error: unknown) => {
+    console.error("Moment impossible à enregistrer", error);
+    return false;
+  });
+  if (done) refresh();
+  return done;
+}
+
+/** « Modifier mon plan » : Get iT AI applique les changements demandés. */
+export async function revisePlanAction(
+  kind: unknown,
+  changes: unknown,
+): Promise<GeneratePlanResult> {
+  const user = await requireUser();
+  const parsedKind = kindSchema.safeParse(kind);
+  const parsedChanges = z
+    .string()
+    .trim()
+    .min(3)
+    .max(REVISION_MAX_LENGTH)
+    .safeParse(changes);
+  if (!parsedKind.success) return { ok: false, error: "notFound" };
+  if (!parsedChanges.success) return { ok: false, error: "invalid" };
+  try {
+    const result = await revisePlan(
+      user.id,
+      parsedKind.data,
+      parsedChanges.data,
+    );
+    if (result.ok) refresh();
+    return result;
+  } catch (error) {
+    console.error("Plan de développement impossible à modifier", error);
+    return { ok: false, error: "unexpected" };
+  }
 }

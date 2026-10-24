@@ -3,13 +3,17 @@ import { addDays, isoWeekday } from "@/lib/dates";
 import {
   addMonths,
   dayEntries,
+  dayTimeline,
   DEFAULT_PLAN_DAYS,
   markedDays,
   MAX_PLAN_DAYS,
   monthGrid,
   monthRange,
+  momentChangeSchema,
   planPeriod,
+  planWeek,
   sessionOn,
+  weekOf,
   type CalendarData,
   type CalendarPlan,
 } from "./calendar";
@@ -26,11 +30,13 @@ const plan: CalendarPlan = {
   schedule: [
     {
       weekday: 1,
+      moment: "morning",
       title: "Haut du corps",
       items: [{ name: "Pompes", detail: "3 × 10" }],
     },
     {
       weekday: 4,
+      moment: null,
       title: "Bas du corps",
       items: [{ name: "Squats", detail: "3 × 12" }],
     },
@@ -47,6 +53,7 @@ const data: CalendarData = {
       title: "Acheter des espadrilles",
       dueDate: "2026-10-24",
       done: false,
+      moment: "noon",
       planKind: "physical",
     },
   ],
@@ -55,6 +62,7 @@ const data: CalendarData = {
       id: "h1",
       title: "Marcher 20 min",
       weekdays: [6, 7],
+      moment: null,
       from: "2026-10-10",
       until: null,
       doneDays: ["2026-10-17"],
@@ -160,5 +168,76 @@ describe("planPeriod", () => {
     expect(planPeriod(TODAY, undefined, 99999).endsOn).toBe(
       addDays(TODAY, MAX_PLAN_DAYS),
     );
+  });
+});
+
+describe("vue Semaine", () => {
+  it("donne les 7 jours de la semaine, du lundi au dimanche, même à cheval sur deux mois", () => {
+    expect(weekOf(TODAY)).toEqual([
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23",
+      "2026-10-24",
+      "2026-10-25",
+    ]);
+    expect(weekOf("2026-10-25")[0]).toBe("2026-10-19");
+    expect(weekOf("2026-11-01")).toEqual([
+      "2026-10-26",
+      "2026-10-27",
+      "2026-10-28",
+      "2026-10-29",
+      "2026-10-30",
+      "2026-10-31",
+      "2026-11-01",
+    ]);
+  });
+
+  it("dit où en est un plan : semaine en cours sur le nombre de semaines", () => {
+    const twelveWeeks = { startsOn: "2026-10-05", endsOn: "2026-12-27" };
+    expect(planWeek(twelveWeeks, "2026-10-05")).toEqual({ week: 1, weeks: 12 });
+    expect(planWeek(twelveWeeks, "2026-10-23")).toEqual({ week: 3, weeks: 12 });
+    // Après la fin : la dernière semaine ; avant le début : rien
+    expect(planWeek(twelveWeeks, "2027-02-01")).toEqual({
+      week: 12,
+      weeks: 12,
+    });
+    expect(planWeek(twelveWeeks, "2026-10-01")).toBeNull();
+  });
+
+  it("range le jour en moments, puis « dans la journée » pour le reste", () => {
+    // Samedi 24 : la tâche (midi) et l'habitude de fin de semaine (sans moment)
+    const saturday = dayTimeline(dayEntries(data, "2026-10-24"));
+    expect(saturday.map((group) => group.moment)).toEqual(["noon", null]);
+    expect(saturday[0]?.items.map((item) => item.key)).toEqual(["task:t1"]);
+    expect(saturday[1]?.items.map((item) => item.type)).toContain("habit");
+    // Lundi 26 : la séance du matin seulement
+    const monday = dayTimeline(dayEntries(data, "2026-10-26"));
+    expect(monday.map((group) => group.moment)).toEqual(["morning"]);
+    expect(monday[0]?.items[0]?.type).toBe("session");
+  });
+
+  it("valide un changement de moment avant de l'envoyer au serveur", () => {
+    const id = "0192c1f0-0000-7000-8000-000000000001";
+    expect(
+      momentChangeSchema.safeParse({ type: "habit", id, moment: "evening" })
+        .success,
+    ).toBe(true);
+    expect(
+      momentChangeSchema.safeParse({ type: "task", id, moment: null }).success,
+    ).toBe(true);
+    expect(
+      momentChangeSchema.safeParse({
+        type: "session",
+        kind: "physical",
+        weekday: 8,
+        moment: "noon",
+      }).success,
+    ).toBe(false);
+    expect(
+      momentChangeSchema.safeParse({ type: "habit", id, moment: "night" })
+        .success,
+    ).toBe(false);
   });
 });

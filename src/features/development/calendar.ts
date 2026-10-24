@@ -1,6 +1,9 @@
-import { addDays, isoWeekday } from "@/lib/dates";
+import { z } from "zod";
+import { DAY_MOMENTS, type DayMoment } from "@/config/moments";
+import { recordIdSchema } from "@/features/goals/schemas";
+import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
 import type { DevelopmentPlan } from "./plan";
-import type { DevelopmentKind } from "./questionnaires";
+import { DEVELOPMENT_KINDS, type DevelopmentKind } from "./questionnaires";
 
 // Calendrier de « Mon développement » : la semaine type de chaque plan se
 // répète sur sa période ; les tâches tombent à leur échéance, les objectifs à
@@ -23,6 +26,7 @@ export type CalendarTask = {
   title: string;
   dueDate: string;
   done: boolean;
+  moment: DayMoment | null;
   planKind: DevelopmentKind | null;
 };
 
@@ -30,6 +34,7 @@ export type CalendarHabit = {
   id: string;
   title: string;
   weekdays: number[];
+  moment: DayMoment | null;
   /** Premier jour suivi (création) et jour de la mise en pause, s'il y en a une. */
   from: string;
   until: string | null;
@@ -170,3 +175,118 @@ export function markedDays(data: CalendarData): Set<string> {
   for (const goal of data.goals) marked.add(goal.targetDate);
   return marked;
 }
+
+/** Les 7 jours (lundi à dimanche) de la semaine qui contient `day`. */
+export function weekOf(day: string): string[] {
+  const monday = addDays(day, 1 - isoWeekday(day));
+  return Array.from({ length: 7 }, (_, index) => addDays(monday, index));
+}
+
+/**
+ * Où en est un plan : semaine en cours et nombre de semaines. Null avant son
+ * début ; après sa fin, la dernière semaine.
+ */
+export function planWeek(
+  plan: Pick<CalendarPlan, "startsOn" | "endsOn">,
+  today: string,
+): { week: number; weeks: number } | null {
+  if (today < plan.startsOn) return null;
+  const weeks = Math.max(
+    1,
+    Math.ceil((daysBetween(plan.startsOn, plan.endsOn) + 1) / 7),
+  );
+  const week = Math.floor(daysBetween(plan.startsOn, today) / 7) + 1;
+  return { week: Math.min(week, weeks), weeks };
+}
+
+type Session = CalendarPlan["schedule"][number];
+
+/** Un élément du jour, dans la vue « Semaine ». */
+export type TimelineItem =
+  | { type: "session"; key: string; plan: CalendarPlan; session: Session }
+  | { type: "habit"; key: string; habit: CalendarHabit; done: boolean }
+  | { type: "task"; key: string; task: CalendarTask }
+  | { type: "goal"; key: string; goal: CalendarGoal };
+
+export type TimelineGroup = {
+  /** Null : « dans la journée », sans moment choisi. */
+  moment: DayMoment | null;
+  items: TimelineItem[];
+};
+
+const momentOfItem = (item: TimelineItem): DayMoment | null => {
+  switch (item.type) {
+    case "session":
+      return item.session.moment;
+    case "habit":
+      return item.habit.moment;
+    case "task":
+      return item.task.moment;
+    case "goal":
+      return null;
+  }
+};
+
+/**
+ * Le jour en moments : matin, midi, soir, puis « dans la journée » pour ce qui
+ * n'a pas de moment. Dans chaque moment : séances, habitudes, tâches, objectifs.
+ * Les moments vides sont omis.
+ */
+export function dayTimeline(
+  entries: ReturnType<typeof dayEntries>,
+): TimelineGroup[] {
+  const items: TimelineItem[] = [
+    ...entries.sessions.map(({ plan, session }): TimelineItem => ({
+      type: "session",
+      key: `session:${plan.id}`,
+      plan,
+      session,
+    })),
+    ...entries.habits.map(({ habit, done }): TimelineItem => ({
+      type: "habit",
+      key: `habit:${habit.id}`,
+      habit,
+      done,
+    })),
+    ...entries.tasks.map((task): TimelineItem => ({
+      type: "task",
+      key: `task:${task.id}`,
+      task,
+    })),
+    ...entries.goals.map((goal): TimelineItem => ({
+      type: "goal",
+      key: `goal:${goal.id}`,
+      goal,
+    })),
+  ];
+  return [...DAY_MOMENTS, null]
+    .map((moment) => ({
+      moment,
+      items: items.filter((item) => momentOfItem(item) === moment),
+    }))
+    .filter((group) => group.items.length > 0);
+}
+
+const momentSchema = z.enum(DAY_MOMENTS).nullable();
+
+/** Changement de moment demandé depuis le calendrier : revalidé par le serveur. */
+export const momentChangeSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("habit"),
+    id: recordIdSchema,
+    moment: momentSchema,
+  }),
+  z.object({
+    type: z.literal("task"),
+    id: recordIdSchema,
+    moment: momentSchema,
+  }),
+  z.object({
+    type: z.literal("session"),
+    kind: z.enum(DEVELOPMENT_KINDS),
+    weekday: z.number().int().min(1).max(7),
+    moment: momentSchema,
+  }),
+]);
+
+export type MomentChange = z.infer<typeof momentChangeSchema>;

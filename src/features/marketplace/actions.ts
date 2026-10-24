@@ -12,6 +12,7 @@ import {
   requestListingUploads,
   reviewListing,
   setAccountType,
+  setFavorite,
 } from "@/server/marketplace/service";
 import {
   ACCOUNT_TYPES,
@@ -125,4 +126,17 @@ export async function loadMoreListingsAction(
     catalogFiltersSchema.parse(filters ?? {}),
     parsedCursor.data,
   ).catch(() => null);
+}
+
+/** Cœur d'une annonce : l'ajoute à « Mes favoris » ou l'en retire. */
+export async function setFavoriteAction(listingId: unknown, on: unknown) {
+  const user = await requireUser();
+  const parsed = recordIdSchema.safeParse(listingId);
+  if (!parsed.success || typeof on !== "boolean") {
+    return { ok: false as const, error: "notFound" as const };
+  }
+  return setFavorite(user.id, parsed.data, on).catch((error: unknown) => {
+    console.error("Favori impossible à enregistrer", error);
+    return { ok: false as const, error: "unexpected" as const };
+  });
 }

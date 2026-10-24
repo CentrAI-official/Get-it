@@ -37,6 +37,7 @@ async function create(
           pillar: payload.pillar,
           weekdays: payload.weekdays,
           goalId: payload.goal?.id ?? null,
+          moment: null,
         })) ?? false
       );
     case "task":
