@@ -308,7 +308,9 @@
       "confirmPassword": "Confirm password",
       "passwordHint": "{min, number} characters minimum.",
       "showPassword": "Show password",
-      "hidePassword": "Hide password"
+      "hidePassword": "Hide password",
+      "inviteCode": "Invitation code",
+      "inviteCodeHint": "Get iT is in private testing: use the code you got from the team."
     },
     "login": {
       "metaTitle": "Log in",
@@ -369,6 +371,8 @@
       "emailNotAuthorized": "This address can’t receive our emails yet. Try again later.",
       "sessionExpired": "Your session has expired. Request a new link.",
       "linkInvalid": "This link is no longer valid or has already been used. If your address is confirmed, just log in.",
+      "inviteInvalid": "This invitation code isn’t valid.",
+      "inviteRequired": "Get iT is in private testing: you need an invitation code to create an account.",
       "unexpected": "Something went wrong. Try again in a moment."
     }
   },

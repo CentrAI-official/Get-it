@@ -11,6 +11,7 @@ import {
   signUpWithPassword,
   updatePassword,
 } from "@/server/auth/service";
+import { inviteAccepted } from "@/server/auth/invite";
 import { APP_HOME_PATH, getPostLoginPath } from "./access";
 import { toFieldErrors, type AuthFormState } from "./form-state";
 import { safeNextPath } from "./redirect";
@@ -66,6 +67,14 @@ export async function signUpAction(
 ): Promise<AuthFormState> {
   const parsed = signUpSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalidInput(parsed.error, formData);
+  // Bêta privée : sans le bon code, aucun compte n'est créé
+  if (!inviteAccepted(parsed.data.inviteCode)) {
+    return {
+      status: "error",
+      fieldErrors: { inviteCode: "inviteInvalid" },
+      email: parsed.data.email,
+    };
+  }
 
   const result = await signUpWithPassword(parsed.data);
   if (!result.ok) {

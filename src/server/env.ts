@@ -40,6 +40,17 @@ const serverEnvSchema = z.object({
       })
       .optional(),
   ),
+  // Bêta privée : code à donner aux testeurs pour créer un compte. Serveur
+  // seulement. Facultatif : sans lui, l'inscription est ouverte.
+  SIGNUP_INVITE_CODE: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .trim()
+      .min(4, { error: "doit contenir au moins 4 caractères" })
+      .max(64, { error: "doit contenir au plus 64 caractères" })
+      .optional(),
+  ),
   // « fake » : réponses factices pour les tests de bout en bout, sans appel payant
   AI_PROVIDER: z.preprocess(
     (value) => (value === "" ? undefined : value),

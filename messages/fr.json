@@ -308,7 +308,9 @@
       "confirmPassword": "Confirme le mot de passe",
       "passwordHint": "{min, number} caractères minimum.",
       "showPassword": "Afficher le mot de passe",
-      "hidePassword": "Masquer le mot de passe"
+      "hidePassword": "Masquer le mot de passe",
+      "inviteCode": "Code d’invitation",
+      "inviteCodeHint": "Get iT est en test privé : utilise le code reçu de l’équipe."
     },
     "login": {
       "metaTitle": "Connexion",
@@ -369,6 +371,8 @@
       "emailNotAuthorized": "Cette adresse ne peut pas encore recevoir nos courriels. Réessaie plus tard.",
       "sessionExpired": "Ta session a expiré. Demande un nouveau lien.",
       "linkInvalid": "Ce lien n’est plus valide ou a déjà servi. Si ton adresse est confirmée, connecte-toi simplement.",
+      "inviteInvalid": "Ce code d’invitation n’est pas valide.",
+      "inviteRequired": "Get iT est en test privé : il faut un code d’invitation pour créer un compte.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },

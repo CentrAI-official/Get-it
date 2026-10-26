@@ -14,7 +14,8 @@ function fillBrowserTimeZone(input: HTMLInputElement | null) {
   if (input) input.value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-export function SignupForm() {
+/** `inviteRequired` : bêta privée, un code d'invitation est demandé. */
+export function SignupForm({ inviteRequired }: { inviteRequired: boolean }) {
   const t = useTranslations("Auth");
   const locale = useLocale();
   const [state, formAction, pending] = useActionState(
@@ -60,6 +61,18 @@ export function SignupForm() {
           description={t("fields.passwordHint", { min: PASSWORD_MIN_LENGTH })}
           error={state.fieldErrors?.password}
         />
+        {inviteRequired ? (
+          <FormField
+            name="inviteCode"
+            label={t("fields.inviteCode")}
+            autoComplete="off"
+            autoCapitalize="characters"
+            spellCheck={false}
+            required
+            description={t("fields.inviteCodeHint")}
+            error={state.fieldErrors?.inviteCode}
+          />
+        ) : null}
       </FieldGroup>
       <SubmitButton pending={pending} pendingLabel={t("signup.pending")}>
         {t("signup.submit")}

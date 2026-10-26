@@ -14,6 +14,8 @@ export const AUTH_ERROR_KEYS = [
   "emailNotAuthorized",
   "sessionExpired",
   "linkInvalid",
+  "inviteInvalid",
+  "inviteRequired",
   "unexpected",
 ] as const;
 

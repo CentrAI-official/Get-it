@@ -4,8 +4,10 @@ import type { Locale } from "next-intl";
 import { siteConfig } from "@/config/site";
 import { APP_HOME_PATH, RESET_PASSWORD_PATH } from "@/features/auth/access";
 import { toAuthErrorKey, type AuthErrorKey } from "@/features/auth/errors";
+import { normalizeInviteCode } from "@/features/auth/invite";
+import { inviteAccepted, inviteRequired } from "@/server/auth/invite";
 import { getSessionUser } from "@/server/auth/session";
-import { ensureProfile } from "@/server/profile/service";
+import { ensureProfile, hasProfile } from "@/server/profile/service";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 
 export type AuthResult<T = undefined> =
@@ -28,12 +30,23 @@ function emailLinkUrl(locale: Locale, next: string) {
 /** Session ouverte : langue enregistrée dans le compte et état de l'onboarding. */
 export type OpenedSession = { locale: Locale; onboarded: boolean };
 
-/** Ouvre la session dans Get iT : crée le profil au besoin. */
+/**
+ * Ouvre la session dans Get iT : crée le profil au besoin. En bêta privée, un
+ * nouveau profil demande le code d'invitation donné à l'inscription : un compte
+ * créé en contournant le formulaire n'entre pas (« inviteRequired »).
+ */
 async function openSession(
   user: User,
   fallbackLocale: Locale,
 ): Promise<AuthResult<OpenedSession>> {
   try {
+    if (
+      inviteRequired() &&
+      !inviteAccepted(user.user_metadata["invite_code"]) &&
+      !(await hasProfile(user.id))
+    ) {
+      return { ok: false, error: "inviteRequired" };
+    }
     const session = await ensureProfile(user.id, {
       locale: user.user_metadata["locale"] ?? fallbackLocale,
       timeZone: user.user_metadata["time_zone"],
@@ -56,7 +69,18 @@ export async function signInWithPassword(input: {
     password: input.password,
   });
   if (error || !data.user) return failure(error);
-  return openSession(data.user, input.locale);
+  return closeIfRefused(supabase, await openSession(data.user, input.locale));
+}
+
+/** Compte refusé (sans invitation) : la session tout juste ouverte est refermée. */
+async function closeIfRefused<T>(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  result: AuthResult<T>,
+): Promise<AuthResult<T>> {
+  if (!result.ok && result.error === "inviteRequired") {
+    await supabase.auth.signOut();
+  }
+  return result;
 }
 
 export async function signUpWithPassword(input: {
@@ -64,6 +88,7 @@ export async function signUpWithPassword(input: {
   password: string;
   locale: Locale;
   timeZone?: string;
+  inviteCode?: string;
 }): Promise<
   AuthResult<
     { needsConfirmation: true } | ({ needsConfirmation: false } & OpenedSession)
@@ -76,7 +101,14 @@ export async function signUpWithPassword(input: {
     options: {
       emailRedirectTo: emailLinkUrl(input.locale, APP_HOME_PATH),
       // Préférences reprises à la création du profil, après la confirmation du courriel
-      data: { locale: input.locale, time_zone: input.timeZone },
+      data: {
+        locale: input.locale,
+        time_zone: input.timeZone,
+        // Revérifié à la création du profil (bêta privée)
+        ...(input.inviteCode
+          ? { invite_code: normalizeInviteCode(input.inviteCode) }
+          : {}),
+      },
     },
   });
   if (error) return failure(error);
@@ -85,7 +117,10 @@ export async function signUpWithPassword(input: {
   if (!data.user || !data.session) {
     return { ok: true, data: { needsConfirmation: true } };
   }
-  const session = await openSession(data.user, input.locale);
+  const session = await closeIfRefused(
+    supabase,
+    await openSession(data.user, input.locale),
+  );
   return session.ok
     ? {
         ok: true,
@@ -170,5 +205,5 @@ export async function completeEmailLink(input: {
     const key = toAuthErrorKey(error?.code);
     return { ok: false, error: key === "unexpected" ? "linkInvalid" : key };
   }
-  return openSession(data.user, input.locale);
+  return closeIfRefused(supabase, await openSession(data.user, input.locale));
 }

@@ -37,6 +37,11 @@ export const signUpSchema = z.object({
   password: newPassword,
   // Fuseau du navigateur ; vérifié avant d'être enregistré (voir isValidTimeZone)
   timeZone: z.string().max(64).optional(),
+  // Bêta privée : vérifié par le serveur (src/server/auth/invite.ts)
+  inviteCode: z
+    .string(error("inviteInvalid"))
+    .max(64, error("inviteInvalid"))
+    .optional(),
 });
 
 export const forgotPasswordSchema = z.object({ locale, email });

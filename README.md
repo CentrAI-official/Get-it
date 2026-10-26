@@ -35,6 +35,17 @@ Sans cette étape, le lien fonctionne seulement dans le navigateur où la demand
 
 Le service de courriel intégré à Supabase n’envoie qu’aux membres de l’équipe du projet, quelques fois par heure. Un fournisseur SMTP sera nécessaire avant d’ouvrir les inscriptions au public.
 
+## Mise en ligne (Vercel)
+
+La version de test est hébergée sur [Vercel](https://vercel.com) (plan Pro : le plan gratuit est réservé à un usage non commercial), dans la région de Montréal (`yul1`, voir `vercel.json`), à côté de la base Supabase. Chaque envoi sur la branche `main` du dépôt GitHub est mis en ligne automatiquement.
+
+1. Sur Vercel : **Add New → Project**, importer le dépôt GitHub (framework Next.js détecté, aucune commande à changer).
+2. Dans **Settings → Environment Variables**, ajouter les variables de `.env.local` : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, et `SIGNUP_INVITE_CODE` (le code donné aux testeurs). Ne jamais mettre `AI_PROVIDER=fake` (refusé en production). `NEXT_PUBLIC_APP_URL` peut rester vide : l'adresse `…vercel.app` du projet est utilisée.
+3. Dans Supabase, **Authentication → URL Configuration** : ajouter l'adresse Vercel dans **Redirect URLs** (`https://<projet>.vercel.app/**`) ; la **Site URL** devient cette adresse quand la version en ligne devient la principale.
+4. Les migrations ne sont pas appliquées par Vercel : `npm run db:deploy` depuis un poste de développement, **puis** envoyer le code qui les utilise (la base est partagée avec le développement pendant la bêta).
+
+Changer une variable sur Vercel demande un nouveau déploiement (**Deployments → Redeploy**).
+
 ## Scripts
 
 | Commande                      | Rôle                                  |

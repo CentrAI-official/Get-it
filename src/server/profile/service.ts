@@ -49,6 +49,15 @@ export async function ensureProfile(
   };
 }
 
+/** Vrai si le profil Get iT de ce compte existe déjà. */
+export async function hasProfile(userId: string) {
+  const profile = await db.profile.findUnique({
+    where: { id: userId },
+    select: { id: true },
+  });
+  return profile !== null;
+}
+
 /** Enregistre la langue choisie, pour qu'elle suive l'utilisateur sur tous ses appareils. */
 export async function updateLocale(userId: string, locale: Locale) {
   await db.userSettings.updateMany({ where: { userId }, data: { locale } });

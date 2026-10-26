@@ -31,6 +31,19 @@ describe("parseServerEnv", () => {
     ).toThrow(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY contient une clé secrète/);
   });
 
+  it("accepte un code d'invitation facultatif d'au moins 4 caractères", () => {
+    expect(parseServerEnv({ ...validEnv, SIGNUP_INVITE_CODE: "" })).toEqual(
+      validEnv,
+    );
+    expect(
+      parseServerEnv({ ...validEnv, SIGNUP_INVITE_CODE: " GETIT-2026 " })
+        .SIGNUP_INVITE_CODE,
+    ).toBe("GETIT-2026");
+    expect(() =>
+      parseServerEnv({ ...validEnv, SIGNUP_INVITE_CODE: "abc" }),
+    ).toThrow(/SIGNUP_INVITE_CODE/);
+  });
+
   it("accepte la clé secrète Supabase côté serveur, facultative", () => {
     expect(parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "" })).toEqual(
       validEnv,

@@ -2,7 +2,12 @@ import type { z } from "zod";
 import { fieldErrorsFrom } from "@/lib/form-errors";
 import { isAuthErrorKey, type AuthErrorKey } from "./errors";
 
-const AUTH_FIELDS = ["email", "password", "confirmPassword"] as const;
+const AUTH_FIELDS = [
+  "email",
+  "password",
+  "confirmPassword",
+  "inviteCode",
+] as const;
 export type AuthField = (typeof AUTH_FIELDS)[number];
 
 /** État renvoyé par les Server Actions d'authentification à leur formulaire. */
