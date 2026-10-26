@@ -1533,8 +1533,7 @@
     },
     "moreRegions": "+{count, number}",
     "filters": {
-      "pillar": "Pilier",
-      "all": "Tous",
+      "removePillar": "Retirer le filtre {pillar}",
       "mode": "Où",
       "modes": {
         "both": "En ligne et en présentiel",

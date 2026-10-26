@@ -3,7 +3,6 @@
 import { LoaderCircle, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useTransition } from "react";
-import { PILLARS } from "@/config/pillars";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -20,8 +19,11 @@ const select =
   "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.03] px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>option]:bg-popover";
 
 /**
- * Filtres du catalogue : pilier pour tous, région et tranche de prix pour les
- * services. Ils vivent dans l'adresse (lien partageable).
+ * Filtres du catalogue : « Où », région et tranche de prix pour les services
+ * (les catégories de la Vitrine remplacent le filtre par pilier). Le pilier
+ * n'arrive que par « Voir tout » d'une collection « Pour ton plan » : il
+ * s'affiche alors en une pastille qui se retire. Les filtres vivent dans
+ * l'adresse (lien partageable).
  */
 export function CatalogFilterBar({
   kind,
@@ -59,32 +61,22 @@ export function CatalogFilterBar({
 
   return (
     <div className="flex flex-col gap-3" aria-busy={pending}>
-      <div
-        role="radiogroup"
-        aria-label={t("pillar")}
-        className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1"
-      >
-        {[undefined, ...PILLARS].map((pillar) => {
-          const checked = filters.pillar === pillar;
-          return (
-            <button
-              key={pillar ?? "all"}
-              type="button"
-              role="radio"
-              aria-checked={checked}
-              onClick={() => apply({ ...filters, pillar })}
-              className={cn(
-                chip,
-                checked
-                  ? "border-primary bg-primary/15 text-foreground"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {pillar ? tPillars(`${pillar}.name`) : t("all")}
-            </button>
-          );
-        })}
-      </div>
+      {filters.pillar ? (
+        <button
+          type="button"
+          aria-label={t("removePillar", {
+            pillar: tPillars(`${filters.pillar}.name`),
+          })}
+          onClick={() => apply({ ...filters, pillar: undefined })}
+          className={cn(
+            chip,
+            "flex w-fit items-center gap-1.5 border-primary bg-primary/15 text-foreground",
+          )}
+        >
+          {tPillars(`${filters.pillar}.name`)}
+          <X aria-hidden="true" className="size-4" />
+        </button>
+      ) : null}
 
       {kind === "service" ? (
         <div
