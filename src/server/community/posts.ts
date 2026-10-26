@@ -9,13 +9,12 @@ import {
 } from "@/features/community/rules";
 import type { PostMediaInput } from "@/features/community/media";
 import { computeStreaks } from "@/features/habits/streak";
-import { levelFromXp } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import { db } from "@/server/db";
 import { getUserTimeZone } from "@/server/profile/service";
 import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
 import { removeFiles } from "@/server/storage/service";
-import { getXpTotals } from "@/server/xp/service";
+import { getDisplayLevels } from "@/server/ranked/service";
 import { postMediaPaths, verifyMedia } from "./media";
 import { getBlockedIds, getCommunityMember } from "./members";
 
@@ -106,8 +105,9 @@ export async function freezeProgress(
 ): Promise<ProgressData | null> {
   if (source.type === "pact") return frozenPact(userId, source.id);
   if (source.type === "level") {
-    const xp = await getXpTotals(userId);
-    return { type: "level", level: levelFromXp(xp.total).level };
+    // Seul un niveau classé (mode Ranked) se partage : sinon il reste privé
+    const level = (await getDisplayLevels([userId])).get(userId);
+    return level === undefined ? null : { type: "level", level };
   }
   if (source.type === "goal") {
     const goal = await db.goal.findFirst({
@@ -205,7 +205,7 @@ export async function listShareableProgress(
   userId: string,
 ): Promise<ShareableProgress[]> {
   const recent = new Date(Date.now() - 60 * DAY_MS);
-  const [goals, milestones, streaks, xp, pacts] = await Promise.all([
+  const [goals, milestones, streaks, levels, pacts] = await Promise.all([
     db.goal.findMany({
       where: { userId, completedAt: { gte: recent } },
       orderBy: { completedAt: "desc" },
@@ -223,9 +223,10 @@ export async function listShareableProgress(
       },
     }),
     currentStreaks(userId),
-    getXpTotals(userId),
+    getDisplayLevels([userId]),
     listSuccessfulPacts(userId),
   ]);
+  const rankedLevel = levels.get(userId);
   const pactProgress = (
     await Promise.all(pacts.map((pact) => frozenPact(userId, pact.id)))
   ).flatMap((progress, index) => {
@@ -236,10 +237,15 @@ export async function listShareableProgress(
   });
 
   return [
-    {
-      source: { type: "level" },
-      progress: { type: "level", level: levelFromXp(xp.total).level },
-    },
+    // Le niveau ne se partage qu'en mode Ranked (sinon il est privé)
+    ...(rankedLevel === undefined
+      ? []
+      : [
+          {
+            source: { type: "level" as const },
+            progress: { type: "level" as const, level: rankedLevel },
+          },
+        ]),
     ...pactProgress,
     ...goals.map((goal): ShareableProgress => ({
       source: { type: "goal", id: goal.id },
@@ -283,7 +289,7 @@ export async function deletePost(userId: string, postId: string) {
 }
 
 /** Publication que l'utilisateur peut voir et avec laquelle il peut interagir. */
-async function reachablePost(userId: string, postId: string) {
+export async function reachablePost(userId: string, postId: string) {
   const blocked = await getBlockedIds(userId);
   return db.post.findFirst({
     where: {
@@ -291,8 +297,48 @@ async function reachablePost(userId: string, postId: string) {
       status: "visible",
       ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
     },
-    select: { id: true, userId: true },
+    select: { id: true, userId: true, sharedPostId: true },
   });
+}
+
+/**
+ * Partage la publication de quelqu'un d'autre dans son fil, avec un mot
+ * facultatif. Partager un partage renvoie à l'origine ; une même publication
+ * n'est partagée qu'une fois par personne.
+ */
+export async function sharePost(
+  userId: string,
+  postId: string,
+  body: string,
+): Promise<Result> {
+  const allowed = await canParticipate(userId);
+  if (!allowed.ok) return allowed;
+  let target = await reachablePost(userId, postId);
+  if (target?.sharedPostId) {
+    target = await reachablePost(userId, target.sharedPostId);
+  }
+  if (!target || target.userId === userId) {
+    return { ok: false, error: "notFound" };
+  }
+  if (!(await underPostLimit(userId))) return { ok: false, error: "postLimit" };
+  try {
+    await db.post.create({
+      data: { userId, kind: "text", body, sharedPostId: target.id },
+      select: { id: true },
+    });
+  } catch (error) {
+    // Index unique (personne, publication d'origine)
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002"
+    ) {
+      return { ok: false, error: "alreadyShared" };
+    }
+    throw error;
+  }
+  return { ok: true };
 }
 
 export async function addComment(

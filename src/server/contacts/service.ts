@@ -10,7 +10,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
 import { avatarUrls } from "@/server/profile/avatar";
-import { getLevels } from "@/server/xp/service";
+import { getDisplayLevels } from "@/server/ranked/service";
 
 // Contacts (amis) entre membres du Centre. Chaque fonction reçoit l'userId de
 // la session ; la liste de contacts n'est visible que par son propriétaire.
@@ -23,7 +23,8 @@ export type ContactPerson = {
   username: string | null;
   /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
   avatarUrl: string | null;
-  level: number;
+  /** Niveau classé (mode Ranked), ou null : sans Ranked, le niveau reste privé. */
+  level: number | null;
 };
 
 async function canWrite(userId: string): Promise<{ ok: true } | Fail> {
@@ -210,7 +211,7 @@ export async function listContacts(viewerId: string) {
       where: { id: { in: ids } },
       select: { id: true, displayName: true, username: true, avatarPath: true },
     }),
-    getLevels(ids),
+    getDisplayLevels(ids),
   ]);
   const avatars = await avatarUrls(
     profiles.map((profile) => profile.avatarPath),
@@ -221,7 +222,7 @@ export async function listContacts(viewerId: string) {
       {
         ...profile,
         avatarUrl: avatarPath ? (avatars.get(avatarPath) ?? null) : null,
-        level: levels.get(profile.id) ?? 1,
+        level: levels.get(profile.id) ?? null,
       },
     ]),
   );

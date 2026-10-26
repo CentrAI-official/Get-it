@@ -11,25 +11,31 @@ import { addTask } from "@/server/tasks/service";
 
 export type ResolveResult =
   | { ok: true; status: CoachActionView["status"]; createdId: string | null }
-  | { ok: false; error: "notFound" | "goalMissing" | "unexpected" };
+  | {
+      ok: false;
+      error: "notFound" | "goalMissing" | "goalLimit" | "unexpected";
+    };
 
 /**
  * Crée l'élément proposé, avec les mêmes services (et contrôles) que les
  * formulaires. Renvoie l'id créé (objectif, habitude), null pour une tâche ou
- * un jalon, ou false si l'objectif lié n'existe plus.
+ * un jalon, false si l'objectif lié n'existe plus, ou « goalLimit » si
+ * l'aspect a déjà 3 objectifs en cours.
  */
 async function create(
   userId: string,
   payload: CoachActionPayload,
-): Promise<string | null | false> {
+): Promise<string | null | false | "goalLimit"> {
   switch (payload.kind) {
-    case "goal":
-      return createGoal(userId, {
+    case "goal": {
+      const created = await createGoal(userId, {
         title: payload.title,
         description: payload.description,
         pillar: payload.pillar,
         targetDate: payload.targetDate,
       });
+      return created.ok ? created.id : created.error;
+    }
     case "habit":
       return (
         (await createHabit(userId, {
@@ -85,11 +91,12 @@ export async function resolveCoachAction(
     return { ok: true, status: "dismissed", createdId: null };
   }
 
-  let createdId: string | null | false = false;
-  let failure: "goalMissing" | "unexpected" | null = null;
+  let createdId: string | null | false | "goalLimit" = false;
+  let failure: "goalMissing" | "goalLimit" | "unexpected" | null = null;
   try {
     createdId = await create(userId, payload.data);
     if (createdId === false) failure = "goalMissing";
+    if (createdId === "goalLimit") failure = "goalLimit";
   } catch (error) {
     console.error("Ajout de la proposition impossible", error);
     failure = "unexpected";

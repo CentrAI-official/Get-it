@@ -236,6 +236,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       body: input.body,
       progress: input.kind === "progress" ? input.progress : null,
       pact: null,
+      post: null,
       deleted: false,
       createdAt: new Date().toISOString(),
       reactions: [],
@@ -401,7 +402,10 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="truncate font-heading font-bold">{name}</h1>
           <p className="truncate text-xs text-muted-foreground">
-            {handle} · {tInbox("level", { level: other.level })}
+            {handle}
+            {other.level === null
+              ? null
+              : ` · ${tInbox("level", { level: other.level })}`}
           </p>
         </div>
         <DropdownMenu>

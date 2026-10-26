@@ -3,7 +3,6 @@ import {
   countWords,
   excerpt,
   isEditableDay,
-  isEmptyEntry,
   journalStreak,
   periodRange,
   recapStats,
@@ -11,7 +10,6 @@ import {
   type JournalEntryInput,
   type JournalPeriod,
   type JournalRecapStats,
-  type JournalText,
 } from "@/features/journal/rules";
 import type { CheckInScores } from "@/features/today/schemas";
 import { XP_REWARDS } from "@/features/xp/rules";
@@ -19,17 +17,10 @@ import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getCheckIn, listCheckIns } from "@/server/check-ins/service";
 import { db } from "@/server/db";
 import { awardJournal } from "@/server/xp/service";
+import { listJournalMedia, type JournalMediaItem } from "./media";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus. Le journal
 // est privé : jamais montré à quelqu'un d'autre ni envoyé à Get iT AI.
-
-const textSelect = {
-  gratitude: true,
-  win: true,
-  lesson: true,
-  intention: true,
-  body: true,
-} as const;
 
 /** Jours écrits lus pour la série (au-delà, la série est plafonnée). */
 const STREAK_LOOKBACK = 400;
@@ -37,12 +28,15 @@ const STREAK_LOOKBACK = 400;
 export type JournalPage = {
   today: string;
   day: string;
-  entry: JournalText | null;
+  /** Texte de la page, ou null si rien n'est écrit ce jour-là. */
+  body: string | null;
   editable: boolean;
   /** Série en cours, jusqu'à aujourd'hui. */
   streak: number;
   /** Check-in de ce jour-là (celui d'aujourd'hui se fait en haut du journal). */
   checkIn: CheckInScores | null;
+  /** Photos ou vidéo de la page (privées). */
+  media: JournalMediaItem[];
 };
 
 /** Série en cours de pages écrites jusqu'à `today`. */
@@ -70,21 +64,23 @@ export async function getJournalPage(
 ): Promise<JournalPage> {
   const today = toCalendarDay(new Date(), timeZone);
   const day = requested && requested <= today ? requested : today;
-  const [entry, streak, checkIn] = await Promise.all([
+  const [entry, streak, checkIn, media] = await Promise.all([
     db.journalEntry.findUnique({
       where: { userId_day: { userId, day: toDbDate(day) } },
-      select: textSelect,
+      select: { body: true },
     }),
     getStreak(userId, today),
     getCheckIn(userId, day),
+    listJournalMedia(userId, day),
   ]);
   return {
     today,
     day,
-    entry,
+    body: entry?.body ?? null,
     editable: isEditableDay(day, today),
     streak,
     checkIn,
+    media,
   };
 }
 
@@ -103,21 +99,14 @@ export async function saveJournalEntry(
   const today = toCalendarDay(new Date(), timeZone);
   if (!isEditableDay(input.day, today)) return { ok: false, error: "locked" };
   const day = toDbDate(input.day);
-  const text: JournalText = {
-    gratitude: input.gratitude,
-    win: input.win,
-    lesson: input.lesson,
-    intention: input.intention,
-    body: input.body,
-  };
 
-  if (isEmptyEntry(text)) {
+  if (input.body === "") {
     // La cascade retire aussi l'XP de la page
     await db.journalEntry.deleteMany({ where: { userId, day } });
     return { ok: true, saved: false, xp: 0 };
   }
 
-  const data = { ...text, words: countWords(text) };
+  const data = { body: input.body, words: countWords(input.body) };
   const xp = await db.$transaction(async (tx) => {
     const entry = await tx.journalEntry.upsert({
       where: { userId_day: { userId, day } },
@@ -173,7 +162,7 @@ export async function getJournalRecap(
     db.journalEntry.findMany({
       where: { userId, day: { gte: toDbDate(from), lte: toDbDate(to) } },
       orderBy: { day: "desc" },
-      select: { day: true, words: true, ...textSelect },
+      select: { day: true, words: true, body: true },
     }),
     listCheckIns(userId, from, to),
     getStreak(userId, today),
@@ -181,7 +170,7 @@ export async function getJournalRecap(
   const entries = rows.map((row) => ({
     day: fromDbDate(row.day),
     words: row.words,
-    excerpt: excerpt(row),
+    excerpt: excerpt(row.body),
   }));
   const next = addDays(to, 1);
   return {

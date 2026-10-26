@@ -4,6 +4,7 @@ import { Check, Flame, Pencil } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { pillarIcons } from "@/config/pillars";
+import { KIND_COLORS } from "@/features/development/colors";
 import { Link } from "@/i18n/navigation";
 import { isoWeekday, lastDays, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -18,12 +19,13 @@ type HabitCardProps = {
   today: string;
 };
 
-/** Habitude en cours : série, record et les 7 derniers jours à cocher. */
+/** Habitude en cours : série, record et les 7 derniers jours à cocher ; la couleur dit le pilier. */
 export function HabitCard({ habit, today }: HabitCardProps) {
   const t = useTranslations("Habits");
   const tPillars = useTranslations("Pillars");
   const format = useFormatter();
   const Icon = pillarIcons[habit.pillar];
+  const colors = KIND_COLORS[habit.pillar];
 
   // La case réagit tout de suite ; le serveur confirme ensuite
   const { completions, toggle, current, best } = useHabitCompletions(
@@ -34,14 +36,22 @@ export function HabitCard({ habit, today }: HabitCardProps) {
   return (
     <article className="flex flex-col gap-4 border-b border-white/8 py-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb text-silver">
+        <span
+          className={cn(
+            "flex size-11 shrink-0 items-center justify-center rounded-full",
+            colors.tint,
+            colors.text,
+          )}
+        >
           <Icon aria-hidden="true" className="size-5" />
         </span>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <h3 className="font-semibold break-words">{habit.title}</h3>
           <p className="text-sm text-muted-foreground">
-            {tPillars(`${habit.pillar}.name`)} ·{" "}
-            <ScheduleLabel weekdays={habit.weekdays} />
+            <span className={colors.text}>
+              {tPillars(`${habit.pillar}.name`)}
+            </span>{" "}
+            · <ScheduleLabel weekdays={habit.weekdays} />
           </p>
           {habit.goal ? (
             <Link

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { pillarIcons, type Pillar } from "@/config/pillars";
+import { ACTIVE_GOALS_PER_PILLAR } from "@/features/goals/schemas";
 import { cn } from "@/lib/utils";
 import {
   GOAL_SUGGESTIONS,
@@ -37,6 +38,10 @@ export function GoalsStep({ draft, update }: StepProps) {
   const [customPillar, setCustomPillar] = useState<Pillar | null>(null);
 
   const isFull = draft.goals.length >= MAX_GOALS;
+  // 3 objectifs en cours au plus par aspect
+  const pillarFull = (pillar: Pillar) =>
+    draft.goals.filter((goal) => goal.pillar === pillar).length >=
+    ACTIVE_GOALS_PER_PILLAR;
   const hasGoal = (title: string) =>
     draft.goals.some((goal) => sameTitle(goal.title, title));
   // Pilier de l'objectif personnalisé : le premier choisi, sauf choix contraire
@@ -47,6 +52,7 @@ export function GoalsStep({ draft, update }: StepProps) {
   const canAddCustom =
     !isFull &&
     selectedPillar !== undefined &&
+    !pillarFull(selectedPillar) &&
     customTitle.trim().length >= GOAL_TITLE_MIN_LENGTH &&
     !hasGoal(customTitle);
 
@@ -105,7 +111,7 @@ export function GoalsStep({ draft, update }: StepProps) {
                       type="button"
                       variant="outline"
                       aria-pressed={selected}
-                      disabled={!selected && isFull}
+                      disabled={!selected && (isFull || pillarFull(pillar))}
                       onClick={() => toggleGoal(title, pillar)}
                       className="h-auto min-h-9 py-2 text-left whitespace-normal aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-foreground dark:aria-pressed:border-primary dark:aria-pressed:bg-primary/10"
                     >

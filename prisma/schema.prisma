@@ -83,6 +83,7 @@ model Profile {
   habits               Habit[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
+  journalMedia         JournalMedia[]
   assessments          PillarAssessment[]
   xpEvents             XpEvent[]
   aiRequests           AiRequest[]
@@ -91,6 +92,7 @@ model Profile {
   posts                Post[]
   postComments         PostComment[]
   postReactions        PostReaction[]
+  postSaves            PostSave[]
   reportsMade          ContentReport[]      @relation("ReportReporter")
   reportsReceived      ContentReport[]      @relation("ReportedUser")
   reportsResolved      ContentReport[]      @relation("ReportResolver")
@@ -110,6 +112,7 @@ model Profile {
   listingsReviewed     Listing[]            @relation("ListingReviewer")
   listingFavorites     ListingFavorite[]
   developmentPlans     DevelopmentPlan[]
+  rankedEvaluations    RankedEvaluation[]
 
   @@map("profiles")
 }
@@ -148,6 +151,8 @@ model Goal {
   /// Jour visé : une date du calendrier, sans heure ni fuseau.
   targetDate        DateTime?  @map("target_date") @db.Date
   completedAt       DateTime?  @map("completed_at") @db.Timestamptz(3)
+  /// Photo choisie pour l'objectif (compartiment privé « media », dossier posts/<userId>).
+  photoPath         String?    @map("photo_path")
   /// Plan de « Mon développement » d'où vient l'objectif ; détaché si le plan est supprimé.
   developmentPlanId String?    @map("development_plan_id") @db.Uuid
   createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -300,17 +305,14 @@ model DailyCheckIn {
 }
 
 /// Page du journal : une par jour, privée (jamais envoyée à Get iT AI ni
-/// montrée à quelqu'un d'autre). Réponses aux questions guidées et texte libre.
+/// montrée à quelqu'un d'autre). Une page de texte libre.
 model JournalEntry {
   id        String   @id @default(uuid(7)) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
   /// Jour du calendrier dans le fuseau de l'utilisateur.
   day       DateTime @db.Date
-  gratitude String?
-  win       String?
-  lesson    String?
-  intention String?
-  body      String?
+  /// Texte libre de la page (jamais vide : une page vidée est supprimée).
+  body      String
   /// Mots écrits (récap), recalculé à chaque enregistrement.
   words     Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -321,6 +323,31 @@ model JournalEntry {
 
   @@unique([userId, day])
   @@map("journal_entries")
+}
+
+/// Photo ou vidéo d'une page du journal (privée, comme la page). Rattachée au
+/// jour, pas au texte : vider la page ne la supprime pas.
+model JournalMedia {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  /// Jour du calendrier de la page, dans le fuseau de l'utilisateur.
+  day        DateTime  @db.Date
+  kind       MediaKind
+  path       String    @unique
+  /// Image d'aperçu d'une vidéo.
+  posterPath String?   @map("poster_path")
+  width      Int
+  height     Int
+  durationMs Int?      @map("duration_ms")
+  sizeBytes  Int       @map("size_bytes")
+  /// Place sur la page (0 à 3).
+  position   Int       @db.SmallInt
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, day, position])
+  @@map("journal_media")
 }
 
 /// Action qui rapporte de l'XP (§6).
@@ -372,6 +399,31 @@ enum AiRequestKind {
   development_plan
   /// Modification d'un plan existant : ne compte pas dans les 3 plans par jour.
   development_revision
+  /// Analyse d'un niveau Ranked.
+  ranked_analysis
+}
+
+/// Évaluation du mode Ranked : une par passage, la plus récente fait foi.
+/// Niveaux physique et financier de 1 à 100 (pourcentage du Canada et des
+/// États-Unis dépassé, par âge) ; le total est leur moyenne. Tous publics.
+model RankedEvaluation {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// Réponses validées (rankedAnswersSchema) : renseignements sensibles, jamais montrés aux autres.
+  answers   Json
+  /// Détail du calcul : percentile et source de chaque facteur.
+  result    Json
+  physical  Int      @db.SmallInt
+  financial Int      @db.SmallInt
+  total     Int      @db.SmallInt
+  /// Analyse de Get iT AI, si la personne l'a demandée.
+  analysis  Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("ranked_evaluations")
 }
 
 /// Requête faite à Get iT AI : limite quotidienne et suivi des coûts (jetons).
@@ -490,19 +542,43 @@ model Post {
   progress   Json?
   status     ContentStatus @default(visible)
   /// Photos ou vidéo jointes (0 à 4) : une publication avec médias peut être sans texte.
-  mediaCount Int           @default(0) @map("media_count") @db.SmallInt
-  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt  DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  mediaCount   Int           @default(0) @map("media_count") @db.SmallInt
+  /// Partage dans son fil : la publication d'origine (le partage disparaît avec elle).
+  sharedPostId String?       @map("shared_post_id") @db.Uuid
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile   Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  comments  PostComment[]
-  reactions PostReaction[]
-  reports   ContentReport[]
-  media     PostMedia[]
+  profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedPost Post?           @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
+  shares     Post[]          @relation("PostShares")
+  comments   PostComment[]
+  reactions  PostReaction[]
+  reports    ContentReport[]
+  media      PostMedia[]
+  saves      PostSave[]
+  messages   Message[]
 
+  @@unique([userId, sharedPostId])
   @@index([status, createdAt])
   @@index([userId, createdAt])
+  @@index([sharedPostId])
   @@map("posts")
+}
+
+/// Publication enregistrée (Profil › Publications › Enregistrées). Privé :
+/// jamais montré à l'auteur.
+model PostSave {
+  userId    String   @map("user_id") @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt])
+  @@index([postId])
+  @@map("post_saves")
 }
 
 model PostComment {
@@ -610,6 +686,8 @@ enum MessageKind {
   progress
   /// Étape d'un pacte (proposition, fin) : affichée selon l'état du pacte.
   pact
+  /// Publication du Centre envoyée dans la conversation (mot facultatif).
+  post
 }
 
 /// Réactions de la Messagerie : Bravo, Force, Fier de toi, Merci.
@@ -667,6 +745,8 @@ model Message {
   progress       Json?
   /// Pacte dont ce message marque une étape (« proposed », « ended », « cancelled » dans body).
   pactId         String?     @map("pact_id") @db.Uuid
+  /// Publication envoyée (message « post ») ; vide si elle a été supprimée.
+  postId         String?     @map("post_id") @db.Uuid
   /// Supprimé par son auteur ou retiré par la modération : contenu effacé.
   deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(3)
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -674,11 +754,13 @@ model Message {
   conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender       Profile           @relation(fields: [senderId], references: [id], onDelete: Cascade)
   pact         Pact?             @relation(fields: [pactId], references: [id], onDelete: Cascade)
+  post         Post?             @relation(fields: [postId], references: [id], onDelete: SetNull)
   reactions    MessageReaction[]
   reports      ContentReport[]
 
   @@index([conversationId, createdAt])
   @@index([senderId, createdAt])
+  @@index([postId])
   @@map("messages")
 }
 

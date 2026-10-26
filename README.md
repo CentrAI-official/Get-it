@@ -73,8 +73,11 @@ src/i18n/                 configuration des langues
 - [x] 9. Centre Get iT : fil social de base et modération
 - [x] 9b. Réorganisation : Communauté en accueil, popup « Ma journée », Profil (objectifs, habitudes, progression)
 - [x] 9c. Navigation à cinq catégories : Communauté, Messagerie, Mon développement (anciennement Mes services), Marketplace, Profil
-- [x] 9d. Journal (dans Profil) : une page par jour, questions guidées, récap de la semaine et du mois
+- [x] 9d. Journal (dans Profil) : une page par jour en texte libre, check-in du jour, photos et vidéo, récap de la semaine et du mois
 - [x] 9d2. Profil public : photo, courte présentation, nombre de contacts, onglet Publications
+- [x] 9d3. Mode Ranked (lot 1) : niveaux physique et financier classés de 1 à 100 (tests et questions), comparés au Canada et aux États-Unis par tranche d’âge ; niveaux privés sans Ranked
+- [x] 9d3b. Objectifs (3 par pilier, photo), habitudes (filtre, tri, couleurs), publications (enregistrer, partager, envoyer, lien)
+- [ ] 9d4. Mode Ranked (lot 2) : connexion des réseaux sociaux pour la vérification
 - [x] 9e. Messagerie (M1) : messages privés, demandes, réactions, cartes de progrès, modération
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
 - [x] 9f0. Photos et vidéos dans les publications

@@ -123,7 +123,17 @@ export function DayGoals({
                     }
                     className="size-10 p-[3px]"
                   >
-                    <Icon className="size-4 text-silver" />
+                    {goal.photoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={goal.photoUrl}
+                        alt=""
+                        loading="lazy"
+                        className="size-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <Icon className="size-4 text-silver" />
+                    )}
                   </ProgressRing>
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <Link

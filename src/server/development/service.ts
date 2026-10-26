@@ -36,6 +36,7 @@ import {
   reserveAiRequest,
 } from "@/server/ai/usage";
 import { db } from "@/server/db";
+import { hasActiveGoalRoom } from "@/server/goals/service";
 
 // « Mon développement » : chaque fonction reçoit l'userId de la session. Les
 // réponses au questionnaire sont des renseignements sensibles : elles ne
@@ -232,6 +233,10 @@ export async function applyPlan(
       const tasks = plan.tasks.filter((task) => taskTitles.has(task.title));
       const addGoal = selection.goal && plan.goal !== null;
       if (!addGoal && habits.length === 0 && tasks.length === 0) return false;
+      // 3 objectifs en cours au plus par aspect : rien n'est ajouté
+      if (addGoal && !(await hasActiveGoalRoom(tx, userId, pillar))) {
+        return "goalLimit" as const;
+      }
 
       const goal =
         addGoal && plan.goal

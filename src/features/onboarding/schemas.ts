@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { ACCOUNT_TYPES, type AccountType } from "@/features/marketplace/rules";
 import {
+  ACTIVE_GOALS_PER_PILLAR,
   GOAL_TITLE_MAX_LENGTH,
   GOAL_TITLE_MIN_LENGTH,
 } from "@/features/goals/schemas";
@@ -78,6 +79,14 @@ export const goalsStepSchema = z.object({
       (goals) =>
         new Set(goals.map((goal) => goal.title.toLowerCase())).size ===
         goals.length,
+    )
+    // 3 objectifs en cours au plus par aspect
+    .refine((goals) =>
+      PILLARS.every(
+        (item) =>
+          goals.filter((goal) => goal.pillar === item).length <=
+          ACTIVE_GOALS_PER_PILLAR,
+      ),
     ),
 });
 

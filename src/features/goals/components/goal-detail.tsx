@@ -14,8 +14,10 @@ import { isAiConfigured } from "@/server/ai/provider";
 import { getAiProfile } from "@/server/ai/usage";
 import { getGoal } from "@/server/goals/service";
 import { getCurrentProfile } from "@/server/profile/service";
+import { storageEnabled } from "@/server/storage/service";
 import { recordIdSchema } from "../schemas";
 import { GoalActions } from "./goal-actions";
+import { GoalPhotoEditor } from "./goal-photo-editor";
 import { GoalPlanCard } from "./goal-plan-card";
 import { MilestoneList } from "./milestone-list";
 
@@ -44,18 +46,34 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
   return (
     <article className="flex flex-col gap-6 lg:gap-8">
       <header className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
-        {/* Avancement des jalons */}
-        <ProgressRing value={part} className="size-24 p-1.5 sm:size-28">
-          <span className="flex flex-col items-center gap-0.5">
-            {total > 0 ? (
-              <span className="font-mono text-xl font-bold sm:text-2xl">
-                <PercentValue part={part} />
-              </span>
+        {/* Avancement des jalons, autour de la photo choisie */}
+        <div className="relative w-fit">
+          <ProgressRing value={part} className="size-24 p-1.5 sm:size-28">
+            {goal.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={goal.photoUrl}
+                alt=""
+                className="size-full rounded-full object-cover"
+              />
             ) : (
-              <Icon aria-hidden="true" className="size-7 text-silver" />
+              <span className="flex flex-col items-center gap-0.5">
+                {total > 0 ? (
+                  <span className="font-mono text-xl font-bold sm:text-2xl">
+                    <PercentValue part={part} />
+                  </span>
+                ) : (
+                  <Icon aria-hidden="true" className="size-7 text-silver" />
+                )}
+              </span>
             )}
-          </span>
-        </ProgressRing>
+          </ProgressRing>
+          <GoalPhotoEditor
+            goalId={goal.id}
+            photoUrl={goal.photoUrl}
+            photosEnabled={storageEnabled()}
+          />
+        </div>
 
         <div className="flex min-w-0 flex-1 flex-col gap-3">
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">

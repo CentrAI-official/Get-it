@@ -16,7 +16,12 @@ import {
 } from "@/features/messages/rules";
 import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
-import { freezeProgress, type ProgressSource } from "@/server/community/posts";
+import { sharedPostsFor, type SharedPost } from "@/server/community/feed";
+import {
+  freezeProgress,
+  reachablePost,
+  type ProgressSource,
+} from "@/server/community/posts";
 import { db } from "@/server/db";
 import type { ContactState } from "@/features/contacts/rules";
 import {
@@ -25,7 +30,7 @@ import {
   getContactState,
 } from "@/server/contacts/service";
 import { avatarUrls } from "@/server/profile/avatar";
-import { getLevels } from "@/server/xp/service";
+import { getDisplayLevels } from "@/server/ranked/service";
 import {
   getOpenPact,
   pactCardsFor,
@@ -49,17 +54,23 @@ export type MessagePerson = {
   username: string | null;
   /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
   avatarUrl: string | null;
-  level: number;
+  /** Niveau classé (mode Ranked), ou null : sans Ranked, le niveau reste privé. */
+  level: number | null;
 };
 
 export type ChatMessage = {
   id: string;
   senderId: string;
   mine: boolean;
-  kind: "text" | "progress" | "pact";
+  kind: "text" | "progress" | "pact" | "post";
   /** Texte ; pour un pacte, l'étape (« proposed », « ended », « cancelled »). */
   body: string;
   progress: ProgressData | null;
+  /**
+   * Publication envoyée (message « post »), telle que la personne qui lit peut
+   * la voir, ou « unavailable » (supprimée, retirée, auteur bloqué).
+   */
+  post: SharedPost | "unavailable" | null;
   /** Le pacte d'un message « pact », dans son état actuel. */
   pact: PactCard | null;
   deleted: boolean;
@@ -76,7 +87,7 @@ export type InboxItem = {
   unread: boolean;
   lastMessage: {
     mine: boolean;
-    kind: "text" | "progress" | "pact";
+    kind: "text" | "progress" | "pact" | "post";
     body: string;
     deleted: boolean;
   };
@@ -112,6 +123,7 @@ const messageSelect = {
   body: true,
   progress: true,
   pactId: true,
+  postId: true,
   deletedAt: true,
   createdAt: true,
   reactions: { select: { userId: true, kind: true } },
@@ -123,6 +135,7 @@ function toChatMessage(
   viewerId: string,
   row: MessageRow,
   pacts: Map<string, PactCard> = new Map(),
+  posts: Map<string, SharedPost> = new Map(),
 ): ChatMessage {
   const progress = row.progress
     ? progressDataSchema.safeParse(row.progress)
@@ -135,6 +148,10 @@ function toChatMessage(
     body: row.deletedAt ? "" : row.body,
     progress: !row.deletedAt && progress?.success ? progress.data : null,
     pact: row.pactId ? (pacts.get(row.pactId) ?? null) : null,
+    post:
+      row.kind === "post" && !row.deletedAt
+        ? ((row.postId ? posts.get(row.postId) : undefined) ?? "unavailable")
+        : null,
     deleted: row.deletedAt !== null,
     createdAt: row.createdAt.toISOString(),
     reactions: row.reactions.map((reaction) => ({
@@ -193,7 +210,7 @@ async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
       where: { id: { in: ids } },
       select: { id: true, displayName: true, username: true, avatarPath: true },
     }),
-    getLevels(ids),
+    getDisplayLevels(ids),
   ]);
   const avatars = await avatarUrls(
     profiles.map((profile) => profile.avatarPath),
@@ -204,7 +221,7 @@ async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
       {
         ...profile,
         avatarUrl: avatarPath ? (avatars.get(avatarPath) ?? null) : null,
-        level: levels.get(profile.id) ?? 1,
+        level: levels.get(profile.id) ?? null,
       },
     ]),
   );
@@ -385,6 +402,42 @@ export async function listInbox(
   return { items, loadedAt: Date.now() };
 }
 
+export type ShareTarget = {
+  person: MessagePerson;
+  /** Conversation existante, sinon elle est créée à l'envoi. */
+  conversationId: string | null;
+};
+
+/**
+ * À qui envoyer une publication : les discussions récentes (pas les demandes
+ * reçues, encore à accepter), puis les contacts sans discussion.
+ */
+export async function listShareTargets(
+  viewerId: string,
+): Promise<ShareTarget[]> {
+  const [rows, contacts] = await Promise.all([
+    inboxRows(viewerId),
+    contactIds(viewerId),
+  ]);
+  const order: { userId: string; conversationId: string | null }[] = [];
+  const seen = new Set<string>();
+  for (const { row, otherId } of rows) {
+    if (row.status === "request" || seen.has(otherId)) continue;
+    seen.add(otherId);
+    order.push({ userId: otherId, conversationId: row.conversation.id });
+  }
+  for (const id of contacts) {
+    if (seen.has(id)) continue;
+    seen.add(id);
+    order.push({ userId: id, conversationId: null });
+  }
+  const byId = await people(order.map((item) => item.userId));
+  return order.flatMap((item) => {
+    const person = byId.get(item.userId);
+    return person ? [{ person, conversationId: item.conversationId }] : [];
+  });
+}
+
 /** Conversations avec des messages non lus (pastille de l'onglet Messagerie). */
 export async function countUnread(viewerId: string) {
   const rows = await inboxRows(viewerId);
@@ -420,12 +473,20 @@ async function messagesPage(
     select: messageSelect,
   });
   const page = rows.slice(0, MESSAGE_PAGE_SIZE);
-  const pacts = await pactCardsFor(viewerId, [
-    ...new Set(page.flatMap((row) => (row.pactId ? [row.pactId] : []))),
+  const [pacts, posts] = await Promise.all([
+    pactCardsFor(viewerId, [
+      ...new Set(page.flatMap((row) => (row.pactId ? [row.pactId] : []))),
+    ]),
+    sharedPostsFor(
+      viewerId,
+      page.flatMap((row) => (row.postId ? [row.postId] : [])),
+    ),
   ]);
   return {
     // Du plus ancien au plus récent, pour l'affichage
-    messages: page.reverse().map((row) => toChatMessage(viewerId, row, pacts)),
+    messages: page
+      .reverse()
+      .map((row) => toChatMessage(viewerId, row, pacts, posts)),
     hasMore: rows.length > MESSAGE_PAGE_SIZE,
   };
 }
@@ -489,7 +550,8 @@ export async function listOlderMessages(
 
 export type MessageInput =
   | { kind: "text"; body: string }
-  | { kind: "progress"; source: ProgressSource; body: string };
+  | { kind: "progress"; source: ProgressSource; body: string }
+  | { kind: "post"; postId: string; body: string };
 
 /** Envoie un message (texte, ou progrès réel revérifié et figé par le serveur). */
 export async function sendMessage(
@@ -525,6 +587,13 @@ export async function sendMessage(
     progress = await freezeProgress(viewerId, input.source);
     if (!progress) return { ok: false, error: "notFound" };
   }
+  // Publication envoyée : visible pour l'expéditeur, sans blocage
+  let postId: string | null = null;
+  if (input.kind === "post") {
+    const post = await reachablePost(viewerId, input.postId);
+    if (!post) return { ok: false, error: "notFound" };
+    postId = post.id;
+  }
 
   const now = new Date();
   const [message] = await db.$transaction([
@@ -535,6 +604,7 @@ export async function sendMessage(
         kind: input.kind,
         body: input.body,
         progress: progress ?? Prisma.DbNull,
+        postId,
         createdAt: now,
       },
       select: messageSelect,
@@ -548,7 +618,11 @@ export async function sendMessage(
       data: { lastReadAt: now },
     }),
   ]);
-  return { ok: true, message: toChatMessage(viewerId, message) };
+  const posts = await sharedPostsFor(viewerId, postId ? [postId] : []);
+  return {
+    ok: true,
+    message: toChatMessage(viewerId, message, undefined, posts),
+  };
 }
 
 /** La conversation est lue jusqu'ici (seulement pour la pastille : pas de « Vu »). */
@@ -589,7 +663,12 @@ export async function deleteMessage(viewerId: string, messageId: string) {
       deletedAt: null,
       kind: { not: "pact" },
     },
-    data: { deletedAt: new Date(), body: "", progress: Prisma.DbNull },
+    data: {
+      deletedAt: new Date(),
+      body: "",
+      progress: Prisma.DbNull,
+      postId: null,
+    },
   });
   if (count > 0) await db.messageReaction.deleteMany({ where: { messageId } });
   return count > 0;

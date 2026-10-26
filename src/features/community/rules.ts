@@ -26,6 +26,9 @@ export const STORY_WINDOW_HOURS = 24;
 /** Progrès du jour chargés au plus (toutes personnes confondues). */
 export const STORY_POSTS_MAX = 60;
 
+/** Publications enregistrées au plus (Profil › Publications › Enregistrées). */
+export const MAX_SAVED_POSTS = 500;
+
 /** Durée d'une suspension décidée par la modération. */
 export const SUSPENSION_DAYS = 7;
 
@@ -85,6 +88,17 @@ export const progressShareSchema = z.object({
     z.object({ type: z.literal("level") }),
     z.object({ type: z.literal("pact"), id: z.uuid() }),
   ]),
+  body: z
+    .string()
+    .trim()
+    .max(POST_MAX_LENGTH, { error: "bodyTooLong" })
+    .optional()
+    .default(""),
+});
+
+/** Partager une publication dans son fil, avec un mot facultatif. */
+export const sharePostSchema = z.object({
+  postId: z.uuid(),
   body: z
     .string()
     .trim()
@@ -175,6 +189,8 @@ export const COMMUNITY_ERRORS = [
   "mediaMissing",
   "videoTooLong",
   "uploadLimit",
+  "saveLimit",
+  "alreadyShared",
   "unexpected",
 ] as const;
 

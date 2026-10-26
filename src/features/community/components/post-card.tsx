@@ -2,12 +2,15 @@
 
 import {
   Ban,
+  Bookmark,
   EllipsisVertical,
   EyeOff,
   Flag,
   HandHeart,
   LoaderCircle,
   MessageCircle,
+  Repeat2,
+  Send,
   Trash2,
   UserPlus,
 } from "lucide-react";
@@ -32,7 +35,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { FeedPost } from "@/server/community/feed";
-import { blockUserAction, deletePostAction } from "../actions";
+import {
+  blockUserAction,
+  deletePostAction,
+  setPostSavedAction,
+} from "../actions";
 import { requestContactAction } from "@/features/contacts/actions";
 import { startConversationAction } from "@/features/messages/actions";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -40,6 +47,8 @@ import { useBravo } from "../reaction-store";
 import { PostComments } from "./post-comments";
 import { PostMedia } from "./post-media";
 import { ProgressBadge, ProgressHero } from "./progress-share";
+import { ShareDialog } from "./share-dialog";
+import { SharedPostEmbed } from "./shared-post";
 
 type PostCardProps = {
   post: FeedPost;
@@ -79,6 +88,25 @@ export function PostCard({
   const router = useRouter();
   const tMessages = useTranslations("Messages.errors");
   const tContacts = useTranslations("Contacts");
+  const tErrors = useTranslations("Community.errors");
+  const [saved, setSaved] = useState(post.saved);
+  const [sharing, setSharing] = useState(false);
+
+  /** Enregistrer : la réponse est immédiate, le serveur confirme ensuite. */
+  async function toggleSaved() {
+    const next = !saved;
+    setSaved(next);
+    const result = await setPostSavedAction(post.id, next).catch(() => ({
+      ok: false as const,
+      error: "unexpected" as const,
+    }));
+    if (result.ok) {
+      onNotice(next ? t("savedNotice") : t("unsavedNotice"));
+    } else {
+      setSaved(!next);
+      onNotice(tErrors(result.error));
+    }
+  }
 
   function message() {
     startTransition(async () => {
@@ -171,13 +199,26 @@ export function PostCard({
             <span className="text-sm text-muted-foreground">{handle}</span>
           </p>
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
-            <span className="font-mono">
-              {t("level", { level: post.author.level })}
-            </span>
-            <span aria-hidden="true">·</span>
+            {post.author.level === null ? null : (
+              <>
+                <span className="font-mono">
+                  {t("level", { level: post.author.level })}
+                </span>
+                <span aria-hidden="true">·</span>
+              </>
+            )}
             <time dateTime={post.createdAt}>
               {format.relativeTime(new Date(post.createdAt), now)}
             </time>
+            {post.shared ? (
+              <>
+                <span aria-hidden="true">·</span>
+                <span className="flex items-center gap-1">
+                  <Repeat2 aria-hidden="true" className="size-3.5" />
+                  {t("sharedLabel")}
+                </span>
+              </>
+            ) : null}
           </p>
         </div>
         <DropdownMenu>
@@ -348,30 +389,32 @@ export function PostCard({
       {post.body ? (
         <p className="break-words whitespace-pre-wrap">{post.body}</p>
       ) : null}
+      {post.shared ? <SharedPostEmbed shared={post.shared} now={now} /> : null}
 
-      {photos ? null : (
-        <div className="flex flex-wrap items-center gap-2">
-          {post.mine ? (
-            <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
-              <HandHeart aria-hidden="true" className="size-4" />
-              {t("bravoCount", { count: reaction.count })}
-            </span>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              aria-pressed={reaction.on}
-              disabled={!canWrite || post.hidden}
-              onClick={toggleReaction}
-              className={cn(
-                reaction.on && "bg-primary/15 text-primary hover:bg-primary/20",
-              )}
-            >
-              <HandHeart aria-hidden="true" />
-              {t("bravo")}
-              <span className="font-mono">{reaction.count}</span>
-            </Button>
-          )}
+      {/* Sur une photo, « Bravo » et les commentaires sont posés dessus */}
+      <div className="flex flex-wrap items-center gap-2">
+        {photos ? null : post.mine ? (
+          <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
+            <HandHeart aria-hidden="true" className="size-4" />
+            {t("bravoCount", { count: reaction.count })}
+          </span>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-pressed={reaction.on}
+            disabled={!canWrite || post.hidden}
+            onClick={toggleReaction}
+            className={cn(
+              reaction.on && "bg-primary/15 text-primary hover:bg-primary/20",
+            )}
+          >
+            <HandHeart aria-hidden="true" />
+            {t("bravo")}
+            <span className="font-mono">{reaction.count}</span>
+          </Button>
+        )}
+        {photos ? null : (
           <Button
             variant="ghost"
             size="sm"
@@ -381,8 +424,37 @@ export function PostCard({
             <MessageCircle aria-hidden="true" />
             {t("comments", { count: comments })}
           </Button>
-        </div>
-      )}
+        )}
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={t("share")}
+          onClick={() => setSharing(true)}
+        >
+          <Send aria-hidden="true" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-pressed={saved}
+          aria-label={t("save")}
+          onClick={toggleSaved}
+          className={cn("ml-auto", saved && "text-primary")}
+        >
+          <Bookmark
+            aria-hidden="true"
+            className={cn(saved && "fill-current")}
+          />
+        </Button>
+      </div>
+
+      <ShareDialog
+        post={post}
+        open={sharing}
+        onOpenChange={setSharing}
+        canWrite={canWrite}
+        onNotice={onNotice}
+      />
 
       {open ? (
         <PostComments

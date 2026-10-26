@@ -158,6 +158,20 @@
 @utility orb {
   background-image: radial-gradient(circle at 35% 30%, #34343c, #141418);
 }
+/* Page du journal : lignes de cahier qui défilent avec le texte */
+@utility journal-lines {
+  --journal-line: 2rem;
+  line-height: var(--journal-line);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--journal-line) - 1px),
+    rgb(255 255 255 / 0.08) calc(var(--journal-line) - 1px),
+    rgb(255 255 255 / 0.08) var(--journal-line)
+  );
+  background-attachment: local;
+}
+
 @utility orb-active {
   background-image: radial-gradient(
     circle at 35% 30%,

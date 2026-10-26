@@ -22,6 +22,8 @@ type DayPanelDialogProps = {
   greeting: string;
   name: string;
   avatarUrl: string | null;
+  /** Niveau Ranked, qui remplace celui de l'XP une fois classé. */
+  rankedLevel: number | null;
 };
 
 /** Popup « Ma journée » : s'ouvre une fois par jour, puis depuis ses boutons. */
@@ -32,6 +34,7 @@ export function DayPanelDialog({
   greeting,
   name,
   avatarUrl,
+  rankedLevel,
 }: DayPanelDialogProps) {
   const t = useTranslations("Today.panel");
   const { open } = useDayPanel();
@@ -73,6 +76,7 @@ export function DayPanelDialog({
           greeting={greeting}
           name={name}
           avatarUrl={avatarUrl}
+          rankedLevel={rankedLevel}
         />
       </DialogContent>
     </Dialog>

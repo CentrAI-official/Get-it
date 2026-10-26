@@ -30,7 +30,9 @@ import {
   deletePost,
   setReaction,
   shareProgress,
+  sharePost,
 } from "@/server/community/posts";
+import { listSavedPosts, setPostSaved } from "@/server/community/saves";
 import {
   commentSchema,
   firstCommunityError,
@@ -38,6 +40,7 @@ import {
   postFormSchema,
   progressShareSchema,
   reportSchema,
+  sharePostSchema,
   type CommunityError,
   type CommunityFormState,
 } from "./rules";
@@ -304,5 +307,55 @@ export async function moderateAction(
   } catch (error) {
     console.error("Décision de modération impossible", error);
     return false;
+  }
+}
+
+/** Enregistre ou retire une publication (Profil › Publications › Enregistrées). */
+export async function setPostSavedAction(
+  postId: unknown,
+  saved: unknown,
+): Promise<{ ok: true } | { ok: false; error: CommunityError }> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(postId);
+  const value = z.boolean().safeParse(saved);
+  if (!id.success || !value.success) return { ok: false, error: "notFound" };
+  try {
+    return await setPostSaved(user.id, id.data, value.data);
+  } catch (error) {
+    console.error("Enregistrement de la publication impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** Page suivante de mes publications enregistrées. */
+export async function loadMoreSavedAction(
+  cursor: unknown,
+): Promise<{ posts: FeedPost[]; nextCursor: FeedCursor | null }> {
+  const user = await requireUser();
+  const parsed = cursorSchema.safeParse(cursor);
+  if (!parsed.success) return { posts: [], nextCursor: null };
+  return listSavedPosts(user.id, parsed.data);
+}
+
+/** Partage la publication de quelqu'un d'autre dans mon fil. */
+export async function sharePostAction(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: CommunityError }> {
+  const user = await requireUser();
+  const parsed = sharePostSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: firstCommunityError(parsed.error) };
+  }
+  try {
+    const result = await sharePost(
+      user.id,
+      parsed.data.postId,
+      parsed.data.body,
+    );
+    if (result.ok) refresh();
+    return result;
+  } catch (error) {
+    console.error("Partage de la publication impossible", error);
+    return { ok: false, error: "unexpected" };
   }
 }

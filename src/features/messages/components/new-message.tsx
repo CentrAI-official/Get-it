@@ -113,8 +113,10 @@ export function NewMessage() {
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span className="truncate font-semibold">{name}</span>
                       <span className="truncate text-sm text-muted-foreground">
-                        @{person.username} ·{" "}
-                        {tInbox("level", { level: person.level })}
+                        @{person.username}
+                        {person.level === null
+                          ? null
+                          : ` · ${tInbox("level", { level: person.level })}`}
                       </span>
                     </span>
                     {person.contact ? (

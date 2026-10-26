@@ -19,6 +19,7 @@ import {
   getConversation,
   listInbox,
   listOlderMessages,
+  listShareTargets,
   markRead,
   respondToRequest,
   searchMembers,
@@ -29,6 +30,7 @@ import {
   type ConversationState,
   type InboxItem,
   type MessagePerson,
+  type ShareTarget,
 } from "@/server/messages/service";
 import {
   firstMessageError,
@@ -135,6 +137,57 @@ export async function sendMessageAction(
     return await sendMessage(user.id, id.data, parsed.data);
   } catch (error) {
     console.error("Envoi du message impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** Discussions et contacts à qui envoyer une publication. */
+export async function listShareTargetsAction(): Promise<ShareTarget[]> {
+  const user = await requireUser();
+  return listShareTargets(user.id).catch(() => []);
+}
+
+const sendPostSchema = z.object({
+  postId: z.uuid(),
+  to: z.union([
+    z.object({ conversationId: z.uuid() }),
+    z.object({ userId: z.uuid() }),
+  ]),
+  body: progressNoteSchema,
+});
+
+/**
+ * Envoie une publication du Centre dans une discussion, ou à un contact (la
+ * discussion est créée au besoin). Le serveur revérifie que l'expéditeur
+ * peut lire la publication.
+ */
+export async function sendPostAction(
+  input: unknown,
+): Promise<Result<{ conversationId: string }>> {
+  const user = await requireUser();
+  const parsed = sendPostSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: firstMessageError(parsed.error) };
+  }
+  const { postId, to, body } = parsed.data;
+  try {
+    let conversationId: string;
+    if ("conversationId" in to) {
+      conversationId = to.conversationId;
+    } else {
+      const started = await startConversation(user.id, to.userId);
+      if (!started.ok) return started;
+      conversationId = started.id;
+    }
+    const sent = await sendMessage(user.id, conversationId, {
+      kind: "post",
+      postId,
+      body,
+    });
+    if (!sent.ok) return sent;
+    return { ok: true, conversationId };
+  } catch (error) {
+    console.error("Envoi de la publication impossible", error);
     return { ok: false, error: "unexpected" };
   }
 }

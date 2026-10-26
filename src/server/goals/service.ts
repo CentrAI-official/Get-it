@@ -1,10 +1,16 @@
 import "server-only";
 import type { Pillar } from "@/config/pillars";
-import type { GoalStatus } from "@/features/goals/schemas";
+import {
+  ACTIVE_GOALS_PER_PILLAR,
+  type GoalStatus,
+} from "@/features/goals/schemas";
 import { XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
+import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { avatarUrl, avatarUrls } from "@/server/profile/avatar";
 import { getUserTimeZone } from "@/server/profile/service";
+import { removeFiles } from "@/server/storage/service";
 import { awardGoal, awardMilestone, revokeXp } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus : un utilisateur
@@ -19,6 +25,8 @@ export type GoalSummary = {
   targetDate: string | null;
   milestonesDone: number;
   milestonesTotal: number;
+  /** Photo choisie pour l'objectif (lien temporaire), sinon l'icône du pilier. */
+  photoUrl: string | null;
 };
 
 const summarySelect = {
@@ -27,6 +35,7 @@ const summarySelect = {
   pillar: true,
   status: true,
   targetDate: true,
+  photoPath: true,
   milestones: { select: { completedAt: true } },
 } as const;
 
@@ -36,10 +45,11 @@ type SummaryRow = {
   pillar: Pillar;
   status: GoalStatus;
   targetDate: Date | null;
+  photoPath: string | null;
   milestones: { completedAt: Date | null }[];
 };
 
-function toSummary(goal: SummaryRow): GoalSummary {
+function toSummary(goal: SummaryRow, photos: Map<string, string>): GoalSummary {
   return {
     id: goal.id,
     title: goal.title,
@@ -48,7 +58,14 @@ function toSummary(goal: SummaryRow): GoalSummary {
     targetDate: goal.targetDate ? fromDbDate(goal.targetDate) : null,
     milestonesDone: goal.milestones.filter((m) => m.completedAt).length,
     milestonesTotal: goal.milestones.length,
+    photoUrl: goal.photoPath ? (photos.get(goal.photoPath) ?? null) : null,
   };
+}
+
+/** Résumés d'objectifs avec les liens de leurs photos. */
+async function toSummaries(goals: SummaryRow[]) {
+  const photos = await avatarUrls(goals.map((goal) => goal.photoPath));
+  return goals.map((goal) => toSummary(goal, photos));
 }
 
 /** Tous les objectifs, du plus ancien au plus récent. */
@@ -58,7 +75,7 @@ export async function listGoals(userId: string): Promise<GoalSummary[]> {
     orderBy: { createdAt: "asc" },
     select: summarySelect,
   });
-  return goals.map(toSummary);
+  return toSummaries(goals);
 }
 
 /** Objectifs en cours, du plus ancien au plus récent. */
@@ -68,7 +85,7 @@ export async function listActiveGoals(userId: string): Promise<GoalSummary[]> {
     orderBy: { createdAt: "asc" },
     select: summarySelect,
   });
-  return goals.map(toSummary);
+  return toSummaries(goals);
 }
 
 export type DayGoal = {
@@ -79,6 +96,7 @@ export type DayGoal = {
   milestonesTotal: number;
   /** Premier jalon pas encore atteint, dans l'ordre du plan. */
   nextMilestone: { id: string; title: string } | null;
+  photoUrl: string | null;
 };
 
 /** Objectifs en cours et leur prochain jalon (popup « Ma journée »). */
@@ -92,12 +110,14 @@ export async function listActiveGoalsWithNextMilestone(
       id: true,
       title: true,
       pillar: true,
+      photoPath: true,
       milestones: {
         orderBy: { position: "asc" },
         select: { id: true, title: true, completedAt: true },
       },
     },
   });
+  const photos = await avatarUrls(goals.map((goal) => goal.photoPath));
   return goals.map((goal) => {
     const next = goal.milestones.find((milestone) => !milestone.completedAt);
     return {
@@ -107,6 +127,7 @@ export async function listActiveGoalsWithNextMilestone(
       milestonesDone: goal.milestones.filter((m) => m.completedAt).length,
       milestonesTotal: goal.milestones.length,
       nextMilestone: next ? { id: next.id, title: next.title } : null,
+      photoUrl: goal.photoPath ? (photos.get(goal.photoPath) ?? null) : null,
     };
   });
 }
@@ -184,9 +205,13 @@ export async function getGoal(
     },
   });
   if (!goal) return null;
+  const photo = await avatarUrl(goal.photoPath);
+  const photos = new Map(
+    goal.photoPath && photo ? [[goal.photoPath, photo]] : [],
+  );
 
   return {
-    ...toSummary(goal),
+    ...toSummary(goal, photos),
     description: goal.description,
     completedAt: goal.completedAt,
     milestones: goal.milestones.map((m) => ({
@@ -220,22 +245,66 @@ function toGoalData(input: GoalFields) {
   };
 }
 
-/** Crée un objectif et renvoie son id. */
-export async function createGoal(userId: string, input: GoalFields) {
+type Client = Prisma.TransactionClient | typeof db;
+
+/**
+ * Vrai si l'aspect a encore de la place pour un objectif en cours (3 au plus,
+ * pour garder le cap sur l'essentiel). `exceptGoalId` : l'objectif modifié.
+ */
+export async function hasActiveGoalRoom(
+  client: Client,
+  userId: string,
+  pillar: Pillar,
+  exceptGoalId?: string,
+) {
+  const count = await client.goal.count({
+    where: {
+      userId,
+      pillar,
+      status: "active",
+      ...(exceptGoalId ? { id: { not: exceptGoalId } } : {}),
+    },
+  });
+  return count < ACTIVE_GOALS_PER_PILLAR;
+}
+
+/** Crée un objectif et renvoie son id, sauf si l'aspect a déjà 3 objectifs en cours. */
+export async function createGoal(
+  userId: string,
+  input: GoalFields,
+): Promise<{ ok: true; id: string } | { ok: false; error: "goalLimit" }> {
+  if (!(await hasActiveGoalRoom(db, userId, input.pillar))) {
+    return { ok: false, error: "goalLimit" };
+  }
   const goal = await db.goal.create({
     data: { userId, ...toGoalData(input) },
     select: { id: true },
   });
-  return goal.id;
+  return { ok: true, id: goal.id };
 }
 
-/** Modifie un objectif. Faux s'il n'existe pas pour cet utilisateur. */
+/**
+ * Modifie un objectif. Faux s'il n'existe pas pour cet utilisateur ;
+ * « goalLimit » si un objectif en cours change pour un aspect déjà plein.
+ */
 export async function updateGoal(
   userId: string,
   goalId: string,
   input: GoalFields,
-) {
+): Promise<boolean | "goalLimit"> {
   return db.$transaction(async (tx) => {
+    const current = await tx.goal.findFirst({
+      where: { id: goalId, userId },
+      select: { status: true, pillar: true },
+    });
+    if (!current) return false;
+    if (
+      current.status === "active" &&
+      current.pillar !== input.pillar &&
+      !(await hasActiveGoalRoom(tx, userId, input.pillar, goalId))
+    ) {
+      return "goalLimit";
+    }
     const { count } = await tx.goal.updateMany({
       where: { id: goalId, userId },
       data: toGoalData(input),
@@ -271,7 +340,21 @@ export async function setGoalStatus(
   const timeZone =
     status === "completed" ? await getUserTimeZone(userId) : null;
 
-  return db.$transaction(async (tx) => {
+  return db.$transaction(async (tx): Promise<boolean | "goalLimit"> => {
+    // Reprendre un objectif : seulement s'il reste de la place dans l'aspect
+    if (status === "active") {
+      const goal = await tx.goal.findFirst({
+        where: { id: goalId, userId },
+        select: { status: true, pillar: true },
+      });
+      if (!goal) return false;
+      if (
+        goal.status !== "active" &&
+        !(await hasActiveGoalRoom(tx, userId, goal.pillar, goalId))
+      ) {
+        return "goalLimit";
+      }
+    }
     const { count } = await tx.goal.updateMany({
       where: { id: goalId, userId },
       data,
@@ -297,10 +380,16 @@ export async function setGoalStatus(
 
 /** Supprime un objectif, ses jalons et ses tâches (cascade). */
 export async function deleteGoal(userId: string, goalId: string) {
-  const { count } = await db.goal.deleteMany({
+  const goal = await db.goal.findFirst({
     where: { id: goalId, userId },
+    select: { photoPath: true },
   });
-  return count > 0;
+  if (!goal) return false;
+  await db.goal.deleteMany({ where: { id: goalId, userId } });
+  if (goal.photoPath) {
+    await removeFiles([goal.photoPath]).catch(() => undefined);
+  }
+  return true;
 }
 
 /** Ajoute un jalon à la fin de l'objectif. Faux si l'objectif n'existe pas pour cet utilisateur. */

@@ -8,7 +8,7 @@ import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { avatarUrls } from "@/server/profile/avatar";
-import { getLevels } from "@/server/xp/service";
+import { getDisplayLevels } from "@/server/ranked/service";
 import { mediaForPosts, type FeedMedia } from "./media";
 import { getBlockedIds } from "./members";
 
@@ -21,7 +21,8 @@ export type FeedAuthor = {
   username: string | null;
   /** Photo de profil (lien temporaire), ou null : l'initiale est montrée. */
   avatarUrl: string | null;
-  level: number;
+  /** Niveau classé (mode Ranked), ou null : sans Ranked, le niveau reste privé. */
+  level: number | null;
 };
 
 export type FeedPost = {
@@ -41,7 +42,27 @@ export type FeedPost = {
   mine: boolean;
   /** Photos ou vidéo, avec des liens de lecture temporaires. */
   media: FeedMedia[];
+  /** Enregistrée par la personne qui lit (privé). */
+  saved: boolean;
+  /**
+   * Partage : la publication d'origine telle que la personne qui lit peut la
+   * voir, ou « unavailable » (masquée, retirée, ou auteur bloqué).
+   */
+  shared: SharedPost | "unavailable" | null;
 };
+
+/** Publication d'origine d'un partage, ou envoyée dans une conversation. */
+export type SharedPost = Pick<
+  FeedPost,
+  | "id"
+  | "kind"
+  | "body"
+  | "pillar"
+  | "progress"
+  | "createdAt"
+  | "author"
+  | "media"
+>;
 
 export type FeedComment = {
   id: string;
@@ -56,7 +77,7 @@ export type FeedComment = {
 export type FeedCursor = { createdAt: string; id: string };
 
 /** Contenu visible pour l'utilisateur : visible, ou masqué mais à lui. */
-function visibleTo(viewerId: string) {
+export function visibleTo(viewerId: string) {
   return {
     OR: [
       { status: "visible" as const },
@@ -75,12 +96,14 @@ export function postSelect(viewerId: string, blocked: readonly string[]) {
     progress: true,
     status: true,
     mediaCount: true,
+    sharedPostId: true,
     createdAt: true,
     userId: true,
     profile: {
       select: { displayName: true, username: true, avatarPath: true },
     },
     reactions: { where: { userId: viewerId }, select: { userId: true } },
+    saves: { where: { userId: viewerId }, select: { userId: true } },
     _count: {
       select: {
         reactions: true,
@@ -99,16 +122,57 @@ type PostRow = Prisma.PostGetPayload<{
   select: ReturnType<typeof postSelect>;
 }>;
 
+/**
+ * Publications lisibles par `viewerId` parmi `ids` (visibles, auteur non
+ * bloqué dans un sens ou dans l'autre), prêtes à afficher en aperçu.
+ */
+export async function sharedPostsFor(
+  viewerId: string,
+  ids: readonly string[],
+): Promise<Map<string, SharedPost>> {
+  const result = new Map<string, SharedPost>();
+  if (ids.length === 0) return result;
+  const blocked = await getBlockedIds(viewerId);
+  const rows = await db.post.findMany({
+    where: {
+      id: { in: [...new Set(ids)] },
+      ...visibleTo(viewerId),
+      ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
+    },
+    select: postSelect(viewerId, blocked),
+  });
+  for (const post of await toFeedPosts(rows, viewerId)) {
+    result.set(post.id, {
+      id: post.id,
+      kind: post.kind,
+      body: post.body,
+      pillar: post.pillar,
+      progress: post.progress,
+      createdAt: post.createdAt,
+      author: post.author,
+      media: post.media,
+    });
+  }
+  return result;
+}
+
 /** Publications prêtes à afficher : médias, niveaux et photos des auteurs. */
 export async function toFeedPosts(
   rows: readonly PostRow[],
   viewerId: string,
 ): Promise<FeedPost[]> {
-  const media = await mediaForPosts(
-    rows.filter((post) => post.mediaCount > 0).map((post) => post.id),
+  const sharedIds = rows.flatMap((post) =>
+    post.sharedPostId ? [post.sharedPostId] : [],
   );
+  const [media, shared] = await Promise.all([
+    mediaForPosts(
+      rows.filter((post) => post.mediaCount > 0).map((post) => post.id),
+    ),
+    // Une publication d'origine n'est jamais elle-même un partage : un seul niveau
+    sharedPostsFor(viewerId, sharedIds),
+  ]);
   const [levels, avatars] = await Promise.all([
-    getLevels([...new Set(rows.map((post) => post.userId))]),
+    getDisplayLevels([...new Set(rows.map((post) => post.userId))]),
     avatarUrls(rows.map((post) => post.profile.avatarPath)),
   ]);
 
@@ -131,15 +195,38 @@ export async function toFeedPosts(
         avatarUrl: post.profile.avatarPath
           ? (avatars.get(post.profile.avatarPath) ?? null)
           : null,
-        level: levels.get(post.userId) ?? 1,
+        level: levels.get(post.userId) ?? null,
       },
       reactions: post._count.reactions,
       reacted: post.reactions.length > 0,
       comments: post._count.comments,
       mine: post.userId === viewerId,
       media: media.get(post.id) ?? [],
+      saved: post.saves.length > 0,
+      shared: post.sharedPostId
+        ? (shared.get(post.sharedPostId) ?? "unavailable")
+        : null,
     };
   });
+}
+
+/** Une publication visible (lien « Copier le lien », réservé aux membres), ou null. */
+export async function getFeedPost(
+  viewerId: string,
+  postId: string,
+): Promise<{ post: FeedPost; loadedAt: number } | null> {
+  const blocked = await getBlockedIds(viewerId);
+  const row = await db.post.findFirst({
+    where: {
+      id: postId,
+      ...visibleTo(viewerId),
+      ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
+    },
+    select: postSelect(viewerId, blocked),
+  });
+  if (!row) return null;
+  const [post] = await toFeedPosts([row], viewerId);
+  return post ? { post, loadedAt: Date.now() } : null;
 }
 
 /**

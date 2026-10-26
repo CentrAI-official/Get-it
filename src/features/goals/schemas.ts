@@ -10,6 +10,7 @@ export const GOAL_ERROR_KEYS = [
   "descriptionTooLong",
   "pillarRequired",
   "dateInvalid",
+  "goalLimit",
   "notFound",
   "unexpected",
 ] as const;
@@ -18,6 +19,9 @@ export type GoalErrorKey = (typeof GOAL_ERROR_KEYS)[number];
 export function isGoalErrorKey(value: unknown): value is GoalErrorKey {
   return GOAL_ERROR_KEYS.includes(value as GoalErrorKey);
 }
+
+/** Objectifs en cours au plus par aspect, pour garder le cap sur l'essentiel. */
+export const ACTIVE_GOALS_PER_PILLAR = 3;
 
 /** Doit rester aligné avec l'enum GoalStatus de prisma/schema.prisma (un test le vérifie). */
 export const GOAL_STATUSES = ["active", "completed", "archived"] as const;

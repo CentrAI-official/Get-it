@@ -3,6 +3,8 @@
 import { Flag, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { ProgressShare } from "@/features/community/components/progress-share";
+import { SharedPostPreview } from "@/features/community/components/shared-post";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/server/messages/service";
 import { REACTION_EMOJI, REACTIONS, type Reaction } from "../rules";
@@ -76,6 +78,9 @@ export function MessageBubble({
             {message.progress ? (
               <ProgressShare progress={message.progress} className="-mx-1" />
             ) : null}
+            {message.post ? (
+              <SharedPostPreview shared={message.post} className="min-w-52" />
+            ) : null}
             {message.body ? (
               <span className="break-words whitespace-pre-wrap">
                 {message.body}
@@ -95,6 +100,16 @@ export function MessageBubble({
           </span>
         ) : null}
       </button>
+
+      {/* Le lien reste hors de la bulle (un bouton ne contient pas de lien) */}
+      {message.post && message.post !== "unavailable" && !message.pending ? (
+        <Link
+          href={`/community/posts/${message.post.id}`}
+          className="rounded-md px-2 text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {t("viewPost")}
+        </Link>
+      ) : null}
 
       {selected && interactive ? (
         <div

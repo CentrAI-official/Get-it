@@ -1,15 +1,15 @@
 import "server-only";
-import { PILLARS, type Pillar } from "@/config/pillars";
+import type { Pillar } from "@/config/pillars";
 import type { ContactState } from "@/features/contacts/rules";
-import { levelFromXp } from "@/features/xp/rules";
 import { getBlockedIds } from "@/server/community/members";
 import { getContactState } from "@/server/contacts/service";
+import { getPublicRanked } from "@/server/ranked/service";
 import { db } from "@/server/db";
-import { getXpTotals } from "@/server/xp/service";
 import { avatarUrl } from "./avatar";
 
 // Profil vu par les autres membres du Centre : l'aperçu public et les
 // publications. Jamais les objectifs, habitudes, check-ins ni l'autoévaluation.
+// Les niveaux ne sont publics qu'en mode Ranked (total, physique, financier).
 
 export type PublicProfile = {
   id: string;
@@ -17,8 +17,8 @@ export type PublicProfile = {
   username: string;
   bio: string | null;
   avatarUrl: string | null;
-  level: number;
-  pillarLevels: Record<Pillar, number>;
+  /** Niveaux classés, ou null sans mode Ranked (les niveaux restent alors privés). */
+  ranked: { total: number; physical: number; financial: number } | null;
   focusPillars: Pillar[];
   /** Nombre de contacts (la liste reste privée). */
   contacts: number;
@@ -65,11 +65,11 @@ export async function getPublicProfile(
   if (!mine && (await getBlockedIds(viewerId)).includes(profile.id))
     return null;
 
-  const [xp, contacts, photo, contactState] = await Promise.all([
-    getXpTotals(profile.id),
+  const [contacts, photo, contactState, ranked] = await Promise.all([
     countContacts(profile.id),
     avatarUrl(profile.avatarPath),
     mine ? ("none" as const) : getContactState(viewerId, profile.id),
+    getPublicRanked(profile.id),
   ]);
   return {
     id: profile.id,
@@ -77,10 +77,7 @@ export async function getPublicProfile(
     username: profile.username,
     bio: profile.bio,
     avatarUrl: photo,
-    level: levelFromXp(xp.total).level,
-    pillarLevels: Object.fromEntries(
-      PILLARS.map((pillar) => [pillar, levelFromXp(xp.pillars[pillar]).level]),
-    ) as Record<Pillar, number>,
+    ranked,
     focusPillars: profile.focusPillars,
     contacts,
     memberSince: profile.createdAt.toISOString(),

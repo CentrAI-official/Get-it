@@ -1,7 +1,9 @@
+import { ChevronRight, Trophy } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Avatar } from "@/components/avatar";
 import { ProgressRing } from "@/components/progress-ring";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { levelFromXp } from "@/features/xp/rules";
@@ -10,6 +12,7 @@ import { getCommunityMember } from "@/server/community/members";
 import { avatarUrl } from "@/server/profile/avatar";
 import { countContacts } from "@/server/profile/public";
 import { getCurrentProfile } from "@/server/profile/service";
+import { getRankedLevels } from "@/server/ranked/service";
 import { storageEnabled } from "@/server/storage/service";
 import { getXpTotals } from "@/server/xp/service";
 import { ProfileEditor } from "./profile-editor";
@@ -24,15 +27,17 @@ export async function ProfileOverview({
   progression: ReactNode;
 }) {
   const profile = await getCurrentProfile();
-  const [xp, photo, contacts, member, t, tXp, tOnboarding] = await Promise.all([
-    getXpTotals(profile.id),
-    avatarUrl(profile.avatarPath),
-    countContacts(profile.id),
-    getCommunityMember(profile.id),
-    getTranslations("App.profile"),
-    getTranslations("Xp"),
-    getTranslations("Onboarding"),
-  ]);
+  const [xp, ranked, photo, contacts, member, t, tXp, tOnboarding] =
+    await Promise.all([
+      getXpTotals(profile.id),
+      getRankedLevels(profile.id),
+      avatarUrl(profile.avatarPath),
+      countContacts(profile.id),
+      getCommunityMember(profile.id),
+      getTranslations("App.profile"),
+      getTranslations("Xp"),
+      getTranslations("Onboarding"),
+    ]);
   const level = levelFromXp(xp.total);
   const left = level.needed - level.current;
   const name = profile.displayName ?? profile.email ?? "";
@@ -43,7 +48,7 @@ export async function ProfileOverview({
         <div className="flex items-center gap-4 sm:gap-5">
           {/* L'anneau autour de la photo (ou de l'initiale) avance avec le niveau */}
           <ProgressRing
-            value={level.progress}
+            value={ranked ? ranked.total / 100 : level.progress}
             className="size-20 p-1 sm:size-24"
           >
             <Avatar
@@ -86,29 +91,63 @@ export async function ProfileOverview({
             </Link>
           ) : null}
         </div>
-        {/* Niveau global et chemin vers le suivant */}
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <p className="flex items-baseline gap-3">
-              <span className="font-heading text-xl font-bold">
-                {tXp("level", { level: level.level })}
+        {ranked ? (
+          // Niveau classé (Canada et États-Unis) : il remplace celui de l'XP
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <span className="flex items-center gap-1.5 font-heading text-xl font-bold">
+                <Trophy
+                  aria-hidden="true"
+                  className="size-5 self-center text-primary"
+                />
+                {tXp("level", { level: ranked.total })}
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {t("ranked.badge")}
               </span>
               <span className="font-mono text-sm font-bold text-primary">
                 {tXp("xp", { xp: xp.total })}
               </span>
             </p>
+            <Link
+              href="/profile/ranked"
+              className="flex items-center gap-1 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("ranked.view")}
+              <ChevronRight aria-hidden="true" className="size-4" />
+            </Link>
+          </div>
+        ) : (
+          // Niveau de l'XP, chemin vers le suivant, et l'option de passer en Ranked
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <p className="flex items-baseline gap-3">
+                <span className="font-heading text-xl font-bold">
+                  {tXp("level", { level: level.level })}
+                </span>
+                <span className="font-mono text-sm font-bold text-primary">
+                  {tXp("xp", { xp: xp.total })}
+                </span>
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/profile/ranked">
+                  <Trophy aria-hidden="true" className="text-primary" />
+                  {t("ranked.go")}
+                </Link>
+              </Button>
+            </div>
+            <Progress
+              value={Math.round(level.progress * 100)}
+              aria-label={tXp("toLevelLabel", {
+                xp: left,
+                level: level.level + 1,
+              })}
+            />
             <p className="text-sm text-muted-foreground">
               {tXp("toLevelLabel", { xp: left, level: level.level + 1 })}
             </p>
           </div>
-          <Progress
-            value={Math.round(level.progress * 100)}
-            aria-label={tXp("toLevelLabel", {
-              xp: left,
-              level: level.level + 1,
-            })}
-          />
-        </div>
+        )}
       </div>
 
       {progression}

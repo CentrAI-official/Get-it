@@ -17,8 +17,11 @@ import { addDays, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { getJournalPage, getJournalRecap } from "@/server/journal/service";
 import { getCurrentProfile } from "@/server/profile/service";
-import { JOURNAL_PERIODS, JOURNAL_PROMPTS, type JournalPeriod } from "../rules";
+import { storageEnabled } from "@/server/storage/service";
+import { journalFont } from "../font";
+import { JOURNAL_PERIODS, type JournalPeriod } from "../rules";
 import { JournalEditor } from "./journal-editor";
+import { JournalMedia } from "./journal-media";
 
 // Pages du journal. Chacune lit la session : à placer dans un <Suspense>.
 
@@ -49,14 +52,13 @@ export async function JournalDayPanel({
 }) {
   const profile = await getCurrentProfile();
   const params = await searchParams;
-  const [page, t, tPrompts, tCheckIn, format] = await Promise.all([
+  const [page, t, tCheckIn, format] = await Promise.all([
     getJournalPage(profile.id, profile.timeZone, asDay(one(params.day))),
     getTranslations("Journal"),
-    getTranslations("Journal.prompts"),
     getTranslations("Today.checkIn"),
     getFormatter(),
   ]);
-  const { day, today, entry, checkIn } = page;
+  const { day, today, body, checkIn } = page;
   const date = format.dateTime(toDbDate(day), {
     weekday: "long",
     day: "numeric",
@@ -80,7 +82,13 @@ export async function JournalDayPanel({
             </Link>
           </Button>
           <div className="flex min-w-0 flex-col items-center text-center">
-            <h2 className="font-heading text-xl font-bold first-letter:uppercase">
+            {/* La date en tête de page, comme dans un carnet */}
+            <h2
+              className={cn(
+                journalFont.className,
+                "text-2xl font-semibold italic first-letter:uppercase",
+              )}
+            >
               {date}
             </h2>
             {day === today ? (
@@ -157,25 +165,44 @@ export async function JournalDayPanel({
 
       <div className="border-t border-white/8 pt-6">
         {page.editable ? (
-          <JournalEditor key={day} day={day} entry={entry} />
-        ) : entry ? (
-          <article className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">
+            <JournalEditor key={day} day={day} body={body} />
+            <JournalMedia
+              day={day}
+              media={page.media}
+              editable
+              photosEnabled={storageEnabled()}
+            />
+          </div>
+        ) : body || page.media.length > 0 ? (
+          <article className="flex flex-col gap-3">
             <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Lock aria-hidden="true" className="size-4" />
               {t("day.locked")}
             </p>
-            {[...JOURNAL_PROMPTS, "body" as const].map((key) =>
-              entry[key] ? (
-                <section key={key} className="flex flex-col gap-1.5">
-                  <h3 className="font-heading font-semibold">
-                    {tPrompts(`${key}.label`)}
-                  </h3>
-                  <p className="break-words whitespace-pre-wrap text-muted-foreground">
-                    {entry[key]}
-                  </p>
-                </section>
-              ) : null,
-            )}
+            {/* Une ancienne page se relit sur les mêmes lignes de carnet */}
+            {body ? (
+              <div className="relative pl-6">
+                <span
+                  aria-hidden="true"
+                  className="absolute top-0 bottom-0 left-2 w-px bg-white/12"
+                />
+                <p
+                  className={cn(
+                    journalFont.className,
+                    "min-h-[40vh] journal-lines pt-[0.2rem] text-[1.125rem] break-words whitespace-pre-wrap text-foreground/90",
+                  )}
+                >
+                  {body}
+                </p>
+              </div>
+            ) : null}
+            <JournalMedia
+              day={day}
+              media={page.media}
+              editable={false}
+              photosEnabled={false}
+            />
           </article>
         ) : (
           <EmptyState

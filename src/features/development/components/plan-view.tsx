@@ -174,6 +174,7 @@ function AddToGetIt({
   );
   const [done, setDone] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [goalLimit, setGoalLimit] = useState(false);
   const [pending, startTransition] = useTransition();
   const empty =
     plan.goal === null && plan.habits.length === 0 && plan.tasks.length === 0;
@@ -192,13 +193,15 @@ function AddToGetIt({
 
   function add() {
     setFailed(false);
+    setGoalLimit(false);
     startTransition(async () => {
       const ok = await applyPlanAction(kind, {
         goal: goal && plan.goal !== null,
         habits: plan.habits.filter((habit) => habits.includes(habit.title)),
         tasks: plan.tasks.filter((task) => tasks.includes(task.title)),
       });
-      if (ok) setDone(true);
+      if (ok === "goalLimit") setGoalLimit(true);
+      else if (ok) setDone(true);
       else setFailed(true);
     });
   }
@@ -291,6 +294,11 @@ function AddToGetIt({
           {failed ? (
             <p role="alert" className="text-sm text-destructive">
               {t("addFailed")}
+            </p>
+          ) : null}
+          {goalLimit ? (
+            <p role="alert" className="text-sm text-destructive">
+              {t("goalLimit")}
             </p>
           ) : null}
           <Button

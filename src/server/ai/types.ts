@@ -1,6 +1,7 @@
 import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
 import type { DevelopmentPlan } from "@/features/development/plan";
 import type { GoalPlan } from "@/features/goals/plan";
+import type { RankedAnalysis } from "@/features/ranked/analysis";
 
 // Couche d'abstraction (§53) : le reste de l'application ne connaît que ces
 // types, jamais le SDK d'un fournisseur.
@@ -50,6 +51,13 @@ export type DevelopmentPlanResult = {
   usage: AiUsage;
 };
 
+export type RankedAnalysisResult = {
+  /** Null si refus ou réponse illisible. */
+  analysis: RankedAnalysis | null;
+  refused: boolean;
+  usage: AiUsage;
+};
+
 export interface AiProvider {
   /** Réponse du coach, transmise morceau par morceau à `onText`. */
   streamChat(input: {
@@ -74,4 +82,10 @@ export interface AiProvider {
     system: string;
     prompt: string;
   }): Promise<DevelopmentPlanResult>;
+
+  /** Analyse d'un niveau Ranked (déjà calculé) en sortie structurée. */
+  generateRankedAnalysis(input: {
+    system: string;
+    prompt: string;
+  }): Promise<RankedAnalysisResult>;
 }

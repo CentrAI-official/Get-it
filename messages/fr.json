@@ -233,10 +233,20 @@
         "close": "Fermer"
       },
       "posts": {
-        "title": "Mes publications",
-        "description": "Ce que tu as partagé dans le Centre Get iT.",
+        "title": "Publications",
+        "description": "Ce que tu as partagé dans le Centre Get iT, et ce que tu as enregistré.",
         "emptyTitle": "Aucune publication pour l’instant",
-        "emptyDescription": "Partage un progrès ou pose une question dans Communauté : tes publications apparaîtront ici."
+        "emptyDescription": "Partage un progrès ou pose une question dans Communauté : tes publications apparaîtront ici.",
+        "tabsLabel": "Publications à afficher",
+        "mine": "Mes publications",
+        "saved": "Enregistrées",
+        "savedEmptyTitle": "Rien d’enregistré pour l’instant",
+        "savedEmptyDescription": "Touche l’icône d’enregistrement sous une publication du Centre : elle apparaîtra ici. Personne d’autre ne voit tes enregistrements."
+      },
+      "ranked": {
+        "go": "Passer en Ranked",
+        "badge": "Classé",
+        "view": "Mon classement"
       }
     },
     "settings": {
@@ -409,7 +419,7 @@
     },
     "goals": {
       "title": "Quels sont tes objectifs?",
-      "description": "Choisis parmi ces idées ou écris les tiens. {max, number} au maximum, pour rester sur l’essentiel.",
+      "description": "Choisis parmi ces idées ou écris les tiens. {max, number} au maximum, et 3 par pilier, pour rester sur l’essentiel.",
       "count": "{count, plural, =0 {Aucun objectif choisi} one {# objectif choisi} other {# objectifs choisis}} sur {max, number}",
       "customTitle": "Ton propre objectif",
       "customLabel": "Objectif",
@@ -536,6 +546,17 @@
       "completedOn": "Atteint le {date}",
       "share": "Partager dans le Centre"
     },
+    "photo": {
+      "edit": "Changer la photo de l’objectif",
+      "title": "Photo de l’objectif",
+      "description": "Choisis une image qui te rappelle pourquoi tu vises cet objectif. Elle reste privée.",
+      "add": "Choisir une photo",
+      "change": "Changer la photo",
+      "remove": "Retirer la photo",
+      "uploading": "Envoi de la photo…",
+      "unavailable": "Les photos ne sont pas encore disponibles.",
+      "close": "Fermer"
+    },
     "milestones": {
       "title": "Jalons",
       "description": "Les grandes étapes pour y arriver.",
@@ -567,7 +588,8 @@
       "pillarRequired": "Choisis un pilier.",
       "dateInvalid": "Cette date n’est pas valide.",
       "notFound": "Cet objectif n’existe plus.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "goalLimit": "Tu as déjà 3 objectifs en cours dans ce pilier. Atteins-en un ou archive-le avant d’en ajouter un autre."
     },
     "plan": {
       "title": "Créer mon plan avec l’IA",
@@ -606,6 +628,13 @@
     "sections": {
       "active": "En cours",
       "archived": "En pause ({count, number})"
+    },
+    "filters": {
+      "pillarLabel": "Filtrer par pilier",
+      "all": "Toutes",
+      "sortLabel": "Trier",
+      "oldest": "Plus anciennes d’abord",
+      "newest": "Plus récentes d’abord"
     },
     "noActive": "Aucune habitude en cours pour l’instant.",
     "schedule": {
@@ -811,7 +840,12 @@
       "centerSummary": "Niveau global {level, number} : {percent} fait vers le niveau {next, number}.",
       "bubble": "{pillar} : niveau {level, number}, {percent} fait vers le niveau {next, number} ({xp, number} XP).",
       "howTitle": "Comment c’est calculé",
-      "how": "Chaque bulle montre le pourcentage fait vers le prochain niveau du pilier. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. Au centre, ton niveau global."
+      "how": "Chaque bulle montre le pourcentage fait vers le prochain niveau du pilier. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. Au centre, ton niveau global.",
+      "rankedLabel": "Classé",
+      "centerRanked": "Niveau classé {level, number} sur 100.",
+      "top": "Top {top, number} %",
+      "bubbleRanked": "{pillar} : niveau classé {level, number} sur 100, top {top, number} %.",
+      "howRanked": "Physique et financier montrent ton niveau classé : le pourcentage des gens de ton âge, au Canada et aux États-Unis, que tu dépasses. Mental et social montrent ta progression d’XP vers leur prochain niveau ; ils restent privés. Au centre, ton niveau total, la moyenne des deux piliers classés."
     },
     "xpChart": {
       "title": "XP des 14 derniers jours",
@@ -822,7 +856,8 @@
       "table": "Voir les données",
       "colDay": "Jour",
       "colXp": "XP"
-    }
+    },
+    "descriptionRanked": "Physique et financier : ton niveau classé, comparé aux gens de ton âge. Mental et social : ta progression vers le prochain niveau, privée."
   },
   "Coach": {
     "title": "Get iT AI",
@@ -893,7 +928,8 @@
       "errors": {
         "notFound": "Cette proposition n’existe plus.",
         "goalMissing": "L’objectif lié n’existe plus. Ignore cette proposition ou demande-en une autre.",
-        "unexpected": "L’ajout a échoué. Réessaie dans un instant."
+        "unexpected": "L’ajout a échoué. Réessaie dans un instant.",
+        "goalLimit": "Tu as déjà 3 objectifs en cours dans ce pilier. Atteins-en un ou archive-le, puis réessaie."
       }
     }
   },
@@ -988,7 +1024,45 @@
       "deleteDescription": "Elle disparaîtra du fil avec ses commentaires. Cette action est irréversible.",
       "deleteConfirm": "Supprimer",
       "cancel": "Annuler",
-      "message": "Envoyer un message"
+      "message": "Envoyer un message",
+      "share": "Partager",
+      "save": "Enregistrer",
+      "savedNotice": "Publication enregistrée. Retrouve-la dans Profil › Publications.",
+      "unsavedNotice": "Publication retirée de tes enregistrements.",
+      "sharedLabel": "a partagé"
+    },
+    "share": {
+      "title": "Partager",
+      "description": "Dans ton fil, à une discussion ou à un contact, ou ailleurs avec le lien.",
+      "close": "Fermer",
+      "toFeed": "Dans mon fil",
+      "copyLink": "Copier le lien",
+      "copied": "Lien copié",
+      "otherApps": "Autres applis",
+      "membersOnly": "Le lien s’ouvre seulement pour les membres du Centre Get iT connectés.",
+      "feedTitle": "Partager dans ton fil",
+      "feedDescription": "La publication apparaîtra dans ton fil, avec ton mot si tu en ajoutes un.",
+      "noteLabel": "Ton mot",
+      "notePlaceholder": "Ajoute un mot (facultatif)…",
+      "feedConfirm": "Partager",
+      "back": "Retour",
+      "sendTitle": "Envoyer à",
+      "messagePlaceholder": "Écris un message (facultatif)…",
+      "search": "Chercher une personne",
+      "loading": "Chargement de tes discussions…",
+      "noTargets": "Ajoute des contacts ou écris à quelqu’un dans la Messagerie pour lui envoyer des publications.",
+      "noMatch": "Personne ne correspond à cette recherche.",
+      "send": "Envoyer",
+      "sent": "Envoyé",
+      "sendTo": "Envoyer à {name}",
+      "sharedNotice": "Publication partagée dans ton fil.",
+      "unavailable": "Cette publication n’est plus disponible."
+    },
+    "postPage": {
+      "metaTitle": "Publication",
+      "back": "Retour au Centre",
+      "notFoundTitle": "Publication introuvable",
+      "notFoundDescription": "Elle a peut-être été supprimée, ou elle n’est plus visible pour toi."
     },
     "comments": {
       "loading": "Chargement des commentaires…",
@@ -1086,7 +1160,9 @@
       "mediaType": "Ce format n’est pas pris en charge. Essaie une photo JPEG ou une vidéo MP4.",
       "mediaMissing": "Un média n’a pas fini de s’envoyer. Réessaie.",
       "videoTooLong": "La vidéo dépasse 60 secondes.",
-      "uploadLimit": "Tu as envoyé beaucoup de fichiers aujourd’hui. Réessaie demain."
+      "uploadLimit": "Tu as envoyé beaucoup de fichiers aujourd’hui. Réessaie demain.",
+      "saveLimit": "Tu as déjà 500 publications enregistrées. Retires-en quelques-unes pour en garder d’autres.",
+      "alreadyShared": "Tu as déjà partagé cette publication dans ton fil."
     },
     "media": {
       "gallery": "Photo/vidéo",
@@ -1120,7 +1196,10 @@
       "posts": "Publications",
       "emptyTitle": "Aucune publication",
       "emptyDescription": "{name} n’a encore rien partagé.",
-      "openProfile": "Voir le profil de {name}"
+      "openProfile": "Voir le profil de {name}",
+      "ranked": "Classé",
+      "unranked": "Non classé",
+      "private": "Privé"
     }
   },
   "Messages": {
@@ -1139,7 +1218,8 @@
       "deleted": "Message supprimé",
       "unread": "Non lu",
       "level": "Niv. {level, number}",
-      "pact": "Pacte"
+      "pact": "Pacte",
+      "post": "Publication partagée"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1193,7 +1273,8 @@
       "accept": "Accepter",
       "decline": "Refuser",
       "pending": "Demande envoyée. Tu pourras écrire de nouveau quand {handle} l’aura acceptée.",
-      "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire."
+      "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire.",
+      "viewPost": "Voir la publication"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -1758,7 +1839,8 @@
       "deleteTitle": "Supprimer ce plan?",
       "deleteDescription": "Le plan et tes réponses au questionnaire seront effacés. Ce que tu as déjà ajouté à tes objectifs et habitudes reste.",
       "deleteConfirm": "Supprimer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "goalLimit": "Tu as déjà 3 objectifs en cours dans ce pilier : l’objectif n’a pas été ajouté. Atteins-en un ou archive-le, puis réessaie."
     },
     "revise": {
       "title": "Modifier mon plan",
@@ -2200,40 +2282,23 @@
     "description": "Une page par jour, rien que pour toi.",
     "private": "Ton journal est privé : personne d’autre ne le voit, pas même Get iT AI.",
     "streak": "{count, plural, =0 {Aucune série en cours} one {Série de # jour} other {Série de # jours}}",
-    "prompts": {
-      "gratitude": {
-        "label": "Gratitude",
-        "hint": "Qu’est-ce qui t’a fait du bien aujourd’hui?"
-      },
-      "win": {
-        "label": "Victoire du jour",
-        "hint": "Même petite, qu’est-ce que tu as réussi?"
-      },
-      "lesson": {
-        "label": "Leçon ou défi",
-        "hint": "Qu’est-ce qui a été difficile, ou qu’as-tu appris?"
-      },
-      "intention": {
-        "label": "Intention pour demain",
-        "hint": "Sur quoi veux-tu te concentrer demain?"
-      },
-      "body": {
-        "label": "Écris librement",
-        "hint": "Tes pensées, ce que tu ressens, ce que tu veux garder de ta journée.",
-        "placeholder": "Aujourd’hui…"
-      }
-    },
     "editor": {
-      "save": "Enregistrer la page",
-      "saved": "Page enregistrée.",
-      "savedXp": "Page enregistrée · +{xp, number} XP",
+      "saving": "Enregistrement…",
+      "saved": "Enregistré",
+      "savedXp": "Enregistré · +{xp, number} XP",
       "cleared": "Page vidée : elle a été retirée de ton journal.",
-      "unsaved": "Modifications non enregistrées",
+      "unsaved": "Pas encore enregistré",
       "errors": {
         "locked": "Cette page ne se modifie plus (plus de 7 jours).",
-        "invalid": "Un texte est trop long. Raccourcis-le, puis réessaie.",
+        "invalid": "Ta page est trop longue (10 000 caractères au plus).",
         "unexpected": "Une erreur est survenue. Réessaie dans un instant."
       }
+    },
+    "media": {
+      "label": "Photos et vidéo de la page",
+      "manage": "Médias de la page",
+      "remove": "Retirer le média {index, number}",
+      "full": "La page a déjà 4 photos ou une vidéo. Retires-en un pour en ajouter un autre."
     },
     "day": {
       "today": "Aujourd’hui",
@@ -2281,6 +2346,170 @@
       },
       "emptyDescription": "Une page par jour suffit : quelques lignes, et ta série commence.",
       "writeToday": "Écrire la page d’aujourd’hui"
+    },
+    "page": {
+      "label": "Écris librement",
+      "hint": "Tes pensées, ce que tu ressens, ce que tu veux garder de ta journée.",
+      "placeholder": "Cher journal…",
+      "words": "{count, plural, =0 {Aucun mot} one {# mot} other {# mots}}",
+      "characters": "{count, number}/{max, number}"
+    }
+  },
+  "Ranked": {
+    "title": "Mode Ranked",
+    "description": "Ton vrai niveau physique et financier, comparé aux gens de ton âge au Canada et aux États-Unis.",
+    "back": "Profil",
+    "intro": {
+      "what": "Fais 5 petits tests physiques et réponds à 5 questions sur tes finances : chaque pilier reçoit un niveau de 1 à 100, et ton niveau total devient public.",
+      "how": "Niveau 87 veut dire que tu fais mieux que 87 % des gens de ton âge au Canada et aux États-Unis, d’après des données officielles (Statistique Canada, Census Bureau, Réserve fédérale…). Le social et le mental restent privés. Tu peux te réévaluer tous les 30 jours."
+    },
+    "form": {
+      "sections": {
+        "about": "À propos de toi",
+        "physical": "Physique",
+        "financial": "Financier"
+      },
+      "hints": {
+        "physical": "Fais les tests après 5 minutes d’échauffement, et arrête-toi en cas de douleur. Un test par jour ou avec du repos entre chacun, c’est correct.",
+        "financial": "Dans la devise de ton pays. Ces montants ne sont jamais montrés aux autres membres ni envoyés en dollars à Get iT AI."
+      },
+      "years": "ans",
+      "perMonth": "{currency} par mois",
+      "perWeek": "heures par semaine",
+      "fieldError": "Vérifie cette réponse.",
+      "public": "Ton niveau physique, ton niveau financier et ton niveau total deviennent publics : les membres les voient sur ton profil et à côté de ton nom.",
+      "notice": "Ton niveau est calculé automatiquement à partir de tes réponses et de données publiques, jamais par l’IA. Tu peux corriger tes réponses à la prochaine réévaluation, ou quitter le mode Ranked à tout moment : tes réponses et tes niveaux sont alors effacés.",
+      "consent": "J’accepte que ces renseignements, dont des renseignements financiers et de santé, servent à calculer mes niveaux, et que ces niveaux soient publics. Mes réponses ne sont jamais montrées aux autres membres.",
+      "submit": "Calculer mon niveau",
+      "submitting": "Calcul en cours…"
+    },
+    "questions": {
+      "country": {
+        "label": "Ton pays",
+        "options": {
+          "CA": "Canada",
+          "US": "États-Unis"
+        }
+      },
+      "age": {
+        "label": "Ton âge",
+        "hint": "Tu es comparé aux gens de ta tranche d’âge."
+      },
+      "sexNorm": {
+        "label": "Normes pour tes tests physiques",
+        "options": {
+          "male": "Hommes",
+          "female": "Femmes",
+          "unspecified": "Je préfère ne pas préciser"
+        }
+      },
+      "reachSide": {
+        "label": "Souplesse : assis, jambes tendues, jusqu’où vont tes doigts?",
+        "options": {
+          "beyond": "Je dépasse mes orteils",
+          "short": "Je n’atteins pas mes orteils"
+        }
+      },
+      "reachCm": {
+        "label": "De combien de centimètres?",
+        "hint": "Assieds-toi par terre, jambes tendues devant toi, plantes des pieds contre un mur. Sans plier les genoux, penche-toi lentement vers l’avant, bras tendus, et tiens 2 secondes. Mesure l’écart entre le bout de tes doigts et tes orteils (0 si tu les touches tout juste)."
+      },
+      "runMeters": {
+        "label": "Cardio : quelle distance parcours-tu en 12 minutes?",
+        "hint": "Cours (ou alterne course et marche) le plus loin possible pendant 12 minutes, sur une piste ou avec une app de course. Exemple : 2,4 km = 2 400 m."
+      },
+      "pushUps": {
+        "label": "Force : combien de pompes fais-tu d’affilée?",
+        "hint": {
+          "full": "Pompes complètes, sans t’arrêter : le corps reste droit, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche.",
+          "knees": "Pompes sur les genoux, sans t’arrêter : le corps reste droit des genoux aux épaules, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche."
+        }
+      },
+      "squats": {
+        "label": "Jambes : combien de squats fais-tu en 60 secondes?",
+        "hint": "Pieds à la largeur des épaules, descends jusqu’à avoir les cuisses parallèles au sol (comme pour t’asseoir sur une chaise), puis remonte jambes tendues. Compte seulement les squats complets."
+      },
+      "jumpCm": {
+        "label": "Puissance : jusqu’où sautes-tu sans élan?",
+        "hint": "Debout, pieds joints derrière une ligne, saute le plus loin possible vers l’avant avec les deux pieds, sans courir avant. Mesure de la ligne jusqu’au talon le plus proche. Garde le meilleur de 3 essais."
+      },
+      "netIncome": {
+        "label": "Ton revenu net par année",
+        "hint": "Ce que tu reçois vraiment après impôts et retenues, sur les 12 derniers mois (salaire, entreprise, placements). Astuce : additionne tes paies déposées sur un an."
+      },
+      "assets": {
+        "label": "Tes actifs",
+        "hint": "La valeur totale de ce que tu possèdes : argent en banque, placements (REER, CELI, 401(k)…), maison ou autres propriétés, entreprise, véhicules."
+      },
+      "debts": {
+        "label": "Tes dettes",
+        "hint": "Le total de ce que tu dois : hypothèque, prêts étudiants, prêt auto, cartes de crédit, marges de crédit."
+      },
+      "monthlyExpenses": {
+        "label": "Tes dépenses par mois",
+        "hint": "Ce que tu dépenses en moyenne chaque mois pour vivre (logement, épicerie, transport, factures, sorties), sans compter ton épargne ni tes placements."
+      },
+      "weeklyHours": {
+        "label": "Tes heures de travail par semaine",
+        "hint": "Combien d’heures tu travailles en moyenne pour gagner ce revenu (emploi, entreprise, à-côtés), sans les trajets. Pour un même revenu, moins d’heures donne un meilleur niveau."
+      }
+    },
+    "factors": {
+      "run": "Cardio (course de 12 minutes)",
+      "pushUps": "Force (pompes)",
+      "reach": "Souplesse (flexion assise)",
+      "squats": "Jambes (squats en 60 secondes)",
+      "jump": "Puissance (saut sans élan)",
+      "hourly": "Revenu net par heure travaillée",
+      "netWorth": "Valeur nette (actifs moins dettes)",
+      "savings": "Taux d’épargne"
+    },
+    "results": {
+      "total": "Niveau {level, number}",
+      "totalDescription": "En moyenne, tu fais mieux que {level, number} % des gens de ton âge au Canada et aux États-Unis.",
+      "evaluatedOn": "Évalué le {date}",
+      "pillars": "Tes niveaux classés",
+      "top": "Top {top, number} %",
+      "public": "Ces niveaux sont publics. Le social et le mental restent privés.",
+      "factorAge": "{factor} : mieux que {percent} des gens de ton âge",
+      "factorAdults": "{factor} : mieux que {percent} des adultes",
+      "vo2max": "VO2max estimé : {value, number} mL/kg/min",
+      "estimate": "Estimation",
+      "reevaluate": "Réévaluer mon niveau",
+      "nextOn": "Prochaine réévaluation possible le {date}."
+    },
+    "method": {
+      "title": "Comment c’est calculé",
+      "how": "Chaque résultat est comparé aux gens de ton âge (et de ton sexe pour les tests physiques). Physique : course de 12 minutes convertie en VO2max (registre FRIEND), pompes (Société canadienne de physiologie de l’exercice), souplesse (YMCA), squats et saut sans élan (estimations). Financier : revenu net par heure (Census Bureau), valeur nette (Réserve fédérale et Statistique Canada, montants canadiens à parité de pouvoir d’achat) et taux d’épargne (Réserve fédérale). Le niveau d’un pilier est la moyenne pondérée de ses facteurs ; le total, la moyenne des deux piliers.",
+      "limits": "Limites : les squats et le saut sans élan n’ont pas de normes adultes publiées pour le Canada et les États-Unis (références approximatives, marquées « Estimation ») ; le taux d’épargne repose en partie sur une estimation ; le revenu par heure du Canada utilise la courbe américaine ; tes réponses sont déclarées, pas vérifiées."
+    },
+    "analysis": {
+      "title": "Analyse de Get iT AI",
+      "description": "Get iT AI explique ton niveau et propose comment monter. Ton revenu et ton patrimoine lui sont envoyés en pourcentages seulement, jamais en dollars.",
+      "request": "Analyser mon niveau",
+      "loading": "Analyse en cours…",
+      "tips": "Pour monter",
+      "unavailable": "Get iT AI arrive bientôt.",
+      "consent": "Active Get iT AI pour obtenir une analyse de ton niveau.",
+      "consentLink": "Activer Get iT AI"
+    },
+    "leave": {
+      "open": "Quitter le mode Ranked",
+      "title": "Quitter le mode Ranked?",
+      "description": "Tes réponses et tes niveaux classés seront effacés. Ton niveau redeviendra celui de ton XP.",
+      "cancel": "Annuler",
+      "confirm": "Quitter et effacer"
+    },
+    "errors": {
+      "invalid": "Certaines réponses manquent ou sont hors limites.",
+      "consentRequired": "Coche la case d’accord pour calculer ton niveau.",
+      "tooSoon": "Tu pourras te réévaluer 30 jours après ta dernière évaluation.",
+      "notRanked": "Tu n’es pas encore en mode Ranked.",
+      "notConfigured": "Get iT AI n’est pas disponible pour l’instant.",
+      "aiConsentRequired": "Active d’abord Get iT AI.",
+      "limitReached": "Tu as atteint la limite de 20 demandes à Get iT AI aujourd’hui.",
+      "refused": "Get iT AI n’a pas pu analyser ton niveau.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   }
 }

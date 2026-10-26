@@ -4,9 +4,15 @@ import { hasLocale } from "next-intl";
 import { refresh } from "next/cache";
 import { z } from "zod";
 import type { ConfirmState } from "@/components/confirm-dialog";
+import { uploadRequestSchema } from "@/features/community/media";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { requireUser } from "@/server/auth/session";
+import {
+  removeGoalPhoto,
+  requestGoalPhotoUpload,
+  setGoalPhoto,
+} from "@/server/goals/photo";
 import {
   addMilestone,
   createGoal,
@@ -64,7 +70,15 @@ export async function createGoalAction(
 
   let goalId: string;
   try {
-    goalId = await createGoal(user.id, parsed.data);
+    const created = await createGoal(user.id, parsed.data);
+    if (!created.ok) {
+      return {
+        status: "error",
+        fieldErrors: { pillar: created.error },
+        values: goalFormValues(formData),
+      };
+    }
+    goalId = created.id;
   } catch (error) {
     console.error("Création de l'objectif impossible", error);
     return {
@@ -90,6 +104,13 @@ export async function updateGoalAction(
   try {
     const updated = await updateGoal(user.id, id.data, parsed.data);
     if (!updated) return { status: "error", error: "notFound" };
+    if (updated === "goalLimit") {
+      return {
+        status: "error",
+        fieldErrors: { pillar: "goalLimit" },
+        values: goalFormValues(formData),
+      };
+    }
   } catch (error) {
     console.error("Modification de l'objectif impossible", error);
     return {
@@ -101,18 +122,79 @@ export async function updateGoalAction(
   return redirect({ href: `/goals/${id.data}`, locale: parsed.data.locale });
 }
 
-export async function setGoalStatusAction(goalId: string, status: string) {
+/** Atteint, repris ou archivé ; « goalLimit » si l'aspect a déjà 3 objectifs en cours. */
+export async function setGoalStatusAction(
+  goalId: string,
+  status: string,
+): Promise<{ ok: boolean; error?: "goalLimit" }> {
   const user = await requireUser();
   const id = recordIdSchema.safeParse(goalId);
   const nextStatus = z.enum(GOAL_STATUSES).safeParse(status);
-  if (!id.success || !nextStatus.success) return;
+  if (!id.success || !nextStatus.success) return { ok: false };
 
   try {
-    await setGoalStatus(user.id, id.data, nextStatus.data);
+    const result = await setGoalStatus(user.id, id.data, nextStatus.data);
+    if (result === "goalLimit") return { ok: false, error: "goalLimit" };
+    refresh();
+    return { ok: result };
   } catch (error) {
     console.error("Changement de statut impossible", error);
+    return { ok: false };
   }
-  refresh();
+}
+
+// Photo d'un objectif : mêmes envois vérifiés que la photo de profil
+
+export async function requestGoalPhotoUploadAction(
+  goalId: unknown,
+  files: unknown,
+) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(goalId);
+  const parsed = uploadRequestSchema.safeParse(files);
+  if (!id.success) return { ok: false as const, error: "notFound" as const };
+  if (!parsed.success) {
+    return { ok: false as const, error: "mediaType" as const };
+  }
+  try {
+    return await requestGoalPhotoUpload(user.id, id.data, parsed.data);
+  } catch (error) {
+    console.error("Envoi de la photo de l'objectif impossible", error);
+    return { ok: false as const, error: "unexpected" as const };
+  }
+}
+
+const goalPhotoSchema = z.object({
+  uploadId: z.uuid(),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
+
+export async function setGoalPhotoAction(goalId: unknown, upload: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(goalId);
+  const parsed = goalPhotoSchema.safeParse(upload);
+  if (!id.success) return { ok: false as const, error: "notFound" as const };
+  if (!parsed.success) {
+    return { ok: false as const, error: "mediaType" as const };
+  }
+  try {
+    const result = await setGoalPhoto(user.id, id.data, parsed.data);
+    if (result.ok) refresh();
+    return result;
+  } catch (error) {
+    console.error("Photo de l'objectif impossible à enregistrer", error);
+    return { ok: false as const, error: "unexpected" as const };
+  }
+}
+
+export async function removeGoalPhotoAction(goalId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(goalId);
+  if (!id.success) return false;
+  const done = await removeGoalPhoto(user.id, id.data).catch(() => false);
+  if (done) refresh();
+  return done;
 }
 
 export async function deleteGoalAction(

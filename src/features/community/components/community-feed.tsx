@@ -6,7 +6,7 @@ import { useState, useTransition } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import type { FeedCursor, FeedPost } from "@/server/community/feed";
-import { loadMorePostsAction } from "../actions";
+import { loadMorePostsAction, loadMoreSavedAction } from "../actions";
 import { PostCard } from "./post-card";
 import { ReportDialog } from "./report-dialog";
 
@@ -20,6 +20,10 @@ type CommunityFeedProps = {
   authorId?: string;
   /** Textes de l'état vide, à la place de ceux du fil. */
   empty?: { title: string; description: string };
+  /** Mes publications enregistrées (Profil › Publications › Enregistrées). */
+  saved?: boolean;
+  /** Une seule publication (lien partagé) : pas de « Tu as tout vu ». */
+  single?: boolean;
 };
 
 /** Fil chronologique du Centre, page par page (« Voir plus »). */
@@ -30,6 +34,8 @@ export function CommunityFeed({
   canWrite,
   authorId,
   empty,
+  saved = false,
+  single = false,
 }: CommunityFeedProps) {
   const t = useTranslations("Community.feed");
   const [posts, setPosts] = useState(initialPosts);
@@ -44,7 +50,9 @@ export function CommunityFeed({
   function loadMore() {
     if (!cursor) return;
     startLoading(async () => {
-      const page = await loadMorePostsAction(cursor, authorId);
+      const page = saved
+        ? await loadMoreSavedAction(cursor)
+        : await loadMorePostsAction(cursor, authorId);
       setPosts((current) => [
         ...current,
         ...page.posts.filter((post) => !current.some((p) => p.id === post.id)),
@@ -104,7 +112,7 @@ export function CommunityFeed({
           ) : null}
           {t("more")}
         </Button>
-      ) : posts.length > 0 ? (
+      ) : posts.length > 0 && !single ? (
         <p className="text-center text-sm text-muted-foreground">{t("end")}</p>
       ) : null}
       <ReportDialog

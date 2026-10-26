@@ -45,6 +45,8 @@ type DayBoardProps = {
   /** Initiale de l'utilisateur, dans l'anneau de niveau. */
   name: string;
   avatarUrl: string | null;
+  /** Niveau Ranked : affiché à la place de celui de l'XP, sans bannière de montée. */
+  rankedLevel: number | null;
 };
 
 const NO_KEYS: ReadonlySet<string> = new Set();
@@ -67,6 +69,7 @@ export function DayBoard({
   greeting,
   name,
   avatarUrl,
+  rankedLevel,
 }: DayBoardProps) {
   const t = useTranslations("Today.panel");
   const tFocus = useTranslations("Today.focus");
@@ -240,7 +243,9 @@ export function DayBoard({
 
   const levelUp = (
     <LevelUpBanner
-      level={level.level > celebrated ? level.level : null}
+      level={
+        rankedLevel === null && level.level > celebrated ? level.level : null
+      }
       onClose={() => setCelebrated(level.level)}
     />
   );
@@ -297,7 +302,16 @@ export function DayBoard({
           <DialogDescription>{t("description")}</DialogDescription>
         </div>
         <LevelBadge
-          level={level}
+          level={
+            rankedLevel === null
+              ? level
+              : {
+                  level: rankedLevel,
+                  current: rankedLevel,
+                  needed: 100,
+                  progress: rankedLevel / 100,
+                }
+          }
           xp={xpNow}
           name={name}
           avatarUrl={avatarUrl}

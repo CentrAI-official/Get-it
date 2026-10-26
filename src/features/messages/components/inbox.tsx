@@ -116,7 +116,9 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
       ? t("pact")
       : last.kind === "progress" && !last.body
         ? t("progress")
-        : last.body;
+        : last.kind === "post" && !last.body
+          ? t("post")
+          : last.body;
   const preview = last.mine ? t("you", { text }) : text;
 
   return (
@@ -140,9 +142,11 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
             >
               {name}
             </span>
-            <span className="shrink-0 font-mono text-xs text-muted-foreground">
-              {t("level", { level: item.other.level })}
-            </span>
+            {item.other.level === null ? null : (
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                {t("level", { level: item.other.level })}
+              </span>
+            )}
           </span>
           <time
             dateTime={item.lastMessageAt}

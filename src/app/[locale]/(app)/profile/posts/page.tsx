@@ -14,8 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-// Profil › Publications : ce que j'ai publié dans le Centre
-export default function MyPostsPage() {
+// Profil › Publications : ce que j'ai publié dans le Centre, ou enregistré
+export default function MyPostsPage({
+  searchParams,
+}: PageProps<"/[locale]/profile/posts">) {
   const t = useTranslations("App.profile.posts");
 
   return (
@@ -25,7 +27,7 @@ export default function MyPostsPage() {
         <PageHeader title={t("title")} description={t("description")} />
       </div>
       <Suspense fallback={<MyPostsSkeleton />}>
-        <MyPostsPanel />
+        <MyPostsPanel searchParams={searchParams} />
       </Suspense>
     </div>
   );

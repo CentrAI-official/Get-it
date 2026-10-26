@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { XpHistoryChart } from "@/features/xp/components/xp-history-chart";
 import { lastDays, toCalendarDay } from "@/lib/dates";
 import { getCurrentProfile } from "@/server/profile/service";
+import { getRankedLevels } from "@/server/ranked/service";
 import { getXpByDay, getXpTotals } from "@/server/xp/service";
 import { ProgressionOrbit } from "./progression-orbit";
 
@@ -18,8 +19,9 @@ export async function ProgressionOverview() {
   const today = toCalendarDay(new Date(), profile.timeZone);
   const days = lastDays(today, HISTORY_DAYS);
   const from = days[0] ?? today;
-  const [xp, xpByDay, t] = await Promise.all([
+  const [xp, ranked, xpByDay, t] = await Promise.all([
     getXpTotals(profile.id),
+    getRankedLevels(profile.id),
     getXpByDay(profile.id, from, today),
     getTranslations("Progress"),
   ]);
@@ -33,11 +35,17 @@ export async function ProgressionOverview() {
         <h2 id="progression-title" className="font-heading text-lg font-bold">
           {t("title")}
         </h2>
-        <p className="text-sm text-muted-foreground">{t("description")}</p>
+        <p className="text-sm text-muted-foreground">
+          {ranked ? t("descriptionRanked") : t("description")}
+        </p>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-10">
-        <ProgressionOrbit total={xp.total} pillars={xp.pillars} />
+        <ProgressionOrbit
+          total={xp.total}
+          pillars={xp.pillars}
+          ranked={ranked}
+        />
         <XpHistoryChart
           days={days.map((day) => ({ day, xp: xpByDay.get(day) ?? 0 }))}
         />

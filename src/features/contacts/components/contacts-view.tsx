@@ -100,7 +100,10 @@ function Person({
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate font-semibold">{name}</span>
         <span className="truncate text-sm text-muted-foreground">
-          @{person.username} · {t("level", { level: person.level })}
+          @{person.username}
+          {person.level === null
+            ? null
+            : ` · ${t("level", { level: person.level })}`}
         </span>
       </span>
       <span className="flex shrink-0 flex-wrap justify-end gap-1.5">

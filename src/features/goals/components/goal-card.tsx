@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import type { GoalSummary } from "@/server/goals/service";
 
-/** Carte d'objectif cliquable : anneau d'avancement des jalons, pilier et date cible. */
+/** Carte d'objectif cliquable : anneau d'avancement des jalons (avec la photo choisie), pilier et date cible. */
 export function GoalCard({ goal }: { goal: GoalSummary }) {
   const t = useTranslations("Goals");
   const tPillars = useTranslations("Pillars");
@@ -33,7 +33,17 @@ export function GoalCard({ goal }: { goal: GoalSummary }) {
       className="-mx-3 flex h-full items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <ProgressRing value={total > 0 ? done / total : 0} className="size-14">
-        <Icon aria-hidden="true" className="size-5 text-silver" />
+        {goal.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={goal.photoUrl}
+            alt=""
+            loading="lazy"
+            className="size-full rounded-full object-cover"
+          />
+        ) : (
+          <Icon aria-hidden="true" className="size-5 text-silver" />
+        )}
       </ProgressRing>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <p className="font-semibold text-pretty break-words">{goal.title}</p>

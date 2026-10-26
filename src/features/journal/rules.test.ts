@@ -6,61 +6,42 @@ import {
   excerpt,
   isEditableDay,
   JOURNAL_BODY_MAX_LENGTH,
-  JOURNAL_PROMPTS,
-  JOURNAL_PROMPT_MAX_LENGTH,
-  isEmptyEntry,
   journalEntrySchema,
   journalStreak,
   periodRange,
   recapStats,
   shiftPeriod,
-  type JournalText,
 } from "./rules";
 
-const empty: JournalText = {
-  gratitude: null,
-  win: null,
-  lesson: null,
-  intention: null,
-  body: null,
-};
-
 describe("journalEntrySchema", () => {
-  it("transforme les réponses vides en null", () => {
+  it("garde le texte de la page, sans les espaces autour", () => {
     const parsed = journalEntrySchema.parse({
       day: "2026-10-22",
-      gratitude: "  ",
-      win: " Courir 5 km ",
+      body: "  Belle journée.\n\nDemain, le gym.  ",
     });
-    expect(parsed).toMatchObject({
-      gratitude: null,
-      win: "Courir 5 km",
-      body: null,
-    });
+    expect(parsed.body).toBe("Belle journée.\n\nDemain, le gym.");
+    expect(
+      journalEntrySchema.parse({ day: "2026-10-22", body: "   " }).body,
+    ).toBe("");
   });
 
-  it("refuse un texte trop long ou un jour invalide", () => {
+  it("refuse une page trop longue ou un jour invalide", () => {
     expect(
-      journalEntrySchema.safeParse({ day: "2026-10-22", win: "a".repeat(501) })
-        .success,
+      journalEntrySchema.safeParse({
+        day: "2026-10-22",
+        body: "a".repeat(JOURNAL_BODY_MAX_LENGTH + 1),
+      }).success,
     ).toBe(false);
-    expect(journalEntrySchema.safeParse({ day: "22/10/2026" }).success).toBe(
-      false,
-    );
+    expect(
+      journalEntrySchema.safeParse({ day: "22/10/2026", body: "Allo" }).success,
+    ).toBe(false);
   });
 });
 
-describe("isEmptyEntry et countWords", () => {
-  it("une page sans texte est vide", () => {
-    expect(isEmptyEntry(empty)).toBe(true);
-    expect(isEmptyEntry({ ...empty, lesson: "Patience" })).toBe(false);
-  });
-
-  it("compte les mots de toutes les réponses", () => {
-    expect(
-      countWords({ ...empty, win: "Courir  5 km", body: "Bonne\njournée" }),
-    ).toBe(5);
-    expect(countWords(empty)).toBe(0);
+describe("countWords", () => {
+  it("compte les mots de la page", () => {
+    expect(countWords("Courir  5 km\nBonne journée")).toBe(5);
+    expect(countWords("")).toBe(0);
   });
 });
 
@@ -165,27 +146,18 @@ describe("average et excerpt", () => {
     expect(average([])).toBeNull();
   });
 
-  it("prend le texte libre en premier, sur une ligne", () => {
-    expect(
-      excerpt({ ...empty, win: "Victoire", body: "Ligne 1\nligne 2" }),
-    ).toBe("Ligne 1 ligne 2");
-    expect(excerpt({ ...empty, lesson: "a".repeat(200) }, 10)).toBe(
-      "aaaaaaaaa…",
-    );
+  it("début de la page, sur une ligne", () => {
+    expect(excerpt("Ligne 1\nligne 2")).toBe("Ligne 1 ligne 2");
+    expect(excerpt("a".repeat(200), 10)).toBe("aaaaaaaaa…");
   });
 });
 
 describe("contraintes de la base", () => {
-  it("mêmes limites que la migration", () => {
+  it("même limite que la migration", () => {
     const sql = readFileSync(
-      "prisma/migrations/20261025120100_journal/migration.sql",
+      "prisma/migrations/20261028120000_journal_free_page/migration.sql",
       "utf8",
     );
-    for (const prompt of JOURNAL_PROMPTS) {
-      expect(sql).toContain(
-        `char_length("${prompt}") BETWEEN 1 AND ${JOURNAL_PROMPT_MAX_LENGTH}`,
-      );
-    }
     expect(sql).toContain(
       `char_length("body") BETWEEN 1 AND ${JOURNAL_BODY_MAX_LENGTH}`,
     );

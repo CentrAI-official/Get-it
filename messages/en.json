@@ -233,10 +233,20 @@
         "close": "Close"
       },
       "posts": {
-        "title": "My posts",
-        "description": "What you’ve shared in the Get iT Hub.",
+        "title": "Posts",
+        "description": "What you’ve shared in the Get iT Hub, and what you’ve saved.",
         "emptyTitle": "No posts yet",
-        "emptyDescription": "Share a win or ask a question in Community: your posts will show up here."
+        "emptyDescription": "Share a win or ask a question in Community: your posts will show up here.",
+        "tabsLabel": "Posts to show",
+        "mine": "My posts",
+        "saved": "Saved",
+        "savedEmptyTitle": "Nothing saved yet",
+        "savedEmptyDescription": "Tap the save icon under a Hub post and it will show up here. No one else can see what you save."
+      },
+      "ranked": {
+        "go": "Go Ranked",
+        "badge": "Ranked",
+        "view": "My ranking"
       }
     },
     "settings": {
@@ -409,7 +419,7 @@
     },
     "goals": {
       "title": "What are your goals?",
-      "description": "Pick from these ideas or write your own. {max, number} at most, to stay focused on what matters.",
+      "description": "Pick from these ideas or write your own. {max, number} at most, and 3 per pillar, to stay focused on what matters.",
       "count": "{count, plural, =0 {No goal selected} one {# goal selected} other {# goals selected}} out of {max, number}",
       "customTitle": "Your own goal",
       "customLabel": "Goal",
@@ -536,6 +546,17 @@
       "completedOn": "Achieved on {date}",
       "share": "Share in the Hub"
     },
+    "photo": {
+      "edit": "Change the goal photo",
+      "title": "Goal photo",
+      "description": "Pick an image that reminds you why you’re going after this goal. Only you can see it.",
+      "add": "Choose a photo",
+      "change": "Change photo",
+      "remove": "Remove photo",
+      "uploading": "Uploading photo…",
+      "unavailable": "Photos aren’t available yet.",
+      "close": "Close"
+    },
     "milestones": {
       "title": "Milestones",
       "description": "The big steps to get there.",
@@ -567,7 +588,8 @@
       "pillarRequired": "Choose a pillar.",
       "dateInvalid": "This date isn’t valid.",
       "notFound": "This goal no longer exists.",
-      "unexpected": "Something went wrong. Try again in a moment."
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "goalLimit": "You already have 3 active goals in this pillar. Reach or archive one before adding another."
     },
     "plan": {
       "title": "Create my plan with AI",
@@ -606,6 +628,13 @@
     "sections": {
       "active": "In progress",
       "archived": "Paused ({count, number})"
+    },
+    "filters": {
+      "pillarLabel": "Filter by pillar",
+      "all": "All",
+      "sortLabel": "Sort",
+      "oldest": "Oldest first",
+      "newest": "Newest first"
     },
     "noActive": "No habit in progress right now.",
     "schedule": {
@@ -811,7 +840,12 @@
       "centerSummary": "Overall level {level, number}: {percent} of the way to level {next, number}.",
       "bubble": "{pillar}: level {level, number}, {percent} of the way to level {next, number} ({xp, number} XP).",
       "howTitle": "How it’s calculated",
-      "how": "Each bubble shows how far you are toward the pillar’s next level. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. In the center, your overall level."
+      "how": "Each bubble shows how far you are toward the pillar’s next level. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. In the center, your overall level.",
+      "rankedLabel": "Ranked",
+      "centerRanked": "Ranked level {level, number} out of 100.",
+      "top": "Top {top, number}%",
+      "bubbleRanked": "{pillar}: ranked level {level, number} out of 100, top {top, number}%.",
+      "howRanked": "Physical and financial show your ranked level: the share of people your age in Canada and the United States you outrank. Mental and social show your XP progress toward their next level; they stay private. In the center, your total level, the average of the two ranked pillars."
     },
     "xpChart": {
       "title": "XP over the last 14 days",
@@ -822,7 +856,8 @@
       "table": "Show the data",
       "colDay": "Day",
       "colXp": "XP"
-    }
+    },
+    "descriptionRanked": "Physical and financial: your ranked level, compared with people your age. Mental and social: your progress toward the next level, private."
   },
   "Coach": {
     "title": "Get iT AI",
@@ -893,7 +928,8 @@
       "errors": {
         "notFound": "This suggestion no longer exists.",
         "goalMissing": "The linked goal no longer exists. Dismiss this suggestion or ask for another one.",
-        "unexpected": "Adding failed. Try again in a moment."
+        "unexpected": "Adding failed. Try again in a moment.",
+        "goalLimit": "You already have 3 active goals in this pillar. Reach or archive one, then try again."
       }
     }
   },
@@ -988,7 +1024,45 @@
       "deleteDescription": "It will disappear from the feed along with its comments. This can’t be undone.",
       "deleteConfirm": "Delete",
       "cancel": "Cancel",
-      "message": "Send a message"
+      "message": "Send a message",
+      "share": "Share",
+      "save": "Save",
+      "savedNotice": "Post saved. Find it in Profile › Posts.",
+      "unsavedNotice": "Post removed from your saved posts.",
+      "sharedLabel": "shared"
+    },
+    "share": {
+      "title": "Share",
+      "description": "On your feed, to a conversation or a contact, or elsewhere with the link.",
+      "close": "Close",
+      "toFeed": "On my feed",
+      "copyLink": "Copy link",
+      "copied": "Link copied",
+      "otherApps": "Other apps",
+      "membersOnly": "The link only opens for signed-in members of the Get iT Hub.",
+      "feedTitle": "Share on your feed",
+      "feedDescription": "The post will appear on your feed, with your note if you add one.",
+      "noteLabel": "Your note",
+      "notePlaceholder": "Add a note (optional)…",
+      "feedConfirm": "Share",
+      "back": "Back",
+      "sendTitle": "Send to",
+      "messagePlaceholder": "Write a message (optional)…",
+      "search": "Search for someone",
+      "loading": "Loading your conversations…",
+      "noTargets": "Add contacts or message someone in Messages to send them posts.",
+      "noMatch": "No one matches this search.",
+      "send": "Send",
+      "sent": "Sent",
+      "sendTo": "Send to {name}",
+      "sharedNotice": "Post shared on your feed.",
+      "unavailable": "This post is no longer available."
+    },
+    "postPage": {
+      "metaTitle": "Post",
+      "back": "Back to the Hub",
+      "notFoundTitle": "Post not found",
+      "notFoundDescription": "It may have been deleted, or it’s no longer visible to you."
     },
     "comments": {
       "loading": "Loading comments…",
@@ -1086,7 +1160,9 @@
       "mediaType": "This format isn’t supported. Try a JPEG photo or an MP4 video.",
       "mediaMissing": "A media file hasn’t finished uploading. Try again.",
       "videoTooLong": "The video is longer than 60 seconds.",
-      "uploadLimit": "You’ve uploaded a lot of files today. Try again tomorrow."
+      "uploadLimit": "You’ve uploaded a lot of files today. Try again tomorrow.",
+      "saveLimit": "You already have 500 saved posts. Remove a few to keep others.",
+      "alreadyShared": "You’ve already shared this post on your feed."
     },
     "media": {
       "gallery": "Photo/video",
@@ -1120,7 +1196,10 @@
       "posts": "Posts",
       "emptyTitle": "No posts",
       "emptyDescription": "{name} hasn’t shared anything yet.",
-      "openProfile": "View {name}’s profile"
+      "openProfile": "View {name}’s profile",
+      "ranked": "Ranked",
+      "unranked": "Unranked",
+      "private": "Private"
     }
   },
   "Messages": {
@@ -1139,7 +1218,8 @@
       "deleted": "Message deleted",
       "unread": "Unread",
       "level": "Lvl {level, number}",
-      "pact": "Pact"
+      "pact": "Pact",
+      "post": "Shared post"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1193,7 +1273,8 @@
       "accept": "Accept",
       "decline": "Decline",
       "pending": "Request sent. You’ll be able to write again once {handle} accepts it.",
-      "cannotWrite": "Your account is suspended from the Hub: you can read your messages, but not write."
+      "cannotWrite": "Your account is suspended from the Hub: you can read your messages, but not write.",
+      "viewPost": "View post"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -1758,7 +1839,8 @@
       "deleteTitle": "Delete this plan?",
       "deleteDescription": "The plan and your questionnaire answers will be erased. What you already added to your goals and habits stays.",
       "deleteConfirm": "Delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "goalLimit": "You already have 3 active goals in this pillar, so the goal wasn’t added. Reach or archive one, then try again."
     },
     "revise": {
       "title": "Edit my plan",
@@ -2200,40 +2282,23 @@
     "description": "One page a day, just for you.",
     "private": "Your journal is private: no one else sees it, not even Get iT AI.",
     "streak": "{count, plural, =0 {No streak yet} one {# day streak} other {# day streak}}",
-    "prompts": {
-      "gratitude": {
-        "label": "Gratitude",
-        "hint": "What made you feel good today?"
-      },
-      "win": {
-        "label": "Today’s win",
-        "hint": "Even a small one: what did you get done?"
-      },
-      "lesson": {
-        "label": "Lesson or challenge",
-        "hint": "What was hard, or what did you learn?"
-      },
-      "intention": {
-        "label": "Intention for tomorrow",
-        "hint": "What do you want to focus on tomorrow?"
-      },
-      "body": {
-        "label": "Free writing",
-        "hint": "Your thoughts, how you feel, what you want to remember about today.",
-        "placeholder": "Today…"
-      }
-    },
     "editor": {
-      "save": "Save page",
-      "saved": "Page saved.",
-      "savedXp": "Page saved · +{xp, number} XP",
+      "saving": "Saving…",
+      "saved": "Saved",
+      "savedXp": "Saved · +{xp, number} XP",
       "cleared": "Page cleared: it was removed from your journal.",
-      "unsaved": "Unsaved changes",
+      "unsaved": "Not saved yet",
       "errors": {
         "locked": "This page can no longer be edited (older than 7 days).",
-        "invalid": "One of the texts is too long. Shorten it and try again.",
+        "invalid": "Your page is too long (10,000 characters at most).",
         "unexpected": "Something went wrong. Try again in a moment."
       }
+    },
+    "media": {
+      "label": "Page photos and video",
+      "manage": "Page media",
+      "remove": "Remove media {index, number}",
+      "full": "This page already has 4 photos or a video. Remove one to add another."
     },
     "day": {
       "today": "Today",
@@ -2281,6 +2346,170 @@
       },
       "emptyDescription": "One page a day is enough: a few lines, and your streak begins.",
       "writeToday": "Write today’s page"
+    },
+    "page": {
+      "label": "Free writing",
+      "hint": "Your thoughts, how you feel, what you want to remember about today.",
+      "placeholder": "Dear journal…",
+      "words": "{count, plural, =0 {No words} one {# word} other {# words}}",
+      "characters": "{count, number}/{max, number}"
+    }
+  },
+  "Ranked": {
+    "title": "Ranked mode",
+    "description": "Your real physical and financial level, compared with people your age in Canada and the United States.",
+    "back": "Profile",
+    "intro": {
+      "what": "Take 5 short fitness tests and answer 5 questions about your finances: each pillar gets a level from 1 to 100, and your total level becomes public.",
+      "how": "Level 87 means you do better than 87% of people your age in Canada and the United States, based on official data (Statistics Canada, Census Bureau, Federal Reserve…). Social and mental stay private. You can re-evaluate every 30 days."
+    },
+    "form": {
+      "sections": {
+        "about": "About you",
+        "physical": "Physical",
+        "financial": "Financial"
+      },
+      "hints": {
+        "physical": "Do the tests after a 5-minute warm-up, and stop if anything hurts. One test a day, or rest between tests, is fine.",
+        "financial": "In your country’s currency. These amounts are never shown to other members or sent to Get iT AI in dollars."
+      },
+      "years": "years",
+      "perMonth": "{currency} per month",
+      "perWeek": "hours per week",
+      "fieldError": "Check this answer.",
+      "public": "Your physical level, financial level and total level become public: members see them on your profile and next to your name.",
+      "notice": "Your level is calculated automatically from your answers and public data, never by AI. You can correct your answers at your next re-evaluation, or leave Ranked mode at any time: your answers and levels are then deleted.",
+      "consent": "I agree that this information, including financial and health information, is used to calculate my levels, and that these levels are public. My answers are never shown to other members.",
+      "submit": "Calculate my level",
+      "submitting": "Calculating…"
+    },
+    "questions": {
+      "country": {
+        "label": "Your country",
+        "options": {
+          "CA": "Canada",
+          "US": "United States"
+        }
+      },
+      "age": {
+        "label": "Your age",
+        "hint": "You’re compared with people in your age group."
+      },
+      "sexNorm": {
+        "label": "Norms for your fitness tests",
+        "options": {
+          "male": "Men",
+          "female": "Women",
+          "unspecified": "Prefer not to say"
+        }
+      },
+      "reachSide": {
+        "label": "Flexibility: sitting with straight legs, how far do your fingers reach?",
+        "options": {
+          "beyond": "Past my toes",
+          "short": "Short of my toes"
+        }
+      },
+      "reachCm": {
+        "label": "By how many centimeters?",
+        "hint": "Sit on the floor, legs straight in front of you, soles against a wall. Without bending your knees, lean forward slowly with your arms straight and hold for 2 seconds. Measure the gap between your fingertips and your toes (0 if you just touch them)."
+      },
+      "runMeters": {
+        "label": "Cardio: how far do you go in 12 minutes?",
+        "hint": "Run (or alternate running and walking) as far as you can for 12 minutes, on a track or with a running app. Example: 2.4 km = 2,400 m."
+      },
+      "pushUps": {
+        "label": "Strength: how many push-ups can you do in a row?",
+        "hint": {
+          "full": "Full push-ups without stopping: body straight, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks.",
+          "knees": "Knee push-ups without stopping: body straight from knees to shoulders, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks."
+        }
+      },
+      "squats": {
+        "label": "Legs: how many squats can you do in 60 seconds?",
+        "hint": "Feet shoulder-width apart, go down until your thighs are parallel to the floor (as if sitting on a chair), then stand up with straight legs. Count only full squats."
+      },
+      "jumpCm": {
+        "label": "Power: how far can you jump from a standstill?",
+        "hint": "Standing with feet together behind a line, jump as far forward as you can with both feet, without a run-up. Measure from the line to the nearest heel. Keep the best of 3 tries."
+      },
+      "netIncome": {
+        "label": "Your net yearly income",
+        "hint": "What you actually receive after taxes and deductions over the last 12 months (wages, business, investments). Tip: add up your deposited paychecks for a year."
+      },
+      "assets": {
+        "label": "Your assets",
+        "hint": "The total value of what you own: money in the bank, investments (RRSP, TFSA, 401(k)…), home or other properties, business, vehicles."
+      },
+      "debts": {
+        "label": "Your debts",
+        "hint": "The total of what you owe: mortgage, student loans, car loan, credit cards, lines of credit."
+      },
+      "monthlyExpenses": {
+        "label": "Your monthly expenses",
+        "hint": "What you spend on average each month to live (housing, groceries, transportation, bills, going out), not counting your savings or investments."
+      },
+      "weeklyHours": {
+        "label": "Your work hours per week",
+        "hint": "How many hours you work on average to earn this income (job, business, side gigs), not counting commuting. For the same income, fewer hours means a better level."
+      }
+    },
+    "factors": {
+      "run": "Cardio (12-minute run)",
+      "pushUps": "Strength (push-ups)",
+      "reach": "Flexibility (sit-and-reach)",
+      "squats": "Legs (squats in 60 seconds)",
+      "jump": "Power (standing long jump)",
+      "hourly": "Net income per hour worked",
+      "netWorth": "Net worth (assets minus debts)",
+      "savings": "Savings rate"
+    },
+    "results": {
+      "total": "Level {level, number}",
+      "totalDescription": "On average, you do better than {level, number}% of people your age in Canada and the United States.",
+      "evaluatedOn": "Evaluated on {date}",
+      "pillars": "Your ranked levels",
+      "top": "Top {top, number}%",
+      "public": "These levels are public. Social and mental stay private.",
+      "factorAge": "{factor}: better than {percent} of people your age",
+      "factorAdults": "{factor}: better than {percent} of adults",
+      "vo2max": "Estimated VO2max: {value, number} mL/kg/min",
+      "estimate": "Estimate",
+      "reevaluate": "Re-evaluate my level",
+      "nextOn": "Next re-evaluation possible on {date}."
+    },
+    "method": {
+      "title": "How it’s calculated",
+      "how": "Each result is compared with people your age (and sex, for the fitness tests). Physical: 12-minute run converted to VO2max (FRIEND registry), push-ups (Canadian Society for Exercise Physiology), flexibility (YMCA), squats and standing long jump (estimates). Financial: net income per hour (Census Bureau), net worth (Federal Reserve and Statistics Canada, Canadian amounts at purchasing power parity) and savings rate (Federal Reserve). A pillar’s level is the weighted average of its factors; the total, the average of the two pillars.",
+      "limits": "Limits: squats and the standing long jump have no published adult norms for Canada and the United States (approximate references, marked “Estimate”); the savings rate partly relies on an estimate; Canada’s hourly income uses the US curve; your answers are self-reported, not verified."
+    },
+    "analysis": {
+      "title": "Get iT AI analysis",
+      "description": "Get iT AI explains your level and suggests how to climb. Your income and net worth are sent as percentiles only, never in dollars.",
+      "request": "Analyze my level",
+      "loading": "Analyzing…",
+      "tips": "To climb",
+      "unavailable": "Get iT AI is coming soon.",
+      "consent": "Turn on Get iT AI to get an analysis of your level.",
+      "consentLink": "Turn on Get iT AI"
+    },
+    "leave": {
+      "open": "Leave Ranked mode",
+      "title": "Leave Ranked mode?",
+      "description": "Your answers and ranked levels will be deleted. Your level will go back to your XP level.",
+      "cancel": "Cancel",
+      "confirm": "Leave and delete"
+    },
+    "errors": {
+      "invalid": "Some answers are missing or out of range.",
+      "consentRequired": "Check the consent box to calculate your level.",
+      "tooSoon": "You can re-evaluate 30 days after your last evaluation.",
+      "notRanked": "You’re not in Ranked mode yet.",
+      "notConfigured": "Get iT AI isn’t available right now.",
+      "aiConsentRequired": "Turn on Get iT AI first.",
+      "limitReached": "You’ve reached the limit of 20 Get iT AI requests today.",
+      "refused": "Get iT AI couldn’t analyze your level.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   }
 }

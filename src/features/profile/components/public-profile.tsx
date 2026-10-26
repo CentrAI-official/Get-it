@@ -1,4 +1,4 @@
-import { PenLine } from "lucide-react";
+import { PenLine, Trophy } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/avatar";
@@ -53,9 +53,18 @@ export async function PublicProfileLoader({ username }: { username: string }) {
         ) : null}
         {/* Chaque valeur se lit seule (« Niveau 3 », « 2 contacts »…) */}
         <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
-          <li className="font-heading font-bold">
-            {t("level", { level: profile.level })}
-          </li>
+          {/* Le niveau n'est public qu'en mode Ranked */}
+          {profile.ranked ? (
+            <li className="flex items-center gap-1.5 font-heading font-bold">
+              <Trophy aria-hidden="true" className="size-4 text-primary" />
+              {t("level", { level: profile.ranked.total })}
+              <span className="font-sans text-xs font-medium text-muted-foreground">
+                {t("ranked")}
+              </span>
+            </li>
+          ) : (
+            <li className="text-muted-foreground">{t("unranked")}</li>
+          )}
           <li>{t("contacts", { count: profile.contacts })}</li>
           <li className="text-muted-foreground">
             {t("memberSince", {
@@ -109,9 +118,13 @@ export async function PublicProfileLoader({ username }: { username: string }) {
                 <span className="text-xs font-semibold">
                   {tPillars(`${pillar}.name`)}
                 </span>
-                <span className="font-mono text-xs text-muted-foreground">
-                  {t("level", { level: profile.pillarLevels[pillar] })}
-                </span>
+                {profile.ranked ? (
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {pillar === "physical" || pillar === "financial"
+                      ? t("level", { level: profile.ranked[pillar] })
+                      : t("private")}
+                  </span>
+                ) : null}
               </li>
             );
           })}

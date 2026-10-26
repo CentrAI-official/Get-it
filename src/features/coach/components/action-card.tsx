@@ -56,7 +56,7 @@ export function ActionCard({ action, onChange }: ActionCardProps) {
   const format = useFormatter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<
-    "notFound" | "goalMissing" | "unexpected" | null
+    "notFound" | "goalMissing" | "goalLimit" | "unexpected" | null
   >(null);
   const { payload, status } = action;
   const Icon = ICONS[payload.kind];

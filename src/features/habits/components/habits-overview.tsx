@@ -2,11 +2,13 @@ import { ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
+import { KIND_COLORS } from "@/features/development/colors";
 import { toCalendarDay } from "@/lib/dates";
+import { cn } from "@/lib/utils";
 import { listHabits } from "@/server/habits/service";
 import { getCurrentProfile } from "@/server/profile/service";
-import { HabitCard } from "./habit-card";
 import { ArchiveButton } from "./habit-manage";
+import { HabitList } from "./habit-list";
 import { NoHabits } from "./no-habits";
 
 /** Habitudes en cours (à cocher) et en pause. Lit la session : à placer dans un <Suspense>. */
@@ -31,13 +33,7 @@ export async function HabitsOverview() {
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
-          <ul className="grid md:grid-cols-2 md:gap-x-8">
-            {active.map((habit) => (
-              <li key={habit.id}>
-                <HabitCard habit={habit} today={today} />
-              </li>
-            ))}
-          </ul>
+          <HabitList habits={active} today={today} />
         ) : (
           <p className="text-sm text-muted-foreground">{t("noActive")}</p>
         )}
@@ -60,7 +56,10 @@ export async function HabitsOverview() {
                   key={habit.id}
                   className="flex flex-wrap items-center gap-3 border-b border-white/8 py-3"
                 >
-                  <Icon aria-hidden="true" className="size-4 text-silver" />
+                  <Icon
+                    aria-hidden="true"
+                    className={cn("size-4", KIND_COLORS[habit.pillar].text)}
+                  />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium break-words">
                       {habit.title}
