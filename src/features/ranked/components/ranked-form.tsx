@@ -8,23 +8,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import type { Country, Sex } from "@/features/profile/details";
 import { useRouter } from "@/i18n/navigation";
 import { submitRankedAction } from "../actions";
 import {
-  RANKED_COUNTRIES,
   REACH_SIDES,
-  SEX_NORMS,
   rankedAnswersSchema,
   type RankedAnswers,
 } from "../questionnaire";
 import type { RankedError } from "../rules";
+import { BodyTypePicker } from "./body-type-picker";
 
 type Values = Record<keyof RankedAnswers, string>;
 
 const EMPTY: Values = {
-  country: "",
-  age: "",
-  sexNorm: "",
+  heightCm: "",
+  weightKg: "",
+  bodyType: "",
   reachSide: "",
   reachCm: "",
   runMeters: "",
@@ -50,7 +50,8 @@ const toValues = (answers: RankedAnswers | null): Values =>
 
 /** Champs numériques : chacun a une explication sous son libellé. */
 type NumberField =
-  | "age"
+  | "heightCm"
+  | "weightKg"
   | "reachCm"
   | "runMeters"
   | "pushUps"
@@ -62,8 +63,19 @@ type NumberField =
   | "monthlyExpenses"
   | "weeklyHours";
 
-/** Questionnaire du mode Ranked : physique, financier et accord (Loi 25). */
-export function RankedForm({ initial }: { initial: RankedAnswers | null }) {
+/**
+ * Questionnaire du mode Ranked : corps, physique, financier et accord (Loi 25).
+ * Le pays (devise) et le sexe (pompes, silhouettes) viennent du compte.
+ */
+export function RankedForm({
+  initial,
+  country,
+  sex,
+}: {
+  initial: RankedAnswers | null;
+  country: Country;
+  sex: Sex;
+}) {
   const t = useTranslations("Ranked.form");
   const tQuestions = useTranslations("Ranked.questions");
   const tErrors = useTranslations("Ranked.errors");
@@ -83,9 +95,9 @@ export function RankedForm({ initial }: { initial: RankedAnswers | null }) {
       return next;
     });
   };
-  const currency = values.country === "US" ? "USD" : "CAD";
+  const currency = country === "US" ? "USD" : "CAD";
   // Les normes féminines de la SCPE comptent les pompes sur les genoux
-  const pushUpHint = values.sexNorm === "female" ? "knees" : "full";
+  const pushUpHint = sex === "female" ? "knees" : "full";
 
   function submit() {
     setError(null);
@@ -186,14 +198,24 @@ export function RankedForm({ initial }: { initial: RankedAnswers | null }) {
         submit();
       }}
     >
-      <Section title={t("sections.about")}>
-        {choice("country", RANKED_COUNTRIES, (option) =>
-          tQuestions(`country.options.${option}`),
-        )}
-        {number("age", { unit: t("years"), min: 16 })}
-        {choice("sexNorm", SEX_NORMS, (option) =>
-          tQuestions(`sexNorm.options.${option}`),
-        )}
+      <Section title={t("sections.body")} hint={t("hints.body")}>
+        {number("heightCm", { unit: "cm", min: 100 })}
+        {number("weightKg", { unit: "kg", min: 30 })}
+        <Field
+          id={`${id}-bodyType`}
+          label={tQuestions("bodyType.label")}
+          hint={tQuestions("bodyType.hint")}
+          error={fieldErrors.has("bodyType") ? t("fieldError") : undefined}
+          group
+        >
+          <BodyTypePicker
+            sex={sex}
+            value={values.bodyType}
+            onChange={set("bodyType")}
+            labelledBy={`${id}-bodyType-label`}
+            invalid={fieldErrors.has("bodyType")}
+          />
+        </Field>
       </Section>
 
       <Section title={t("sections.physical")} hint={t("hints.physical")}>

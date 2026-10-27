@@ -14,6 +14,7 @@ import {
   type ListingInput,
   type ListingKind,
   type MarketplaceError,
+  GEAR_SALES_OPEN,
 } from "@/features/marketplace/rules";
 import type { Prisma } from "@/generated/prisma/client";
 import {
@@ -410,6 +411,9 @@ export async function createListing(
   userId: string,
   input: ListingInput,
 ): Promise<{ ok: true; id: string } | Fail> {
+  if (input.kind === "gear" && !GEAR_SALES_OPEN) {
+    return { ok: false, error: "gearSoon" };
+  }
   const allowed = await canSell(userId);
   if (!allowed.ok) return allowed;
   const active = await db.listing.count({

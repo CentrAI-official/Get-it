@@ -1,27 +1,36 @@
 import { z } from "zod";
+import {
+  COUNTRIES,
+  MAX_AGE,
+  MIN_AGE,
+  SEXES,
+  type Country,
+} from "@/features/profile/details";
 
 // Questionnaire du mode Ranked (physique et financier) : défini une seule fois,
 // pour le formulaire et la validation serveur. Les libellés vivent dans
-// Ranked.questions (fr, en).
+// Ranked.questions (fr, en). L'âge, le sexe et le pays ne sont pas redemandés :
+// ils viennent du compte (src/features/profile/details.ts).
 
-export const RANKED_COUNTRIES = ["CA", "US"] as const;
-export type RankedCountry = (typeof RANKED_COUNTRIES)[number];
+export type RankedCountry = Country;
 
-/** Normes de forme physique à utiliser (sans précision : moyenne des deux). */
-export const SEX_NORMS = ["male", "female", "unspecified"] as const;
 /** Flexion assise : les doigts dépassent les orteils, ou il manque des centimètres. */
 export const REACH_SIDES = ["beyond", "short"] as const;
 
-export const RANKED_MIN_AGE = 16;
-export const RANKED_MAX_AGE = 100;
+/** Morphologie (somatotype) : montrée en silhouettes, gardée comme contexte. */
+export const BODY_TYPES = ["ectomorph", "mesomorph", "endomorph"] as const;
+export type BodyType = (typeof BODY_TYPES)[number];
 
 const integer = (min: number, max: number) =>
   z.coerce.number().int().min(min).max(max);
 
 export const rankedAnswersSchema = z.object({
-  country: z.enum(RANKED_COUNTRIES),
-  age: integer(RANKED_MIN_AGE, RANKED_MAX_AGE),
-  sexNorm: z.enum(SEX_NORMS),
+  // Corps
+  /** Taille en centimètres. */
+  heightCm: integer(100, 250),
+  /** Poids en kilogrammes. */
+  weightKg: integer(30, 300),
+  bodyType: z.enum(BODY_TYPES),
   // Physique
   reachSide: z.enum(REACH_SIDES),
   /** Centimètres au-delà des orteils, ou qui manquent pour les toucher. */
@@ -46,9 +55,23 @@ export const rankedAnswersSchema = z.object({
 
 export type RankedAnswers = z.infer<typeof rankedAnswersSchema>;
 
+/** Âge, sexe et pays tirés du compte au moment de l'évaluation. */
+export const rankedPersonSchema = z.object({
+  country: z.enum(COUNTRIES),
+  age: integer(MIN_AGE, MAX_AGE),
+  sex: z.enum(SEXES),
+});
+export type RankedPerson = z.infer<typeof rankedPersonSchema>;
+
+/** Ce qui est enregistré : les réponses et la personne telle qu'elle était évaluée. */
+export const rankedRecordSchema = rankedAnswersSchema.extend(
+  rankedPersonSchema.shape,
+);
+export type RankedRecord = z.infer<typeof rankedRecordSchema>;
+
 /** Champs du formulaire, dans l'ordre, regroupés par section. */
 export const RANKED_SECTIONS = [
-  { key: "about", fields: ["country", "age", "sexNorm"] },
+  { key: "body", fields: ["heightCm", "weightKg", "bodyType"] },
   {
     key: "physical",
     fields: [

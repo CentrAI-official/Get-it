@@ -5,6 +5,8 @@ import { routing } from "@/i18n/routing";
 export const APP_HOME_PATH = "/community";
 /** Parcours de départ, à terminer avant d'utiliser l'application. */
 export const ONBOARDING_PATH = "/onboarding";
+/** Renseignements du compte (date de naissance, sexe, région) des comptes créés avant. */
+export const DETAILS_PATH = "/onboarding/details";
 export const RESET_PASSWORD_PATH = "/reset-password";
 
 /** Pages de l'application, réservées aux utilisateurs connectés. */

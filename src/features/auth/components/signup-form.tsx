@@ -61,6 +61,14 @@ export function SignupForm({ inviteRequired }: { inviteRequired: boolean }) {
           description={t("fields.passwordHint", { min: PASSWORD_MIN_LENGTH })}
           error={state.fieldErrors?.password}
         />
+        <FormField
+          name="confirmPassword"
+          type="password"
+          label={t("fields.confirmPassword")}
+          autoComplete="new-password"
+          required
+          error={state.fieldErrors?.confirmPassword}
+        />
         {inviteRequired ? (
           <FormField
             name="inviteCode"

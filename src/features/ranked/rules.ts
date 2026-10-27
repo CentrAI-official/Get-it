@@ -11,6 +11,7 @@ export function nextEvaluationAt(lastAt: Date) {
 
 export const RANKED_ERRORS = [
   "invalid",
+  "detailsMissing",
   "consentRequired",
   "tooSoon",
   "notRanked",

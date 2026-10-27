@@ -55,6 +55,18 @@ enum AccountType {
   affiliate
 }
 
+/// Sexe à la naissance : deux choix.
+enum Sex {
+  male
+  female
+}
+
+/// Pays où Get iT est offert.
+enum Country {
+  CA
+  US
+}
+
 model Profile {
   id             String      @id @db.Uuid
   /// Nom d'utilisateur public du Centre Get iT (minuscules, chiffres, « _ »).
@@ -72,6 +84,16 @@ model Profile {
   occupation     Occupation?
   /// Piliers que l'utilisateur veut améliorer en priorité.
   focusPillars   Pillar[]    @default([]) @map("focus_pillars")
+  /// Renseignements privés de la création du compte (jamais montrés aux autres) ;
+  /// vides pour les comptes créés avant : demandés une fois à la prochaine ouverture.
+  birthDate      DateTime?   @map("birth_date") @db.Date
+  /// Sexe à la naissance (comparaisons physiques du mode Ranked).
+  sex            Sex?
+  country        Country?
+  /// Province, territoire ou État (code postal officiel, ex. « QC », « NY »).
+  province       String?
+  /// Région administrative du Québec (mêmes clés que le Marketplace).
+  qcRegion       String?     @map("qc_region")
   /// Fin de l'onboarding ; null tant qu'il n'est pas terminé.
   onboardedAt    DateTime?   @map("onboarded_at") @db.Timestamptz(3)
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -93,6 +115,9 @@ model Profile {
   postComments         PostComment[]
   postReactions        PostReaction[]
   postSaves            PostSave[]
+  ownedGroups          Group[]              @relation("GroupOwner")
+  groupMemberships     GroupMember[]        @relation("GroupMembership")
+  groupInvitesSent     GroupMember[]        @relation("GroupInviter")
   reportsMade          ContentReport[]      @relation("ReportReporter")
   reportsReceived      ContentReport[]      @relation("ReportedUser")
   reportsResolved      ContentReport[]      @relation("ReportResolver")
@@ -545,11 +570,14 @@ model Post {
   mediaCount   Int           @default(0) @map("media_count") @db.SmallInt
   /// Partage dans son fil : la publication d'origine (le partage disparaît avec elle).
   sharedPostId String?       @map("shared_post_id") @db.Uuid
+  /// Publication du forum d'un groupe public (absente du fil du Centre).
+  groupId      String?       @map("group_id") @db.Uuid
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
   sharedPost Post?           @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
+  group      Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   shares     Post[]          @relation("PostShares")
   comments   PostComment[]
   reactions  PostReaction[]
@@ -562,7 +590,66 @@ model Post {
   @@index([status, createdAt])
   @@index([userId, createdAt])
   @@index([sharedPostId])
+  @@index([groupId, createdAt])
   @@map("posts")
+}
+
+/// Groupe public : un forum ; groupe privé : une discussion sur invitation.
+enum GroupVisibility {
+  public
+  private
+}
+
+enum GroupRole {
+  owner
+  admin
+  member
+}
+
+enum GroupMemberStatus {
+  active
+  /// Invitation à un groupe privé, pas encore acceptée.
+  invited
+}
+
+/// Groupe du Centre Get iT, sur un pilier ou général (pilier vide).
+model Group {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  name        String
+  description String          @default("")
+  pillar      Pillar?
+  visibility  GroupVisibility
+  ownerId     String          @map("owner_id") @db.Uuid
+  createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  owner        Profile       @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members      GroupMember[]
+  posts        Post[]
+  conversation Conversation?
+
+  @@index([visibility, createdAt])
+  @@index([ownerId])
+  @@map("groups")
+}
+
+model GroupMember {
+  groupId     String            @map("group_id") @db.Uuid
+  userId      String            @map("user_id") @db.Uuid
+  role        GroupRole         @default(member)
+  status      GroupMemberStatus @default(active)
+  invitedById String?           @map("invited_by_id") @db.Uuid
+  joinedAt    DateTime?         @map("joined_at") @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation("GroupMembership", fields: [userId], references: [id], onDelete: Cascade)
+  invitedBy Profile? @relation("GroupInviter", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@id([groupId, userId])
+  @@index([userId, status])
+  @@index([invitedById])
+  @@map("group_members")
 }
 
 /// Publication enregistrée (Profil › Publications › Enregistrées). Privé :
@@ -701,13 +788,16 @@ enum MessageReactionKind {
 /// Conversation privée entre deux membres du Centre (une seule par paire).
 model Conversation {
   id            String   @id @default(uuid(7)) @db.Uuid
-  /// Les deux identifiants triés, « idA:idB » : empêche les doublons.
-  directKey     String   @unique @map("direct_key")
+  /// Les deux identifiants triés, « idA:idB » : empêche les doublons (vide pour un groupe).
+  directKey     String?  @unique @map("direct_key")
+  /// Discussion d'un groupe privé (sans clé de paire).
+  groupId       String?  @unique @map("group_id") @db.Uuid
   createdById   String   @map("created_by_id") @db.Uuid
   lastMessageAt DateTime @default(now()) @map("last_message_at") @db.Timestamptz(3)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   createdBy Profile              @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  group     Group?               @relation(fields: [groupId], references: [id], onDelete: Cascade)
   members   ConversationMember[]
   messages  Message[]
   pacts     Pact[]
@@ -747,6 +837,8 @@ model Message {
   pactId         String?     @map("pact_id") @db.Uuid
   /// Publication envoyée (message « post ») ; vide si elle a été supprimée.
   postId         String?     @map("post_id") @db.Uuid
+  /// Photos ou vidéo jointes (0 à 4) : un message avec médias peut être sans texte.
+  mediaCount     Int         @default(0) @map("media_count") @db.SmallInt
   /// Supprimé par son auteur ou retiré par la modération : contenu effacé.
   deletedAt      DateTime?   @map("deleted_at") @db.Timestamptz(3)
   createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -755,6 +847,7 @@ model Message {
   sender       Profile           @relation(fields: [senderId], references: [id], onDelete: Cascade)
   pact         Pact?             @relation(fields: [pactId], references: [id], onDelete: Cascade)
   post         Post?             @relation(fields: [postId], references: [id], onDelete: SetNull)
+  media        MessageMedia[]
   reactions    MessageReaction[]
   reports      ContentReport[]
 
@@ -762,6 +855,27 @@ model Message {
   @@index([senderId, createdAt])
   @@index([postId])
   @@map("messages")
+}
+
+/// Photo ou vidéo d'un message privé (fichier privé, lu par des liens temporaires).
+model MessageMedia {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  messageId  String    @map("message_id") @db.Uuid
+  kind       MediaKind
+  path       String    @unique
+  /// Image d'aperçu d'une vidéo.
+  posterPath String?   @map("poster_path")
+  width      Int
+  height     Int
+  durationMs Int?      @map("duration_ms")
+  sizeBytes  Int       @map("size_bytes")
+  position   Int       @db.SmallInt
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId, position])
+  @@map("message_media")
 }
 
 model MessageReaction {

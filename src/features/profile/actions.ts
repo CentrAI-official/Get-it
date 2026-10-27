@@ -3,6 +3,7 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { uploadRequestSchema } from "@/features/community/media";
+import { toCalendarDay } from "@/lib/dates";
 import { requireUser } from "@/server/auth/session";
 import {
   removeAvatar,
@@ -10,6 +11,14 @@ import {
   setAvatar,
   setBio,
 } from "@/server/profile/avatar";
+import { saveProfileDetails } from "@/server/profile/details";
+import { getUserTimeZone } from "@/server/profile/service";
+import {
+  detailErrors,
+  profileDetailsSchema,
+  type ProfileDetailError,
+  type ProfileDetailsDraft,
+} from "./details";
 import { BIO_MAX_LENGTH } from "./rules";
 
 // Points d'entrée publics du profil : session et entrées revalidées ici.
@@ -68,4 +77,37 @@ export async function setBioAction(bio: unknown) {
   await setBio(user.id, parsed.data);
   refresh();
   return true;
+}
+
+export type ProfileDetailsResult =
+  | { ok: true }
+  | {
+      ok: false;
+      errors: Partial<Record<keyof ProfileDetailsDraft, ProfileDetailError>>;
+    }
+  | { ok: false; error: "unexpected" };
+
+/**
+ * Date de naissance, sexe, pays et région (création du compte, comptes déjà
+ * existants, Réglages). L'âge minimum se vérifie dans le fuseau de la personne.
+ */
+export async function saveProfileDetailsAction(
+  input: unknown,
+): Promise<ProfileDetailsResult> {
+  const user = await requireUser();
+  try {
+    const timeZone = await getUserTimeZone(user.id);
+    const parsed = profileDetailsSchema(
+      toCalendarDay(new Date(), timeZone),
+    ).safeParse(input);
+    if (!parsed.success) {
+      return { ok: false, errors: detailErrors(parsed.error) };
+    }
+    await saveProfileDetails(user.id, parsed.data);
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    console.error("Renseignements du profil impossibles à enregistrer", error);
+    return { ok: false, error: "unexpected" };
+  }
 }

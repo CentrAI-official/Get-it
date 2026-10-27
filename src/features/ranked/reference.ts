@@ -275,6 +275,63 @@ export const SQUAT_REFERENCE: Reference = {
   estimate: true,
 };
 
+/** Tranches d'âge de l'IMC : 16-19, 20-29 … 80 ans et plus. */
+export const BMI_AGE_GROUPS = [16, 20, 30, 40, 50, 60, 70, 80] as const;
+
+/**
+ * Indice de masse corporelle mesuré (kg/m²) : percentiles 5, 10, 15, 25, 50, 75,
+ * 85, 90 et 95 par sexe et tranche d'âge. Source : CDC, NHANES 2015-2018,
+ * « Anthropometric Reference Data for Children and Adults », tableaux 14 et 15
+ * (20 ans et plus) ; 16-19 ans : moyenne des âges 16 à 19 du tableau 13. Les
+ * bornes [12, 0] et [70, 100] ferment la courbe. Pas de tableau équivalent pour
+ * le Canada : la courbe américaine sert aussi aux Canadiens.
+ */
+const BMI_PERCENTILES = [5, 10, 15, 25, 50, 75, 85, 90, 95] as const;
+const bmi = (values: readonly number[]): readonly Anchor[] => [
+  [12, 0],
+  ...values.map(
+    (value, index) => [value, BMI_PERCENTILES[index] ?? 0] as const,
+  ),
+  [70, 100],
+];
+
+export const BMI_NORMS: Record<SexNorm, readonly (readonly Anchor[])[]> = {
+  male: [
+    bmi([17.8, 18.9, 19.7, 20.6, 23.3, 27.4, 30.3, 32.4, 37.4]),
+    bmi([18.7, 20.0, 21.0, 22.6, 26.5, 31.6, 34.4, 36.8, 39.5]),
+    bmi([21.6, 23.0, 23.8, 25.4, 28.9, 33.7, 36.4, 38.3, 43.4]),
+    bmi([22.1, 23.5, 24.7, 26.2, 29.1, 32.8, 35.5, 38.1, 41.8]),
+    bmi([21.8, 22.6, 24.0, 25.2, 29.1, 32.8, 35.5, 37.4, 41.7]),
+    bmi([22.2, 23.2, 23.9, 25.8, 28.9, 33.3, 35.3, 37.1, 40.3]),
+    bmi([20.9, 22.9, 24.1, 25.9, 28.2, 32.8, 34.5, 35.6, 37.2]),
+    bmi([21.1, 22.3, 22.9, 24.3, 27.2, 30.2, 32.3, 34.0, 35.5]),
+  ],
+  female: [
+    bmi([18.2, 19.4, 19.8, 21.2, 24.1, 29.0, 32.6, 34.9, 38.6]),
+    bmi([18.6, 19.6, 20.4, 21.9, 26.2, 32.9, 37.4, 39.6, 43.3]),
+    bmi([19.8, 21.2, 22.0, 23.6, 28.3, 34.2, 38.2, 41.1, 46.1]),
+    bmi([20.6, 22.0, 22.8, 24.4, 28.6, 34.8, 39.3, 43.1, 46.6]),
+    bmi([19.6, 21.5, 22.5, 24.3, 29.1, 34.2, 37.7, 41.5, 45.7]),
+    bmi([20.4, 22.2, 23.2, 24.9, 29.2, 34.7, 37.2, 39.5, 42.9]),
+    bmi([20.8, 22.0, 23.3, 25.3, 28.8, 33.3, 35.7, 37.9, 42.1]),
+    bmi([19.9, 20.8, 22.2, 23.8, 27.5, 30.8, 33.5, 35.5, 39.3]),
+  ],
+};
+
+/** Poids santé chez l'adulte (OMS) : un IMC de 18,5 à 24,9. */
+export const HEALTHY_BMI = [18.5, 24.9] as const;
+
+/**
+ * La règle de classement (plus l'IMC est proche de la plage santé, mieux c'est)
+ * est la nôtre, et l'IMC ne distingue pas les muscles de la graisse :
+ * estimation (décision du fondateur, 2026-10-26).
+ */
+export const BMI_REFERENCE: Reference = {
+  source:
+    "CDC, NHANES 2015-2018 (IMC mesuré ; courbe américaine aussi pour le Canada)",
+  estimate: true,
+};
+
 /** Tranches d'âge du saut sans élan : 16-29 à 70 ans et plus. */
 export const JUMP_AGE_GROUPS = [16, 30, 40, 50, 60, 70] as const;
 

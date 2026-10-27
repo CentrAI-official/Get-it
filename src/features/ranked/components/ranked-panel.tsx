@@ -7,6 +7,7 @@ import { pillarIcons } from "@/config/pillars";
 import { Link } from "@/i18n/navigation";
 import { isAiConfigured } from "@/server/ai/provider";
 import { getAiProfile } from "@/server/ai/usage";
+import { getProfileDetails } from "@/server/profile/details";
 import { getCurrentProfile } from "@/server/profile/service";
 import { getRankedState } from "@/server/ranked/service";
 import { RANKED_PILLARS } from "../scoring";
@@ -28,9 +29,10 @@ export async function RankedPanel({
   searchParams: SearchParams;
 }) {
   const profile = await getCurrentProfile();
-  const [params, state, t] = await Promise.all([
+  const [params, state, details, t] = await Promise.all([
     searchParams,
     getRankedState(profile.id),
+    getProfileDetails(profile.id),
     getTranslations("Ranked"),
   ]);
   const reevaluate = params.reevaluate === "1";
@@ -44,7 +46,12 @@ export async function RankedPanel({
             <p className="text-sm text-muted-foreground">{t("intro.how")}</p>
           </section>
         )}
-        <RankedForm initial={state?.answers ?? null} />
+        <RankedForm
+          initial={state?.answers ?? null}
+          // Renseignements du compte : toujours remplis dans l'application
+          country={details.country ?? "CA"}
+          sex={details.sex ?? "male"}
+        />
       </div>
     );
   }
@@ -157,6 +164,11 @@ async function RankedResults({
                       {factor.key === "run" ? (
                         <span className="text-xs text-muted-foreground">
                           {t("results.vo2max", { value: result.vo2max })}
+                        </span>
+                      ) : null}
+                      {factor.key === "bmi" ? (
+                        <span className="text-xs text-muted-foreground">
+                          {t("results.bmi", { value: result.bmi })}
                         </span>
                       ) : null}
                       <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">

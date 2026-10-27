@@ -65,6 +65,13 @@ export const MESSAGE_ERRORS = [
   "requestPending",
   "messageLimit",
   "conversationLimit",
+  "mediaUnavailable",
+  "mediaTooMany",
+  "mediaTooLarge",
+  "mediaType",
+  "mediaMissing",
+  "videoTooLong",
+  "uploadLimit",
   "unexpected",
 ] as const;
 

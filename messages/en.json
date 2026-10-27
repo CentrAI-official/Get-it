@@ -187,9 +187,7 @@
     },
     "groups": {
       "title": "Groups",
-      "question": "Who do I share my goals with?",
-      "soonTitle": "Groups are coming soon",
-      "soonDescription": "Join groups by pillar or by theme, and find the ones you follow here."
+      "question": "Who do I share my goals with?"
     },
     "events": {
       "title": "Events",
@@ -200,7 +198,9 @@
     "marketplace": {
       "gear": {
         "title": "Marketplace",
-        "question": "What can help me make progress?"
+        "question": "What can help me make progress?",
+        "soonTitle": "Gear is coming soon",
+        "soonDescription": "Clothing, equipment and books to help you progress. Soon, affiliates will be able to sell their gear here."
       },
       "services": {
         "title": "Marketplace",
@@ -417,6 +417,10 @@
         "other": "Other"
       }
     },
+    "details": {
+      "title": "About you",
+      "description": "So we can compare you with people your age and show you what’s near you. This information stays private."
+    },
     "pillars": {
       "title": "What do you want to improve?",
       "description": "Choose the pillars you want to focus on first."
@@ -455,18 +459,6 @@
         }
       }
     },
-    "situation": {
-      "title": "Where are you today?",
-      "description": "Rate each pillar honestly. This is your starting point: it will be used to measure your progress.",
-      "levels": {
-        "start": "Starting from scratch",
-        "beginner": "Just getting started",
-        "progressing": "Making progress",
-        "solid": "Solid",
-        "excellent": "Excelling"
-      },
-      "scoreLabel": "{score, number} out of 5: {level}"
-    },
     "time": {
       "title": "How much time do you want to invest?",
       "description": "Per day, on average. A little every day beats a lot once in a while.",
@@ -485,16 +477,16 @@
     },
     "summary": {
       "account": "Account type",
-      "title": "Your starting point",
+      "title": "Your summary",
       "description": "Review your answers, then take action.",
       "name": "First name",
       "occupation": "Situation",
       "pillars": "Pillars",
       "goals": "Goals",
-      "assessments": "Current level",
       "time": "Time per day",
       "notProvided": "Not specified",
-      "edit": "Edit: {section}"
+      "edit": "Edit: {section}",
+      "details": "You"
     }
   },
   "Goals": {
@@ -1033,7 +1025,9 @@
       "save": "Save",
       "savedNotice": "Post saved. Find it in Profile › Posts.",
       "unsavedNotice": "Post removed from your saved posts.",
-      "sharedLabel": "shared"
+      "sharedLabel": "shared",
+      "inGroup": "in {group}",
+      "removeFromGroup": "Remove from group"
     },
     "share": {
       "title": "Share",
@@ -1157,6 +1151,7 @@
       "commentLimit": "You’ve reached the limit of 50 comments per 24 hours.",
       "reportLimit": "You’ve reached today’s report limit.",
       "notFound": "This content is no longer available.",
+      "groupJoinRequired": "Join the group to take part.",
       "unexpected": "Something went wrong. Try again in a moment.",
       "mediaUnavailable": "Adding photos and videos isn’t enabled yet.",
       "mediaTooMany": "Up to 4 photos, or a single video, per post.",
@@ -1223,7 +1218,10 @@
       "unread": "Unread",
       "level": "Lvl {level, number}",
       "pact": "Pact",
-      "post": "Shared post"
+      "post": "Shared post",
+      "photo": "Photo",
+      "video": "Video",
+      "from": "{name}: {text}"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1278,7 +1276,8 @@
       "decline": "Decline",
       "pending": "Request sent. You’ll be able to write again once {handle} accepts it.",
       "cannotWrite": "Your account is suspended from the Hub: you can read your messages, but not write.",
-      "viewPost": "View post"
+      "viewPost": "View post",
+      "attach": "Attach a photo or video"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -1307,6 +1306,13 @@
       "requestPending": "Your request hasn’t been accepted yet.",
       "messageLimit": "You’ve reached the limit of 200 messages per 24 hours.",
       "conversationLimit": "You’ve started 20 new conversations today: that’s the limit.",
+      "mediaUnavailable": "Adding photos and videos isn’t available yet.",
+      "mediaTooMany": "Up to 4 photos, or a single video, per message.",
+      "mediaTooLarge": "This file is too large (50 MB at most for a video).",
+      "mediaType": "This format isn’t supported. Try a JPEG photo or an MP4 video.",
+      "mediaMissing": "A file hasn’t finished uploading. Try again.",
+      "videoTooLong": "The video is longer than 60 seconds.",
+      "uploadLimit": "You’ve sent a lot of files today. Try again tomorrow.",
       "unexpected": "Something went wrong. Try again in a moment.",
       "pactOpen": "A pact is already proposed or in progress in this conversation.",
       "pactLimit": "You’ve proposed enough pacts for today.",
@@ -1402,6 +1408,11 @@
         "keep": "Keep the pact",
         "quitConfirm": "Leave"
       }
+    },
+    "groupChat": {
+      "members": "{count, plural, one {# member} other {# members}}",
+      "viewGroup": "View the group",
+      "privacy": "The group’s private discussion: only its members can see it. Never sent to Get iT AI."
     }
   },
   "Contacts": {
@@ -1687,6 +1698,7 @@
       "submit": "Submit the listing",
       "errors": {
         "notAffiliate": "Switch to an affiliate account to sell.",
+        "gearSoon": "Selling gear is coming soon.",
         "notJoined": "Join the Get iT Centre to sell.",
         "suspended": "Your account is suspended for now: you can’t publish listings.",
         "listingLimit": "You’ve reached 20 active listings. Delete one to add another.",
@@ -2368,15 +2380,15 @@
     },
     "form": {
       "sections": {
-        "about": "About you",
+        "body": "Your body",
         "physical": "Physical",
         "financial": "Financial"
       },
       "hints": {
+        "body": "Your height and weight give your BMI, which counts for 10% of the physical level. Body type doesn’t change your level.",
         "physical": "Do the tests after a 5-minute warm-up, and stop if anything hurts. One test a day, or rest between tests, is fine.",
         "financial": "In your country’s currency. These amounts are never shown to other members or sent to Get iT AI in dollars."
       },
-      "years": "years",
       "perMonth": "{currency} per month",
       "perWeek": "hours per week",
       "fieldError": "Check this answer.",
@@ -2387,23 +2399,30 @@
       "submitting": "Calculating…"
     },
     "questions": {
-      "country": {
-        "label": "Your country",
-        "options": {
-          "CA": "Canada",
-          "US": "United States"
-        }
+      "heightCm": {
+        "label": "Your height",
+        "hint": "In centimetres. Example: 5 ft 10 in = 178 cm."
       },
-      "age": {
-        "label": "Your age",
-        "hint": "You’re compared with people in your age group."
+      "weightKg": {
+        "label": "Your weight",
+        "hint": "In kilograms. Example: 170 lb ≈ 77 kg."
       },
-      "sexNorm": {
-        "label": "Norms for your fitness tests",
+      "bodyType": {
+        "label": "Your body type",
+        "hint": "Pick the silhouette that looks most like you. It helps Get iT AI tailor its tips.",
         "options": {
-          "male": "Men",
-          "female": "Women",
-          "unspecified": "Prefer not to say"
+          "ectomorph": {
+            "title": "Ectomorph",
+            "description": "Lean and long, has a hard time gaining weight"
+          },
+          "mesomorph": {
+            "title": "Mesomorph",
+            "description": "Athletic build, gains muscle easily"
+          },
+          "endomorph": {
+            "title": "Endomorph",
+            "description": "Rounder build, gains weight easily"
+          }
         }
       },
       "reachSide": {
@@ -2458,6 +2477,7 @@
       }
     },
     "factors": {
+      "bmi": "BMI (height and weight)",
       "run": "Cardio (12-minute run)",
       "pushUps": "Strength (push-ups)",
       "reach": "Flexibility (sit-and-reach)",
@@ -2477,6 +2497,7 @@
       "factorAge": "{factor}: better than {percent} of people your age",
       "factorAdults": "{factor}: better than {percent} of adults",
       "vo2max": "Estimated VO2max: {value, number} mL/kg/min",
+      "bmi": "BMI: {value, number}",
       "estimate": "Estimate",
       "reevaluate": "Re-evaluate my level",
       "nextOn": "Next re-evaluation possible on {date}."
@@ -2505,6 +2526,7 @@
     },
     "errors": {
       "invalid": "Some answers are missing or out of range.",
+      "detailsMissing": "First fill in your date of birth, sex and region in Settings.",
       "consentRequired": "Check the consent box to calculate your level.",
       "tooSoon": "You can re-evaluate 30 days after your last evaluation.",
       "notRanked": "You’re not in Ranked mode yet.",
@@ -2512,6 +2534,237 @@
       "aiConsentRequired": "Turn on Get iT AI first.",
       "limitReached": "You’ve reached the limit of 20 Get iT AI requests today.",
       "refused": "Get iT AI couldn’t analyze your level.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Places": {
+    "countries": {
+      "CA": "Canada",
+      "US": "United States"
+    },
+    "provinces": {
+      "AB": "Alberta",
+      "BC": "British Columbia",
+      "MB": "Manitoba",
+      "NB": "New Brunswick",
+      "NL": "Newfoundland and Labrador",
+      "NS": "Nova Scotia",
+      "NT": "Northwest Territories",
+      "NU": "Nunavut",
+      "ON": "Ontario",
+      "PE": "Prince Edward Island",
+      "QC": "Quebec",
+      "SK": "Saskatchewan",
+      "YT": "Yukon",
+      "AL": "Alabama",
+      "AK": "Alaska",
+      "AZ": "Arizona",
+      "AR": "Arkansas",
+      "CA": "California",
+      "CO": "Colorado",
+      "CT": "Connecticut",
+      "DE": "Delaware",
+      "DC": "District of Columbia",
+      "FL": "Florida",
+      "GA": "Georgia",
+      "HI": "Hawaii",
+      "ID": "Idaho",
+      "IL": "Illinois",
+      "IN": "Indiana",
+      "IA": "Iowa",
+      "KS": "Kansas",
+      "KY": "Kentucky",
+      "LA": "Louisiana",
+      "ME": "Maine",
+      "MD": "Maryland",
+      "MA": "Massachusetts",
+      "MI": "Michigan",
+      "MN": "Minnesota",
+      "MS": "Mississippi",
+      "MO": "Missouri",
+      "MT": "Montana",
+      "NE": "Nebraska",
+      "NV": "Nevada",
+      "NH": "New Hampshire",
+      "NJ": "New Jersey",
+      "NM": "New Mexico",
+      "NY": "New York",
+      "NC": "North Carolina",
+      "ND": "North Dakota",
+      "OH": "Ohio",
+      "OK": "Oklahoma",
+      "OR": "Oregon",
+      "PA": "Pennsylvania",
+      "RI": "Rhode Island",
+      "SC": "South Carolina",
+      "SD": "South Dakota",
+      "TN": "Tennessee",
+      "TX": "Texas",
+      "UT": "Utah",
+      "VT": "Vermont",
+      "VA": "Virginia",
+      "WA": "Washington",
+      "WV": "West Virginia",
+      "WI": "Wisconsin",
+      "WY": "Wyoming"
+    }
+  },
+  "Details": {
+    "birthDate": "Date of birth",
+    "birthDateHint": "Get iT is for people 16 and older. Your age is used to compare you with people your age (Ranked mode).",
+    "sex": "Sex at birth",
+    "sexHint": "Only used for physical comparisons (Ranked mode).",
+    "sexes": {
+      "male": "Male",
+      "female": "Female"
+    },
+    "country": "Country",
+    "province": {
+      "CA": "Province or territory",
+      "US": "State"
+    },
+    "provincePlaceholder": "Choose…",
+    "qcRegion": "Quebec region",
+    "qcRegionHint": "So we can show you nearby services later.",
+    "privacy": "This information stays private: it’s never shown to other members.",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "complete": {
+      "metaTitle": "Complete your profile",
+      "title": "A few things about you",
+      "description": "Get iT now asks for your date of birth, your sex at birth and your region. Just once, and it stays private.",
+      "submit": "Continue"
+    },
+    "settings": {
+      "title": "Personal information",
+      "description": "Date of birth, sex at birth, country and region. Private: never shown to other members."
+    },
+    "errors": {
+      "birthDateInvalid": "Enter a valid date of birth.",
+      "tooYoung": "Get iT is for people 16 and older.",
+      "sexRequired": "Choose your sex at birth.",
+      "countryRequired": "Choose your country.",
+      "provinceRequired": "Choose your province, territory or state.",
+      "qcRegionRequired": "Choose your Quebec region.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    }
+  },
+  "Groups": {
+    "metaTitle": "Groups",
+    "description": "Groups by pillar or general: a public forum, or a private discussion between invited members.",
+    "create": "Create a group",
+    "back": "Back to Groups",
+    "invitations": {
+      "title": "Invitations",
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "mine": {
+      "title": "My groups",
+      "empty": "You’re not in any group yet. Join a public group or create your own."
+    },
+    "discover": {
+      "title": "Discover",
+      "searchLabel": "Search for a group",
+      "searchPlaceholder": "Search for a group…",
+      "search": "Search",
+      "topicsLabel": "Topic",
+      "all": "All",
+      "empty": "No public group matches yet."
+    },
+    "topics": {
+      "physical": "Physical",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financial",
+      "general": "General"
+    },
+    "visibility": {
+      "public": "Public",
+      "private": "Private"
+    },
+    "visibilityHints": {
+      "public": "A forum: any Hub member can find it, read it and join.",
+      "private": "A discussion by invitation, in Messages. Only members can see it."
+    },
+    "members": "{count, plural, =0 {No members} one {# member} other {# members}}",
+    "roles": {
+      "owner": "Creator",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "join": "Join",
+    "leave": "Leave the group",
+    "openChat": "Open the discussion",
+    "edit": "Edit",
+    "delete": "Delete the group",
+    "deleteTitle": "Delete this group?",
+    "deleteDescription": "Its posts, discussion and photos will be erased for everyone.",
+    "deleteConfirm": "Delete permanently",
+    "cancel": "Cancel",
+    "joinedNotice": "Welcome to the group!",
+    "form": {
+      "newTitle": "New group",
+      "newDescription": "Choose a topic, and who can take part.",
+      "editTitle": "Edit the group",
+      "editDescription": "The name, description and topic can be changed at any time.",
+      "name": "Group name",
+      "namePlaceholder": "Sunday runners",
+      "description": "Description",
+      "descriptionPlaceholder": "What the group is about, who it’s for…",
+      "optional": "optional",
+      "topic": "Topic",
+      "visibility": "Group type",
+      "visibilityLocked": "The group type can’t change after it’s created.",
+      "create": "Create the group",
+      "creating": "Creating…",
+      "save": "Save",
+      "saving": "Saving…"
+    },
+    "forum": {
+      "title": "Forum",
+      "joinToPost": "Join the group to post, comment and cheer.",
+      "emptyTitle": "No posts yet",
+      "emptyDescription": "Get the conversation going: ask a question or share a win."
+    },
+    "chat": {
+      "title": "Discussion",
+      "description": "The group’s discussion happens in Messages. Only members can see it."
+    },
+    "memberList": {
+      "title": "Members",
+      "invited": "Invitation sent",
+      "makeAdmin": "Make admin",
+      "removeAdmin": "Remove admin role",
+      "remove": "Remove from group",
+      "options": "Options for {name}",
+      "invite": "Invite",
+      "inviteTitle": "Invite to the group",
+      "inviteDescription": "Search for a Hub member by @username or first name. They’ll need to accept the invitation.",
+      "searchLabel": "Search for a member",
+      "searchPlaceholder": "@username or first name",
+      "inviteAction": "Invite {name}",
+      "sent": "Invited",
+      "noResults": "No one matches.",
+      "close": "Close"
+    },
+    "notFoundTitle": "Group not found",
+    "notFoundDescription": "It may have been deleted, or it’s private.",
+    "errors": {
+      "nameTooShort": "The name needs at least 3 characters.",
+      "nameTooLong": "The name can’t exceed 60 characters.",
+      "descriptionTooLong": "The description can’t exceed 500 characters.",
+      "notJoined": "Join the Hub first.",
+      "suspended": "Your account is suspended from the Hub.",
+      "notFound": "This group is no longer available.",
+      "notAllowed": "Only the group’s creator and admins can do that.",
+      "groupLimit": "You’ve already created 10 groups: that’s the limit.",
+      "memberLimit": "A private group has 20 people at most, invitations included.",
+      "inviteLimit": "You’ve sent a lot of invitations today. Try again tomorrow.",
+      "alreadyMember": "This person is already in the group or invited.",
+      "blocked": "You can’t invite this person.",
+      "ownerCannotLeave": "The creator doesn’t leave their group: they can delete it.",
       "unexpected": "Something went wrong. Try again in a moment."
     }
   }

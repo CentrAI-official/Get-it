@@ -271,8 +271,16 @@ export const VITRINE_PLAN_COLLECTIONS = 2;
 /** Favoris gardés au plus par personne. */
 export const FAVORITES_MAX = 200;
 
+/**
+ * Vente de gear : fermée pour l'instant (décision du fondateur, 2026-10-26).
+ * L'onglet Gear annonce « bientôt » ; les annonces gear existantes restent en
+ * base, masquées.
+ */
+export const GEAR_SALES_OPEN = false;
+
 export const MARKETPLACE_ERRORS = [
   "notAffiliate",
+  "gearSoon",
   "notJoined",
   "suspended",
   "listingLimit",

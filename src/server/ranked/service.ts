@@ -7,8 +7,9 @@ import {
   type RankedAnalysis,
 } from "@/features/ranked/analysis";
 import {
-  rankedAnswersSchema,
+  rankedRecordSchema,
   type RankedAnswers,
+  type RankedRecord,
 } from "@/features/ranked/questionnaire";
 import { nextEvaluationAt, type RankedError } from "@/features/ranked/rules";
 import {
@@ -25,6 +26,8 @@ import {
   reserveAiRequest,
 } from "@/server/ai/usage";
 import { db } from "@/server/db";
+import { getRankedPerson } from "@/server/profile/details";
+import { getUserTimeZone } from "@/server/profile/service";
 
 // Mode Ranked : chaque fonction reçoit l'userId de la session et filtre dessus.
 // Les niveaux physique, financier et total d'une personne classée sont
@@ -36,7 +39,8 @@ export type RankedLevels = Record<RankedPillar, number> & { total: number };
 export type RankedState = {
   levels: RankedLevels;
   result: RankedResult;
-  answers: RankedAnswers;
+  /** Réponses, avec l'âge, le sexe et le pays au moment de l'évaluation. */
+  answers: RankedRecord;
   analysis: RankedAnalysis | null;
   /** « AAAA-MM-JJTHH:MM:SS.sssZ » */
   evaluatedAt: string;
@@ -65,6 +69,7 @@ const storedResultSchema: z.ZodType<RankedResult> = z.object({
   }),
   total: z.object({ level: z.number(), percentile: z.number() }),
   vo2max: z.number(),
+  bmi: z.number(),
 });
 
 const levelsSelect = { physical: true, financial: true, total: true } as const;
@@ -96,7 +101,7 @@ export async function getRankedState(
     },
   });
   if (!latest) return null;
-  const answers = rankedAnswersSchema.safeParse(latest.answers);
+  const answers = rankedRecordSchema.safeParse(latest.answers);
   const result = storedResultSchema.safeParse(latest.result);
   if (!answers.success || !result.success) return null;
   const analysis = storedRankedAnalysisSchema.safeParse(latest.analysis);
@@ -118,7 +123,9 @@ export async function getRankedState(
 
 /**
  * Calcule et enregistre un niveau Ranked, au plus une fois tous les 30 jours.
- * Le niveau vient des tableaux de référence (scoring.ts), jamais de l'IA.
+ * Le niveau vient des tableaux de référence (scoring.ts), jamais de l'IA. L'âge,
+ * le sexe et le pays viennent du compte (jamais redemandés), et sont gardés
+ * avec les réponses tels qu'ils étaient au moment de l'évaluation.
  */
 export async function submitRanked(
   userId: string,
@@ -134,14 +141,17 @@ export async function submitRanked(
   if (latest && nextEvaluationAt(latest.createdAt).getTime() > Date.now()) {
     return { ok: false, error: "tooSoon" };
   }
-  const result = evaluateRanked(answers);
+  const person = await getRankedPerson(userId, await getUserTimeZone(userId));
+  if (!person) return { ok: false, error: "detailsMissing" };
+  const result = evaluateRanked(answers, person);
+  const record: RankedRecord = { ...answers, ...person };
   const levels: RankedLevels = {
     physical: result.pillars.physical.level,
     financial: result.pillars.financial.level,
     total: result.total.level,
   };
   await db.rankedEvaluation.create({
-    data: { userId, answers, result, ...levels },
+    data: { userId, answers: record, result, ...levels },
   });
   return { ok: true, levels };
 }
@@ -170,7 +180,7 @@ export async function analyzeRanked(
   });
   if (!latest) return { ok: false, error: "notRanked" };
   if (latest.analysis) return { ok: true };
-  const answers = rankedAnswersSchema.safeParse(latest.answers);
+  const answers = rankedRecordSchema.safeParse(latest.answers);
   const result = storedResultSchema.safeParse(latest.result);
   if (!answers.success || !result.success) {
     return { ok: false, error: "unexpected" };
@@ -187,7 +197,13 @@ export async function analyzeRanked(
       system: rankedInstructions(profile.locale),
       prompt: rankedPrompt({
         age: answers.data.age,
+        sex: answers.data.sex,
         result: result.data,
+        body: {
+          heightCm: answers.data.heightCm,
+          weightKg: answers.data.weightKg,
+          bodyType: answers.data.bodyType,
+        },
         tests: {
           runMeters: answers.data.runMeters,
           pushUps: answers.data.pushUps,

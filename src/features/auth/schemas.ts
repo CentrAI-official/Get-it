@@ -31,18 +31,25 @@ export const signInSchema = z.object({
   next: z.string().optional(),
 });
 
-export const signUpSchema = z.object({
-  locale,
-  email,
-  password: newPassword,
-  // Fuseau du navigateur ; vérifié avant d'être enregistré (voir isValidTimeZone)
-  timeZone: z.string().max(64).optional(),
-  // Bêta privée : vérifié par le serveur (src/server/auth/invite.ts)
-  inviteCode: z
-    .string(error("inviteInvalid"))
-    .max(64, error("inviteInvalid"))
-    .optional(),
-});
+export const signUpSchema = z
+  .object({
+    locale,
+    email,
+    password: newPassword,
+    // Retapé pour éviter une faute de frappe dans un mot de passe masqué
+    confirmPassword: z.string(error("passwordMismatch")),
+    // Fuseau du navigateur ; vérifié avant d'être enregistré (voir isValidTimeZone)
+    timeZone: z.string().max(64).optional(),
+    // Bêta privée : vérifié par le serveur (src/server/auth/invite.ts)
+    inviteCode: z
+      .string(error("inviteInvalid"))
+      .max(64, error("inviteInvalid"))
+      .optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    ...error("passwordMismatch"),
+    path: ["confirmPassword"],
+  });
 
 export const forgotPasswordSchema = z.object({ locale, email });
 

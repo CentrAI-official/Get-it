@@ -31,6 +31,7 @@ import {
   type MarketplaceError,
   type Region,
   type ServicePriceUnit,
+  GEAR_SALES_OPEN,
 } from "../rules";
 
 /** Autorisation d'envoi des photos, avec les erreurs connues des publications. */
@@ -288,39 +289,41 @@ export function ListingForm({
         </Alert>
       ) : null}
 
-      {/* Service ou gear */}
-      <div
-        role="radiogroup"
-        aria-label={t("form.kind")}
-        className="grid grid-cols-2 gap-2"
-      >
-        {(
-          [
-            ["service", UserRound],
-            ["gear", Package],
-          ] as const
-        ).map(([value, Icon]) => (
-          <button
-            key={value}
-            type="button"
-            role="radio"
-            aria-checked={kind === value}
-            onClick={() => switchKind(value)}
-            className={cn(
-              "flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-              kind === value ? choiceOn : choiceOff,
-            )}
-          >
-            <Icon aria-hidden="true" className="size-5 text-primary" />
-            <span className="font-semibold text-foreground">
-              {t(`form.kinds.${value}`)}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {t(`form.kindHints.${value}`)}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Service ou gear (gear : bientôt) */}
+      {GEAR_SALES_OPEN ? (
+        <div
+          role="radiogroup"
+          aria-label={t("form.kind")}
+          className="grid grid-cols-2 gap-2"
+        >
+          {(
+            [
+              ["service", UserRound],
+              ["gear", Package],
+            ] as const
+          ).map(([value, Icon]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={kind === value}
+              onClick={() => switchKind(value)}
+              className={cn(
+                "flex flex-col items-start gap-1 rounded-2xl border p-4 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                kind === value ? choiceOn : choiceOff,
+              )}
+            >
+              <Icon aria-hidden="true" className="size-5 text-primary" />
+              <span className="font-semibold text-foreground">
+                {t(`form.kinds.${value}`)}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                {t(`form.kindHints.${value}`)}
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <section className="flex flex-col gap-5">
         <Choices

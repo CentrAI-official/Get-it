@@ -26,6 +26,10 @@ import {
   AiSettingsSkeleton,
 } from "@/features/settings/components/ai-settings";
 import { DeleteAccountDialog } from "@/features/settings/components/delete-account-dialog";
+import {
+  DetailsSettings,
+  DetailsSettingsSkeleton,
+} from "@/features/settings/components/details-settings";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -69,6 +73,9 @@ export default function SettingsPage() {
           <LanguageSettings labelledBy="language-settings-title" />
         </CardContent>
       </Card>
+      <Suspense fallback={<DetailsSettingsSkeleton />}>
+        <DetailsSettings />
+      </Suspense>
       <Suspense fallback={<AccountTypeSettingsSkeleton />}>
         <AccountTypeSettings />
       </Suspense>

@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { FeedPost } from "@/server/community/feed";
+import { removeGroupPostAction } from "@/features/groups/actions";
 import {
   blockUserAction,
   deletePostAction,
@@ -59,6 +60,10 @@ type PostCardProps = {
   onReport: (target: { type: "post" | "comment" | "user"; id: string }) => void;
   /** Message d'information (ex. conversation impossible). */
   onNotice: (text: string) => void;
+  /** Affichée dans le forum de son groupe : pas de rappel du groupe. */
+  inGroup?: boolean;
+  /** Créateur ou admin du groupe : « Retirer du groupe ». */
+  groupManager?: boolean;
 };
 
 /**
@@ -73,6 +78,8 @@ export function PostCard({
   onRemoved,
   onReport,
   onNotice,
+  inGroup = false,
+  groupManager = false,
 }: PostCardProps) {
   const t = useTranslations("Community.post");
   const tPillars = useTranslations("Pillars");
@@ -210,6 +217,17 @@ export function PostCard({
             <time dateTime={post.createdAt}>
               {format.relativeTime(new Date(post.createdAt), now)}
             </time>
+            {post.group && !inGroup ? (
+              <>
+                <span aria-hidden="true">·</span>
+                <Link
+                  href={`/groups/${post.group.id}`}
+                  className="rounded-sm hover:text-foreground hover:underline"
+                >
+                  {t("inGroup", { group: post.group.name })}
+                </Link>
+              </>
+            ) : null}
             {post.shared ? (
               <>
                 <span aria-hidden="true">·</span>
@@ -233,6 +251,20 @@ export function PostCard({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
+            {groupManager && !post.mine ? (
+              <DropdownMenuItem
+                variant="destructive"
+                onSelect={() =>
+                  startTransition(async () => {
+                    const result = await removeGroupPostAction(post.id);
+                    if (result.ok) onRemoved({ postId: post.id });
+                  })
+                }
+              >
+                <Trash2 aria-hidden="true" />
+                {t("removeFromGroup")}
+              </DropdownMenuItem>
+            ) : null}
             {post.mine ? (
               <DropdownMenuItem
                 variant="destructive"

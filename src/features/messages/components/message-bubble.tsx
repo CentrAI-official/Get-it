@@ -1,7 +1,8 @@
 "use client";
 
-import { Flag, Trash2 } from "lucide-react";
+import { EllipsisVertical, Flag, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
+import { PostMedia } from "@/features/community/components/post-media";
 import { ProgressShare } from "@/features/community/components/progress-share";
 import { SharedPostPreview } from "@/features/community/components/shared-post";
 import { Link } from "@/i18n/navigation";
@@ -45,6 +46,10 @@ export function MessageBubble({
   const reaction = message.reactions[0];
   const myReaction = message.reactions.find((item) => item.mine)?.kind ?? null;
   const interactive = !message.deleted && !message.pending;
+  const hasMedia = message.media.length > 0 && !message.deleted;
+  // Photos sans texte : un petit bouton remplace la bulle (réactions, options)
+  const mediaOnly =
+    hasMedia && !message.body && !message.progress && !message.post;
 
   return (
     <div
@@ -54,52 +59,87 @@ export function MessageBubble({
         groupEnd ? "mb-3" : "mb-0.5",
       )}
     >
-      <button
-        type="button"
-        disabled={!interactive}
-        aria-expanded={interactive ? selected : undefined}
-        onClick={onSelect}
-        className={cn(
-          "relative max-w-[82%] rounded-3xl px-4 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:max-w-[70%]",
-          mine
-            ? "rounded-br-lg bg-white/[0.14]"
-            : "rounded-bl-lg bg-white/[0.05] ring-1 ring-white/10",
-          message.deleted &&
-            "bg-transparent text-muted-foreground italic ring-1 ring-white/10",
-          message.pending && "opacity-60",
-          reaction && "mb-3",
-        )}
-      >
-        <span className="sr-only">{mine ? t("you") : otherName} : </span>
-        {message.deleted ? (
-          t("deleted")
-        ) : (
-          <span className="flex flex-col gap-2">
-            {message.progress ? (
-              <ProgressShare progress={message.progress} className="-mx-1" />
-            ) : null}
-            {message.post ? (
-              <SharedPostPreview shared={message.post} className="min-w-52" />
-            ) : null}
-            {message.body ? (
-              <span className="break-words whitespace-pre-wrap">
-                {message.body}
-              </span>
-            ) : null}
-          </span>
-        )}
-        {reaction ? (
-          <span
-            className={cn(
-              "absolute -bottom-3 flex size-7 items-center justify-center rounded-full border border-white/10 bg-[#1b1b21] text-sm",
-              mine ? "left-2" : "right-2",
-            )}
-          >
-            <span aria-hidden="true">{REACTION_EMOJI[reaction.kind]}</span>
-            <span className="sr-only">{tReactions(reaction.kind)}</span>
-          </span>
-        ) : null}
-      </button>
+      {/* Les photos se touchent pour s'agrandir : hors du bouton de la bulle */}
+      {hasMedia ? (
+        <div
+          className={cn(
+            "w-64 max-w-[82%] sm:w-80",
+            message.pending && "opacity-60",
+          )}
+        >
+          <PostMedia media={message.media} className="rounded-3xl" />
+        </div>
+      ) : null}
+      {mediaOnly ? (
+        <button
+          type="button"
+          disabled={!interactive}
+          aria-expanded={interactive ? selected : undefined}
+          aria-label={t("options")}
+          onClick={onSelect}
+          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <EllipsisVertical aria-hidden="true" className="size-4" />
+          {reaction ? (
+            <span
+              className={cn(
+                "absolute -bottom-2 flex size-6 items-center justify-center rounded-full border border-white/10 bg-[#1b1b21] text-xs",
+                mine ? "-left-5" : "-right-5",
+              )}
+            >
+              <span aria-hidden="true">{REACTION_EMOJI[reaction.kind]}</span>
+              <span className="sr-only">{tReactions(reaction.kind)}</span>
+            </span>
+          ) : null}
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={!interactive}
+          aria-expanded={interactive ? selected : undefined}
+          onClick={onSelect}
+          className={cn(
+            "relative max-w-[82%] rounded-3xl px-4 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:max-w-[70%]",
+            mine
+              ? "rounded-br-lg bg-white/[0.14]"
+              : "rounded-bl-lg bg-white/[0.05] ring-1 ring-white/10",
+            message.deleted &&
+              "bg-transparent text-muted-foreground italic ring-1 ring-white/10",
+            message.pending && "opacity-60",
+            reaction && "mb-3",
+          )}
+        >
+          <span className="sr-only">{mine ? t("you") : otherName} : </span>
+          {message.deleted ? (
+            t("deleted")
+          ) : (
+            <span className="flex flex-col gap-2">
+              {message.progress ? (
+                <ProgressShare progress={message.progress} className="-mx-1" />
+              ) : null}
+              {message.post ? (
+                <SharedPostPreview shared={message.post} className="min-w-52" />
+              ) : null}
+              {message.body ? (
+                <span className="break-words whitespace-pre-wrap">
+                  {message.body}
+                </span>
+              ) : null}
+            </span>
+          )}
+          {reaction ? (
+            <span
+              className={cn(
+                "absolute -bottom-3 flex size-7 items-center justify-center rounded-full border border-white/10 bg-[#1b1b21] text-sm",
+                mine ? "left-2" : "right-2",
+              )}
+            >
+              <span aria-hidden="true">{REACTION_EMOJI[reaction.kind]}</span>
+              <span className="sr-only">{tReactions(reaction.kind)}</span>
+            </span>
+          ) : null}
+        </button>
+      )}
 
       {/* Le lien reste hors de la bulle (un bouton ne contient pas de lien) */}
       {message.post && message.post !== "unavailable" && !message.pending ? (

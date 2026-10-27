@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { rankedAnswersSchema, type RankedAnswers } from "./questionnaire";
 import {
+  rankedAnswersSchema,
+  rankedPersonSchema,
+  type RankedAnswers,
+  type RankedPerson,
+} from "./questionnaire";
+import {
+  BMI_NORMS,
   PUSH_UP_BANDS,
   REACH_NORMS,
   US_INFLATION_2023_TO_2025,
@@ -8,6 +14,8 @@ import {
 } from "./reference";
 import { US_NET_HOURLY_2023, US_WEALTH_2025 } from "./reference-data";
 import {
+  bmiOf,
+  bmiPercentile,
   evaluateRanked,
   hourlyPercentile,
   jumpPercentile,
@@ -24,10 +32,12 @@ import {
   wealthPercentile,
 } from "./scoring";
 
+const person: RankedPerson = { country: "CA", age: 30, sex: "male" };
+
 const answers: RankedAnswers = {
-  country: "CA",
-  age: 30,
-  sexNorm: "male",
+  heightCm: 178,
+  weightKg: 77,
+  bodyType: "mesomorph",
   reachSide: "beyond",
   reachCm: 5,
   runMeters: 2400,
@@ -120,10 +130,45 @@ describe("tests physiques", () => {
     expect(jumpPercentile(136, "female", 25)).toBeCloseTo(50, 0);
   });
 
-  it("sans précision : la moyenne des normes des hommes et des femmes", () => {
-    const either = vo2Percentile(40, "unspecified", 25);
-    expect(either).toBeGreaterThan(vo2Percentile(40, "male", 25));
-    expect(either).toBeLessThan(vo2Percentile(40, "female", 25));
+  it("les femmes sont comparées aux femmes", () => {
+    expect(vo2Percentile(40, "female", 25)).toBeGreaterThan(
+      vo2Percentile(40, "male", 25),
+    );
+  });
+});
+
+describe("IMC", () => {
+  it("se calcule au dixième", () => {
+    expect(bmiOf(178, 77)).toBe(24.3);
+    expect(bmiOf(160, 50)).toBe(19.5);
+  });
+
+  it("dans la plage santé : tous à égalité, et devant la majorité", () => {
+    const inRange = bmiPercentile(22, "male", 30);
+    expect(bmiPercentile(19, "male", 30)).toBeCloseTo(inRange);
+    expect(bmiPercentile(24.9, "male", 30)).toBeCloseTo(inRange);
+    expect(inRange).toBeGreaterThan(70);
+  });
+
+  it("plus on s'éloigne de la plage santé, plus le niveau baisse", () => {
+    const over = [27, 30, 35, 40].map((bmi) =>
+      bmiPercentile(bmi, "female", 45),
+    );
+    expect(over).toEqual([...over].sort((a, b) => b - a));
+    expect(bmiPercentile(16, "female", 25)).toBeLessThan(
+      bmiPercentile(18, "female", 25),
+    );
+    expect(bmiPercentile(45, "male", 30)).toBeLessThan(10);
+  });
+
+  it("les courbes NHANES montent pour chaque sexe et chaque âge", () => {
+    for (const groups of Object.values(BMI_NORMS)) {
+      expect(groups).toHaveLength(8);
+      for (const curve of groups) {
+        const values = curve.map(([value]) => value);
+        expect(values).toEqual([...values].sort((a, b) => a - b));
+      }
+    }
   });
 });
 
@@ -166,7 +211,7 @@ describe("finances", () => {
 
 describe("evaluateRanked", () => {
   it("niveaux physique et financier, et leur moyenne", () => {
-    const result = evaluateRanked(answers);
+    const result = evaluateRanked(answers, person);
     const { physical, financial } = result.pillars;
     for (const pillar of [physical, financial]) {
       expect(pillar.level).toBeGreaterThanOrEqual(1);
@@ -182,7 +227,9 @@ describe("evaluateRanked", () => {
       "reach",
       "squats",
       "jump",
+      "bmi",
     ]);
+    expect(result.bmi).toBe(24.3);
     expect(financial.factors.map((factor) => factor.key)).toEqual([
       "hourly",
       "netWorth",
@@ -191,21 +238,22 @@ describe("evaluateRanked", () => {
   });
 
   it("chaque facteur cite sa source et signale les estimations", () => {
-    const factors = Object.values(evaluateRanked(answers).pillars).flatMap(
-      (pillar) => pillar.factors,
-    );
+    const factors = Object.values(
+      evaluateRanked(answers, person).pillars,
+    ).flatMap((pillar) => pillar.factors);
     expect(factors.every((factor) => factor.source.length > 0)).toBe(true);
     const estimates = factors
       .filter((factor) => factor.estimate)
       .map((f) => f.key);
-    expect(estimates).toEqual(["squats", "jump", "savings"]);
+    expect(estimates).toEqual(["squats", "jump", "bmi", "savings"]);
     const weights = (keys: string[]) =>
       factors
         .filter((factor) => keys.includes(factor.key))
         .reduce((sum, factor) => sum + factor.weight, 0);
-    expect(weights(["run", "pushUps", "reach", "squats", "jump"])).toBeCloseTo(
-      1,
-    );
+    expect(
+      weights(["run", "pushUps", "reach", "squats", "jump", "bmi"]),
+    ).toBeCloseTo(1);
+    expect(weights(["bmi"])).toBeCloseTo(0.1);
     expect(weights(["hourly", "netWorth", "savings"])).toBeCloseTo(1);
   });
 });
@@ -218,13 +266,29 @@ describe("rankedAnswersSchema", () => {
     expect(rankedAnswersSchema.safeParse(rest).success).toBe(false);
   });
 
-  it("à partir de 16 ans, au Canada ou aux États-Unis", () => {
-    expect(rankedAnswersSchema.safeParse({ ...answers, age: 15 }).success).toBe(
+  it("le compte donne une personne de 16 ans et plus, au Canada ou aux États-Unis", () => {
+    expect(rankedPersonSchema.safeParse(person).success).toBe(true);
+    expect(rankedPersonSchema.safeParse({ ...person, age: 15 }).success).toBe(
       false,
     );
     expect(
-      rankedAnswersSchema.safeParse({ ...answers, country: "FR" }).success,
+      rankedPersonSchema.safeParse({ ...person, country: "FR" }).success,
     ).toBe(false);
+    expect(
+      rankedPersonSchema.safeParse({ ...person, sex: "unspecified" }).success,
+    ).toBe(false);
+  });
+
+  it("taille, poids et morphologie sont bornés", () => {
+    for (const change of [
+      { heightCm: 90 },
+      { weightKg: 20 },
+      { bodyType: "round" },
+    ]) {
+      expect(
+        rankedAnswersSchema.safeParse({ ...answers, ...change }).success,
+      ).toBe(false);
+    }
   });
 });
 

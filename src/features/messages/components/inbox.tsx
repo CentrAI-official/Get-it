@@ -5,6 +5,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar } from "@/components/avatar";
+import { GroupBadge } from "@/features/groups/components/group-badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -108,7 +109,9 @@ export function Inbox({ initial, loadedAt }: InboxProps) {
 function InboxRow({ item, now }: { item: InboxItem; now: number }) {
   const t = useTranslations("Messages.inbox");
   const format = useFormatter();
-  const name = item.other.displayName ?? item.other.username ?? "";
+  const author = item.other.displayName ?? item.other.username ?? "";
+  // Discussion de groupe : le nom du groupe, et l'auteur devant l'aperçu
+  const name = item.group ? item.group.name : author;
   const last = item.lastMessage;
   const text = last.deleted
     ? t("deleted")
@@ -118,19 +121,29 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
         ? t("progress")
         : last.kind === "post" && !last.body
           ? t("post")
-          : last.body;
-  const preview = last.mine ? t("you", { text }) : text;
+          : !last.body && last.media
+            ? t(last.media === "video" ? "video" : "photo")
+            : last.body;
+  const preview = last.mine
+    ? t("you", { text })
+    : item.group
+      ? t("from", { name: author, text })
+      : text;
 
   return (
     <Link
       href={`/messages/${item.id}`}
       className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
-      <Avatar
-        name={name}
-        url={item.other.avatarUrl}
-        className="size-12 text-lg"
-      />
+      {item.group ? (
+        <GroupBadge topic={item.group.topic} className="size-12" />
+      ) : (
+        <Avatar
+          name={name}
+          url={item.other.avatarUrl}
+          className="size-12 text-lg"
+        />
+      )}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-2">
@@ -142,7 +155,7 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
             >
               {name}
             </span>
-            {item.other.level === null ? null : (
+            {item.group || item.other.level === null ? null : (
               <span className="shrink-0 font-mono text-xs text-muted-foreground">
                 {t("level", { level: item.other.level })}
               </span>

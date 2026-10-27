@@ -1,8 +1,16 @@
-import type { RankedAnswers, RankedCountry } from "./questionnaire";
+import type {
+  RankedAnswers,
+  RankedCountry,
+  RankedPerson,
+} from "./questionnaire";
 import {
+  BMI_AGE_GROUPS,
+  BMI_NORMS,
+  BMI_REFERENCE,
   CA_INFLATION_2023_TO_2025,
   CA_WEALTH_2023,
   CAD_PER_USD_PPP,
+  HEALTHY_BMI,
   HOURLY_AGE_GROUPS,
   HOURLY_REFERENCE,
   INCOME_TAIL_ALPHA,
@@ -138,16 +146,6 @@ export function ageGroupIndex(age: number, starts: readonly number[]) {
   return index;
 }
 
-/** Normes des hommes, des femmes, ou la moyenne des deux sans précision. */
-function bySex(
-  sexNorm: RankedAnswers["sexNorm"],
-  percentile: (sex: SexNorm) => number,
-) {
-  return sexNorm === "unspecified"
-    ? (percentile("male") + percentile("female")) / 2
-    : percentile(sexNorm);
-}
-
 // --- Physique ----------------------------------------------------------------
 
 /** VO2max (mL/kg/min) d'après la distance d'une course de 12 minutes (Cooper, 1968). */
@@ -155,15 +153,9 @@ export function vo2FromCooper(meters: number) {
   return Math.round(clamp((meters - 504.9) / 44.73, 10, 90) * 10) / 10;
 }
 
-export function vo2Percentile(
-  vo2max: number,
-  sexNorm: RankedAnswers["sexNorm"],
-  age: number,
-) {
+export function vo2Percentile(vo2max: number, sex: SexNorm, age: number) {
   const index = ageGroupIndex(age, VO2_AGE_GROUPS);
-  return bySex(sexNorm, (sex) =>
-    percentileOf(vo2max, VO2MAX_NORMS[sex][index] ?? []),
-  );
+  return percentileOf(vo2max, VO2MAX_NORMS[sex][index] ?? []);
 }
 
 /**
@@ -185,52 +177,53 @@ export function pushUpCurve(bands: readonly number[]): Anchor[] {
   ];
 }
 
-export function pushUpPercentile(
-  count: number,
-  sexNorm: RankedAnswers["sexNorm"],
-  age: number,
-) {
+export function pushUpPercentile(count: number, sex: SexNorm, age: number) {
   const index = ageGroupIndex(age, PUSH_UP_AGE_GROUPS);
-  return bySex(sexNorm, (sex) =>
-    percentileOf(count, pushUpCurve(PUSH_UP_BANDS[sex][index] ?? [])),
-  );
+  return percentileOf(count, pushUpCurve(PUSH_UP_BANDS[sex][index] ?? []));
 }
 
 /** Flexion assise : centimètres au-delà des orteils (ou qui manquent), sur la règle du YMCA. */
 export function reachPercentile(
   side: RankedAnswers["reachSide"],
   cm: number,
-  sexNorm: RankedAnswers["sexNorm"],
+  sex: SexNorm,
   age: number,
 ) {
   const inches = REACH_TOES_INCHES + ((side === "beyond" ? 1 : -1) * cm) / 2.54;
   const index = ageGroupIndex(age, REACH_AGE_GROUPS);
-  return bySex(sexNorm, (sex) =>
-    percentileOf(inches, REACH_NORMS[sex][index] ?? []),
-  );
+  return percentileOf(inches, REACH_NORMS[sex][index] ?? []);
 }
 
-export function squatPercentile(
-  count: number,
-  sexNorm: RankedAnswers["sexNorm"],
-  age: number,
-) {
+export function squatPercentile(count: number, sex: SexNorm, age: number) {
   const index = ageGroupIndex(age, SQUAT_AGE_GROUPS);
-  return bySex(sexNorm, (sex) =>
-    percentileOf(count, SQUAT_NORMS[sex][index] ?? []),
-  );
+  return percentileOf(count, SQUAT_NORMS[sex][index] ?? []);
 }
 
-export function jumpPercentile(
-  cm: number,
-  sexNorm: RankedAnswers["sexNorm"],
-  age: number,
-) {
+export function jumpPercentile(cm: number, sex: SexNorm, age: number) {
   const index = ageGroupIndex(age, JUMP_AGE_GROUPS);
-  return bySex(sexNorm, (sex) => {
-    const mean = JUMP_NORMS[sex][index] ?? 0;
-    return normalPercentile(cm, mean, mean * JUMP_SPREAD);
-  });
+  const mean = JUMP_NORMS[sex][index] ?? 0;
+  return normalPercentile(cm, mean, mean * JUMP_SPREAD);
+}
+
+/** Indice de masse corporelle (kg/m²), au dixième. */
+export function bmiOf(heightCm: number, weightKg: number) {
+  const meters = heightCm / 100;
+  return Math.round((weightKg / (meters * meters)) * 10) / 10;
+}
+
+/**
+ * IMC → la part des gens de son âge et de son sexe dont l'IMC est plus loin de
+ * la plage santé (18,5 à 24,9) que le sien. Dans la plage, tout le monde est à
+ * égalité : on y dépasse la moitié des autres personnes de la plage.
+ */
+export function bmiPercentile(bmi: number, sex: SexNorm, age: number) {
+  const curve = BMI_NORMS[sex][ageGroupIndex(age, BMI_AGE_GROUPS)] ?? [];
+  const below = (value: number) => percentileOf(value, curve) / 100;
+  const [low, high] = HEALTHY_BMI;
+  const distance = Math.max(low - bmi, bmi - high, 0);
+  const farther = below(low - distance) + (1 - below(high + distance));
+  const tied = distance === 0 ? (below(high) - below(low)) / 2 : 0;
+  return clamp((farther + tied) * 100, 0.1, 99.9);
 }
 
 // --- Financier ---------------------------------------------------------------
@@ -311,6 +304,7 @@ export function savingsPercentile(netIncome: number, monthlyExpenses: number) {
 // --- Niveaux -----------------------------------------------------------------
 
 export const RANKED_FACTORS = [
+  "bmi",
   "run",
   "pushUps",
   "reach",
@@ -343,6 +337,8 @@ export type RankedResult = {
   total: { level: number; percentile: number };
   /** VO2max estimé d'après la course de 12 minutes. */
   vo2max: number;
+  /** Indice de masse corporelle d'après la taille et le poids. */
+  bmi: number;
 };
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
@@ -374,23 +370,30 @@ function pillar(factors: FactorInput[]): RankedPillarResult {
   };
 }
 
-/** Niveaux physique et financier, et niveau total, à partir des réponses validées. */
-export function evaluateRanked(answers: RankedAnswers): RankedResult {
-  const { age, sexNorm, country } = answers;
+/**
+ * Niveaux physique et financier, et niveau total, à partir des réponses
+ * validées et de l'âge, du sexe et du pays du compte.
+ */
+export function evaluateRanked(
+  answers: RankedAnswers,
+  person: RankedPerson,
+): RankedResult {
+  const { age, sex, country } = person;
   const vo2max = vo2FromCooper(answers.runMeters);
+  const bmi = bmiOf(answers.heightCm, answers.weightKg);
   const pillars: Record<RankedPillar, RankedPillarResult> = {
     // Les tests aux normes publiées comptent plus que les estimations
     physical: pillar([
       {
         key: "run",
-        percentile: vo2Percentile(vo2max, sexNorm, age),
-        weight: 0.3,
+        percentile: vo2Percentile(vo2max, sex, age),
+        weight: 0.25,
         byAge: true,
         reference: VO2MAX_REFERENCE,
       },
       {
         key: "pushUps",
-        percentile: pushUpPercentile(answers.pushUps, sexNorm, age),
+        percentile: pushUpPercentile(answers.pushUps, sex, age),
         weight: 0.2,
         byAge: true,
         reference: PUSH_UP_REFERENCE,
@@ -400,26 +403,33 @@ export function evaluateRanked(answers: RankedAnswers): RankedResult {
         percentile: reachPercentile(
           answers.reachSide,
           answers.reachCm,
-          sexNorm,
+          sex,
           age,
         ),
-        weight: 0.2,
+        weight: 0.15,
         byAge: true,
         reference: REACH_REFERENCE,
       },
       {
         key: "squats",
-        percentile: squatPercentile(answers.squats, sexNorm, age),
+        percentile: squatPercentile(answers.squats, sex, age),
         weight: 0.15,
         byAge: true,
         reference: SQUAT_REFERENCE,
       },
       {
         key: "jump",
-        percentile: jumpPercentile(answers.jumpCm, sexNorm, age),
+        percentile: jumpPercentile(answers.jumpCm, sex, age),
         weight: 0.15,
         byAge: true,
         reference: JUMP_REFERENCE,
+      },
+      {
+        key: "bmi",
+        percentile: bmiPercentile(bmi, sex, age),
+        weight: 0.1,
+        byAge: true,
+        reference: BMI_REFERENCE,
       },
     ]),
     financial: pillar([
@@ -465,5 +475,6 @@ export function evaluateRanked(answers: RankedAnswers): RankedResult {
     pillars,
     total: { level: levelFromPercentile(percentile), percentile },
     vo2max,
+    bmi,
   };
 }

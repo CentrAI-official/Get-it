@@ -4,8 +4,11 @@ import { hasLocale } from "next-intl";
 import { APP_HOME_PATH } from "@/features/auth/access";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { toCalendarDay } from "@/lib/dates";
+import { profileDetailsSchema } from "@/features/profile/details";
 import { requireUser } from "@/server/auth/session";
 import { completeOnboarding } from "@/server/onboarding/service";
+import { getUserTimeZone } from "@/server/profile/service";
 import { onboardingSchema } from "./schemas";
 
 export type OnboardingActionResult = { error: "invalid" | "unexpected" };
@@ -20,7 +23,13 @@ export async function completeOnboardingAction(
   if (!parsed.success) return { error: "invalid" };
 
   try {
-    await completeOnboarding(user.id, parsed.data);
+    // 16 ans et plus, le jour même dans le fuseau de la personne
+    const timeZone = await getUserTimeZone(user.id);
+    const details = profileDetailsSchema(
+      toCalendarDay(new Date(), timeZone),
+    ).safeParse(answers);
+    if (!details.success) return { error: "invalid" };
+    await completeOnboarding(user.id, parsed.data, details.data);
   } catch (error) {
     console.error("Enregistrement de l'onboarding impossible", error);
     return { error: "unexpected" };

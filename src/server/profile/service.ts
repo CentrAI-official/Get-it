@@ -11,6 +11,7 @@ import { routing } from "@/i18n/routing";
 import { isValidTimeZone } from "@/lib/time-zone";
 import { requireUser } from "@/server/auth/session";
 import { db } from "@/server/db";
+import { detailsComplete, detailsSelect, toDetailsDraft } from "./details";
 
 type ProfilePreferences = {
   /** Langue de l'interface au moment de l'inscription. */
@@ -88,6 +89,8 @@ export type CurrentProfile = {
   /** Courte présentation et chemin de la photo (lien : `avatarUrl`). */
   bio: string | null;
   avatarPath: string | null;
+  /** Date de naissance, sexe, pays et région remplis (sinon : écran unique). */
+  detailsComplete: boolean;
 };
 
 /**
@@ -109,6 +112,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
       role: true,
       bio: true,
       avatarPath: true,
+      ...detailsSelect,
       settings: { select: { timeZone: true, dailyMinutes: true } },
     },
   });
@@ -131,6 +135,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
     role: profile.role,
     bio: profile.bio,
     avatarPath: profile.avatarPath,
+    detailsComplete: detailsComplete(toDetailsDraft(profile)),
   };
 });
 

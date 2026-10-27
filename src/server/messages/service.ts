@@ -17,6 +17,18 @@ import {
 import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { sharedPostsFor, type SharedPost } from "@/server/community/feed";
+import type { PostMediaInput, UploadRequest } from "@/features/community/media";
+import {
+  requestUploads,
+  verifyMedia,
+  type FeedMedia,
+  type UploadSlot,
+} from "@/server/community/media";
+import {
+  messageMediaError,
+  messageMediaFor,
+  removeMessageMedia,
+} from "./media";
 import {
   freezeProgress,
   reachablePost,
@@ -24,6 +36,7 @@ import {
 } from "@/server/community/posts";
 import { db } from "@/server/db";
 import type { ContactState } from "@/features/contacts/rules";
+import { topicOf, type GroupTopic } from "@/features/groups/rules";
 import {
   areContacts,
   contactIds,
@@ -71,6 +84,8 @@ export type ChatMessage = {
    * la voir, ou « unavailable » (supprimée, retirée, auteur bloqué).
    */
   post: SharedPost | "unavailable" | null;
+  /** Photos ou vidéo jointes (liens de lecture temporaires). */
+  media: FeedMedia[];
   /** Le pacte d'un message « pact », dans son état actuel. */
   pact: PactCard | null;
   deleted: boolean;
@@ -81,7 +96,10 @@ export type ChatMessage = {
 
 export type InboxItem = {
   id: string;
+  /** Conversation à deux : l'autre personne ; discussion de groupe : l'auteur du dernier message. */
   other: MessagePerson;
+  /** Discussion d'un groupe privé. */
+  group: { id: string; name: string; topic: GroupTopic } | null;
   /** « request » : demande reçue, pas encore acceptée. */
   status: MemberStatus;
   unread: boolean;
@@ -90,6 +108,8 @@ export type InboxItem = {
     kind: "text" | "progress" | "pact" | "post";
     body: string;
     deleted: boolean;
+    /** Première photo ou vidéo jointe, pour l'aperçu sans texte. */
+    media: "image" | "video" | null;
   };
   lastMessageAt: string;
 };
@@ -124,6 +144,7 @@ const messageSelect = {
   progress: true,
   pactId: true,
   postId: true,
+  mediaCount: true,
   deletedAt: true,
   createdAt: true,
   reactions: { select: { userId: true, kind: true } },
@@ -136,6 +157,7 @@ function toChatMessage(
   row: MessageRow,
   pacts: Map<string, PactCard> = new Map(),
   posts: Map<string, SharedPost> = new Map(),
+  media: Map<string, FeedMedia[]> = new Map(),
 ): ChatMessage {
   const progress = row.progress
     ? progressDataSchema.safeParse(row.progress)
@@ -152,6 +174,7 @@ function toChatMessage(
       row.kind === "post" && !row.deletedAt
         ? ((row.postId ? posts.get(row.postId) : undefined) ?? "unavailable")
         : null,
+    media: row.deletedAt ? [] : (media.get(row.id) ?? []),
     deleted: row.deletedAt !== null,
     createdAt: row.createdAt.toISOString(),
     reactions: row.reactions.map((reaction) => ({
@@ -184,7 +207,12 @@ export async function isBlockedPair(a: string, b: string) {
 /** La conversation, vue par un participant ; null s'il n'y est pas ou s'il y a un blocage. */
 export async function loadMembership(viewerId: string, conversationId: string) {
   const conversation = await db.conversation.findFirst({
-    where: { id: conversationId, members: { some: { userId: viewerId } } },
+    // Conversation à deux seulement (les discussions de groupe : getGroupChat)
+    where: {
+      id: conversationId,
+      groupId: null,
+      members: { some: { userId: viewerId } },
+    },
     select: {
       id: true,
       members: {
@@ -331,7 +359,11 @@ async function inboxRows(viewerId: string) {
       userId: viewerId,
       conversation: {
         messages: { some: {} },
-        members: { none: { userId: { in: blocked } } },
+        // À deux : jamais avec une personne bloquée ; un groupe reste visible
+        OR: [
+          { groupId: { not: null } },
+          { members: { none: { userId: { in: blocked } } } },
+        ],
       },
     },
     orderBy: { conversation: { lastMessageAt: "desc" } },
@@ -344,8 +376,10 @@ async function inboxRows(viewerId: string) {
         select: {
           id: true,
           lastMessageAt: true,
+          group: { select: { id: true, name: true, pillar: true } },
           members: {
             where: { userId: { not: viewerId } },
+            take: 1,
             select: { userId: true },
           },
           messages: {
@@ -357,6 +391,11 @@ async function inboxRows(viewerId: string) {
               body: true,
               deletedAt: true,
               createdAt: true,
+              media: {
+                take: 1,
+                orderBy: { position: "asc" },
+                select: { kind: true },
+              },
             },
           },
         },
@@ -366,7 +405,12 @@ async function inboxRows(viewerId: string) {
 
   return rows.flatMap((row) => {
     const last = row.conversation.messages[0];
-    const otherId = row.conversation.members[0]?.userId;
+    // Groupe : la personne du dernier message (aperçu « Bruno : … »)
+    const otherId = row.conversation.group
+      ? last?.senderId === viewerId
+        ? (row.conversation.members[0]?.userId ?? viewerId)
+        : last?.senderId
+      : row.conversation.members[0]?.userId;
     if (!last || !otherId) return [];
     if (row.clearedAt && last.createdAt <= row.clearedAt) return [];
     const unread =
@@ -385,9 +429,13 @@ export async function listInbox(
   const items = rows.flatMap(({ row, last, otherId, unread }) => {
     const other = byId.get(otherId);
     if (!other) return [];
+    const group = row.conversation.group;
     return {
       id: row.conversation.id,
       other,
+      group: group
+        ? { id: group.id, name: group.name, topic: topicOf(group.pillar) }
+        : null,
       status: row.status,
       unread,
       lastMessage: {
@@ -395,6 +443,7 @@ export async function listInbox(
         kind: last.kind,
         body: last.deletedAt ? "" : last.body,
         deleted: last.deletedAt !== null,
+        media: last.deletedAt ? null : (last.media[0]?.kind ?? null),
       },
       lastMessageAt: row.conversation.lastMessageAt.toISOString(),
     };
@@ -422,6 +471,8 @@ export async function listShareTargets(
   const order: { userId: string; conversationId: string | null }[] = [];
   const seen = new Set<string>();
   for (const { row, otherId } of rows) {
+    // Les discussions de groupe ne sont pas des destinataires d'une personne
+    if (row.conversation.group) continue;
     if (row.status === "request" || seen.has(otherId)) continue;
     seen.add(otherId);
     order.push({ userId: otherId, conversationId: row.conversation.id });
@@ -473,7 +524,7 @@ async function messagesPage(
     select: messageSelect,
   });
   const page = rows.slice(0, MESSAGE_PAGE_SIZE);
-  const [pacts, posts] = await Promise.all([
+  const [pacts, posts, media] = await Promise.all([
     pactCardsFor(viewerId, [
       ...new Set(page.flatMap((row) => (row.pactId ? [row.pactId] : []))),
     ]),
@@ -481,12 +532,17 @@ async function messagesPage(
       viewerId,
       page.flatMap((row) => (row.postId ? [row.postId] : [])),
     ),
+    messageMediaFor(
+      page
+        .filter((row) => row.mediaCount > 0 && !row.deletedAt)
+        .map((row) => row.id),
+    ),
   ]);
   return {
     // Du plus ancien au plus récent, pour l'affichage
     messages: page
       .reverse()
-      .map((row) => toChatMessage(viewerId, row, pacts, posts)),
+      .map((row) => toChatMessage(viewerId, row, pacts, posts, media)),
     hasMore: rows.length > MESSAGE_PAGE_SIZE,
   };
 }
@@ -539,17 +595,137 @@ export async function listOlderMessages(
   before: MessageCursor,
 ) {
   const membership = await loadMembership(viewerId, conversationId);
-  if (!membership) return null;
-  return messagesPage(
+  if (membership) {
+    return messagesPage(
+      viewerId,
+      conversationId,
+      membership.viewer.clearedAt,
+      before,
+    );
+  }
+  const member = await groupChatMember(viewerId, conversationId);
+  if (!member) return null;
+  const page = await messagesPage(
     viewerId,
     conversationId,
-    membership.viewer.clearedAt,
+    member.clearedAt,
     before,
   );
+  const blocked = await getBlockedIds(viewerId);
+  return {
+    ...page,
+    messages: page.messages.filter((m) => !blocked.includes(m.senderId)),
+  };
+}
+
+/** Membre de la discussion d'un groupe (actif dans le groupe), ou null. */
+async function groupChatMember(viewerId: string, conversationId: string) {
+  const member = await db.conversationMember.findFirst({
+    where: {
+      conversationId,
+      userId: viewerId,
+      conversation: { groupId: { not: null } },
+    },
+    select: {
+      clearedAt: true,
+      conversation: {
+        select: {
+          group: {
+            select: {
+              id: true,
+              name: true,
+              pillar: true,
+              members: {
+                where: { userId: viewerId, status: "active" },
+                select: { userId: true },
+              },
+              _count: {
+                select: { members: { where: { status: "active" } } },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  const group = member?.conversation.group;
+  if (!member || !group || group.members.length === 0) return null;
+  return { clearedAt: member.clearedAt, group };
+}
+
+export type GroupChatState = {
+  id: string;
+  group: {
+    id: string;
+    name: string;
+    topic: GroupTopic;
+    memberCount: number;
+  };
+  /** Auteurs des messages affichés (photo, nom). */
+  people: Record<string, MessagePerson>;
+  /** Peut écrire dans le Centre (membre, pas suspendu). */
+  canWrite: boolean;
+  messages: ChatMessage[];
+  hasMore: boolean;
+  loadedAt: number;
+};
+
+/**
+ * Discussion d'un groupe privé, pour un de ses membres ; null sinon. Les
+ * messages des personnes bloquées (dans un sens ou dans l'autre) sont cachés.
+ */
+export async function getGroupChat(
+  viewerId: string,
+  conversationId: string,
+): Promise<GroupChatState | null> {
+  const member = await groupChatMember(viewerId, conversationId);
+  if (!member) return null;
+  const [page, allowed, blocked] = await Promise.all([
+    messagesPage(viewerId, conversationId, member.clearedAt),
+    canWrite(viewerId),
+    getBlockedIds(viewerId),
+  ]);
+  const messages = page.messages.filter((m) => !blocked.includes(m.senderId));
+  const byId = await people([...new Set(messages.map((m) => m.senderId))]);
+  return {
+    id: conversationId,
+    group: {
+      id: member.group.id,
+      name: member.group.name,
+      topic: topicOf(member.group.pillar),
+      memberCount: member.group._count.members,
+    },
+    people: Object.fromEntries(byId),
+    canWrite: allowed.ok,
+    messages,
+    hasMore: page.hasMore,
+    loadedAt: Date.now(),
+  };
+}
+
+/**
+ * Peut écrire dans cette conversation ? Discussion de groupe : en être membre ;
+ * à deux : les règles des demandes (`sendPermission`).
+ */
+async function sendAccess(
+  viewerId: string,
+  conversationId: string,
+): Promise<"ok" | MessageError> {
+  if (await groupChatMember(viewerId, conversationId)) return "ok";
+  const membership = await loadMembership(viewerId, conversationId);
+  if (!membership) return "notFound";
+  const viewerMessages = await db.message.count({
+    where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
+  });
+  return sendPermission({
+    viewerStatus: membership.viewer.status,
+    otherStatus: membership.other.status,
+    viewerMessages,
+  });
 }
 
 export type MessageInput =
-  | { kind: "text"; body: string }
+  | { kind: "text"; body: string; media?: PostMediaInput }
   | { kind: "progress"; source: ProgressSource; body: string }
   | { kind: "post"; postId: string; body: string };
 
@@ -561,23 +737,13 @@ export async function sendMessage(
 ): Promise<{ ok: true; message: ChatMessage } | Fail> {
   const allowed = await canWrite(viewerId);
   if (!allowed.ok) return allowed;
-  const membership = await loadMembership(viewerId, conversationId);
-  if (!membership) return { ok: false, error: "notFound" };
-
-  const [viewerMessages, recent] = await Promise.all([
-    db.message.count({
-      where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
-    }),
+  const [access, recent] = await Promise.all([
+    sendAccess(viewerId, conversationId),
     db.message.count({
       where: { senderId: viewerId, createdAt: { gte: since24h() } },
     }),
   ]);
-  const permission = sendPermission({
-    viewerStatus: membership.viewer.status,
-    otherStatus: membership.other.status,
-    viewerMessages,
-  });
-  if (permission !== "ok") return { ok: false, error: permission };
+  if (access !== "ok") return { ok: false, error: access };
   if (recent >= DAILY_MESSAGE_LIMIT) {
     return { ok: false, error: "messageLimit" };
   }
@@ -587,6 +753,15 @@ export async function sendMessage(
     progress = await freezeProgress(viewerId, input.source);
     if (!progress) return { ok: false, error: "notFound" };
   }
+  // Photos ou vidéo : fichiers vérifiés dans le stockage avant d'écrire quoi que ce soit
+  const verified = await verifyMedia(
+    viewerId,
+    input.kind === "text" ? (input.media ?? []) : [],
+  );
+  if (!verified.ok) {
+    return { ok: false, error: messageMediaError(verified.error) };
+  }
+  const { rows: mediaRows, uploadIds } = verified.media;
   // Publication envoyée : visible pour l'expéditeur, sans blocage
   let postId: string | null = null;
   if (input.kind === "post") {
@@ -596,32 +771,51 @@ export async function sendMessage(
   }
 
   const now = new Date();
-  const [message] = await db.$transaction([
-    db.message.create({
-      data: {
-        conversationId,
-        senderId: viewerId,
-        kind: input.kind,
-        body: input.body,
-        progress: progress ?? Prisma.DbNull,
-        postId,
-        createdAt: now,
-      },
-      select: messageSelect,
-    }),
-    db.conversation.update({
-      where: { id: conversationId },
-      data: { lastMessageAt: now },
-    }),
-    db.conversationMember.update({
-      where: { conversationId_userId: { conversationId, userId: viewerId } },
-      data: { lastReadAt: now },
-    }),
+  const message = await db.$transaction(
+    async (tx) => {
+      const created = await tx.message.create({
+        data: {
+          conversationId,
+          senderId: viewerId,
+          kind: input.kind,
+          body: input.body,
+          progress: progress ?? Prisma.DbNull,
+          postId,
+          mediaCount: mediaRows.length,
+          createdAt: now,
+        },
+        select: messageSelect,
+      });
+      if (mediaRows.length > 0) {
+        await tx.messageMedia.createMany({
+          data: mediaRows.map((row) => ({ ...row, messageId: created.id })),
+        });
+        const { count } = await tx.mediaUpload.updateMany({
+          where: { id: { in: uploadIds }, userId: viewerId, usedAt: null },
+          data: { usedAt: now },
+        });
+        // Un même envoi ne sert qu'une fois
+        if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
+      }
+      await tx.conversation.update({
+        where: { id: conversationId },
+        data: { lastMessageAt: now },
+      });
+      await tx.conversationMember.update({
+        where: { conversationId_userId: { conversationId, userId: viewerId } },
+        data: { lastReadAt: now },
+      });
+      return created;
+    },
+    { maxWait: 10_000, timeout: 20_000 },
+  );
+  const [posts, media] = await Promise.all([
+    sharedPostsFor(viewerId, postId ? [postId] : []),
+    messageMediaFor(mediaRows.length > 0 ? [message.id] : []),
   ]);
-  const posts = await sharedPostsFor(viewerId, postId ? [postId] : []);
   return {
     ok: true,
-    message: toChatMessage(viewerId, message, undefined, posts),
+    message: toChatMessage(viewerId, message, undefined, posts, media),
   };
 }
 
@@ -654,6 +848,25 @@ export async function respondToRequest(
   return true;
 }
 
+/**
+ * Autorisations d'envoi des photos ou de la vidéo d'un message : seulement
+ * dans une conversation où la personne peut écrire.
+ */
+export async function requestMessageUploads(
+  viewerId: string,
+  conversationId: string,
+  files: UploadRequest,
+): Promise<{ ok: true; slots: UploadSlot[] } | Fail> {
+  const allowed = await canWrite(viewerId);
+  if (!allowed.ok) return allowed;
+  const access = await sendAccess(viewerId, conversationId);
+  if (access !== "ok") return { ok: false, error: access };
+  const result = await requestUploads(viewerId, files);
+  return result.ok
+    ? result
+    : { ok: false, error: messageMediaError(result.error) };
+}
+
 /** Supprime son propre message pour tout le monde (le contenu est effacé). */
 export async function deleteMessage(viewerId: string, messageId: string) {
   const { count } = await db.message.updateMany({
@@ -668,9 +881,13 @@ export async function deleteMessage(viewerId: string, messageId: string) {
       body: "",
       progress: Prisma.DbNull,
       postId: null,
+      mediaCount: 0,
     },
   });
-  if (count > 0) await db.messageReaction.deleteMany({ where: { messageId } });
+  if (count > 0) {
+    await db.messageReaction.deleteMany({ where: { messageId } });
+    await removeMessageMedia(messageId);
+  }
   return count > 0;
 }
 

@@ -49,6 +49,8 @@ export type FeedPost = {
    * voir, ou « unavailable » (masquée, retirée, ou auteur bloqué).
    */
   shared: SharedPost | "unavailable" | null;
+  /** Forum d'un groupe public d'où vient la publication. */
+  group: { id: string; name: string } | null;
 };
 
 /** Publication d'origine d'un partage, ou envoyée dans une conversation. */
@@ -99,6 +101,7 @@ export function postSelect(viewerId: string, blocked: readonly string[]) {
     sharedPostId: true,
     createdAt: true,
     userId: true,
+    group: { select: { id: true, name: true } },
     profile: {
       select: { displayName: true, username: true, avatarPath: true },
     },
@@ -206,6 +209,7 @@ export async function toFeedPosts(
       shared: post.sharedPostId
         ? (shared.get(post.sharedPostId) ?? "unavailable")
         : null,
+      group: post.group,
     };
   });
 }
@@ -231,12 +235,15 @@ export async function getFeedPost(
 
 /**
  * Une page du fil, de la plus récente à la plus ancienne ; avec `authorId`,
- * seulement les publications de cette personne (son profil).
+ * seulement les publications de cette personne (son profil) ; avec
+ * `groupId`, le forum de ce groupe public. Les publications des groupes
+ * restent hors du fil du Centre et des profils.
  */
 export async function listFeed(
   viewerId: string,
   cursor?: FeedCursor,
   authorId?: string,
+  groupId?: string,
 ): Promise<{
   posts: FeedPost[];
   nextCursor: FeedCursor | null;
@@ -249,6 +256,9 @@ export async function listFeed(
       visibleTo(viewerId),
       blocked.length > 0 ? { userId: { notIn: blocked } } : {},
       authorId ? { userId: authorId } : {},
+      groupId
+        ? { groupId, group: { visibility: "public" as const } }
+        : { groupId: null },
       cursor
         ? {
             OR: [

@@ -13,7 +13,6 @@ const valid = {
     { title: "Courir 5 km", pillar: "physical" },
     { title: "Économiser 1 000 $", pillar: "financial" },
   ],
-  assessments: { physical: 2, financial: 3 },
   dailyMinutes: 30,
 };
 
@@ -33,25 +32,6 @@ describe("onboardingSchema", () => {
     const result = onboardingSchema.safeParse({
       ...valid,
       goals: [{ title: "Méditer", pillar: "mental" }],
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("exige une évaluation pour chaque pilier choisi, et seulement ceux-là", () => {
-    for (const assessments of [
-      { physical: 2 },
-      { ...valid.assessments, mental: 4 },
-    ]) {
-      expect(
-        onboardingSchema.safeParse({ ...valid, assessments }).success,
-      ).toBe(false);
-    }
-  });
-
-  it("refuse une note hors de 1 à 5", () => {
-    const result = onboardingSchema.safeParse({
-      ...valid,
-      assessments: { physical: 6, financial: 3 },
     });
     expect(result.success).toBe(false);
   });

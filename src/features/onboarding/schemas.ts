@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { ACCOUNT_TYPES, type AccountType } from "@/features/marketplace/rules";
+import type { ProfileDetailsDraft } from "@/features/profile/details";
 import {
   ACTIVE_GOALS_PER_PILLAR,
   GOAL_TITLE_MAX_LENGTH,
@@ -28,15 +29,6 @@ export const DAILY_MINUTES_OPTIONS = [
   { minutes: 120, key: "min120" },
 ] as const;
 export type DailyMinutes = (typeof DAILY_MINUTES_OPTIONS)[number]["minutes"];
-
-/** Autoévaluation de 1 à 5 ; la clé de traduction décrit chaque niveau. */
-export const ASSESSMENT_LEVELS = [
-  { score: 1, key: "start" },
-  { score: 2, key: "beginner" },
-  { score: 3, key: "progressing" },
-  { score: 4, key: "solid" },
-  { score: 5, key: "excellent" },
-] as const;
 
 export const DISPLAY_NAME_MAX_LENGTH = 50;
 /** Peu d'objectifs à la fois : mieux vaut avancer sur l'essentiel. */
@@ -90,48 +82,39 @@ export const goalsStepSchema = z.object({
     ),
 });
 
-export const situationStepSchema = z.object({
-  assessments: z.partialRecord(pillar, z.int().min(1).max(5)),
-});
-
 export const timeStepSchema = z.object({
   dailyMinutes: z.literal(
     DAILY_MINUTES_OPTIONS.map((option) => option.minutes),
   ),
 });
 
-/** Réponses complètes, revalidées par le serveur avant tout enregistrement. */
+/**
+ * Réponses complètes, revalidées par le serveur avant tout enregistrement. Les
+ * renseignements du compte (date de naissance, sexe, région) se valident à
+ * part, le jour même : `profileDetailsSchema`.
+ */
 export const onboardingSchema = z
   .object({
     ...accountStepSchema.shape,
     ...aboutStepSchema.shape,
     ...pillarsStepSchema.shape,
     ...goalsStepSchema.shape,
-    ...situationStepSchema.shape,
     ...timeStepSchema.shape,
   })
   .refine(
     (data) => data.goals.every((goal) => data.pillars.includes(goal.pillar)),
     { path: ["goals"] },
-  )
-  .refine(
-    (data) => {
-      const assessed = Object.keys(data.assessments).sort();
-      return assessed.join() === [...data.pillars].sort().join();
-    },
-    { path: ["assessments"] },
   );
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
 
 /** Réponses en cours dans l'assistant (étapes pas encore toutes remplies). */
-export type OnboardingDraft = {
+export type OnboardingDraft = ProfileDetailsDraft & {
   accountType: AccountType | null;
   displayName: string;
   occupation: Occupation | null;
   pillars: Pillar[];
   goals: { title: string; pillar: Pillar }[];
-  assessments: Partial<Record<Pillar, number>>;
   dailyMinutes: DailyMinutes | null;
 };
 

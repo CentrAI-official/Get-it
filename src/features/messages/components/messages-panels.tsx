@@ -9,9 +9,14 @@ import { recordIdSchema } from "@/features/goals/schemas";
 import { Link } from "@/i18n/navigation";
 import { getCommunityMember } from "@/server/community/members";
 import { countContactRequests, listContacts } from "@/server/contacts/service";
-import { getConversation, listInbox } from "@/server/messages/service";
+import {
+  getConversation,
+  getGroupChat,
+  listInbox,
+} from "@/server/messages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ConversationView } from "./conversation-view";
+import { GroupChatView } from "./group-chat-view";
 import { Inbox } from "./inbox";
 import { NewMessage } from "./new-message";
 
@@ -88,10 +93,15 @@ export async function ConversationLoader({ id }: { id: string }) {
   const conversationId = recordIdSchema.safeParse(id);
   if (!conversationId.success) notFound();
   const conversation = await getConversation(profile.id, conversationId.data);
-  if (!conversation) notFound();
-  return (
-    <ConversationView initial={conversation} timeZone={profile.timeZone} />
-  );
+  if (conversation) {
+    return (
+      <ConversationView initial={conversation} timeZone={profile.timeZone} />
+    );
+  }
+  // Discussion d'un groupe privé
+  const chat = await getGroupChat(profile.id, conversationId.data);
+  if (!chat) notFound();
+  return <GroupChatView initial={chat} timeZone={profile.timeZone} />;
 }
 
 export function InboxSkeleton() {

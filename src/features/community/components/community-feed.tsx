@@ -24,6 +24,10 @@ type CommunityFeedProps = {
   saved?: boolean;
   /** Une seule publication (lien partagé) : pas de « Tu as tout vu ». */
   single?: boolean;
+  /** Forum de ce groupe public. */
+  groupId?: string;
+  /** Créateur ou admin du groupe : peut retirer les publications du forum. */
+  groupManager?: boolean;
 };
 
 /** Fil chronologique du Centre, page par page (« Voir plus »). */
@@ -36,6 +40,8 @@ export function CommunityFeed({
   empty,
   saved = false,
   single = false,
+  groupId,
+  groupManager = false,
 }: CommunityFeedProps) {
   const t = useTranslations("Community.feed");
   const [posts, setPosts] = useState(initialPosts);
@@ -52,7 +58,7 @@ export function CommunityFeed({
     startLoading(async () => {
       const page = saved
         ? await loadMoreSavedAction(cursor)
-        : await loadMorePostsAction(cursor, authorId);
+        : await loadMorePostsAction(cursor, authorId, groupId);
       setPosts((current) => [
         ...current,
         ...page.posts.filter((post) => !current.some((p) => p.id === post.id)),
@@ -97,6 +103,8 @@ export function CommunityFeed({
             onRemoved={removed}
             onReport={setReportTarget}
             onNotice={setNotice}
+            inGroup={Boolean(groupId)}
+            groupManager={groupManager}
           />
         ))
       )}

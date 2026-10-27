@@ -8,6 +8,7 @@ import {
 } from "@/features/community/rules";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { messageMediaFor, removeMessageMedia } from "@/server/messages/media";
 import { mediaForPosts, type FeedMedia } from "./media";
 import { getCommunityMember, isModerator } from "./members";
 
@@ -266,15 +267,27 @@ export async function listOpenReports(moderatorId: string) {
     items.set(key, item);
   }
   const list = [...items.values()];
-  const media = await mediaForPosts(
-    list
-      .filter((item) => item.target.type === "post")
-      .map((item) => item.target.id),
-  );
+  const [media, messageMedia] = await Promise.all([
+    mediaForPosts(
+      list
+        .filter((item) => item.target.type === "post")
+        .map((item) => item.target.id),
+    ),
+    // Message privé signalé : ses photos aussi, et rien d'autre
+    messageMediaFor(
+      list
+        .filter(
+          (item) => item.target.type === "message" && item.status !== "removed",
+        )
+        .map((item) => item.target.id),
+    ),
+  ]);
   return list.map((item) =>
     item.target.type === "post"
       ? { ...item, media: media.get(item.target.id) ?? [] }
-      : item,
+      : item.target.type === "message"
+        ? { ...item, media: messageMedia.get(item.target.id) ?? [] }
+        : item,
   );
 }
 
@@ -322,10 +335,16 @@ export async function moderate(
     await db.$transaction([
       db.message.updateMany({
         where: { id: target.id },
-        data: { deletedAt: new Date(), body: "", progress: Prisma.DbNull },
+        data: {
+          deletedAt: new Date(),
+          body: "",
+          progress: Prisma.DbNull,
+          mediaCount: 0,
+        },
       }),
       close("resolved"),
     ]);
+    await removeMessageMedia(target.id);
     return true;
   }
   if (decision === "remove" || decision === "restore") {

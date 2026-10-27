@@ -42,7 +42,21 @@ async function underPostLimit(userId: string) {
   return count < DAILY_POST_LIMIT;
 }
 
-/** Publication de texte ou question. */
+/** Membre actif d'un groupe public : peut publier, commenter et réagir dans son forum. */
+async function inGroupForum(groupId: string, userId: string) {
+  const member = await db.groupMember.findFirst({
+    where: {
+      groupId,
+      userId,
+      status: "active",
+      group: { visibility: "public" },
+    },
+    select: { userId: true },
+  });
+  return member !== null;
+}
+
+/** Publication de texte ou question (dans le fil, ou le forum d'un groupe public). */
 export async function createPost(
   userId: string,
   input: {
@@ -50,10 +64,14 @@ export async function createPost(
     body: string;
     pillar?: Pillar;
     media: PostMediaInput;
+    groupId?: string;
   },
 ): Promise<Result> {
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
+  if (input.groupId && !(await inGroupForum(input.groupId, userId))) {
+    return { ok: false, error: "groupJoinRequired" };
+  }
   if (!input.body && input.media.length === 0) {
     return { ok: false, error: "bodyRequired" };
   }
@@ -71,6 +89,7 @@ export async function createPost(
           body: input.body,
           pillar: input.pillar ?? null,
           mediaCount: rows.length,
+          groupId: input.groupId ?? null,
         },
         select: { id: true },
       });
@@ -297,7 +316,7 @@ export async function reachablePost(userId: string, postId: string) {
       status: "visible",
       ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
     },
-    select: { id: true, userId: true, sharedPostId: true },
+    select: { id: true, userId: true, sharedPostId: true, groupId: true },
   });
 }
 
@@ -348,8 +367,11 @@ export async function addComment(
 ): Promise<Result> {
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
-  if (!(await reachablePost(userId, postId))) {
-    return { ok: false, error: "notFound" };
+  const post = await reachablePost(userId, postId);
+  if (!post) return { ok: false, error: "notFound" };
+  // Forum d'un groupe : il faut l'avoir rejoint pour y participer
+  if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
+    return { ok: false, error: "groupJoinRequired" };
   }
   const count = await db.postComment.count({
     where: { userId, createdAt: { gte: since24h() } },
@@ -380,6 +402,9 @@ export async function setReaction(
   if (!allowed.ok) return allowed;
   const post = await reachablePost(userId, postId);
   if (!post || post.userId === userId) return { ok: false, error: "notFound" };
+  if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
+    return { ok: false, error: "groupJoinRequired" };
+  }
   await db.postReaction.upsert({
     where: { postId_userId: { postId, userId } },
     update: {},

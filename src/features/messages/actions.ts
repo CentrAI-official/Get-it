@@ -1,6 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import {
+  postMediaSchema,
+  uploadRequestSchema,
+} from "@/features/community/media";
 import { progressShareSchema } from "@/features/community/rules";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
@@ -17,9 +21,11 @@ import {
   countUnread,
   deleteMessage,
   getConversation,
+  getGroupChat,
   listInbox,
   listOlderMessages,
   listShareTargets,
+  requestMessageUploads,
   markRead,
   respondToRequest,
   searchMembers,
@@ -28,14 +34,16 @@ import {
   startConversation,
   type ChatMessage,
   type ConversationState,
+  type GroupChatState,
   type InboxItem,
   type MessagePerson,
   type ShareTarget,
 } from "@/server/messages/service";
+import type { UploadSlot } from "@/server/community/media";
 import {
   firstMessageError,
   memberSearchSchema,
-  messageBodySchema,
+  MESSAGE_MAX_LENGTH,
   progressNoteSchema,
   reactionSchema,
   type MessageError,
@@ -102,6 +110,16 @@ export async function getConversationAction(
 
 const cursorSchema = z.object({ createdAt: z.iso.datetime(), id: z.uuid() });
 
+/** Discussion d'un groupe privé (rafraîchie toutes les 3 secondes). */
+export async function getGroupChatAction(
+  conversationId: unknown,
+): Promise<GroupChatState | null> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  if (!id.success) return null;
+  return getGroupChat(user.id, id.data);
+}
+
 export async function loadOlderMessagesAction(
   conversationId: unknown,
   cursor: unknown,
@@ -114,7 +132,16 @@ export async function loadOlderMessagesAction(
 }
 
 const messageInputSchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("text"), body: messageBodySchema }),
+  // Texte, photos ou vidéo : l'un des deux au moins
+  z
+    .object({
+      kind: z.literal("text"),
+      body: z.string().trim().max(MESSAGE_MAX_LENGTH, { error: "bodyTooLong" }),
+      media: postMediaSchema.optional().default([]),
+    })
+    .refine((data) => data.body.length > 0 || data.media.length > 0, {
+      error: "bodyRequired",
+    }),
   z.object({
     kind: z.literal("progress"),
     source: progressShareSchema.shape.source,
@@ -188,6 +215,24 @@ export async function sendPostAction(
     return { ok: true, conversationId };
   } catch (error) {
     console.error("Envoi de la publication impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** Autorisations d'envoi des photos ou de la vidéo d'un message. */
+export async function requestMessageUploadsAction(
+  conversationId: unknown,
+  files: unknown,
+): Promise<Result<{ slots: UploadSlot[] }>> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(conversationId);
+  const parsed = uploadRequestSchema.safeParse(files);
+  if (!id.success) return { ok: false, error: "notFound" };
+  if (!parsed.success) return { ok: false, error: "mediaType" };
+  try {
+    return await requestMessageUploads(user.id, id.data, parsed.data);
+  } catch (error) {
+    console.error("Autorisation d'envoi impossible (message)", error);
     return { ok: false, error: "unexpected" };
   }
 }

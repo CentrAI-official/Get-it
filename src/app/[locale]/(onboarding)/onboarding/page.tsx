@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { APP_HOME_PATH } from "@/features/auth/access";
 import { OnboardingWizard } from "@/features/onboarding/components/onboarding-wizard";
 import { redirect } from "@/i18n/navigation";
+import { toCalendarDay } from "@/lib/dates";
 import { getCurrentProfile } from "@/server/profile/service";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -26,7 +27,10 @@ async function OnboardingGate() {
   if (profile.onboardedAt) {
     redirect({ href: APP_HOME_PATH, locale: await getLocale() });
   }
-  return <OnboardingWizard />;
+  // L'heure courante est lue après la session : jamais pendant le prérendu
+  return (
+    <OnboardingWizard today={toCalendarDay(new Date(), profile.timeZone)} />
+  );
 }
 
 function OnboardingSkeleton() {

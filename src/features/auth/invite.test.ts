@@ -20,6 +20,7 @@ describe("code d'invitation", () => {
       locale: "fr",
       email: "a@example.com",
       password: "un-mot-de-passe-solide",
+      confirmPassword: "un-mot-de-passe-solide",
     };
     expect(signUpSchema.safeParse(base).success).toBe(true);
     expect(

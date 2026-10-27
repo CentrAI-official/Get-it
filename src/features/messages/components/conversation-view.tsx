@@ -5,6 +5,7 @@ import {
   Ban,
   EllipsisVertical,
   Flag,
+  ImagePlus,
   LoaderCircle,
   Send,
   Handshake,
@@ -40,8 +41,15 @@ import {
   requestContactAction,
   respondContactAction,
 } from "@/features/contacts/actions";
+import { MediaPicker } from "@/features/community/components/media-picker";
 import { ReportDialog } from "@/features/community/components/report-dialog";
-import type { ProgressData } from "@/features/community/rules";
+import type { PostMediaInput } from "@/features/community/media";
+import {
+  COMMUNITY_ERRORS,
+  type ProgressData,
+} from "@/features/community/rules";
+import { useMediaUploads } from "@/features/community/use-media-uploads";
+import type { FeedMedia } from "@/server/community/media";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { ProgressSource } from "@/server/community/posts";
 import type { ChatMessage, ConversationState } from "@/server/messages/service";
@@ -51,6 +59,7 @@ import {
   getConversationAction,
   loadOlderMessagesAction,
   markReadAction,
+  requestMessageUploadsAction,
   respondToRequestAction,
   sendMessageAction,
   setMessageReactionAction,
@@ -59,6 +68,7 @@ import {
   CONVERSATION_POLL_MS,
   dayOf,
   layoutMessages,
+  MESSAGE_ERRORS,
   MESSAGE_MAX_LENGTH,
   type MessageError,
   type Reaction,
@@ -139,6 +149,21 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
     id: string;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  // Photos ou vidéo : envoyées dès qu'elles sont choisies, jointes à l'envoi
+  const uploads = useMediaUploads({
+    request: async (files) => {
+      const result = await requestMessageUploadsAction(initial.id, files);
+      return result.ok
+        ? result
+        : {
+            ok: false,
+            error:
+              COMMUNITY_ERRORS.find((key) => key === result.error) ??
+              "unexpected",
+          };
+    },
+  });
+  const attachRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const sending = useRef(0);
   // Défilement : en bas à l'ouverture et à chaque nouveau message (si on y est déjà)
@@ -219,7 +244,13 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
 
   async function send(
     input:
-      | { kind: "text"; body: string }
+      | {
+          kind: "text";
+          body: string;
+          media?: PostMediaInput;
+          /** Aperçus locaux, le temps de l'envoi. */
+          previews?: FeedMedia[];
+        }
       | {
           kind: "progress";
           source: ProgressSource;
@@ -237,6 +268,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       progress: input.kind === "progress" ? input.progress : null,
       pact: null,
       post: null,
+      media: input.kind === "text" ? (input.previews ?? []) : [],
       deleted: false,
       createdAt: new Date().toISOString(),
       reactions: [],
@@ -249,7 +281,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
     const result = await sendMessageAction(
       initial.id,
       input.kind === "text"
-        ? input
+        ? { kind: "text", body: input.body, media: input.media ?? [] }
         : { kind: "progress", source: input.source, body: input.body },
     ).catch(() => ({ ok: false as const, error: "unexpected" as const }));
     sending.current -= 1;
@@ -264,6 +296,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       if (input.kind === "text") setText(input.body);
       return;
     }
+    if (input.kind === "text" && input.previews?.length) uploads.reset();
     // Première demande envoyée : l'état (en attente) se met à jour
     if (state.otherStatus === "request") {
       const next = await getConversationAction(initial.id).catch(() => null);
@@ -271,10 +304,22 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
     }
   }
 
+  const attached = uploads.items.length > 0;
   function submit() {
     const body = text.trim();
-    if (!body) return;
-    void send({ kind: "text", body });
+    if (!body && !attached) return;
+    // Fichiers encore en envoi (ou en erreur) : on attend
+    if (attached && !uploads.ready) return;
+    const media: PostMediaInput = attached ? JSON.parse(uploads.payload) : [];
+    const previews: FeedMedia[] = uploads.items.map((item) => ({
+      kind: item.kind,
+      url: item.previewUrl,
+      posterUrl: null,
+      width: item.width ?? 1,
+      height: item.height ?? 1,
+      durationMs: item.durationMs ?? null,
+    }));
+    void send({ kind: "text", body, media, previews });
   }
 
   async function react(message: LocalMessage, kind: Reaction | null) {
@@ -614,64 +659,116 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             {t("pending", { handle })}
           </p>
         ) : (
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              submit();
-            }}
-            className="flex items-end gap-2"
-          >
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              aria-label={t("sendProgress")}
-              disabled={!canSend}
-              onClick={() => setPicker(true)}
-              className="shrink-0 text-primary hover:text-primary"
-            >
-              <Trophy aria-hidden="true" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-lg"
-              aria-label={tPacts("propose")}
-              disabled={!canSend || state.pact !== null}
-              onClick={() => setProposing(true)}
-              className="shrink-0 text-primary hover:text-primary"
-            >
-              <Handshake aria-hidden="true" />
-            </Button>
-            <label htmlFor={fieldId} className="sr-only">
-              {t("label")}
-            </label>
-            <textarea
-              id={fieldId}
-              value={text}
-              rows={1}
-              maxLength={MESSAGE_MAX_LENGTH}
-              enterKeyHint="send"
-              placeholder={t("placeholder")}
-              onChange={(event) => setText(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !event.shiftKey) {
-                  event.preventDefault();
-                  submit();
-                }
+          <>
+            {attached || uploads.error ? (
+              <div className="mb-2 flex flex-col gap-1.5">
+                <MediaPicker
+                  items={uploads.items}
+                  onAdd={uploads.add}
+                  onRemove={uploads.remove}
+                  controls={false}
+                />
+                {uploads.error ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {tErrors(
+                      MESSAGE_ERRORS.find((key) => key === uploads.error) ??
+                        "unexpected",
+                    )}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                submit();
               }}
-              className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-3xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
-            />
-            <Button
-              type="submit"
-              size="icon-lg"
-              aria-label={t("send")}
-              disabled={!canSend || !text.trim()}
-              className="shrink-0 rounded-full"
+              className="flex items-end gap-1"
             >
-              <Send aria-hidden="true" />
-            </Button>
-          </form>
+              <input
+                ref={attachRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                tabIndex={-1}
+                aria-hidden="true"
+                onChange={(event) => {
+                  uploads.add(event.target.files);
+                  event.target.value = "";
+                }}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                aria-label={t("attach")}
+                disabled={!canSend}
+                onClick={() => attachRef.current?.click()}
+                className="shrink-0 text-primary hover:text-primary"
+              >
+                <ImagePlus aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                aria-label={t("sendProgress")}
+                disabled={!canSend}
+                onClick={() => setPicker(true)}
+                className="shrink-0 text-primary hover:text-primary"
+              >
+                <Trophy aria-hidden="true" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                aria-label={tPacts("propose")}
+                disabled={!canSend || state.pact !== null}
+                onClick={() => setProposing(true)}
+                className="shrink-0 text-primary hover:text-primary"
+              >
+                <Handshake aria-hidden="true" />
+              </Button>
+              <label htmlFor={fieldId} className="sr-only">
+                {t("label")}
+              </label>
+              <textarea
+                id={fieldId}
+                value={text}
+                rows={1}
+                maxLength={MESSAGE_MAX_LENGTH}
+                enterKeyHint="send"
+                placeholder={t("placeholder")}
+                onChange={(event) => setText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    submit();
+                  }
+                }}
+                className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-3xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+              />
+              <Button
+                type="submit"
+                size="icon-lg"
+                aria-label={t("send")}
+                disabled={
+                  !canSend ||
+                  (!text.trim() && !attached) ||
+                  (attached && !uploads.ready)
+                }
+                className="shrink-0 rounded-full"
+              >
+                {attached && !uploads.ready ? (
+                  <LoaderCircle aria-hidden="true" className="animate-spin" />
+                ) : (
+                  <Send aria-hidden="true" />
+                )}
+              </Button>
+            </form>
+          </>
         )}
         {error ? (
           <p role="alert" className="mt-2 text-sm text-destructive">

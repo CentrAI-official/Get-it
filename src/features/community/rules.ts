@@ -191,6 +191,7 @@ export const COMMUNITY_ERRORS = [
   "uploadLimit",
   "saveLimit",
   "alreadyShared",
+  "groupJoinRequired",
   "unexpected",
 ] as const;
 

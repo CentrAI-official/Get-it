@@ -49,13 +49,18 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
 const baseOf = (kind: ListingKind) =>
   kind === "service" ? "/marketplace" : "/marketplace/gear";
 
-/** Rangée d'icônes : catégories de l'onglet, et l'autre onglet au bout. */
+/**
+ * Rangée d'icônes : catégories de l'onglet, et l'autre onglet au bout.
+ * `onGear` : page Gear (bientôt), affichée avec la rangée des services.
+ */
 export function CategoryRow({
   kind,
   current,
+  onGear = false,
 }: {
   kind: ListingKind;
   current: ListingCategory | undefined;
+  onGear?: boolean;
 }) {
   const t = useTranslations("Marketplace.vitrine.categories");
   const base = baseOf(kind);
@@ -63,14 +68,14 @@ export function CategoryRow({
     ...(kind === "gear"
       ? [{ key: "services", href: "/marketplace", active: false }]
       : []),
-    { key: "all", href: base, active: current === undefined },
+    { key: "all", href: base, active: current === undefined && !onGear },
     ...VITRINE_CATEGORIES[kind].map((category) => ({
       key: category,
       href: `${base}?category=${category}`,
       active: current === category,
     })),
     ...(kind === "service"
-      ? [{ key: "gear", href: "/marketplace/gear", active: false }]
+      ? [{ key: "gear", href: "/marketplace/gear", active: onGear }]
       : []),
   ];
 

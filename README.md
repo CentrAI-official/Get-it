@@ -93,8 +93,10 @@ src/i18n/                 configuration des langues
 - [x] 9e2. Messagerie (M2) : Pactes (défis à deux)
 - [x] 9f0. Photos et vidéos dans les publications
 - [x] 9f0b. Contacts (amis) : demandes, liste privée, écrire sans demande
-- [ ] 9f1. Groupes (création, fil, rôles)
-- [ ] 9f2. Discussions de groupe (Messagerie)
+- [x] 9f1. Groupes : forums publics (par pilier ou généraux), rôles créateur et admins
+- [x] 9f2. Discussions de groupe privées (Messagerie, sur invitation)
+- [x] 9f2b. Photos et vidéos dans les messages privés
+- [x] 9f2c. Renseignements du compte (date de naissance, sexe, région), Ranked avec taille, poids et IMC, Gear « bientôt »
 - [ ] 9f3. Pactes à plusieurs
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
 - [x] 9g1. Marketplace (lot 1) : comptes affiliés, catalogue Services et Gear, filtres, formulaire de vente, approbation par l’équipe Get iT

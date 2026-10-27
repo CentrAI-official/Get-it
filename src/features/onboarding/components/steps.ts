@@ -2,9 +2,9 @@
 export const ONBOARDING_STEPS = [
   "account",
   "about",
+  "details",
   "pillars",
   "goals",
-  "situation",
   "time",
   "summary",
 ] as const;

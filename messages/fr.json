@@ -187,9 +187,7 @@
     },
     "groups": {
       "title": "Groupes",
-      "question": "Avec qui je partage mes objectifs?",
-      "soonTitle": "Les groupes arrivent bientôt",
-      "soonDescription": "Rejoins des groupes par pilier ou par thème, et retrouve ici ceux que tu suis."
+      "question": "Avec qui je partage mes objectifs?"
     },
     "events": {
       "title": "Événements",
@@ -200,7 +198,9 @@
     "marketplace": {
       "gear": {
         "title": "Marketplace",
-        "question": "Qu’est-ce qui peut m’aider à progresser?"
+        "question": "Qu’est-ce qui peut m’aider à progresser?",
+        "soonTitle": "Le Gear arrive bientôt",
+        "soonDescription": "Vêtements, équipement et livres pour t’aider à progresser. Bientôt, les affiliés pourront y vendre leur gear."
       },
       "services": {
         "title": "Marketplace",
@@ -417,6 +417,10 @@
         "other": "Autre"
       }
     },
+    "details": {
+      "title": "À propos de toi",
+      "description": "Pour te comparer aux gens de ton âge et te montrer ce qui est près de chez toi. Ces renseignements restent privés."
+    },
     "pillars": {
       "title": "Qu’est-ce que tu veux améliorer?",
       "description": "Choisis les piliers sur lesquels tu veux travailler en priorité."
@@ -455,18 +459,6 @@
         }
       }
     },
-    "situation": {
-      "title": "Où en es-tu aujourd’hui?",
-      "description": "Évalue chaque pilier honnêtement. C’est ton point de départ : il servira à mesurer tes progrès.",
-      "levels": {
-        "start": "Je pars de zéro",
-        "beginner": "Je débute",
-        "progressing": "Ça avance",
-        "solid": "Je suis solide",
-        "excellent": "J’excelle"
-      },
-      "scoreLabel": "{score, number} sur 5 : {level}"
-    },
     "time": {
       "title": "Combien de temps veux-tu y consacrer?",
       "description": "Par jour, en moyenne. Mieux vaut peu, mais chaque jour.",
@@ -485,16 +477,16 @@
     },
     "summary": {
       "account": "Type de compte",
-      "title": "Ton point de départ",
+      "title": "Ton récap",
       "description": "Vérifie tes réponses, puis passe à l’action.",
       "name": "Prénom",
       "occupation": "Situation",
       "pillars": "Piliers",
       "goals": "Objectifs",
-      "assessments": "Niveau actuel",
       "time": "Temps par jour",
       "notProvided": "Non précisé",
-      "edit": "Modifier : {section}"
+      "edit": "Modifier : {section}",
+      "details": "Toi"
     }
   },
   "Goals": {
@@ -1033,7 +1025,9 @@
       "save": "Enregistrer",
       "savedNotice": "Publication enregistrée. Retrouve-la dans Profil › Publications.",
       "unsavedNotice": "Publication retirée de tes enregistrements.",
-      "sharedLabel": "a partagé"
+      "sharedLabel": "a partagé",
+      "inGroup": "dans {group}",
+      "removeFromGroup": "Retirer du groupe"
     },
     "share": {
       "title": "Partager",
@@ -1157,6 +1151,7 @@
       "commentLimit": "Tu as atteint la limite de 50 commentaires par 24 heures.",
       "reportLimit": "Tu as atteint la limite de signalements pour aujourd’hui.",
       "notFound": "Ce contenu n’est plus disponible.",
+      "groupJoinRequired": "Rejoins le groupe pour participer.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
       "mediaUnavailable": "L’ajout de photos et de vidéos n’est pas encore activé.",
       "mediaTooMany": "Jusqu’à 4 photos, ou une seule vidéo, par publication.",
@@ -1223,7 +1218,10 @@
       "unread": "Non lu",
       "level": "Niv. {level, number}",
       "pact": "Pacte",
-      "post": "Publication partagée"
+      "post": "Publication partagée",
+      "photo": "Photo",
+      "video": "Vidéo",
+      "from": "{name} : {text}"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1278,7 +1276,8 @@
       "decline": "Refuser",
       "pending": "Demande envoyée. Tu pourras écrire de nouveau quand {handle} l’aura acceptée.",
       "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire.",
-      "viewPost": "Voir la publication"
+      "viewPost": "Voir la publication",
+      "attach": "Joindre une photo ou une vidéo"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -1307,6 +1306,13 @@
       "requestPending": "Ta demande n’a pas encore été acceptée.",
       "messageLimit": "Tu as atteint la limite de 200 messages par 24 heures.",
       "conversationLimit": "Tu as commencé 20 nouvelles conversations aujourd’hui : c’est la limite.",
+      "mediaUnavailable": "L’ajout de photos et de vidéos n’est pas encore activé.",
+      "mediaTooMany": "Jusqu’à 4 photos, ou une seule vidéo, par message.",
+      "mediaTooLarge": "Ce fichier est trop lourd (50 Mo au plus pour une vidéo).",
+      "mediaType": "Ce format n’est pas pris en charge. Essaie une photo JPEG ou une vidéo MP4.",
+      "mediaMissing": "Un média n’a pas fini de s’envoyer. Réessaie.",
+      "videoTooLong": "La vidéo dépasse 60 secondes.",
+      "uploadLimit": "Tu as envoyé beaucoup de fichiers aujourd’hui. Réessaie demain.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
       "pactOpen": "Un pacte est déjà proposé ou en cours dans cette conversation.",
       "pactLimit": "Tu as proposé assez de pactes pour aujourd’hui.",
@@ -1402,6 +1408,11 @@
         "keep": "Continuer le pacte",
         "quitConfirm": "Quitter"
       }
+    },
+    "groupChat": {
+      "members": "{count, plural, one {# membre} other {# membres}}",
+      "viewGroup": "Voir le groupe",
+      "privacy": "Discussion privée du groupe : seuls ses membres la voient. Jamais envoyée à Get iT AI."
     }
   },
   "Contacts": {
@@ -1687,6 +1698,7 @@
       "submit": "Soumettre l’annonce",
       "errors": {
         "notAffiliate": "Passe en compte affilié pour vendre.",
+        "gearSoon": "La vente de gear arrive bientôt.",
         "notJoined": "Rejoins le Centre Get iT pour vendre.",
         "suspended": "Ton compte est suspendu pour l’instant : tu ne peux pas publier d’annonce.",
         "listingLimit": "Tu as atteint 20 annonces actives. Supprimes-en une pour en ajouter une autre.",
@@ -2368,15 +2380,15 @@
     },
     "form": {
       "sections": {
-        "about": "À propos de toi",
+        "body": "Ton corps",
         "physical": "Physique",
         "financial": "Financier"
       },
       "hints": {
+        "body": "Ta taille et ton poids donnent ton IMC, qui compte pour 10 % du niveau physique. La morphologie ne change pas ton niveau.",
         "physical": "Fais les tests après 5 minutes d’échauffement, et arrête-toi en cas de douleur. Un test par jour ou avec du repos entre chacun, c’est correct.",
         "financial": "Dans la devise de ton pays. Ces montants ne sont jamais montrés aux autres membres ni envoyés en dollars à Get iT AI."
       },
-      "years": "ans",
       "perMonth": "{currency} par mois",
       "perWeek": "heures par semaine",
       "fieldError": "Vérifie cette réponse.",
@@ -2387,23 +2399,30 @@
       "submitting": "Calcul en cours…"
     },
     "questions": {
-      "country": {
-        "label": "Ton pays",
-        "options": {
-          "CA": "Canada",
-          "US": "États-Unis"
-        }
+      "heightCm": {
+        "label": "Ta taille",
+        "hint": "En centimètres. Exemple : 5 pi 10 po = 178 cm."
       },
-      "age": {
-        "label": "Ton âge",
-        "hint": "Tu es comparé aux gens de ta tranche d’âge."
+      "weightKg": {
+        "label": "Ton poids",
+        "hint": "En kilogrammes. Exemple : 170 lb ≈ 77 kg."
       },
-      "sexNorm": {
-        "label": "Normes pour tes tests physiques",
+      "bodyType": {
+        "label": "Ta morphologie",
+        "hint": "Choisis la silhouette qui te ressemble le plus. Elle aide Get iT AI à adapter ses conseils.",
         "options": {
-          "male": "Hommes",
-          "female": "Femmes",
-          "unspecified": "Je préfère ne pas préciser"
+          "ectomorph": {
+            "title": "Ectomorphe",
+            "description": "Silhouette mince et élancée, prend difficilement du poids"
+          },
+          "mesomorph": {
+            "title": "Mésomorphe",
+            "description": "Silhouette athlétique, prend du muscle facilement"
+          },
+          "endomorph": {
+            "title": "Endomorphe",
+            "description": "Silhouette plus ronde, prend du poids facilement"
+          }
         }
       },
       "reachSide": {
@@ -2458,6 +2477,7 @@
       }
     },
     "factors": {
+      "bmi": "IMC (taille et poids)",
       "run": "Cardio (course de 12 minutes)",
       "pushUps": "Force (pompes)",
       "reach": "Souplesse (flexion assise)",
@@ -2477,6 +2497,7 @@
       "factorAge": "{factor} : mieux que {percent} des gens de ton âge",
       "factorAdults": "{factor} : mieux que {percent} des adultes",
       "vo2max": "VO2max estimé : {value, number} mL/kg/min",
+      "bmi": "IMC : {value, number}",
       "estimate": "Estimation",
       "reevaluate": "Réévaluer mon niveau",
       "nextOn": "Prochaine réévaluation possible le {date}."
@@ -2505,6 +2526,7 @@
     },
     "errors": {
       "invalid": "Certaines réponses manquent ou sont hors limites.",
+      "detailsMissing": "Remplis d’abord ta date de naissance, ton sexe et ta région dans Réglages.",
       "consentRequired": "Coche la case d’accord pour calculer ton niveau.",
       "tooSoon": "Tu pourras te réévaluer 30 jours après ta dernière évaluation.",
       "notRanked": "Tu n’es pas encore en mode Ranked.",
@@ -2512,6 +2534,237 @@
       "aiConsentRequired": "Active d’abord Get iT AI.",
       "limitReached": "Tu as atteint la limite de 20 demandes à Get iT AI aujourd’hui.",
       "refused": "Get iT AI n’a pas pu analyser ton niveau.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Places": {
+    "countries": {
+      "CA": "Canada",
+      "US": "États-Unis"
+    },
+    "provinces": {
+      "AB": "Alberta",
+      "BC": "Colombie-Britannique",
+      "MB": "Manitoba",
+      "NB": "Nouveau-Brunswick",
+      "NL": "Terre-Neuve-et-Labrador",
+      "NS": "Nouvelle-Écosse",
+      "NT": "Territoires du Nord-Ouest",
+      "NU": "Nunavut",
+      "ON": "Ontario",
+      "PE": "Île-du-Prince-Édouard",
+      "QC": "Québec",
+      "SK": "Saskatchewan",
+      "YT": "Yukon",
+      "AL": "Alabama",
+      "AK": "Alaska",
+      "AZ": "Arizona",
+      "AR": "Arkansas",
+      "CA": "Californie",
+      "CO": "Colorado",
+      "CT": "Connecticut",
+      "DE": "Delaware",
+      "DC": "District de Columbia",
+      "FL": "Floride",
+      "GA": "Géorgie",
+      "HI": "Hawaï",
+      "ID": "Idaho",
+      "IL": "Illinois",
+      "IN": "Indiana",
+      "IA": "Iowa",
+      "KS": "Kansas",
+      "KY": "Kentucky",
+      "LA": "Louisiane",
+      "ME": "Maine",
+      "MD": "Maryland",
+      "MA": "Massachusetts",
+      "MI": "Michigan",
+      "MN": "Minnesota",
+      "MS": "Mississippi",
+      "MO": "Missouri",
+      "MT": "Montana",
+      "NE": "Nebraska",
+      "NV": "Nevada",
+      "NH": "New Hampshire",
+      "NJ": "New Jersey",
+      "NM": "Nouveau-Mexique",
+      "NY": "New York",
+      "NC": "Caroline du Nord",
+      "ND": "Dakota du Nord",
+      "OH": "Ohio",
+      "OK": "Oklahoma",
+      "OR": "Oregon",
+      "PA": "Pennsylvanie",
+      "RI": "Rhode Island",
+      "SC": "Caroline du Sud",
+      "SD": "Dakota du Sud",
+      "TN": "Tennessee",
+      "TX": "Texas",
+      "UT": "Utah",
+      "VT": "Vermont",
+      "VA": "Virginie",
+      "WA": "Washington",
+      "WV": "Virginie-Occidentale",
+      "WI": "Wisconsin",
+      "WY": "Wyoming"
+    }
+  },
+  "Details": {
+    "birthDate": "Date de naissance",
+    "birthDateHint": "Get iT est réservé aux 16 ans et plus. Ton âge sert à te comparer aux gens de ton âge (mode Ranked).",
+    "sex": "Sexe à la naissance",
+    "sexHint": "Sert seulement aux comparaisons physiques (mode Ranked).",
+    "sexes": {
+      "male": "Homme",
+      "female": "Femme"
+    },
+    "country": "Pays",
+    "province": {
+      "CA": "Province ou territoire",
+      "US": "État"
+    },
+    "provincePlaceholder": "Choisis…",
+    "qcRegion": "Région du Québec",
+    "qcRegionHint": "Pour te montrer plus tard les services près de chez toi.",
+    "privacy": "Ces renseignements restent privés : ils ne sont jamais montrés aux autres membres.",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "saved": "C’est enregistré.",
+    "complete": {
+      "metaTitle": "Complète ton profil",
+      "title": "Quelques infos sur toi",
+      "description": "Get iT demande maintenant ta date de naissance, ton sexe à la naissance et ta région. Une seule fois, et ça reste privé.",
+      "submit": "Continuer"
+    },
+    "settings": {
+      "title": "Informations personnelles",
+      "description": "Date de naissance, sexe à la naissance, pays et région. Privé : jamais montré aux autres membres."
+    },
+    "errors": {
+      "birthDateInvalid": "Entre une date de naissance valide.",
+      "tooYoung": "Get iT est réservé aux 16 ans et plus.",
+      "sexRequired": "Choisis ton sexe à la naissance.",
+      "countryRequired": "Choisis ton pays.",
+      "provinceRequired": "Choisis ta province, ton territoire ou ton État.",
+      "qcRegionRequired": "Choisis ta région du Québec.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    }
+  },
+  "Groups": {
+    "metaTitle": "Groupes",
+    "description": "Des groupes par pilier ou généraux : un forum public, ou une discussion privée entre membres invités.",
+    "create": "Créer un groupe",
+    "back": "Retour aux Groupes",
+    "invitations": {
+      "title": "Invitations",
+      "accept": "Accepter",
+      "decline": "Refuser"
+    },
+    "mine": {
+      "title": "Mes groupes",
+      "empty": "Tu n’es dans aucun groupe pour l’instant. Rejoins un groupe public ou crée le tien."
+    },
+    "discover": {
+      "title": "Découvrir",
+      "searchLabel": "Chercher un groupe",
+      "searchPlaceholder": "Chercher un groupe…",
+      "search": "Chercher",
+      "topicsLabel": "Sujet",
+      "all": "Tous",
+      "empty": "Aucun groupe public ne correspond pour l’instant."
+    },
+    "topics": {
+      "physical": "Physique",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financier",
+      "general": "Général"
+    },
+    "visibility": {
+      "public": "Public",
+      "private": "Privé"
+    },
+    "visibilityHints": {
+      "public": "Un forum : tout membre du Centre le trouve, le lit et peut le rejoindre.",
+      "private": "Une discussion sur invitation, dans la Messagerie. Seuls les membres la voient."
+    },
+    "members": "{count, plural, =0 {Aucun membre} one {# membre} other {# membres}}",
+    "roles": {
+      "owner": "Créateur",
+      "admin": "Admin",
+      "member": "Membre"
+    },
+    "join": "Rejoindre",
+    "leave": "Quitter le groupe",
+    "openChat": "Ouvrir la discussion",
+    "edit": "Modifier",
+    "delete": "Supprimer le groupe",
+    "deleteTitle": "Supprimer ce groupe?",
+    "deleteDescription": "Les publications, la discussion et leurs photos seront effacées pour tout le monde.",
+    "deleteConfirm": "Supprimer définitivement",
+    "cancel": "Annuler",
+    "joinedNotice": "Bienvenue dans le groupe!",
+    "form": {
+      "newTitle": "Nouveau groupe",
+      "newDescription": "Choisis un sujet, et qui peut participer.",
+      "editTitle": "Modifier le groupe",
+      "editDescription": "Le nom, la description et le sujet se modifient en tout temps.",
+      "name": "Nom du groupe",
+      "namePlaceholder": "Coureurs du dimanche",
+      "description": "Description",
+      "descriptionPlaceholder": "De quoi parle le groupe, pour qui il est…",
+      "optional": "facultatif",
+      "topic": "Sujet",
+      "visibility": "Type de groupe",
+      "visibilityLocked": "Le type de groupe ne change pas après la création.",
+      "create": "Créer le groupe",
+      "creating": "Création…",
+      "save": "Enregistrer",
+      "saving": "Enregistrement…"
+    },
+    "forum": {
+      "title": "Forum",
+      "joinToPost": "Rejoins le groupe pour publier, commenter et dire bravo.",
+      "emptyTitle": "Aucune publication pour l’instant",
+      "emptyDescription": "Lance la discussion : pose une question ou partage une victoire."
+    },
+    "chat": {
+      "title": "Discussion",
+      "description": "La discussion du groupe se passe dans la Messagerie. Seuls les membres la voient."
+    },
+    "memberList": {
+      "title": "Membres",
+      "invited": "Invitation envoyée",
+      "makeAdmin": "Nommer admin",
+      "removeAdmin": "Retirer le rôle d’admin",
+      "remove": "Retirer du groupe",
+      "options": "Options pour {name}",
+      "invite": "Inviter",
+      "inviteTitle": "Inviter dans le groupe",
+      "inviteDescription": "Cherche un membre du Centre par son @nom ou son prénom. Il devra accepter l’invitation.",
+      "searchLabel": "Chercher un membre",
+      "searchPlaceholder": "@nom ou prénom",
+      "inviteAction": "Inviter {name}",
+      "sent": "Invité",
+      "noResults": "Personne ne correspond.",
+      "close": "Fermer"
+    },
+    "notFoundTitle": "Groupe introuvable",
+    "notFoundDescription": "Il a peut-être été supprimé, ou il est privé.",
+    "errors": {
+      "nameTooShort": "Le nom doit avoir au moins 3 caractères.",
+      "nameTooLong": "Le nom ne peut pas dépasser 60 caractères.",
+      "descriptionTooLong": "La description ne peut pas dépasser 500 caractères.",
+      "notJoined": "Rejoins d’abord le Centre.",
+      "suspended": "Ton compte est suspendu du Centre.",
+      "notFound": "Ce groupe n’est plus disponible.",
+      "notAllowed": "Seuls le créateur et les admins du groupe peuvent faire ça.",
+      "groupLimit": "Tu as déjà créé 10 groupes : c’est la limite.",
+      "memberLimit": "Un groupe privé compte 20 personnes au plus, invitations comprises.",
+      "inviteLimit": "Tu as envoyé beaucoup d’invitations aujourd’hui. Réessaie demain.",
+      "alreadyMember": "Cette personne est déjà dans le groupe ou invitée.",
+      "blocked": "Tu ne peux pas inviter cette personne.",
+      "ownerCannotLeave": "Le créateur ne quitte pas son groupe : il peut le supprimer.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   }

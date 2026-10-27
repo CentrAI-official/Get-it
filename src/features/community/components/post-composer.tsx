@@ -35,6 +35,8 @@ type PostComposerProps = {
   avatarUrl: string | null;
   /** Stockage configuré : photos et vidéos possibles. */
   mediaEnabled: boolean;
+  /** Forum d'un groupe public : publication du groupe, sans partage de progrès. */
+  groupId?: string;
 };
 
 type FormProps = {
@@ -63,6 +65,7 @@ export function PostComposer({
   name,
   avatarUrl,
   mediaEnabled,
+  groupId,
 }: PostComposerProps) {
   const t = useTranslations("Community.composer");
   const startOnProgress = Boolean(
@@ -103,16 +106,18 @@ export function PostComposer({
             <ImagePlus aria-hidden="true" />
           </Button>
         ) : null}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-lg"
-          aria-label={t("shareProgress")}
-          onClick={() => start("progress")}
-          className="shrink-0 text-primary hover:text-primary"
-        >
-          <Trophy aria-hidden="true" />
-        </Button>
+        {groupId ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-lg"
+            aria-label={t("shareProgress")}
+            onClick={() => start("progress")}
+            className="shrink-0 text-primary hover:text-primary"
+          >
+            <Trophy aria-hidden="true" />
+          </Button>
+        )}
       </section>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -132,23 +137,26 @@ export function PostComposer({
             <DialogTitle>{t("label")}</DialogTitle>
             <DialogDescription>{t("description")}</DialogDescription>
           </div>
-          <div role="tablist" aria-label={t("label")} className="flex gap-2">
-            {(["post", "progress"] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={tab === value}
-                onClick={() => setTab(value)}
-                className={cn(chip, tab === value ? chipOn : chipOff)}
-              >
-                {t(`tabs.${value}`)}
-              </button>
-            ))}
-          </div>
-          {tab === "post" ? (
+          {groupId ? null : (
+            <div role="tablist" aria-label={t("label")} className="flex gap-2">
+              {(["post", "progress"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === value}
+                  onClick={() => setTab(value)}
+                  className={cn(chip, tab === value ? chipOn : chipOff)}
+                >
+                  {t(`tabs.${value}`)}
+                </button>
+              ))}
+            </div>
+          )}
+          {tab === "post" || groupId ? (
             <PostForm
               mediaEnabled={mediaEnabled}
+              groupId={groupId}
               onDone={() => setOpen(false)}
             />
           ) : (
@@ -176,7 +184,8 @@ function useResetOnSuccess(state: CommunityFormState, reset: () => void) {
 function PostForm({
   onDone,
   mediaEnabled,
-}: FormProps & { mediaEnabled: boolean }) {
+  groupId,
+}: FormProps & { mediaEnabled: boolean; groupId?: string }) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const tPillars = useTranslations("Pillars");
@@ -210,6 +219,7 @@ function PostForm({
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="pillar" value={pillar ?? ""} />
       <input type="hidden" name="media" value={media.payload} />
+      <input type="hidden" name="groupId" value={groupId ?? ""} />
       <div
         role="radiogroup"
         aria-label={t("kindLabel")}

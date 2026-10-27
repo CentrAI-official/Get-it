@@ -102,11 +102,14 @@ export async function createPostAction(
   const media = postMediaSchema.safeParse(rawMedia);
   if (!media.success) return fail(firstCommunityError(media.error), values);
   try {
+    // Forum d'un groupe public (revérifié par le service)
+    const groupId = recordIdSchema.safeParse(read(formData, "groupId"));
     const result = await createPost(user.id, {
       kind: parsed.data.kind,
       body: parsed.data.body,
       pillar: parsed.data.pillar,
       media: media.data,
+      groupId: groupId.success ? groupId.data : undefined,
     });
     if (!result.ok) return fail(result.error, values);
   } catch (error) {
@@ -177,15 +180,21 @@ const cursorSchema = z.object({ createdAt: z.iso.datetime(), id: z.uuid() });
 export async function loadMorePostsAction(
   cursor: FeedCursor,
   authorId?: unknown,
+  groupId?: unknown,
 ): Promise<{ posts: FeedPost[]; nextCursor: FeedCursor | null }> {
   const user = await requireUser();
   const parsed = cursorSchema.safeParse(cursor);
   const author =
     authorId === undefined ? undefined : z.uuid().safeParse(authorId);
-  if (!parsed.success || (author && !author.success)) {
+  const group = groupId === undefined ? undefined : z.uuid().safeParse(groupId);
+  if (
+    !parsed.success ||
+    (author && !author.success) ||
+    (group && !group.success)
+  ) {
     return { posts: [], nextCursor: null };
   }
-  return listFeed(user.id, parsed.data, author?.data);
+  return listFeed(user.id, parsed.data, author?.data, group?.data);
 }
 
 export async function deletePostAction(postId: string) {

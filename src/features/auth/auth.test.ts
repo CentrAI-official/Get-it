@@ -80,6 +80,7 @@ describe("schémas d'authentification", () => {
       locale: "fr",
       email: "pas-un-courriel",
       password: "court",
+      confirmPassword: "court",
     });
     expect(result.success).toBe(false);
     expect(toFieldErrors(result.error!)).toEqual({
@@ -95,6 +96,19 @@ describe("schémas d'authentification", () => {
       password: "un-bon-mot-de-passe",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("à l'inscription, exige deux mots de passe identiques", () => {
+    const result = signUpSchema.safeParse({
+      locale: "fr",
+      email: "max@example.com",
+      password: "un-bon-mot-de-passe",
+      confirmPassword: "un-bon-mot-de-pase",
+    });
+    expect(result.success).toBe(false);
+    expect(toFieldErrors(result.error!)).toEqual({
+      confirmPassword: "passwordMismatch",
+    });
   });
 
   it("exige deux mots de passe identiques", () => {

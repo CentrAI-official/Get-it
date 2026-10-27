@@ -20,6 +20,8 @@ type MediaPickerProps = {
   disabled?: boolean;
   /** Photos seulement : pas de bouton vidéo (ex. annonces du Marketplace). */
   photosOnly?: boolean;
+  /** Sans les boutons ni les limites : seulement les fichiers choisis (Messagerie). */
+  controls?: boolean;
 };
 
 const pick =
@@ -35,6 +37,7 @@ export function MediaPicker({
   onRemove,
   disabled,
   photosOnly = false,
+  controls = true,
 }: MediaPickerProps) {
   const t = useTranslations("Community.media");
   const tErrors = useTranslations("Community.errors");
@@ -111,55 +114,59 @@ export function MediaPicker({
         </ul>
       ) : null}
 
-      <div
-        className={cn(
-          "flex flex-wrap gap-2",
-          disabled && "pointer-events-none opacity-50",
-        )}
-      >
-        <label className={pick}>
-          <input
-            type="file"
-            accept={photosOnly ? "image/*" : "image/*,video/*"}
-            multiple
-            disabled={disabled}
-            onChange={choose}
-            className="sr-only"
-          />
-          <ImagePlus aria-hidden="true" className="size-4 text-primary" />
-          {t(photosOnly ? "galleryPhotos" : "gallery")}
-        </label>
-        <label className={pick}>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            disabled={disabled}
-            onChange={choose}
-            className="sr-only"
-          />
-          <Camera aria-hidden="true" className="size-4 text-primary" />
-          {t("photo")}
-        </label>
-        {photosOnly ? null : (
-          <label className={pick}>
-            <input
-              type="file"
-              // Sans « capture » : iPhone et Samsung ouvraient la caméra en mode photo.
-              // Le téléphone propose alors « Prendre une vidéo » / « Caméscope ».
-              accept="video/*"
-              disabled={disabled}
-              onChange={choose}
-              className="sr-only"
-            />
-            <Video aria-hidden="true" className="size-4 text-primary" />
-            {t("video")}
-          </label>
-        )}
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {t(photosOnly ? "limitsPhotos" : "limits")}
-      </p>
+      {controls ? (
+        <>
+          <div
+            className={cn(
+              "flex flex-wrap gap-2",
+              disabled && "pointer-events-none opacity-50",
+            )}
+          >
+            <label className={pick}>
+              <input
+                type="file"
+                accept={photosOnly ? "image/*" : "image/*,video/*"}
+                multiple
+                disabled={disabled}
+                onChange={choose}
+                className="sr-only"
+              />
+              <ImagePlus aria-hidden="true" className="size-4 text-primary" />
+              {t(photosOnly ? "galleryPhotos" : "gallery")}
+            </label>
+            <label className={pick}>
+              <input
+                type="file"
+                accept="image/*"
+                capture="environment"
+                disabled={disabled}
+                onChange={choose}
+                className="sr-only"
+              />
+              <Camera aria-hidden="true" className="size-4 text-primary" />
+              {t("photo")}
+            </label>
+            {photosOnly ? null : (
+              <label className={pick}>
+                <input
+                  type="file"
+                  // Sans « capture » : iPhone et Samsung ouvraient la caméra en mode photo.
+                  // Le téléphone propose alors « Prendre une vidéo » / « Caméscope ».
+                  accept="video/*"
+                  disabled={disabled}
+                  onChange={choose}
+                  className="sr-only"
+                />
+                <Video aria-hidden="true" className="size-4 text-primary" />
+                {t("video")}
+              </label>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t(photosOnly ? "limitsPhotos" : "limits")}
+          </p>
+        </>
+      ) : null}
     </div>
   );
 }

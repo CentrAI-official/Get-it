@@ -5,11 +5,8 @@ import { useFormatter, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { pillarIcons } from "@/config/pillars";
-import {
-  ASSESSMENT_LEVELS,
-  DAILY_MINUTES_OPTIONS,
-  type OnboardingDraft,
-} from "../schemas";
+import { toDbDate } from "@/lib/dates";
+import { DAILY_MINUTES_OPTIONS, type OnboardingDraft } from "../schemas";
 import type { OnboardingStep } from "./steps";
 
 type SummaryStepProps = {
@@ -20,6 +17,9 @@ type SummaryStepProps = {
 export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
   const t = useTranslations("Onboarding");
   const tPillars = useTranslations("Pillars");
+  const tDetails = useTranslations("Details");
+  const tPlaces = useTranslations("Places");
+  const tRegions = useTranslations("Marketplace.regions");
   const format = useFormatter();
   const time = DAILY_MINUTES_OPTIONS.find(
     (option) => option.minutes === draft.dailyMinutes,
@@ -46,6 +46,32 @@ export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
         : t("summary.notProvided"),
     },
     {
+      step: "details",
+      label: t("summary.details"),
+      value: (
+        <span className="flex flex-col gap-0.5">
+          <span>
+            {draft.birthDate
+              ? format.dateTime(toDbDate(draft.birthDate), {
+                  dateStyle: "long",
+                  timeZone: "UTC",
+                })
+              : t("summary.notProvided")}
+            {draft.sex ? ` · ${tDetails(`sexes.${draft.sex}`)}` : null}
+          </span>
+          <span className="text-muted-foreground">
+            {[
+              draft.qcRegion ? tRegions(draft.qcRegion) : null,
+              draft.province ? tPlaces(`provinces.${draft.province}`) : null,
+              draft.country ? tPlaces(`countries.${draft.country}`) : null,
+            ]
+              .filter(Boolean)
+              .join(", ")}
+          </span>
+        </span>
+      ),
+    },
+    {
       step: "pillars",
       label: t("summary.pillars"),
       value: format.list(
@@ -67,30 +93,6 @@ export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
                   className="mt-0.5 size-4 shrink-0 text-silver"
                 />
                 <span className="break-words">{goal.title}</span>
-              </li>
-            );
-          })}
-        </ul>
-      ),
-    },
-    {
-      step: "situation",
-      label: t("summary.assessments"),
-      value: (
-        <ul className="flex flex-col gap-1.5">
-          {draft.pillars.map((pillar) => {
-            const level = ASSESSMENT_LEVELS.find(
-              (item) => item.score === draft.assessments[pillar],
-            );
-            return (
-              <li key={pillar}>
-                {tPillars(`${pillar}.name`)}
-                {level ? (
-                  <span className="text-muted-foreground">
-                    {" · "}
-                    {t(`situation.levels.${level.key}`)}
-                  </span>
-                ) : null}
               </li>
             );
           })}
