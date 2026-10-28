@@ -7,7 +7,7 @@ export function GoalList({ goals }: { goals: GoalSummary[] }) {
   return (
     <ul className="grid sm:grid-cols-2 sm:gap-x-8">
       {goals.map((goal) => (
-        <li key={goal.id} className="border-b border-white/8">
+        <li key={goal.id} className="border-b border-foreground/8">
           <GoalCard goal={goal} />
         </li>
       ))}

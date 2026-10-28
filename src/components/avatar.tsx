@@ -23,7 +23,7 @@ export function Avatar({ name, url, className }: AvatarProps) {
         aria-hidden="true"
         loading="lazy"
         className={cn(
-          "shrink-0 rounded-full bg-white/5 object-cover",
+          "shrink-0 rounded-full bg-foreground/5 object-cover",
           className,
         )}
       />

@@ -92,9 +92,9 @@ export async function PublicProfileLoader({ username }: { username: string }) {
 
       <section
         aria-labelledby="public-pillars"
-        className="flex flex-col gap-4 border-t border-white/8 pt-6"
+        className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
       >
-        <h2 id="public-pillars" className="font-heading text-lg font-bold">
+        <h2 id="public-pillars" className="caps-label text-muted-foreground">
           {t("pillars")}
         </h2>
         <ul className="grid grid-cols-4 gap-2">
@@ -119,7 +119,7 @@ export async function PublicProfileLoader({ username }: { username: string }) {
                   {tPillars(`${pillar}.name`)}
                 </span>
                 {profile.ranked ? (
-                  <span className="font-mono text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground tabular-nums">
                     {pillar === "physical" || pillar === "financial"
                       ? t("level", { level: profile.ranked[pillar] })
                       : t("private")}
@@ -144,9 +144,9 @@ export async function PublicProfileLoader({ username }: { username: string }) {
 
       <section
         aria-labelledby="public-posts"
-        className="flex flex-col gap-4 border-t border-white/8 pt-6"
+        className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
       >
-        <h2 id="public-posts" className="font-heading text-lg font-bold">
+        <h2 id="public-posts" className="caps-label text-muted-foreground">
           {t("posts")}
         </h2>
         <CommunityFeed

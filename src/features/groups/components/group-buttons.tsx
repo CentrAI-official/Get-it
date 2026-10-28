@@ -359,7 +359,7 @@ export function InviteDialog({ groupId }: { groupId: string }) {
                 return (
                   <li
                     key={person.id}
-                    className="flex items-center gap-3 border-b border-white/8 py-2.5"
+                    className="flex items-center gap-3 border-b border-foreground/8 py-2.5"
                   >
                     <Avatar
                       name={name}

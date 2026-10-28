@@ -10,7 +10,7 @@ export function PillarsSection() {
     <section
       id="pillars"
       aria-labelledby="pillars-title"
-      className="scroll-mt-20 border-t border-white/5"
+      className="scroll-mt-20 border-t border-foreground/5"
     >
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
         <SectionHeading
@@ -23,7 +23,7 @@ export function PillarsSection() {
             const Icon = pillarIcons[pillar];
             return (
               <li key={pillar}>
-                <Card className="h-full gap-4 p-6 transition-[border-color,translate] hover:border-white/20 motion-safe:hover:-translate-y-0.5">
+                <Card className="h-full gap-4 p-6 transition-[border-color,translate] hover:border-foreground/20 motion-safe:hover:-translate-y-0.5">
                   <span className="flex size-12 items-center justify-center rounded-full orb text-silver">
                     <Icon aria-hidden="true" className="size-5" />
                   </span>

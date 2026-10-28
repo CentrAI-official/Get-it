@@ -42,7 +42,7 @@ export function CatalogList({
     <div className="flex flex-col gap-4">
       <ul className="flex flex-col">
         {items.map((listing) => (
-          <li key={listing.id} className="border-b border-white/8">
+          <li key={listing.id} className="border-b border-foreground/8">
             <ListingCard listing={listing} />
           </li>
         ))}

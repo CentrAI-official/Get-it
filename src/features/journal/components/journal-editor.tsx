@@ -93,7 +93,7 @@ export function JournalEditor({
       <div className="group relative pl-6">
         <span
           aria-hidden="true"
-          className="absolute top-0 bottom-0 left-2 w-px bg-white/12 transition-colors group-focus-within:bg-primary/70"
+          className="absolute top-0 bottom-0 left-2 w-px bg-foreground/12 transition-colors group-focus-within:bg-primary/70"
         />
         <textarea
           ref={area}
@@ -142,7 +142,7 @@ export function JournalEditor({
             <span className="text-muted-foreground">{t("unsaved")}</span>
           ) : null}
         </p>
-        <p className="font-mono text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground tabular-nums">
           {text.length >= SHOW_COUNT_FROM
             ? tPage("characters", {
                 count: text.length,

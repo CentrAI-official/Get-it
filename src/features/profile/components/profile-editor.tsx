@@ -109,7 +109,7 @@ export function ProfileEditor({
                 className="size-20 text-2xl"
               />
               {uploading ? (
-                <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55">
+                <span className="dark absolute inset-0 flex items-center justify-center rounded-full bg-black/55">
                   <LoaderCircle
                     aria-label={t("uploading")}
                     className="size-5 animate-spin"
@@ -119,7 +119,7 @@ export function ProfileEditor({
             </span>
             {photosEnabled ? (
               <div className="flex flex-col gap-2">
-                <label className="flex h-9 w-fit cursor-pointer items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-3.5 text-sm font-medium transition-colors hover:bg-white/[0.06] has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50">
+                <label className="flex h-9 w-fit cursor-pointer items-center gap-2 rounded-full border border-foreground/12 bg-foreground/[0.03] px-3.5 text-sm font-medium transition-colors hover:bg-foreground/[0.06] has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50">
                   <input
                     type="file"
                     accept="image/*"
@@ -173,7 +173,7 @@ export function ProfileEditor({
                 setSaved(false);
               }}
             />
-            <p className="text-right font-mono text-xs text-muted-foreground">
+            <p className="text-right text-xs text-muted-foreground tabular-nums">
               {text.length}/{BIO_MAX_LENGTH}
             </p>
           </div>

@@ -87,7 +87,7 @@ export function PactDetailDialog({
           </div>
         </div>
 
-        <p className="w-fit rounded-full bg-white/6 px-3 py-1.5 text-xs">
+        <p className="w-fit rounded-full bg-foreground/6 px-3 py-1.5 text-xs">
           {t("rule", { need: pact.need, days: pact.days })}
         </p>
 
@@ -103,7 +103,7 @@ export function PactDetailDialog({
                 "flex min-w-0 flex-col gap-0.5 rounded-2xl p-3",
                 stat.accent
                   ? "border border-primary/30 bg-primary/10"
-                  : "bg-white/4",
+                  : "bg-foreground/4",
               )}
             >
               <dt className="truncate text-xs text-muted-foreground">
@@ -111,7 +111,7 @@ export function PactDetailDialog({
               </dt>
               <dd
                 className={cn(
-                  "font-mono text-xl font-bold",
+                  "font-display text-xl",
                   stat.accent && "text-primary",
                 )}
               >
@@ -125,7 +125,7 @@ export function PactDetailDialog({
         </dl>
 
         {pact.cells.length > 0 ? (
-          <section className="flex flex-col gap-2.5 rounded-[20px] border border-white/8 bg-card p-3.5">
+          <section className="flex flex-col gap-2.5 rounded-[20px] border border-foreground/8 bg-card p-3.5">
             <div className="flex items-center justify-between gap-2">
               <h3 className="font-semibold">
                 {t("calendar", { days: pact.days })}
@@ -169,15 +169,15 @@ export function PactDetailDialog({
                       cell.me && cell.them
                         ? "bg-primary/12"
                         : cell.state === "future"
-                          ? "bg-white/3 text-muted-foreground"
-                          : "bg-white/5",
+                          ? "bg-foreground/3 text-muted-foreground"
+                          : "bg-foreground/5",
                       cell.state === "today" &&
                         "ring-2 ring-primary ring-inset",
                     )}
                   >
                     <span
                       aria-hidden="true"
-                      className="font-mono text-xs font-bold"
+                      className="text-xs font-bold tabular-nums"
                     >
                       {date(cell.day, { day: "numeric" })}
                     </span>
@@ -185,13 +185,17 @@ export function PactDetailDialog({
                       <span
                         className={cn(
                           "size-1.5 rounded-full",
-                          cell.me ? "bg-primary" : "border border-white/25",
+                          cell.me
+                            ? "bg-primary"
+                            : "border border-foreground/25",
                         )}
                       />
                       <span
                         className={cn(
                           "size-1.5 rounded-full",
-                          cell.them ? "bg-silver" : "border border-white/25",
+                          cell.them
+                            ? "bg-silver"
+                            : "border border-foreground/25",
                         )}
                       />
                     </span>

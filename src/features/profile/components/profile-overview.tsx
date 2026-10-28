@@ -44,7 +44,7 @@ export async function ProfileOverview({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-5 border-t border-white/8 pt-6">
+      <div className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
         <div className="flex items-center gap-4 sm:gap-5">
           {/* L'anneau autour de la photo (ou de l'initiale) avance avec le niveau */}
           <ProgressRing
@@ -105,7 +105,7 @@ export async function ProfileOverview({
               <span className="text-sm font-medium text-muted-foreground">
                 {t("ranked.badge")}
               </span>
-              <span className="font-mono text-sm font-bold text-primary">
+              <span className="text-sm font-bold text-primary tabular-nums">
                 {tXp("xp", { xp: xp.total })}
               </span>
             </p>
@@ -125,7 +125,7 @@ export async function ProfileOverview({
                 <span className="font-heading text-xl font-bold">
                   {tXp("level", { level: level.level })}
                 </span>
-                <span className="font-mono text-sm font-bold text-primary">
+                <span className="text-sm font-bold text-primary tabular-nums">
                   {tXp("xp", { xp: xp.total })}
                 </span>
               </p>

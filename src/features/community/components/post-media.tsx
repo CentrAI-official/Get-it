@@ -171,7 +171,7 @@ export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
                 width={image.width}
                 height={image.height}
                 className={cn(
-                  "size-full bg-white/5 object-cover",
+                  "size-full bg-foreground/5 object-cover",
                   images.length === 1
                     ? "max-h-[70dvh] object-contain"
                     : "aspect-square",
@@ -189,7 +189,7 @@ export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
       >
         <DialogContent
           closeLabel={t("close")}
-          className="flex h-[calc(100dvh-2rem)] max-w-[calc(100%-1rem)] flex-col items-center justify-center gap-3 border-0 bg-black/95 p-2 sm:max-w-4xl"
+          className="dark flex h-[calc(100dvh-2rem)] max-w-[calc(100%-1rem)] flex-col items-center justify-center gap-3 border-0 bg-black/95 p-2 sm:max-w-4xl"
         >
           <DialogTitle className="sr-only">
             {t("open", { index: (open ?? 0) + 1, total: images.length })}
@@ -217,11 +217,11 @@ export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
                       : (index - 1 + images.length) % images.length,
                   )
                 }
-                className="flex size-11 items-center justify-center rounded-full bg-white/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex size-11 items-center justify-center rounded-full bg-foreground/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <ChevronLeft aria-hidden="true" />
               </button>
-              <span className="font-mono text-sm">
+              <span className="text-sm tabular-nums">
                 {(open ?? 0) + 1}/{images.length}
               </span>
               <button
@@ -232,7 +232,7 @@ export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
                     index === null ? 0 : (index + 1) % images.length,
                   )
                 }
-                className="flex size-11 items-center justify-center rounded-full bg-white/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="flex size-11 items-center justify-center rounded-full bg-foreground/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 <ChevronRight aria-hidden="true" />
               </button>

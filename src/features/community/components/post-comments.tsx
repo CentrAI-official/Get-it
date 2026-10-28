@@ -98,7 +98,7 @@ export function PostComments({
   }
 
   return (
-    <div className="flex flex-col gap-3 border-t border-white/5 pt-3">
+    <div className="flex flex-col gap-3 border-t border-foreground/5 pt-3">
       {comments === null ? (
         <p
           role="status"
@@ -114,7 +114,7 @@ export function PostComments({
           {comments.map((comment) => (
             <li
               key={comment.id}
-              className="flex items-start gap-2 rounded-2xl bg-white/[0.04] px-3 py-2"
+              className="flex items-start gap-2 rounded-2xl bg-foreground/[0.04] px-3 py-2"
             >
               {comment.author.username ? (
                 <Link

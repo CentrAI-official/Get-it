@@ -103,7 +103,7 @@ export function NewMessage() {
                     type="button"
                     disabled={pending}
                     onClick={() => open(person)}
-                    className="flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
+                    className="flex w-full items-center gap-3 rounded-2xl p-3 text-left transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
                   >
                     <Avatar
                       name={name}
@@ -120,7 +120,7 @@ export function NewMessage() {
                       </span>
                     </span>
                     {person.contact ? (
-                      <span className="shrink-0 rounded-full bg-white/6 px-2.5 py-1 text-xs text-muted-foreground">
+                      <span className="shrink-0 rounded-full bg-foreground/6 px-2.5 py-1 text-xs text-muted-foreground">
                         {t("contact")}
                       </span>
                     ) : null}

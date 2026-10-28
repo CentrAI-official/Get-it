@@ -62,7 +62,7 @@ export function CalendarDay({
             key={group.moment ?? "none"}
             className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2.5"
           >
-            <h5 className="flex items-start gap-1.5 pt-3.5 font-mono text-[11px] tracking-wide text-muted-foreground uppercase">
+            <h5 className="flex items-start gap-1.5 pt-3.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
               <Icon aria-hidden="true" className="size-3.5 shrink-0" />
               <span className="break-words">
                 {t(`moments.${group.moment ?? "none"}`)}
@@ -245,7 +245,7 @@ function DayItem({
               "flex size-11 shrink-0 items-center justify-center rounded-full border-2 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               done
                 ? "border-primary bg-primary text-primary-foreground glow-primary"
-                : "border-white/30",
+                : "border-foreground/30",
             )}
           >
             {done ? (

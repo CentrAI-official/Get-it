@@ -23,7 +23,7 @@ const chip =
   "rounded-full border px-3.5 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const chipOn = "border-primary bg-primary/15 text-foreground";
 const chipOff =
-  "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground";
+  "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground";
 
 type Values = Record<string, unknown>;
 
@@ -428,7 +428,7 @@ export function Questionnaire({
                   aria-checked={value === score}
                   onClick={() => set(field.id, score)}
                   className={cn(
-                    "h-11 rounded-xl border font-mono font-bold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "h-11 rounded-xl border font-bold tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                     value === score ? chipOn : chipOff,
                   )}
                 >
@@ -495,12 +495,12 @@ export function Questionnaire({
           aria-labelledby={`${id}-${section.id}`}
           className={cn(
             "flex flex-col gap-6",
-            index > 0 && "border-t border-white/8 pt-6",
+            index > 0 && "border-t border-foreground/8 pt-6",
           )}
         >
           <h2
             id={`${id}-${section.id}`}
-            className="font-heading text-lg font-bold"
+            className="caps-label text-muted-foreground"
           >
             {t(`sections.${kind}.${section.id}` as "sections.physical.goal")}
           </h2>
@@ -512,7 +512,7 @@ export function Questionnaire({
         </section>
       ))}
 
-      <div className="flex flex-col gap-4 border-t border-white/8 pt-6">
+      <div className="flex flex-col gap-4 border-t border-foreground/8 pt-6">
         <label className="flex items-start gap-3 text-sm">
           <Checkbox
             checked={consent}
@@ -611,7 +611,7 @@ function UnitToggle<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex rounded-full border border-white/10 p-0.5"
+      className="flex rounded-full border border-foreground/10 p-0.5"
     >
       {units.map((unit) => (
         <button

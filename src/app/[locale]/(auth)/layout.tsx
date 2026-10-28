@@ -17,12 +17,12 @@ export default function AuthLayout({ children }: LayoutProps<"/[locale]">) {
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-[1.1fr_1fr]">
-      {/* Même fond que l'application : halos orange et quadrillage */}
+      {/* Même fond que l'application */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10 bg-app"
       />
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-white/5 bg-white/[0.015] p-10 lg:flex xl:p-14">
+      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-foreground/5 bg-foreground/[0.015] p-10 lg:flex xl:p-14">
         <Link
           href="/"
           aria-label={t("Common.homeLink")}
@@ -32,7 +32,7 @@ export default function AuthLayout({ children }: LayoutProps<"/[locale]">) {
         </Link>
         <div className="relative flex max-w-lg flex-col gap-6">
           <OrbitMark className="-ml-4 w-60 xl:w-72" />
-          <p className="text-gradient-silver font-heading text-4xl leading-tight font-bold tracking-tight text-balance xl:text-5xl">
+          <p className="text-gradient-silver font-display text-5xl leading-[0.95] text-balance uppercase xl:text-6xl">
             {t("Auth.brand.title")}
           </p>
           <p className="text-lg text-pretty text-muted-foreground">
@@ -44,7 +44,7 @@ export default function AuthLayout({ children }: LayoutProps<"/[locale]">) {
               return (
                 <li
                   key={pillar}
-                  className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-sm font-medium"
+                  className="flex items-center gap-2 rounded-full border border-foreground/10 bg-foreground/5 px-3.5 py-2 text-sm font-medium"
                 >
                   <Icon aria-hidden="true" className="size-4 text-silver" />
                   {t(`Pillars.${pillar}.name`)}

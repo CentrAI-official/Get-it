@@ -168,7 +168,7 @@ export function PostCard({
   return (
     <article
       aria-labelledby={`post-${post.id}`}
-      className="flex flex-col gap-3 border-t border-white/8 pt-5"
+      className="flex flex-col gap-3 border-t border-foreground/8 pt-5"
     >
       <header className="flex items-start gap-3">
         {/* La photo et le nom mènent au profil public de l'auteur */}
@@ -208,7 +208,7 @@ export function PostCard({
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             {post.author.level === null ? null : (
               <>
-                <span className="font-mono">
+                <span className="tabular-nums">
                   {t("level", { level: post.author.level })}
                 </span>
                 <span aria-hidden="true">·</span>
@@ -324,12 +324,12 @@ export function PostCard({
       {post.kind === "question" || post.pillar ? (
         <div className="flex flex-wrap gap-2">
           {post.kind === "question" ? (
-            <span className="rounded-full bg-white/8 px-2.5 py-1 text-xs font-medium">
+            <span className="rounded-full bg-foreground/8 px-2.5 py-1 text-xs font-medium">
               {t("question")}
             </span>
           ) : null}
           {post.pillar ? (
-            <span className="rounded-full border border-white/10 px-2.5 py-1 text-xs text-muted-foreground">
+            <span className="rounded-full border border-foreground/10 px-2.5 py-1 text-xs text-muted-foreground">
               {tPillars(`${post.pillar}.name`)}
             </span>
           ) : null}
@@ -366,7 +366,7 @@ export function PostCard({
                   className="absolute bottom-3 left-3 max-w-[calc(100%-6rem)]"
                 />
               ) : null}
-              <div className="absolute right-3 bottom-3 flex flex-col items-center gap-3 font-mono text-xs font-bold [text-shadow:0_1px_3px_rgb(0_0_0/0.8)]">
+              <div className="dark absolute right-3 bottom-3 flex flex-col items-center gap-3 text-xs font-bold tabular-nums [text-shadow:0_1px_3px_rgb(0_0_0/0.8)]">
                 {post.mine ? (
                   <span className="flex flex-col items-center gap-1">
                     <span className="flex size-12 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm">
@@ -443,7 +443,7 @@ export function PostCard({
           >
             <HandHeart aria-hidden="true" />
             {t("bravo")}
-            <span className="font-mono">{reaction.count}</span>
+            <span className="tabular-nums">{reaction.count}</span>
           </Button>
         )}
         {photos ? null : (

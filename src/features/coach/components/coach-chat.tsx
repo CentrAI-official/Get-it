@@ -250,7 +250,7 @@ export function CoachChat({
         aria-labelledby="coach-title"
         className="flex min-h-[60dvh] flex-col"
       >
-        <div className="flex items-center justify-between gap-3 border-b border-white/8 py-3">
+        <div className="flex items-center justify-between gap-3 border-b border-foreground/8 py-3">
           <h2
             id="coach-title"
             className="flex items-center gap-2.5 font-heading font-bold"
@@ -294,7 +294,7 @@ export function CoachChat({
                       type="button"
                       disabled={limitReached}
                       onClick={() => void send(t(`suggestions.${key}`))}
-                      className="flex h-full w-full items-center rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm transition-colors outline-none hover:border-primary/40 hover:bg-white/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
+                      className="flex h-full w-full items-center rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-4 py-3 text-left text-sm transition-colors outline-none hover:border-primary/40 hover:bg-foreground/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50"
                     >
                       {t(`suggestions.${key}`)}
                     </button>
@@ -308,7 +308,7 @@ export function CoachChat({
                 <div
                   key={message.id}
                   data-message="user"
-                  className="ml-auto max-w-[85%] rounded-3xl rounded-br-lg bg-white/8 px-4 py-2.5 break-words whitespace-pre-wrap"
+                  className="ml-auto max-w-[85%] rounded-3xl rounded-br-lg bg-foreground/8 px-4 py-2.5 break-words whitespace-pre-wrap"
                 >
                   <span className="sr-only">{t("you")}</span>
                   {message.content}
@@ -380,7 +380,7 @@ export function CoachChat({
         {/* Zone de saisie : reste visible au-dessus de la barre flottante */}
         <form
           onSubmit={onSubmit}
-          className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-white/8 bg-background/95 py-3 backdrop-blur-xl lg:bottom-4"
+          className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-foreground/8 bg-background/95 py-3 backdrop-blur-xl lg:bottom-4"
         >
           {error ? (
             <p
@@ -440,7 +440,7 @@ export function CoachChat({
               {t("remaining", { count: remaining })}
             </span>
             {draft.length > COACH_MESSAGE_MAX_LENGTH - 200 ? (
-              <span className="font-mono">
+              <span className="tabular-nums">
                 {t("length", {
                   count: draft.length,
                   max: COACH_MESSAGE_MAX_LENGTH,

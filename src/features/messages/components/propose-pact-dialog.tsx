@@ -38,7 +38,7 @@ const chip =
   "h-11 flex-1 rounded-full border text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const chipOn = "border-primary bg-primary/15 text-foreground";
 const chipOff =
-  "border-white/12 bg-white/[0.03] text-muted-foreground hover:text-foreground";
+  "border-foreground/12 bg-foreground/[0.03] text-muted-foreground hover:text-foreground";
 
 /** Proposer un pacte : le défi, la durée, son habitude et la règle de réussite. */
 export function ProposePactDialog({
@@ -209,7 +209,7 @@ function ProposeForm({
                   "flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                   habitId === habit.id
                     ? "border-primary bg-primary/10"
-                    : "border-white/12 bg-white/[0.03] hover:bg-white/[0.06]",
+                    : "border-foreground/12 bg-foreground/[0.03] hover:bg-foreground/[0.06]",
                 )}
               >
                 <span
@@ -218,7 +218,7 @@ function ProposeForm({
                     "size-4.5 shrink-0 rounded-full",
                     habitId === habit.id
                       ? "border-5 border-primary"
-                      : "border-2 border-white/30",
+                      : "border-2 border-foreground/30",
                   )}
                 />
                 <span className="flex min-w-0 flex-col">
@@ -256,7 +256,7 @@ function ProposeForm({
                 "flex flex-col gap-0.5 rounded-2xl border p-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 rule === value
                   ? "border-primary bg-primary/10"
-                  : "border-white/12 bg-white/[0.03] hover:bg-white/[0.06]",
+                  : "border-foreground/12 bg-foreground/[0.03] hover:bg-foreground/[0.06]",
               )}
             >
               <span className="text-sm font-semibold">
@@ -273,7 +273,7 @@ function ProposeForm({
             need: pactNeed(days, rule),
             days,
             strong: (chunks) => (
-              <strong className="font-mono text-primary">{chunks}</strong>
+              <strong className="text-primary tabular-nums">{chunks}</strong>
             ),
           })}
         </p>

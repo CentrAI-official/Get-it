@@ -6,7 +6,7 @@ export default function MarketingLayout({
 }: LayoutProps<"/[locale]">) {
   return (
     <>
-      {/* Même fond que l'application : halos orange et quadrillage */}
+      {/* Même fond que l'application */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10 bg-app"

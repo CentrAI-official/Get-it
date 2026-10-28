@@ -53,7 +53,7 @@ const chip =
   "rounded-full border px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const chipOn = "border-primary bg-primary/15 text-foreground";
 const chipOff =
-  "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground";
+  "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground";
 
 /**
  * Barre discrète (« Quoi de neuf, Max? »), qui ouvre le formulaire complet :
@@ -90,7 +90,7 @@ export function PostComposer({
         <button
           type="button"
           onClick={() => start("post")}
-          className="h-10 min-w-0 flex-1 truncate rounded-full border border-white/10 bg-white/[0.04] px-4 text-left text-sm text-muted-foreground transition-colors outline-none hover:bg-white/[0.07] focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="h-10 min-w-0 flex-1 truncate rounded-full border border-foreground/10 bg-foreground/[0.04] px-4 text-left text-sm text-muted-foreground transition-colors outline-none hover:bg-foreground/[0.07] focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           {t("prompt", { name })}
         </button>
@@ -289,7 +289,7 @@ function PostForm({
         </p>
       ) : null}
       <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {t("length", { count: length, max: POST_MAX_LENGTH })}
         </span>
         <Button type="submit" disabled={pending || !media.ready}>

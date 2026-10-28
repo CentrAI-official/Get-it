@@ -51,7 +51,7 @@ const choice =
   "rounded-full border px-3.5 py-2 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const choiceOn = "border-primary bg-primary/15 text-foreground";
 const choiceOff =
-  "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground";
+  "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground";
 
 function Choices<T extends string>({
   label,
@@ -384,8 +384,8 @@ export function ListingForm({
       </section>
 
       {/* Prix */}
-      <section className="flex flex-col gap-5 border-t border-white/8 pt-6">
-        <h2 className="font-heading text-lg font-bold">
+      <section className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
+        <h2 className="caps-label text-muted-foreground">
           {t("form.priceTitle")}
         </h2>
         <div className="grid grid-cols-2 gap-3">
@@ -430,7 +430,7 @@ export function ListingForm({
       </section>
 
       {service ? (
-        <section className="flex flex-col gap-5 border-t border-white/8 pt-6">
+        <section className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
           <Choices
             label={t("form.regions")}
             options={REGIONS}
@@ -456,8 +456,10 @@ export function ListingForm({
       ) : null}
 
       {photosEnabled ? (
-        <section className="flex flex-col gap-3 border-t border-white/8 pt-6">
-          <h2 className="font-heading text-lg font-bold">{t("form.photos")}</h2>
+        <section className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
+          <h2 className="caps-label text-muted-foreground">
+            {t("form.photos")}
+          </h2>
           <MediaPicker
             items={media.items}
             onAdd={media.add}
@@ -474,8 +476,8 @@ export function ListingForm({
       ) : null}
 
       {/* Liens publics */}
-      <section className="flex flex-col gap-5 border-t border-white/8 pt-6">
-        <h2 className="font-heading text-lg font-bold">
+      <section className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
+        <h2 className="caps-label text-muted-foreground">
           {t("form.linksTitle")}
         </h2>
         <TextField
@@ -507,9 +509,9 @@ export function ListingForm({
       </section>
 
       {/* Réservé à l'équipe Get iT */}
-      <section className="flex flex-col gap-5 border-t border-white/8 pt-6">
+      <section className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
         <div className="flex flex-col gap-1">
-          <h2 className="font-heading text-lg font-bold">
+          <h2 className="caps-label text-muted-foreground">
             {t("form.privateTitle")}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -541,7 +543,7 @@ export function ListingForm({
         </TextField>
       </section>
 
-      <div className="flex flex-col gap-3 border-t border-white/8 pt-6">
+      <div className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
         <p className="text-sm text-muted-foreground">
           {t("form.reviewNotice")}
         </p>

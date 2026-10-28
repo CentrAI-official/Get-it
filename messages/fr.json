@@ -256,6 +256,13 @@
         "title": "Langue",
         "description": "Choisis la langue de l’interface. Elle est enregistrée dans ton compte et te suit sur tous tes appareils."
       },
+      "theme": {
+        "title": "Thème",
+        "description": "Clair ou sombre, ou selon le réglage de ton appareil. Il est enregistré dans ton compte et te suit sur tous tes appareils.",
+        "system": "Selon l’appareil",
+        "light": "Clair",
+        "dark": "Sombre"
+      },
       "account": {
         "title": "Compte",
         "description": "L’adresse courriel avec laquelle tu te connectes.",
@@ -732,21 +739,7 @@
       "close": "Fermer",
       "start": "C’est parti",
       "profileLink": "Voir ma progression",
-      "goals": {
-        "title": "Tes objectifs",
-        "all": "Tout voir",
-        "empty": "Aucun objectif en cours.",
-        "create": "Créer un objectif",
-        "meta": "{pillar} · {done, number}/{total, number} jalons",
-        "nextMilestone": "Prochain jalon : {title}",
-        "reached": "Objectif atteint",
-        "confirm": "Marquer « {title} » comme atteint? Tu gagnes {xp, number} XP.",
-        "confirmAction": "Confirmer",
-        "cancel": "Annuler",
-        "achieved": "Objectif atteint : {title}",
-        "share": "Partager dans le Centre"
-      },
-      "cardDescription": "Coche tes habitudes, tes tâches et tes jalons du jour.",
+      "cardDescription": "Coche tes habitudes et tes tâches du jour.",
       "cardProgress": "{done, number} sur {total, number} quêtes faites aujourd’hui"
     },
     "system": {
@@ -769,10 +762,9 @@
       "withGoal": "{meta} · {goal}",
       "saving": "Enregistrement…",
       "allDone": "Tout est fait pour aujourd’hui. Bravo!",
-      "empty": "Rien de prévu aujourd’hui. Ajoute une tâche ci-dessous ou crée une habitude pour te lancer.",
+      "empty": "Rien de prévu aujourd’hui. Ajoute une tâche ci-dessous, ou une habitude dans Profil › Habitudes.",
       "emptyFiltered": "Aucune quête du pilier {pillar} aujourd’hui.",
       "showAll": "Voir toutes les quêtes",
-      "createHabit": "Créer une habitude",
       "xpReward": "+{xp, number} XP",
       "xpEarned": "{xp, number} XP",
       "withStreak": "{meta} · série de {count, number} j",

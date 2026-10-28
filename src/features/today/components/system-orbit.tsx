@@ -45,7 +45,7 @@ export function SystemOrbit({
     <section
       aria-labelledby="system-title"
       className={cn(
-        "flex flex-col gap-2 border-t border-white/8 pt-6",
+        "flex flex-col gap-2 border-t border-foreground/8 pt-6",
         className,
       )}
     >
@@ -72,7 +72,7 @@ export function SystemOrbit({
           style={{ background: ringBackground(ratio(day)) }}
         >
           <div className="flex size-full flex-col items-center justify-center gap-[0.6cqw] rounded-full bg-card">
-            <span className="font-mono text-[length:8.6cqw] leading-none font-bold">
+            <span className="font-display text-[length:8.6cqw] leading-none">
               {day.total > 0 ? <PercentValue part={ratio(day)} /> : "—"}
             </span>
             <span className="text-[length:3cqw] tracking-[0.12em] text-muted-foreground uppercase">
@@ -123,7 +123,7 @@ export function SystemOrbit({
             >
               <span
                 className={cn(
-                  "flex size-full items-center justify-center rounded-full font-mono text-[length:4.6cqw] leading-none font-bold text-foreground",
+                  "flex size-full items-center justify-center rounded-full font-display text-[length:4.6cqw] leading-none text-foreground",
                   selected ? "orb-active" : "orb",
                 )}
               >

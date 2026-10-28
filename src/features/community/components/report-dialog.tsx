@@ -91,7 +91,7 @@ export function ReportDialog({
             <RadioGroupPrimitive.Item
               key={value}
               value={value}
-              className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-white/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/10"
+              className="rounded-xl border border-foreground/10 bg-foreground/[0.03] px-3 py-2 text-left text-sm transition-colors outline-none hover:bg-foreground/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/10"
             >
               {t(`reasons.${value}`)}
             </RadioGroupPrimitive.Item>

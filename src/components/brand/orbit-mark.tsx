@@ -16,7 +16,7 @@ const RADIUS = 38;
 export function OrbitMark({ className }: { className?: string }) {
   return (
     <div aria-hidden="true" className={cn("relative aspect-square", className)}>
-      <div className="absolute inset-[12%] rounded-full border border-dashed border-white/10" />
+      <div className="absolute inset-[12%] rounded-full border border-dashed border-foreground/10" />
       <div className="absolute inset-[30%] rounded-full border border-primary/20" />
       <div className="absolute inset-[12%] motion-safe:animate-orbit">
         <span className="absolute top-0 left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary shadow-[0_0_12px_var(--primary)]" />
@@ -33,7 +33,7 @@ export function OrbitMark({ className }: { className?: string }) {
         return (
           <span
             key={pillar}
-            className="absolute flex size-[19%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 orb text-silver"
+            className="absolute flex size-[19%] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-foreground/10 orb text-silver"
             style={{
               left: `${50 + RADIUS * Math.cos(angle)}%`,
               top: `${50 + RADIUS * Math.sin(angle)}%`,

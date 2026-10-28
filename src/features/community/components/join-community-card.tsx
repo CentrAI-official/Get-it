@@ -75,7 +75,7 @@ export function JoinCommunityCard() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-white/8 pt-5">
+        <div className="flex flex-col gap-3 border-t border-foreground/8 pt-5">
           <h3 className="flex items-center gap-2 font-semibold">
             <ShieldCheck aria-hidden="true" className="size-4 text-silver" />
             {t("rulesTitle")}

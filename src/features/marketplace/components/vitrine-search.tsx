@@ -35,7 +35,7 @@ export function VitrineSearch({
         event.preventDefault();
         go(value);
       }}
-      className="flex h-14 items-center gap-3 rounded-full border border-white/12 bg-white/[0.04] pr-2 pl-5 shadow-[0_8px_24px_rgb(0_0_0/0.35)] focus-within:ring-3 focus-within:ring-ring/50"
+      className="flex h-14 items-center gap-3 rounded-full border border-foreground/12 bg-foreground/[0.04] pr-2 pl-5 shadow-[0_8px_24px_rgb(0_0_0/0.08)] focus-within:ring-3 focus-within:ring-ring/50 dark:shadow-[0_8px_24px_rgb(0_0_0/0.35)]"
     >
       <Search aria-hidden="true" className="size-5 shrink-0 text-foreground" />
       <label htmlFor={`${id}-q`} className="sr-only">

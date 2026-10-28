@@ -16,7 +16,7 @@ export function FinalCta() {
         <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-5">
           <h2
             id="cta-title"
-            className="text-gradient-silver font-heading text-3xl font-bold tracking-tight text-balance sm:text-5xl"
+            className="text-gradient-silver font-display text-4xl leading-[0.95] text-balance uppercase sm:text-6xl"
           >
             {t("title")}
           </h2>

@@ -62,7 +62,7 @@ export async function DevelopmentHub() {
       >
         <h2
           id="development-calendar"
-          className="font-heading text-lg font-bold"
+          className="caps-label text-muted-foreground"
         >
           {t("calendar.title")}
         </h2>
@@ -93,7 +93,7 @@ export async function DevelopmentHub() {
                         })
                       : plan.title
                   }
-                  className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-white/[0.06] px-3.5 text-sm font-semibold outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-foreground/[0.06] px-3.5 text-sm font-semibold outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <span
                     aria-hidden="true"
@@ -103,7 +103,7 @@ export async function DevelopmentHub() {
                   {progress ? (
                     <span
                       aria-hidden="true"
-                      className="font-mono text-xs text-muted-foreground"
+                      className="text-xs text-muted-foreground tabular-nums"
                     >
                       {t("calendar.planWeek", {
                         week: progress.week,
@@ -119,9 +119,9 @@ export async function DevelopmentHub() {
       </section>
       <section
         aria-labelledby="development-plans"
-        className="flex flex-col gap-2 border-t border-white/8 pt-6"
+        className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
       >
-        <h2 id="development-plans" className="font-heading text-lg font-bold">
+        <h2 id="development-plans" className="caps-label text-muted-foreground">
           {t("hub.plansTitle")}
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -137,13 +137,13 @@ export async function DevelopmentHub() {
                 key={kind}
                 className={
                   kind === "business"
-                    ? "border-b border-white/8 pl-8"
-                    : "border-b border-white/8"
+                    ? "border-b border-foreground/8 pl-8"
+                    : "border-b border-foreground/8"
                 }
               >
                 <Link
                   href={`/services/${kind}`}
-                  className="-mx-3 flex items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="-mx-3 flex items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb">
                     <Icon aria-hidden="true" className="size-5 text-silver" />
@@ -184,7 +184,7 @@ export async function DevelopmentHub() {
 
       <section
         aria-labelledby="development-pros"
-        className="flex flex-col gap-3 border-t border-white/8 pt-6"
+        className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
       >
         <h2
           id="development-pros"

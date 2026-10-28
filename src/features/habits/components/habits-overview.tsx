@@ -29,7 +29,7 @@ export async function HabitsOverview() {
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="habits-active" className="flex flex-col gap-4">
-        <h2 id="habits-active" className="font-heading text-lg font-bold">
+        <h2 id="habits-active" className="caps-label text-muted-foreground">
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
@@ -54,7 +54,7 @@ export async function HabitsOverview() {
               return (
                 <li
                   key={habit.id}
-                  className="flex flex-wrap items-center gap-3 border-b border-white/8 py-3"
+                  className="flex flex-wrap items-center gap-3 border-b border-foreground/8 py-3"
                 >
                   <Icon
                     aria-hidden="true"

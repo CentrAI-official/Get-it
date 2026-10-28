@@ -23,7 +23,7 @@ export function HowItWorks() {
     <section
       id="how"
       aria-labelledby="how-title"
-      className="scroll-mt-20 border-t border-white/5"
+      className="scroll-mt-20 border-t border-foreground/5"
     >
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
         <SectionHeading
@@ -35,7 +35,7 @@ export function HowItWorks() {
           {STEPS.map(({ key, icon: Icon }, index) => (
             <li key={key} className="flex flex-col gap-4 rounded-3xl glass p-6">
               <div className="flex items-center justify-between">
-                <span className="flex size-9 items-center justify-center rounded-full bg-primary font-mono font-bold text-primary-foreground glow-primary">
+                <span className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-primary-foreground tabular-nums glow-primary">
                   {index + 1}
                 </span>
                 <Icon aria-hidden="true" className="size-5 text-silver" />

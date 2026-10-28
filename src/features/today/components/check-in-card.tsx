@@ -26,11 +26,11 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
     <section
       id="check-in"
       aria-labelledby="check-in-title"
-      className="flex scroll-mt-24 flex-col gap-4 border-t border-white/8 pt-6"
+      className="flex scroll-mt-24 flex-col gap-4 border-t border-foreground/8 pt-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h2 id="check-in-title" className="font-heading text-lg font-bold">
+          <h2 id="check-in-title" className="caps-label text-muted-foreground">
             {t("title")}
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -54,7 +54,7 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
           </Button>
         ) : saved === null ? (
           // Le premier check-in du jour rapporte de l'XP
-          <span className="shrink-0 rounded-lg bg-primary/12 px-2 py-1 font-mono text-xs font-bold text-primary">
+          <span className="shrink-0 rounded-lg bg-primary/12 px-2 py-1 text-xs font-bold text-primary tabular-nums">
             {tQuests("xpReward", { xp: XP_REWARDS.checkIn })}
           </span>
         ) : null}
@@ -65,12 +65,12 @@ export function CheckInCard({ saved }: { saved: CheckInScores | null }) {
           {CHECK_IN_METRICS.map((metric) => (
             <div
               key={metric}
-              className="flex flex-col gap-0.5 rounded-xl bg-white/5 px-3 py-2"
+              className="flex flex-col gap-0.5 rounded-xl bg-foreground/5 px-3 py-2"
             >
               <dt className="text-xs text-muted-foreground">
                 {t(`metrics.${metric}`)}
               </dt>
-              <dd className="font-mono text-lg font-bold">
+              <dd className="font-display text-lg">
                 {t("score", { score: saved[metric] })}
               </dd>
             </div>
@@ -145,7 +145,7 @@ function CheckInForm({ saved, onSaved, onCancel }: CheckInFormProps) {
                     metric: t(`metrics.${metric}`),
                     score,
                   })}
-                  className="h-10 rounded-xl border border-white/10 bg-white/[0.03] font-mono font-bold text-muted-foreground transition-colors outline-none hover:bg-white/[0.08] hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
+                  className="h-10 rounded-xl border border-foreground/10 bg-foreground/[0.03] font-bold text-muted-foreground tabular-nums transition-colors outline-none hover:bg-foreground/[0.08] hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
                 >
                   {score}
                 </RadioGroupPrimitive.Item>

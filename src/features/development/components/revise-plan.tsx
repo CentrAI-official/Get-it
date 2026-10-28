@@ -49,7 +49,7 @@ export function RevisePlan({
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className="flex flex-col gap-3 border-t border-white/8 pt-6"
+      className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
     >
       <div className="flex flex-col gap-1">
         <h3 id={`${id}-title`} className="font-heading text-lg font-bold">

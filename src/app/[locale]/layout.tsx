@@ -1,20 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Anton, Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { siteConfig } from "@/config/site";
+import { THEME_COLORS } from "@/config/theme";
+import { ThemeScript } from "@/components/theme-script";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 import "../globals.css";
 
-// Identité « Command Center » : Space Grotesk pour le texte, JetBrains Mono pour les chiffres
-const spaceGrotesk = Space_Grotesk({
+// Inter pour le texte ; Anton (étroite et grasse) pour les titres en majuscules et les grands chiffres
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-inter",
 });
-const jetbrainsMono = JetBrains_Mono({
+const anton = Anton({
   subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
+  weight: "400",
+  variable: "--font-anton",
 });
 
 // Requis par Cache Components : chaque langue est prérendue au build
@@ -34,8 +37,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: siteConfig.themeColor,
-  colorScheme: "dark",
+  // Barre du navigateur : le fond du thème (ajustée par ThemeScript si le choix diffère de l'appareil)
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: THEME_COLORS.light },
+    { media: "(prefers-color-scheme: dark)", color: THEME_COLORS.dark },
+  ],
+  colorScheme: "light dark",
   viewportFit: "cover",
 };
 
@@ -48,11 +55,14 @@ export default async function LocaleLayout({
   return (
     <html
       lang={locale}
-      className={cn("dark", spaceGrotesk.variable, jetbrainsMono.variable)}
+      className={cn(inter.variable, anton.variable)}
+      // ThemeScript ajoute « dark » avant l'affichage : différence attendue avec le serveur
+      suppressHydrationWarning
       // Défilement doux (globals.css) désactivé pendant les changements de page
       data-scroll-behavior="smooth"
     >
       <body className="min-h-dvh">
+        <ThemeScript />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"

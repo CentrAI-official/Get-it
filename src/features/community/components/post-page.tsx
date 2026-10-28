@@ -51,7 +51,7 @@ export async function PostPageLoader({ postId }: { postId: string }) {
 
 export function PostPageSkeleton() {
   return (
-    <div className="flex flex-col gap-3 border-t border-white/8 pt-5">
+    <div className="flex flex-col gap-3 border-t border-foreground/8 pt-5">
       <div className="flex items-center gap-3">
         <Skeleton className="size-10 rounded-full" />
         <Skeleton className="h-4 w-40" />

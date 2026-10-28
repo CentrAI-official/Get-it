@@ -26,7 +26,7 @@ export function ModerationQueue({ items }: { items: ReportedItem[] }) {
     );
   }
   return (
-    <ul className="flex flex-col divide-y divide-white/8">
+    <ul className="flex flex-col divide-y divide-foreground/8">
       {items.map((item) => (
         <li key={`${item.target.type}:${item.target.id}`}>
           <ReportedCard item={item} />
@@ -62,7 +62,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
           {item.author.displayName ?? handle}{" "}
           <span className="font-normal text-muted-foreground">{handle}</span>
         </h2>
-        <span className="font-mono text-xs text-muted-foreground">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {t("count", { count: item.reports.length })}
         </span>
       </div>
@@ -72,7 +72,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
         </p>
       ) : null}
       {item.body ? (
-        <blockquote className="border-l-2 border-white/15 pl-3 text-sm break-words whitespace-pre-wrap">
+        <blockquote className="border-l-2 border-foreground/15 pl-3 text-sm break-words whitespace-pre-wrap">
           {item.body}
         </blockquote>
       ) : null}
@@ -81,7 +81,7 @@ function ReportedCard({ item }: { item: ReportedItem }) {
         {[...counts].map(([reason, count]) => (
           <li
             key={reason}
-            className="rounded-full bg-white/8 px-2.5 py-1 text-xs"
+            className="rounded-full bg-foreground/8 px-2.5 py-1 text-xs"
           >
             {tReasons(reason as "spam")} × {count}
           </li>

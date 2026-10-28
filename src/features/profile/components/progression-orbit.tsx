@@ -107,7 +107,7 @@ export async function ProgressionOrbit({
             <span className="text-[length:3cqw] tracking-[0.12em] text-muted-foreground uppercase">
               {ranked ? t("rankedLabel") : t("levelLabel")}
             </span>
-            <span className="font-mono text-[length:10cqw] leading-none font-bold">
+            <span className="font-display text-[length:10cqw] leading-none">
               {center.level}
             </span>
           </div>
@@ -128,14 +128,14 @@ export async function ProgressionOrbit({
                 background: ringBackground(data.ring),
               }}
             >
-              <span className="flex size-full items-center justify-center rounded-full orb font-mono text-[length:4.6cqw] leading-none font-bold text-foreground">
+              <span className="flex size-full items-center justify-center rounded-full orb font-display text-[length:4.6cqw] leading-none text-foreground">
                 {data.value}
               </span>
               <span className="absolute top-full left-1/2 mt-[1.5cqw] flex -translate-x-1/2 flex-col items-center leading-tight whitespace-nowrap">
                 <span className="text-[length:max(11px,3.4cqw)] font-semibold text-foreground/80">
                   {tPillars(`${pillar}.name`)}
                 </span>
-                <span className="font-mono text-[length:max(10px,3cqw)] text-muted-foreground">
+                <span className="text-[length:max(10px,3cqw)] text-muted-foreground tabular-nums">
                   {data.caption}
                 </span>
               </span>

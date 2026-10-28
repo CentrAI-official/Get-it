@@ -22,7 +22,7 @@ export default function ErrorPage({ error, retry }: ErrorPageProps) {
       id="main"
       className="flex min-h-dvh flex-col items-center justify-center gap-5 px-4 text-center"
     >
-      <h1 className="font-heading text-3xl font-bold tracking-tight">
+      <h1 className="font-display text-4xl leading-[0.95] uppercase">
         {t("title")}
       </h1>
       <p className="max-w-md text-muted-foreground">{t("description")}</p>

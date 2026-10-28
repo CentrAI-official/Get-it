@@ -34,7 +34,7 @@ export async function MyPostsPanel({
     <div className="flex flex-col gap-5">
       <nav
         aria-label={t("tabsLabel")}
-        className="flex w-fit gap-0.5 rounded-full bg-white/5 p-1"
+        className="flex w-fit gap-0.5 rounded-full bg-foreground/5 p-1"
       >
         {(["mine", "saved"] as const).map((value) => (
           <Link
@@ -46,7 +46,7 @@ export async function MyPostsPanel({
             className={cn(
               "flex h-8 items-center rounded-full px-3.5 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               view === value
-                ? "bg-white/12 text-foreground"
+                ? "bg-foreground/12 text-foreground"
                 : "text-muted-foreground hover:text-foreground",
             )}
           >
@@ -82,7 +82,7 @@ export function MyPostsSkeleton() {
       {[0, 1].map((index) => (
         <div
           key={index}
-          className="flex flex-col gap-3 border-t border-white/8 pt-5"
+          className="flex flex-col gap-3 border-t border-foreground/8 pt-5"
         >
           <div className="flex items-center gap-3">
             <Skeleton className="size-10 rounded-full" />

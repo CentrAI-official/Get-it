@@ -25,7 +25,8 @@ import { GroupBadge } from "./group-badge";
 const choice =
   "flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const choiceOn = "border-primary bg-primary/10";
-const choiceOff = "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]";
+const choiceOff =
+  "border-foreground/10 bg-foreground/[0.03] hover:bg-foreground/[0.06]";
 
 const initial: GroupFormState = { status: "idle" };
 

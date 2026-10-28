@@ -61,7 +61,7 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
             className="relative rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {/* Colonnes : une par jour, 2 px d'air entre elles, 24 px au plus */}
-            <div className="flex h-40 items-end gap-0.5 border-b border-white/10">
+            <div className="flex h-40 items-end gap-0.5 border-b border-foreground/10">
               {days.map((item, index) => (
                 <div
                   key={item.day}
@@ -71,9 +71,9 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
                   <div
                     className={cn(
                       "w-full max-w-6 rounded-t-[4px] transition-[filter,background-color]",
-                      item.xp > 0 ? "bg-primary" : "bg-white/10",
+                      item.xp > 0 ? "bg-primary" : "bg-foreground/10",
                       active === index && "brightness-125",
-                      active === index && item.xp === 0 && "bg-white/25",
+                      active === index && item.xp === 0 && "bg-foreground/25",
                     )}
                     // Un jour sans XP garde une marque de 2 px : la cadence reste lisible
                     style={{
@@ -87,7 +87,7 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
             {activeDay && active !== null ? (
               <div
                 aria-hidden="true"
-                className="pointer-events-none absolute z-10 flex flex-col items-center rounded-xl border border-white/10 bg-popover px-3 py-1.5 whitespace-nowrap shadow-xl shadow-black/40"
+                className="pointer-events-none absolute z-10 flex flex-col items-center rounded-xl border border-foreground/10 bg-popover px-3 py-1.5 whitespace-nowrap shadow-xl shadow-black/40"
                 // Au-dessus de la colonne ; glisse vers l'intérieur aux bords pour ne pas déborder
                 style={{
                   left: `${((active + 0.5) / days.length) * 100}%`,
@@ -143,7 +143,7 @@ export function XpHistoryChart({ days }: XpHistoryChartProps) {
               </thead>
               <tbody>
                 {days.map((item) => (
-                  <tr key={item.day} className="border-t border-white/5">
+                  <tr key={item.day} className="border-t border-foreground/5">
                     <td className="py-1">{dateLabel(item.day)}</td>
                     <td className="py-1 text-right tabular-nums">
                       {format.number(item.xp)}

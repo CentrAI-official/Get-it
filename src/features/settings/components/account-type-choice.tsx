@@ -39,7 +39,7 @@ export function AccountTypeChoice({
       {ACCOUNT_TYPES.map((type) => (
         <label
           key={type}
-          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-colors hover:bg-white/[0.06] has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/10"
+          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-foreground/10 bg-foreground/[0.03] p-4 transition-colors hover:bg-foreground/[0.06] has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/10"
         >
           <RadioGroupItem value={type} className="mt-0.5" />
           <span className="flex flex-col gap-0.5">

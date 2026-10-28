@@ -32,7 +32,7 @@ export function AccountStep({ draft, update }: StepProps) {
               "flex flex-col items-start gap-2 rounded-2xl border p-4 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               checked
                 ? "border-primary bg-primary/15"
-                : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]",
+                : "border-foreground/10 bg-foreground/[0.03] hover:bg-foreground/[0.06]",
             )}
           >
             <Icon aria-hidden="true" className="size-5 text-primary" />

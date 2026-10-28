@@ -56,7 +56,7 @@ async function GroupRow({
 }) {
   const t = await getTranslations("Groups");
   return (
-    <li className="flex items-center gap-3 border-b border-white/8 py-3">
+    <li className="flex items-center gap-3 border-b border-foreground/8 py-3">
       <Link
         href={`/groups/${group.id}`}
         className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -124,11 +124,11 @@ export async function GroupsPanel({
       {mine.invitations.length > 0 ? (
         <section
           aria-labelledby="groups-invitations"
-          className="flex flex-col gap-2 border-t border-white/8 pt-6"
+          className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
         >
           <h2
             id="groups-invitations"
-            className="font-heading text-lg font-bold"
+            className="caps-label text-muted-foreground"
           >
             {t("invitations.title")}
           </h2>
@@ -146,9 +146,9 @@ export async function GroupsPanel({
 
       <section
         aria-labelledby="groups-mine"
-        className="flex flex-col gap-2 border-t border-white/8 pt-6"
+        className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
       >
-        <h2 id="groups-mine" className="font-heading text-lg font-bold">
+        <h2 id="groups-mine" className="caps-label text-muted-foreground">
           {t("mine.title")}
         </h2>
         {mine.groups.length > 0 ? (
@@ -164,9 +164,9 @@ export async function GroupsPanel({
 
       <section
         aria-labelledby="groups-discover"
-        className="flex flex-col gap-4 border-t border-white/8 pt-6"
+        className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
       >
-        <h2 id="groups-discover" className="font-heading text-lg font-bold">
+        <h2 id="groups-discover" className="caps-label text-muted-foreground">
           {t("discover.title")}
         </h2>
         <form role="search" className="flex gap-2">
@@ -187,7 +187,7 @@ export async function GroupsPanel({
               defaultValue={filters.q ?? ""}
               placeholder={t("discover.searchPlaceholder")}
               maxLength={60}
-              className="h-10 w-full rounded-full border border-white/12 bg-white/[0.03] pr-3 pl-10 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="h-10 w-full rounded-full border border-foreground/12 bg-foreground/[0.03] pr-3 pl-10 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             />
           </div>
           <Button type="submit" variant="outline" className="h-10">
@@ -209,7 +209,7 @@ export async function GroupsPanel({
                   chip,
                   active
                     ? "border-primary bg-primary/15 text-foreground"
-                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                    : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
                 )}
               >
                 {topic ? t(`topics.${topic}`) : t("discover.all")}
@@ -314,9 +314,9 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
       {group.visibility === "public" ? (
         <section
           aria-labelledby="group-forum"
-          className="flex flex-col gap-4 border-t border-white/8 pt-6"
+          className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
         >
-          <h2 id="group-forum" className="font-heading text-lg font-bold">
+          <h2 id="group-forum" className="caps-label text-muted-foreground">
             {t("forum.title")}
           </h2>
           {active && !member.suspendedUntil ? (
@@ -351,8 +351,10 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
           ) : null}
         </section>
       ) : active ? (
-        <section className="flex flex-col gap-2 border-t border-white/8 pt-6">
-          <h2 className="font-heading text-lg font-bold">{t("chat.title")}</h2>
+        <section className="flex flex-col gap-2 border-t border-foreground/8 pt-6">
+          <h2 className="caps-label text-muted-foreground">
+            {t("chat.title")}
+          </h2>
           <p className="text-sm text-muted-foreground">
             {t("chat.description")}
           </p>
@@ -362,9 +364,9 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
       {members ? (
         <section
           aria-labelledby="group-members"
-          className="flex flex-col gap-2 border-t border-white/8 pt-6"
+          className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
         >
-          <h2 id="group-members" className="font-heading text-lg font-bold">
+          <h2 id="group-members" className="caps-label text-muted-foreground">
             {t("memberList.title")}
           </h2>
           <ul className="flex flex-col">
@@ -373,7 +375,7 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
               return (
                 <li
                   key={person.id}
-                  className="flex items-center gap-3 border-b border-white/8 py-2.5"
+                  className="flex items-center gap-3 border-b border-foreground/8 py-2.5"
                 >
                   <Avatar
                     name={name}
@@ -408,7 +410,7 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
       ) : null}
 
       {active ? (
-        <div className="flex flex-col gap-2 border-t border-white/8 pt-6">
+        <div className="flex flex-col gap-2 border-t border-foreground/8 pt-6">
           {group.role === "owner" ? (
             <DeleteGroupButton groupId={group.id} />
           ) : (

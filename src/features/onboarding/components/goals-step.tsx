@@ -211,7 +211,7 @@ export function GoalsStep({ draft, update }: StepProps) {
               return (
                 <li
                   key={goal.title}
-                  className="flex items-center gap-3 border-b border-white/8 py-2"
+                  className="flex items-center gap-3 border-b border-foreground/8 py-2"
                 >
                   <Icon
                     aria-hidden="true"

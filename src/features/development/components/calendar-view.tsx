@@ -247,7 +247,7 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
         <div
           role="radiogroup"
           aria-label={t("viewLabel")}
-          className="flex gap-0.5 rounded-full bg-white/5 p-1"
+          className="flex gap-0.5 rounded-full bg-foreground/5 p-1"
         >
           {(["week", "month"] as const).map((value) => (
             <button
@@ -259,7 +259,7 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
               className={cn(
                 "h-8 rounded-full px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 view === value
-                  ? "bg-white/12 text-foreground"
+                  ? "bg-foreground/12 text-foreground"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >
@@ -287,7 +287,7 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
                   ? select(addDays(selected, delta * 7))
                   : goToMonth(addMonths(month, delta))
               }
-              className="flex size-10 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-white/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              className="flex size-10 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <Arrow aria-hidden="true" className="size-5" />
             </button>
@@ -371,7 +371,7 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
       {/* Le jour choisi */}
       <section
         aria-live="polite"
-        className="flex flex-col gap-3 border-t border-white/8 pt-4"
+        className="flex flex-col gap-3 border-t border-foreground/8 pt-4"
       >
         <div className="flex items-baseline justify-between gap-3">
           <h4 className="font-semibold capitalize">{longDay(selected)}</h4>
@@ -452,10 +452,10 @@ function MonthGrid({ month, data, selected, today, onSelect }: MonthGridProps) {
                 })}
                 onClick={() => onSelect(day)}
                 className={cn(
-                  "relative flex h-11 flex-col items-center justify-center rounded-xl font-mono text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                  "relative flex h-11 flex-col items-center justify-center rounded-xl text-sm tabular-nums transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                   day === selected
                     ? "bg-primary font-bold text-primary-foreground"
-                    : "hover:bg-white/5",
+                    : "hover:bg-foreground/5",
                   day === today && day !== selected && "ring-1 ring-primary/60",
                 )}
               >

@@ -14,8 +14,8 @@ export type FocusSegment = { key: string; title: string; state: SegmentState };
 const SEGMENT_COLORS: Record<SegmentState, string> = {
   done: "bg-primary",
   current: "bg-foreground",
-  later: "bg-white/30",
-  todo: "bg-white/12",
+  later: "bg-foreground/30",
+  todo: "bg-foreground/12",
 };
 
 type FocusQuestProps = {
@@ -189,8 +189,8 @@ export function FocusQuest({
                     day.done
                       ? "bg-primary"
                       : day.planned
-                        ? "bg-white/15"
-                        : "mx-auto size-1.5 bg-white/10",
+                        ? "bg-foreground/15"
+                        : "mx-auto size-1.5 bg-foreground/10",
                   )}
                 />
               ))}
@@ -199,7 +199,7 @@ export function FocusQuest({
           <p className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
             <span>{days ? t("days", { count: FOCUS_DAYS }) : null}</span>
             {quest.xp > 0 ? (
-              <span className="font-mono font-bold text-primary">
+              <span className="font-bold text-primary tabular-nums">
                 {tQuests("xpReward", { xp: quest.xp })}
               </span>
             ) : null}
@@ -214,7 +214,7 @@ export function FocusQuest({
             key={burst.id}
             aria-hidden="true"
             onAnimationEnd={() => setBurst(null)}
-            className="pointer-events-none absolute -top-9 left-1/2 hidden -translate-x-1/2 font-mono text-lg font-bold text-primary opacity-0 motion-safe:block motion-safe:animate-xp-float"
+            className="pointer-events-none absolute -top-9 left-1/2 hidden -translate-x-1/2 font-display text-lg text-primary opacity-0 motion-safe:block motion-safe:animate-xp-float"
           >
             {tQuests("xpReward", { xp: burst.xp })}
           </span>

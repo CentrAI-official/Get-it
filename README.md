@@ -40,8 +40,8 @@ Le service de courriel intégré à Supabase n’envoie qu’aux membres de l’
 La version de test est hébergée sur [Vercel](https://vercel.com) (plan Pro : le plan gratuit est réservé à un usage non commercial), dans la région de Montréal (`yul1`, voir `vercel.json`), à côté de la base Supabase. Chaque envoi sur la branche `main` du dépôt GitHub est mis en ligne automatiquement.
 
 1. Sur Vercel : **Add New → Project**, importer le dépôt GitHub (framework Next.js détecté, aucune commande à changer).
-2. Dans **Settings → Environment Variables**, ajouter les variables de `.env.local` : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, et `SIGNUP_INVITE_CODE` (le code donné aux testeurs). Ne jamais mettre `AI_PROVIDER=fake` (refusé en production). `NEXT_PUBLIC_APP_URL` peut rester vide : l'adresse `…vercel.app` du projet est utilisée.
-3. Dans Supabase, **Authentication → URL Configuration** : ajouter l'adresse Vercel dans **Redirect URLs** (`https://<projet>.vercel.app/**`) ; la **Site URL** devient cette adresse quand la version en ligne devient la principale.
+2. Dans **Settings → Environment Variables**, ajouter les variables de `.env.local` : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_SECRET_KEY`, `ANTHROPIC_API_KEY`, et `SIGNUP_INVITE_CODE` (le code donné aux testeurs). Ne jamais mettre `AI_PROVIDER=fake` (refusé en production). `NEXT_PUBLIC_APP_URL` peut rester vide : l'adresse de production `…vercel.app` du projet est utilisée (`VERCEL_PROJECT_PRODUCTION_URL`, fournie par Vercel), y compris dans les liens des courriels.
+3. Dans Supabase, **Authentication → URL Configuration** : **Site URL** = l'adresse Vercel (`https://<projet>.vercel.app`), et ajouter `https://<projet>.vercel.app/**` dans **Redirect URLs** en gardant `http://localhost:3000/**` pour le développement. Une adresse absente de cette liste est remplacée par la Site URL : les liens « mot de passe oublié » et de confirmation mèneraient ailleurs.
 4. Les migrations ne sont pas appliquées par Vercel : `npm run db:deploy` depuis un poste de développement, **puis** envoyer le code qui les utilise (la base est partagée avec le développement pendant la bêta).
 
 Changer une variable sur Vercel demande un nouveau déploiement (**Deployments → Redeploy**).
@@ -97,6 +97,7 @@ src/i18n/                 configuration des langues
 - [x] 9f2. Discussions de groupe privées (Messagerie, sur invitation)
 - [x] 9f2b. Photos et vidéos dans les messages privés
 - [x] 9f2c. Renseignements du compte (date de naissance, sexe, région), Ranked avec taille, poids et IMC, Gear « bientôt »
+- [x] 9f2d. Mode clair et sombre (au choix dans Réglages, gardé dans le compte), typographie Inter et Anton
 - [ ] 9f3. Pactes à plusieurs
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
 - [x] 9g1. Marketplace (lot 1) : comptes affiliés, catalogue Services et Gear, filtres, formulaire de vente, approbation par l’équipe Get iT

@@ -28,9 +28,9 @@ export function ListingCard({
     <div className="flex items-start gap-1">
       <Link
         href={`/marketplace/${listing.id}`}
-        className="-mx-3 flex min-w-0 flex-1 gap-3.5 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="-mx-3 flex min-w-0 flex-1 gap-3.5 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <span className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/5">
+        <span className="flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-foreground/5">
           {listing.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img

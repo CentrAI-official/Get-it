@@ -3,10 +3,6 @@ import { selectHabitsToday } from "@/features/today/day-plan";
 import { habitDayXp, XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
-import {
-  listActiveGoalsWithNextMilestone,
-  type DayGoal,
-} from "@/server/goals/service";
 import { listHabits, type HabitSummary } from "@/server/habits/service";
 import { getUserTimeZone } from "@/server/profile/service";
 import { pactTagsForHabits, type PactTag } from "@/server/messages/pacts";
@@ -23,14 +19,11 @@ export type DayPlan = {
   habits: HabitSummary[];
   /** Tâches dues aujourd'hui et tâches en retard. */
   tasks: DayTask[];
-  goals: DayGoal[];
   /** Pactes en cours des habitudes du jour (« habitId » → étiquette). */
   pacts: Record<string, PactTag>;
-  /** L'utilisateur a au moins une habitude active. */
-  hasHabits: boolean;
   /**
-   * XP totale enregistrée, et XP de chaque élément (« habit:<id> », « task:<id> »,
-   * « milestone:<id> », « goal:<id> ») : gagnée s'il est fait, à gagner sinon.
+   * XP totale enregistrée, et XP de chaque élément (« habit:<id> », « task:<id> ») :
+   * gagnée s'il est fait, à gagner sinon.
    */
   xp: { total: number; items: Record<string, number> };
 };
@@ -41,10 +34,9 @@ export async function getDayPlan(
   now: Date,
 ): Promise<DayPlan> {
   const today = toCalendarDay(now, timeZone);
-  const [habits, tasks, goals, xpTotals, taskXpLeft] = await Promise.all([
+  const [habits, tasks, xpTotals, taskXpLeft] = await Promise.all([
     listHabits(userId, timeZone),
     listDayTasks(userId, today, timeZone),
-    listActiveGoalsWithNextMilestone(userId),
     getXpTotals(userId),
     getTaskXpLeft(userId, today),
   ]);
@@ -71,20 +63,12 @@ export async function getDayPlan(
         ? XP_REWARDS.task
         : 0;
   }
-  for (const goal of goals) {
-    items[`goal:${goal.id}`] = XP_REWARDS.goal;
-    if (goal.nextMilestone) {
-      items[`milestone:${goal.nextMilestone.id}`] = XP_REWARDS.milestone;
-    }
-  }
 
   return {
     today,
     habits: habitsToday,
     tasks,
-    goals,
     pacts,
-    hasHabits: habits.some((habit) => !habit.archived),
     xp: { total: xpTotals.total, items },
   };
 }

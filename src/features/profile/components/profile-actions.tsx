@@ -68,7 +68,7 @@ export function ProfileActions({
           {t("write")}
         </Button>
         {state === "contact" ? (
-          <span className="flex h-9 items-center gap-1.5 rounded-full bg-white/6 px-3.5 text-sm font-medium text-muted-foreground">
+          <span className="flex h-9 items-center gap-1.5 rounded-full bg-foreground/6 px-3.5 text-sm font-medium text-muted-foreground">
             <UserCheck aria-hidden="true" className="size-4" />
             {t("isContact")}
           </span>

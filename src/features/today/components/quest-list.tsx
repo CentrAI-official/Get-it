@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  Check,
-  Handshake,
-  LoaderCircle,
-  Plus,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { Check, Handshake, LoaderCircle, Sparkles, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Pillar } from "@/config/pillars";
 import { AddItemForm } from "@/features/goals/components/checklist";
 import { addTaskAction } from "@/features/tasks/actions";
-import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { FocusDay } from "../focus";
@@ -70,8 +62,6 @@ type QuestListProps = {
   pending: boolean;
   /** Tout ce qui est prévu aujourd'hui est fait. */
   allDone: boolean;
-  /** L'utilisateur a au moins une habitude active. */
-  hasHabits: boolean;
   onToggle: (quest: Quest) => void;
   onDelete: (quest: TaskQuest) => void;
   onClearFilter: () => void;
@@ -85,7 +75,6 @@ export function QuestList({
   today,
   pending,
   allDone,
-  hasHabits,
   onToggle,
   onDelete,
   onClearFilter,
@@ -105,7 +94,7 @@ export function QuestList({
         <h2
           id="quests-title"
           tabIndex={-1}
-          className="font-heading text-lg font-bold outline-none"
+          className="caps-label text-muted-foreground outline-none"
         >
           {filter ? t("titleFiltered", { pillar: pillarName }) : t("title")}
         </h2>
@@ -149,13 +138,6 @@ export function QuestList({
           {filter ? (
             <Button variant="outline" size="sm" onClick={onClearFilter}>
               {t("showAll")}
-            </Button>
-          ) : !hasHabits ? (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/habits/new">
-                <Plus aria-hidden="true" />
-                {t("createHabit")}
-              </Link>
             </Button>
           ) : null}
         </div>
@@ -271,7 +253,7 @@ export function QuestRow({
   return (
     <li
       className={cn(
-        "relative flex items-center gap-2 border-b border-white/8 py-2 transition-colors duration-200",
+        "relative flex items-center gap-2 border-b border-foreground/8 py-2 transition-colors duration-200",
         quest.done ? "text-muted-foreground" : null,
       )}
     >
@@ -287,7 +269,7 @@ export function QuestRow({
             "flex size-10 shrink-0 items-center justify-center rounded-full transition-all duration-200",
             quest.done
               ? "bg-primary text-primary-foreground glow-primary"
-              : "border-2 border-white/20",
+              : "border-2 border-foreground/20",
           )}
         >
           {quest.done ? (
@@ -320,7 +302,7 @@ export function QuestRow({
       {quest.xp > 0 ? (
         <span
           className={cn(
-            "flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 font-mono text-xs font-bold transition-colors",
+            "flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold tabular-nums transition-colors",
             quest.kind === "habit" && "mr-1",
             quest.done
               ? "bg-primary text-primary-foreground"
@@ -343,7 +325,7 @@ export function QuestRow({
           key={burst}
           aria-hidden="true"
           onAnimationEnd={() => setBurst(0)}
-          className="pointer-events-none absolute -top-2 right-12 hidden font-mono text-sm font-bold text-primary opacity-0 motion-safe:block motion-safe:animate-xp-float"
+          className="pointer-events-none absolute -top-2 right-12 hidden text-sm font-bold text-primary tabular-nums opacity-0 motion-safe:block motion-safe:animate-xp-float"
         >
           {t("xpReward", { xp: quest.xp })}
         </span>

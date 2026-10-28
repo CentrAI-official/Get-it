@@ -40,7 +40,7 @@ function CurrentActions() {
               href={href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex size-10 items-center justify-center gap-2 rounded-full text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-white/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 lg:size-auto lg:px-3 lg:py-2",
+                "flex size-10 items-center justify-center gap-2 rounded-full text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 lg:size-auto lg:px-3 lg:py-2",
                 active && "text-primary hover:text-primary",
               )}
             >

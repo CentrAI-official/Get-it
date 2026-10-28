@@ -17,6 +17,13 @@ enum Locale {
   en
 }
 
+/// Thème de l'interface ; « system » suit le réglage de l'appareil.
+enum ThemePreference {
+  system
+  light
+  dark
+}
+
 /// Les quatre piliers. Doit rester aligné avec src/config/pillars.ts.
 enum Pillar {
   physical
@@ -144,21 +151,23 @@ model Profile {
 
 /// Préférences personnelles, séparées du profil public.
 model UserSettings {
-  userId           String    @id @map("user_id") @db.Uuid
+  userId           String          @id @map("user_id") @db.Uuid
   /// Langue choisie : suit l'utilisateur sur tous ses appareils (web et future app mobile).
-  locale           Locale    @default(fr)
+  locale           Locale          @default(fr)
   /// Fuseau IANA (ex. « America/Toronto ») : sert à calculer « aujourd'hui » et les séries.
-  timeZone         String    @default("America/Toronto") @map("time_zone")
+  timeZone         String          @default("America/Toronto") @map("time_zone")
+  /// Thème choisi dans Réglages : suit l'utilisateur sur tous ses appareils.
+  theme            ThemePreference @default(system)
   /// Temps que l'utilisateur veut investir chaque jour, en minutes.
-  dailyMinutes     Int?      @map("daily_minutes")
+  dailyMinutes     Int?            @map("daily_minutes")
   /// Accord pour que Get iT AI reçoive les données de l'utilisateur (Loi 25) ; null : pas d'accord.
-  aiConsentAt      DateTime? @map("ai_consent_at") @db.Timestamptz(3)
+  aiConsentAt      DateTime?       @map("ai_consent_at") @db.Timestamptz(3)
   /// Acceptation des règles du Centre Get iT, avant la première publication.
-  communityRulesAt DateTime? @map("community_rules_at") @db.Timestamptz(3)
+  communityRulesAt DateTime?       @map("community_rules_at") @db.Timestamptz(3)
   /// Dernier jour (fuseau de l'utilisateur) où « Ma journée » s'est ouvert tout seul.
-  dayPanelSeenOn   DateTime? @map("day_panel_seen_on") @db.Date
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  dayPanelSeenOn   DateTime?       @map("day_panel_seen_on") @db.Date
+  createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -557,15 +566,15 @@ enum ContentStatus {
 
 /// Publication du Centre Get iT (§17-18).
 model Post {
-  id         String        @id @default(uuid(7)) @db.Uuid
-  userId     String        @map("user_id") @db.Uuid
-  kind       PostKind
+  id           String        @id @default(uuid(7)) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  kind         PostKind
   /// Texte, ou message facultatif d'un progrès partagé.
-  body       String
-  pillar     Pillar?
+  body         String
+  pillar       Pillar?
   /// Progrès partagé, figé au moment du partage (objectif atteint, niveau…).
-  progress   Json?
-  status     ContentStatus @default(visible)
+  progress     Json?
+  status       ContentStatus @default(visible)
   /// Photos ou vidéo jointes (0 à 4) : une publication avec médias peut être sans texte.
   mediaCount   Int           @default(0) @map("media_count") @db.SmallInt
   /// Partage dans son fil : la publication d'origine (le partage disparaît avec elle).

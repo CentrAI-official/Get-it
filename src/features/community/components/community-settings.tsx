@@ -44,7 +44,7 @@ export async function CommunitySettings() {
               {blocked.map((person) => (
                 <li
                   key={person.id}
-                  className="flex items-center justify-between gap-3 border-b border-white/8 py-2"
+                  className="flex items-center justify-between gap-3 border-b border-foreground/8 py-2"
                 >
                   <span className="min-w-0 text-sm break-words">
                     {person.displayName}{" "}

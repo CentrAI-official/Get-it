@@ -120,7 +120,7 @@ export function ProgressBadge({
   return (
     <p
       className={cn(
-        "flex max-w-full items-center gap-2 rounded-full bg-black/80 py-2 pr-4 pl-2.5 text-sm font-semibold backdrop-blur-sm",
+        "dark flex max-w-full items-center gap-2 rounded-full bg-black/80 py-2 pr-4 pl-2.5 text-sm font-semibold backdrop-blur-sm",
         className,
       )}
     >

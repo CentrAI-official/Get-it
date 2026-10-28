@@ -223,7 +223,7 @@ export async function FavoritesPanel() {
   ) : (
     <ul className="flex flex-col">
       {items.map((listing) => (
-        <li key={listing.id} className="border-b border-white/8">
+        <li key={listing.id} className="border-b border-foreground/8">
           <ListingCard listing={listing} />
         </li>
       ))}
@@ -304,7 +304,7 @@ async function ListingBody({
             {(listing.regions as Region[]).map((region) => (
               <li
                 key={region}
-                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-sm"
+                className="rounded-full border border-foreground/10 bg-foreground/5 px-3 py-1 text-sm"
               >
                 {t(`regions.${region}`)}
               </li>
@@ -313,15 +313,17 @@ async function ListingBody({
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-2 border-t border-white/8 pt-6">
-        <h2 className="font-heading text-lg font-bold">
+      <section className="flex flex-col gap-2 border-t border-foreground/8 pt-6">
+        <h2 className="caps-label text-muted-foreground">
           {t("detail.description")}
         </h2>
         <p className="break-words whitespace-pre-wrap">{listing.description}</p>
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-white/8 pt-6">
-        <h2 className="font-heading text-lg font-bold">{t("detail.seller")}</h2>
+      <section className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
+        <h2 className="caps-label text-muted-foreground">
+          {t("detail.seller")}
+        </h2>
         <p className="flex items-center gap-3">
           <Avatar
             name={seller}
@@ -395,7 +397,7 @@ export async function ListingLoader({ id }: { id: string }) {
                   listingId={listing.id}
                   title={listing.title}
                   initial={listing.favorite}
-                  className="border border-white/12"
+                  className="border border-foreground/12"
                 />
               </>
             )}
@@ -476,14 +478,14 @@ export async function MyListingsPanel() {
   return (
     <ul className="flex flex-col">
       {listings.map((listing) => (
-        <li key={listing.id} className="border-b border-white/8 pb-3">
+        <li key={listing.id} className="border-b border-foreground/8 pb-3">
           <ListingCard listing={listing} showFavorite={false} />
           <p className="flex flex-wrap items-center gap-2 text-sm">
             <span
               className={
                 listing.status === "approved"
                   ? "rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary"
-                  : "rounded-full bg-white/8 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                  : "rounded-full bg-foreground/8 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
               }
             >
               {t(`status.${listing.status}`)}
@@ -522,11 +524,11 @@ export async function ApprovalsPanel() {
       {listings.map((listing) => (
         <li
           key={listing.id}
-          className="flex flex-col gap-6 border-b border-white/8 py-8 first:pt-0"
+          className="flex flex-col gap-6 border-b border-foreground/8 py-8 first:pt-0"
         >
           <ListingBody listing={listing} />
-          <section className="flex flex-col gap-2 border-t border-white/8 pt-6">
-            <h2 className="font-heading text-lg font-bold">{t("private")}</h2>
+          <section className="flex flex-col gap-2 border-t border-foreground/8 pt-6">
+            <h2 className="caps-label text-muted-foreground">{t("private")}</h2>
             <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
               <dt className="text-muted-foreground">{t("name")}</dt>
               <dd className="break-words">{listing.contactName}</dd>
@@ -535,7 +537,7 @@ export async function ApprovalsPanel() {
               {listing.licenseNumber ? (
                 <>
                   <dt className="text-muted-foreground">{t("license")}</dt>
-                  <dd className="font-mono break-all">
+                  <dd className="break-all tabular-nums">
                     {listing.licenseNumber}
                   </dd>
                 </>

@@ -12,12 +12,16 @@ export const KIND_COLORS: Record<
   mental: { dot: "bg-chart-2", tint: "bg-chart-2/12", text: "text-chart-2" },
   financial: { dot: "bg-chart-3", tint: "bg-chart-3/10", text: "text-chart-3" },
   social: { dot: "bg-chart-4", tint: "bg-chart-4/14", text: "text-chart-4" },
-  business: { dot: "bg-foreground", tint: "bg-white/8", text: "text-silver" },
+  business: {
+    dot: "bg-foreground",
+    tint: "bg-foreground/8",
+    text: "text-silver",
+  },
 };
 
 export const NEUTRAL_COLORS = {
-  dot: "bg-white/40",
-  tint: "bg-white/5",
+  dot: "bg-foreground/40",
+  tint: "bg-foreground/5",
   text: "text-muted-foreground",
 };
 

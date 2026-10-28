@@ -14,7 +14,7 @@ export function AppMobileNav() {
   return (
     <nav
       aria-label={t("label")}
-      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-3xl border border-white/10 bg-[#121216]/85 shadow-2xl shadow-black/40 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-3xl border border-foreground/10 bg-nav/85 shadow-2xl shadow-black/40 backdrop-blur-xl lg:hidden"
     >
       {/* Onglets prérendus, puis onglet actif dès que l'adresse est connue */}
       <Suspense fallback={<Tabs pathname={null} />}>
@@ -54,7 +54,7 @@ function Tabs({ pathname }: { pathname: string | null }) {
                     "-mt-7 flex size-13 items-center justify-center rounded-2xl border transition-colors",
                     active
                       ? "border-primary bg-primary text-primary-foreground glow-primary"
-                      : "border-white/15 bg-[#1b1b21] text-foreground",
+                      : "border-foreground/15 bg-raised text-foreground",
                   )}
                 >
                   <Icon aria-hidden="true" className="size-6" />

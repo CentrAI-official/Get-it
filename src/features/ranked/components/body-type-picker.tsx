@@ -163,10 +163,10 @@ export function BodyTypePicker({
           key={type}
           value={type}
           className={cn(
-            "group flex flex-col items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.03] px-2 pt-3 pb-3 text-center transition-colors outline-none hover:bg-white/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/10",
+            "group flex flex-col items-center gap-2 rounded-2xl border border-foreground/10 bg-foreground/[0.03] px-2 pt-3 pb-3 text-center transition-colors outline-none hover:bg-foreground/[0.06] focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/10",
           )}
         >
-          <span className="text-white/35 transition-colors group-data-checked:text-primary">
+          <span className="text-foreground/35 transition-colors group-data-checked:text-primary">
             <Silhouette shape={SHAPES[sex][type]} />
           </span>
           <span className="text-sm font-semibold">{t(`${type}.title`)}</span>

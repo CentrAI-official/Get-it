@@ -174,7 +174,7 @@ export function OnboardingWizard({ today }: { today: string }) {
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
-        <p className="font-mono text-xs tracking-[0.12em] text-muted-foreground uppercase">
+        <p className="text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
           {stepLabel}
         </p>
         <Progress
@@ -187,7 +187,7 @@ export function OnboardingWizard({ today }: { today: string }) {
         <h1
           ref={headingRef}
           tabIndex={-1}
-          className="font-heading text-3xl leading-tight font-bold tracking-tight text-balance outline-none sm:text-4xl"
+          className="font-display text-4xl leading-[0.95] text-balance uppercase outline-none sm:text-5xl"
         >
           {headers[step].title}
         </h1>
@@ -227,7 +227,7 @@ export function OnboardingWizard({ today }: { today: string }) {
         </Alert>
       ) : null}
 
-      <div className="flex items-center justify-between gap-3 border-t border-white/5 pt-6">
+      <div className="flex items-center justify-between gap-3 border-t border-foreground/5 pt-6">
         {stepIndex > 0 ? (
           <Button
             type="button"

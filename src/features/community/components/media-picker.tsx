@@ -25,7 +25,7 @@ type MediaPickerProps = {
 };
 
 const pick =
-  "flex h-10 cursor-pointer items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50";
+  "flex h-10 cursor-pointer items-center gap-2 rounded-full border border-foreground/12 bg-foreground/[0.03] px-3.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50";
 
 /**
  * Photos ou vidéo d'une publication : galerie, appareil photo ou caméra (sur
@@ -55,7 +55,7 @@ export function MediaPicker({
           {items.map((item) => (
             <li
               key={item.id}
-              className="relative aspect-square overflow-hidden rounded-xl bg-white/5"
+              className="relative aspect-square overflow-hidden rounded-xl bg-foreground/5"
             >
               {item.kind === "image" ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -74,7 +74,7 @@ export function MediaPicker({
                 />
               )}
               {item.status === "processing" || item.status === "uploading" ? (
-                <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 text-xs font-medium">
+                <span className="dark absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 text-xs font-medium">
                   <LoaderCircle
                     aria-hidden="true"
                     className="size-5 animate-spin"
@@ -89,7 +89,7 @@ export function MediaPicker({
               {item.status === "error" ? (
                 <span
                   role="alert"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/70 p-1 text-center text-[0.65rem] leading-tight text-destructive"
+                  className="dark absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/70 p-1 text-center text-[0.65rem] leading-tight text-destructive"
                 >
                   <CircleAlert aria-hidden="true" className="size-4" />
                   {tErrors(item.error ?? "unexpected")}

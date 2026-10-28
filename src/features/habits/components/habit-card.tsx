@@ -34,7 +34,7 @@ export function HabitCard({ habit, today }: HabitCardProps) {
   );
 
   return (
-    <article className="flex flex-col gap-4 border-b border-white/8 py-5">
+    <article className="flex flex-col gap-4 border-b border-foreground/8 py-5">
       <div className="flex items-start gap-3">
         <span
           className={cn(
@@ -81,7 +81,7 @@ export function HabitCard({ habit, today }: HabitCardProps) {
           <span className="flex flex-col gap-0.5">
             <span
               aria-hidden="true"
-              className="font-mono text-2xl leading-none font-bold"
+              className="font-display text-2xl leading-none"
             >
               {t("streakValue", { count: current })}
             </span>
@@ -122,13 +122,13 @@ export function HabitCard({ habit, today }: HabitCardProps) {
                 onClick={() => toggle(day)}
                 className={cn(
                   "flex w-full flex-col items-center gap-1.5 rounded-xl py-1.5 text-xs outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-30",
-                  isToday && "bg-white/[0.06]",
+                  isToday && "bg-foreground/[0.06]",
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "font-mono uppercase",
+                    "font-semibold uppercase",
                     isToday
                       ? "font-bold text-foreground"
                       : "text-muted-foreground",
@@ -142,12 +142,12 @@ export function HabitCard({ habit, today }: HabitCardProps) {
                 <span
                   aria-hidden="true"
                   className={cn(
-                    "flex size-9 items-center justify-center rounded-full font-mono text-sm transition-all duration-200",
+                    "flex size-9 items-center justify-center rounded-full text-sm tabular-nums transition-all duration-200",
                     done
                       ? "bg-primary text-primary-foreground glow-primary"
                       : scheduled
-                        ? "border-2 border-white/15 text-foreground"
-                        : "border border-dashed border-white/10 text-muted-foreground",
+                        ? "border-2 border-foreground/15 text-foreground"
+                        : "border border-dashed border-foreground/10 text-muted-foreground",
                   )}
                 >
                   {done ? (

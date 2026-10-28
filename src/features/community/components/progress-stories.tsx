@@ -90,7 +90,7 @@ export function ProgressStories({
               {day.total > 0 ? (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-1.5 -bottom-1 rounded-full border-2 border-background bg-primary px-1.5 font-mono text-[10px] leading-4 font-bold text-primary-foreground"
+                  className="absolute -right-1.5 -bottom-1 rounded-full border-2 border-background bg-primary px-1.5 text-[10px] leading-4 font-bold text-primary-foreground tabular-nums"
                 >
                   {t("badge", day)}
                 </span>
@@ -122,7 +122,7 @@ export function ProgressStories({
                 <span
                   className={cn(
                     "flex size-16 rounded-full p-[3px] transition-colors duration-300",
-                    unseen ? "bg-primary" : "bg-white/15",
+                    unseen ? "bg-primary" : "bg-foreground/15",
                   )}
                 >
                   <span className="flex size-full rounded-full bg-background p-[2px]">
@@ -156,7 +156,7 @@ export function ProgressStories({
               aria-label={t("addContactsLabel")}
               className={BUBBLE}
             >
-              <span className="flex size-16 items-center justify-center rounded-full border-2 border-dashed border-white/20 text-muted-foreground">
+              <span className="flex size-16 items-center justify-center rounded-full border-2 border-dashed border-foreground/20 text-muted-foreground">
                 <UserPlus aria-hidden="true" className="size-6" />
               </span>
               <span className="max-w-full truncate text-xs text-muted-foreground">
@@ -248,7 +248,7 @@ function StoryViewer({
       <DialogContent
         closeLabel={t("close")}
         // Plein écran sur téléphone, fenêtre haute sur ordinateur
-        className="inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-4 rounded-none bg-black p-4 pb-[max(1rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:ring-1"
+        className="dark inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-4 rounded-none bg-black p-4 pb-[max(1rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:ring-1"
       >
         {story && post && opened ? (
           <>
@@ -268,7 +268,7 @@ function StoryViewer({
                       ? "bg-foreground"
                       : index === opened.post
                         ? "bg-primary"
-                        : "bg-white/20",
+                        : "bg-foreground/20",
                   )}
                 />
               ))}
@@ -363,7 +363,7 @@ function StoryBravo({ post, canWrite }: { post: FeedPost; canWrite: boolean }) {
     >
       <HandHeart aria-hidden="true" className="size-5" />
       {t("bravo")}
-      <span className="font-mono">{reaction.count}</span>
+      <span className="tabular-nums">{reaction.count}</span>
     </Button>
   );
 }

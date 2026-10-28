@@ -4,6 +4,7 @@ import { getLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { Pillar } from "@/config/pillars";
+import type { ThemePreference } from "@/config/theme";
 import type { AccountType } from "@/features/marketplace/rules";
 import type { Occupation } from "@/features/onboarding/schemas";
 import type { UserRole } from "@/generated/prisma/client";
@@ -64,6 +65,11 @@ export async function updateLocale(userId: string, locale: Locale) {
   await db.userSettings.updateMany({ where: { userId }, data: { locale } });
 }
 
+/** Enregistre le thème choisi, pour qu'il suive l'utilisateur sur tous ses appareils. */
+export async function updateTheme(userId: string, theme: ThemePreference) {
+  await db.userSettings.updateMany({ where: { userId }, data: { theme } });
+}
+
 /** Fuseau de l'utilisateur (Server Actions : getCurrentProfile y est indisponible). */
 export async function getUserTimeZone(userId: string) {
   const settings = await db.userSettings.findUnique({
@@ -83,6 +89,8 @@ export type CurrentProfile = {
   createdAt: Date;
   timeZone: string;
   dailyMinutes: number | null;
+  /** Thème choisi dans Réglages (appliqué par le cookie, resynchronisé par ThemeSync). */
+  theme: ThemePreference;
   /** Consommateur, ou affilié (peut vendre dans le Marketplace). */
   accountType: AccountType;
   role: UserRole;
@@ -113,7 +121,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
       bio: true,
       avatarPath: true,
       ...detailsSelect,
-      settings: { select: { timeZone: true, dailyMinutes: true } },
+      settings: { select: { timeZone: true, dailyMinutes: true, theme: true } },
     },
   });
 
@@ -131,6 +139,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
     createdAt: profile.createdAt,
     timeZone: profile.settings?.timeZone ?? "America/Toronto",
     dailyMinutes: profile.settings?.dailyMinutes ?? null,
+    theme: profile.settings?.theme ?? "system",
     accountType: profile.accountType,
     role: profile.role,
     bio: profile.bio,

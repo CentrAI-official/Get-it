@@ -60,7 +60,7 @@ export function ContactsView({ contacts, received, sent }: ContactsViewProps) {
               "truncate rounded-full border px-2 py-1.5 text-center text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               tab === value
                 ? "border-primary bg-primary/15 text-foreground"
-                : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
             )}
           >
             {t(`tabs.${value}`, { count: lists[value].length })}
@@ -73,7 +73,7 @@ export function ContactsView({ contacts, received, sent }: ContactsViewProps) {
           {t(`empty.${tab}`)}
         </p>
       ) : (
-        <ul className="flex flex-col divide-y divide-white/8">
+        <ul className="flex flex-col divide-y divide-foreground/8">
           {shown.map((person) => (
             <li key={person.id}>
               <ContactRow person={person} tab={tab} />
@@ -298,7 +298,7 @@ function AddContact({
               <li key={person.id}>
                 <Person person={person}>
                   {person.contact ? (
-                    <span className="rounded-full bg-white/6 px-2.5 py-1 text-xs text-muted-foreground">
+                    <span className="rounded-full bg-foreground/6 px-2.5 py-1 text-xs text-muted-foreground">
                       {t("alreadyContact")}
                     </span>
                   ) : sent.has(person.id) || sentTo.has(person.id) ? (

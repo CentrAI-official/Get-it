@@ -82,7 +82,7 @@ export function CategoryRow({
   return (
     <nav
       aria-label={t("label")}
-      className="-mx-4 flex [scrollbar-width:none] gap-6 overflow-x-auto border-b border-white/8 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+      className="-mx-4 flex [scrollbar-width:none] gap-6 overflow-x-auto border-b border-foreground/8 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
     >
       {items.map((item) => {
         const Icon = CATEGORY_ICONS[item.key] ?? Sparkles;
@@ -119,7 +119,7 @@ function VitrineCard({ listing }: { listing: ListingSummary }) {
         href={`/marketplace/${listing.id}`}
         className="group flex flex-col gap-2.5 rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
-        <span className="relative block aspect-[5/4] overflow-hidden rounded-2xl bg-white/5">
+        <span className="relative block aspect-[5/4] overflow-hidden rounded-2xl bg-foreground/5">
           {listing.photo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -131,7 +131,7 @@ function VitrineCard({ listing }: { listing: ListingSummary }) {
           ) : (
             <span
               aria-hidden="true"
-              className="flex size-full flex-col items-center justify-center gap-2 bg-[repeating-linear-gradient(135deg,rgb(255_255_255/0.04)_0_12px,transparent_12px_24px)] text-silver"
+              className="flex size-full flex-col items-center justify-center gap-2 bg-[repeating-linear-gradient(135deg,color-mix(in_oklab,var(--foreground)_4%,transparent)_0_12px,transparent_12px_24px)] text-silver"
             >
               <Icon className="size-10" />
               <span className="text-xs font-medium text-muted-foreground">
@@ -139,7 +139,7 @@ function VitrineCard({ listing }: { listing: ListingSummary }) {
               </span>
             </span>
           )}
-          <span className="absolute top-3 left-3 flex h-7 items-center gap-1.5 rounded-full bg-white/95 px-2.5 text-xs font-bold text-primary-foreground">
+          <span className="absolute top-3 left-3 flex h-7 items-center gap-1.5 rounded-full bg-foreground/95 px-2.5 text-xs font-bold text-primary-foreground">
             <BadgeCheck aria-hidden="true" className="size-3.5" />
             {t("vitrine.approved")}
           </span>
@@ -188,7 +188,7 @@ function VitrineRow({
   return (
     <section aria-labelledby={id} className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id={id} className="font-heading text-lg font-bold">
+        <h2 id={id} className="caps-label text-muted-foreground">
           {title}
         </h2>
         <Link

@@ -17,7 +17,7 @@ export function DayPanelCard() {
     <button
       type="button"
       onClick={() => openDayPanel()}
-      className="-mx-3 flex items-center gap-4 rounded-2xl px-3 py-3 text-left transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="-mx-3 flex items-center gap-4 rounded-2xl px-3 py-3 text-left transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <ProgressRing value={value} className="size-12 p-[3px]">
         {complete ? (

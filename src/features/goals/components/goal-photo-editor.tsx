@@ -93,7 +93,7 @@ export function GoalPhotoEditor({
           setError(null);
           setOpen(true);
         }}
-        className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border border-white/12 bg-background text-foreground shadow-md transition-colors outline-none hover:bg-white/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50"
+        className="absolute right-0 bottom-0 flex size-8 items-center justify-center rounded-full border border-foreground/12 bg-background text-foreground shadow-md transition-colors outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <Camera aria-hidden="true" className="size-4 text-primary" />
       </button>
@@ -112,7 +112,7 @@ export function GoalPhotoEditor({
                 <Camera aria-hidden="true" className="size-6 text-silver" />
               )}
               {uploading ? (
-                <span className="absolute inset-0 flex items-center justify-center bg-black/55">
+                <span className="dark absolute inset-0 flex items-center justify-center bg-black/55">
                   <LoaderCircle
                     aria-label={t("uploading")}
                     className="size-5 animate-spin"
@@ -122,7 +122,7 @@ export function GoalPhotoEditor({
             </span>
             {photosEnabled ? (
               <div className="flex flex-col gap-2">
-                <label className="flex h-9 w-fit cursor-pointer items-center gap-2 rounded-full border border-white/12 bg-white/[0.03] px-3.5 text-sm font-medium transition-colors hover:bg-white/[0.06] has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50">
+                <label className="flex h-9 w-fit cursor-pointer items-center gap-2 rounded-full border border-foreground/12 bg-foreground/[0.03] px-3.5 text-sm font-medium transition-colors hover:bg-foreground/[0.06] has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50">
                   <input
                     type="file"
                     accept="image/*"

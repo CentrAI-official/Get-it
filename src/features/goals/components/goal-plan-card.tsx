@@ -96,7 +96,7 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
     <section
       aria-labelledby={`${idPrefix}-title`}
       aria-busy={state.step === "loading"}
-      className="flex flex-col gap-4 border-t border-white/8 pt-6"
+      className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
     >
       <div className="flex items-start gap-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/15 glow-primary">
@@ -105,7 +105,7 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
         <div className="flex min-w-0 flex-col gap-1">
           <h2
             id={`${idPrefix}-title`}
-            className="font-heading text-lg font-bold"
+            className="caps-label text-muted-foreground"
           >
             {t("title")}
           </h2>
@@ -198,7 +198,7 @@ function Proposal({
     return (
       <li
         key={key}
-        className="flex items-start gap-3 border-b border-white/8 py-2.5"
+        className="flex items-start gap-3 border-b border-foreground/8 py-2.5"
       >
         <Checkbox
           id={id}

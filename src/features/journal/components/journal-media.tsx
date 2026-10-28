@@ -80,7 +80,7 @@ export function JournalMedia({
           {media.map((item, index) => (
             <li
               key={item.id}
-              className="relative size-14 overflow-hidden rounded-xl bg-white/5"
+              className="relative size-14 overflow-hidden rounded-xl bg-foreground/5"
             >
               {item.kind === "image" || item.posterUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element

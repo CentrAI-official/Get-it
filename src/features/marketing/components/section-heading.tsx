@@ -9,7 +9,7 @@ export function SectionHeading({ id, title, subtitle }: SectionHeadingProps) {
     <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 text-center">
       <h2
         id={id}
-        className="text-gradient-silver font-heading text-3xl font-bold tracking-tight text-balance sm:text-4xl"
+        className="text-gradient-silver font-display text-4xl leading-[0.95] text-balance uppercase sm:text-5xl"
       >
         {title}
       </h2>

@@ -437,7 +437,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background lg:static lg:z-auto lg:h-[calc(100dvh-7rem)] lg:overflow-hidden lg:rounded-3xl lg:glass">
       {/* En-tête : retour, personne (niveau plutôt qu'« en ligne »), menu */}
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b border-white/5 px-2 sm:px-4">
+      <header className="flex h-16 shrink-0 items-center gap-2 border-b border-foreground/5 px-2 sm:px-4">
         <Button asChild variant="ghost" size="icon-lg">
           <Link href="/messages" aria-label={t("back")}>
             <ArrowLeft aria-hidden="true" />
@@ -609,7 +609,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       </div>
 
       {/* Bas : demande reçue, demande en attente, ou champ d'envoi */}
-      <div className="shrink-0 border-t border-white/5 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5">
+      <div className="shrink-0 border-t border-foreground/5 px-3 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:px-5">
         {notice ? (
           <p role="status" className="mb-2 text-sm text-primary">
             {notice}
@@ -748,7 +748,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                     submit();
                   }
                 }}
-                className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-3xl border border-white/10 bg-white/[0.05] px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
+                className="field-sizing-content max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-3xl border border-foreground/10 bg-foreground/[0.05] px-4 py-2.5 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm"
               />
               <Button
                 type="submit"

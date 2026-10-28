@@ -89,9 +89,7 @@ async function RankedResults({
           <ProgressRing value={levels.total / 100} className="size-24 p-1.5">
             <span className="flex flex-col items-center leading-none">
               <Trophy aria-hidden="true" className="size-4 text-primary" />
-              <span className="font-mono text-3xl font-bold">
-                {levels.total}
-              </span>
+              <span className="font-display text-3xl">{levels.total}</span>
             </span>
           </ProgressRing>
           <div className="flex min-w-0 flex-col gap-1">
@@ -114,9 +112,12 @@ async function RankedResults({
 
       <section
         aria-labelledby="ranked-pillars"
-        className="flex flex-col border-t border-white/8 pt-6"
+        className="flex flex-col border-t border-foreground/8 pt-6"
       >
-        <h2 id="ranked-pillars" className="mb-2 font-heading text-lg font-bold">
+        <h2
+          id="ranked-pillars"
+          className="mb-2 caps-label text-muted-foreground"
+        >
           {t("results.pillars")}
         </h2>
         <ul className="flex flex-col">
@@ -126,14 +127,14 @@ async function RankedResults({
             return (
               <li
                 key={pillar}
-                className="flex flex-col gap-3 border-b border-white/8 py-4"
+                className="flex flex-col gap-3 border-b border-foreground/8 py-4"
               >
                 <div className="flex items-center gap-3">
                   <ProgressRing
                     value={data.level / 100}
                     className="size-12 p-[3px]"
                   >
-                    <span className="font-mono text-sm font-bold">
+                    <span className="text-sm font-bold tabular-nums">
                       {data.level}
                     </span>
                   </ProgressRing>
@@ -173,7 +174,7 @@ async function RankedResults({
                       ) : null}
                       <span className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         {factor.estimate ? (
-                          <span className="rounded-full bg-white/8 px-2 py-0.5 font-medium text-foreground/80">
+                          <span className="rounded-full bg-foreground/8 px-2 py-0.5 font-medium text-foreground/80">
                             {t("results.estimate")}
                           </span>
                         ) : null}
@@ -190,9 +191,9 @@ async function RankedResults({
 
       <section
         aria-labelledby="ranked-analysis"
-        className="flex flex-col gap-4 border-t border-white/8 pt-6"
+        className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
       >
-        <h2 id="ranked-analysis" className="font-heading text-lg font-bold">
+        <h2 id="ranked-analysis" className="caps-label text-muted-foreground">
           {t("analysis.title")}
         </h2>
         {state.analysis ? (
@@ -220,7 +221,7 @@ async function RankedResults({
                   {state.analysis.tips.map((tip) => (
                     <li
                       key={tip.title}
-                      className="flex flex-col gap-0.5 border-b border-white/8 py-3"
+                      className="flex flex-col gap-0.5 border-b border-foreground/8 py-3"
                     >
                       <span className="font-semibold">{tip.title}</span>
                       <span className="text-sm text-muted-foreground">
@@ -256,7 +257,7 @@ async function RankedResults({
         )}
       </section>
 
-      <section className="flex flex-col gap-3 border-t border-white/8 pt-6">
+      <section className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
         {state.canReevaluate ? (
           <Button asChild className="w-fit">
             <Link href="/profile/ranked?reevaluate=1">

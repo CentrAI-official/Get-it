@@ -14,11 +14,11 @@ export function Hero() {
         <div className="flex flex-col items-start gap-7">
           <Badge
             variant="outline"
-            className="h-7 border-white/10 bg-white/5 px-3 font-mono text-[0.7rem] tracking-[0.14em] text-silver uppercase"
+            className="h-7 border-foreground/10 bg-foreground/5 px-3 text-[0.7rem] font-semibold tracking-[0.14em] text-silver uppercase"
           >
             {t("eyebrow")}
           </Badge>
-          <h1 className="text-gradient-silver font-heading text-5xl leading-[1.02] font-bold tracking-tighter text-balance sm:text-6xl lg:text-7xl">
+          <h1 className="text-gradient-silver font-display text-6xl leading-[0.92] text-balance uppercase sm:text-7xl lg:text-8xl">
             {t.rich("title", {
               accent: (chunks) => (
                 <span className="block text-primary">{chunks}</span>

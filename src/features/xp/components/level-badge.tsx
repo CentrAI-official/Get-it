@@ -27,7 +27,7 @@ export function LevelBadge({ level, xp, name, avatarUrl }: LevelBadgeProps) {
         <span className="text-xs text-muted-foreground">
           {t("level", { level: level.level })}
         </span>
-        <span className="font-mono text-xs font-bold text-primary">
+        <span className="text-xs font-bold text-primary tabular-nums">
           {t("xp", { xp })}
         </span>
       </span>

@@ -180,7 +180,7 @@ export function RankedForm({
           <RadioGroupPrimitive.Item
             key={option}
             value={option}
-            className="h-9 rounded-full border border-white/10 bg-white/[0.03] px-3.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
+            className="h-9 rounded-full border border-foreground/10 bg-foreground/[0.03] px-3.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 data-checked:border-primary data-checked:bg-primary/15 data-checked:text-foreground"
           >
             {label(option)}
           </RadioGroupPrimitive.Item>
@@ -243,7 +243,7 @@ export function RankedForm({
         {number("weeklyHours", { unit: t("perWeek"), min: 0 })}
       </Section>
 
-      <section className="flex flex-col gap-4 border-t border-white/8 pt-6">
+      <section className="flex flex-col gap-4 border-t border-foreground/8 pt-6">
         <p className="flex gap-2 text-sm text-muted-foreground">
           <Eye
             aria-hidden="true"
@@ -303,9 +303,9 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-5 border-t border-white/8 pt-6">
+    <section className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
       <div className="flex flex-col gap-1">
-        <h2 className="font-heading text-lg font-bold">{title}</h2>
+        <h2 className="caps-label text-muted-foreground">{title}</h2>
         {hint ? <p className="text-sm text-muted-foreground">{hint}</p> : null}
       </div>
       {children}

@@ -11,10 +11,6 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { PILLARS, type Pillar } from "@/config/pillars";
-import {
-  setGoalStatusAction,
-  setMilestoneDoneAction,
-} from "@/features/goals/actions";
 import { setHabitDayAction } from "@/features/habits/actions";
 import { computeStreaks } from "@/features/habits/streak";
 import { deleteTaskAction, setTaskDoneAction } from "@/features/tasks/actions";
@@ -23,7 +19,6 @@ import { LevelUpBanner } from "@/features/xp/components/level-up-banner";
 import { levelFromXp } from "@/features/xp/rules";
 import { Link } from "@/i18n/navigation";
 import type { DayPlan } from "@/server/day/service";
-import type { DayGoal } from "@/server/goals/service";
 import { ratio, summarizeDay } from "../day-plan";
 import {
   focusOrder,
@@ -32,7 +27,6 @@ import {
   nextFocus,
   segmentState,
 } from "../focus";
-import { DayGoals } from "./day-goals";
 import { FocusQuest } from "./focus-quest";
 import { QuestList, type Quest, type TaskQuest } from "./quest-list";
 
@@ -56,12 +50,11 @@ const pillarRank = (pillar: Pillar | null) =>
   pillar === null ? PILLARS.length : PILLARS.indexOf(pillar);
 
 /**
- * Le contenu de « Ma journée ». Un seul état optimiste pour les habitudes, les
- * tâches, les jalons et les objectifs : un clic met à jour la case, l'avancement
- * du jour et l'XP d'un coup.
+ * Le contenu de « Ma journée ». Un seul état optimiste pour les habitudes et
+ * les tâches : un clic met à jour la case, l'avancement du jour et l'XP d'un coup.
  *
  * Mode Focus d'abord : une quête à la fois, puis le récap (liste complète,
- * objectifs, nouvelle tâche) quand il ne reste rien à montrer.
+ * nouvelle tâche) quand il ne reste rien à montrer.
  */
 export function DayBoard({
   plan,
@@ -74,7 +67,7 @@ export function DayBoard({
   const t = useTranslations("Today.panel");
   const tFocus = useTranslations("Today.focus");
   const format = useFormatter();
-  const { today, habits, tasks, goals, xp } = plan;
+  const { today, habits, tasks, xp } = plan;
   // Dernier niveau fêté : une coche qui le dépasse affiche la bannière
   const [celebrated, setCelebrated] = useState(
     () => levelFromXp(xp.total).level,
@@ -193,22 +186,6 @@ export function DayBoard({
     });
   }
 
-  function toggleMilestone(goal: DayGoal, next: boolean) {
-    const milestone = goal.nextMilestone;
-    if (!milestone) return;
-    startTransition(async () => {
-      setDone({ key: `milestone:${milestone.id}`, done: next });
-      await setMilestoneDoneAction(milestone.id, next);
-    });
-  }
-
-  function completeGoal(goal: DayGoal) {
-    startTransition(async () => {
-      setDone({ key: `goal:${goal.id}`, done: true });
-      await setGoalStatusAction(goal.id, "completed");
-    });
-  }
-
   function completeFocused(quest: Quest) {
     setCurrent(
       nextFocus(order, { ...done, [quest.key]: true }, later, quest.key),
@@ -293,10 +270,10 @@ export function DayBoard({
     <div className="flex flex-col gap-5">
       <div className="flex items-start justify-between gap-4 pr-10">
         <div className="flex min-w-0 flex-col gap-1">
-          <p className="font-mono text-xs tracking-[0.16em] text-muted-foreground">
+          <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground">
             {stamp}
           </p>
-          <DialogTitle className="text-2xl leading-tight tracking-tight text-balance sm:text-3xl">
+          <DialogTitle className="font-display text-4xl leading-[0.95] text-balance uppercase sm:text-5xl">
             {greeting}
           </DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
@@ -319,7 +296,7 @@ export function DayBoard({
       </div>
 
       {quests.length > 0 && left === 0 ? (
-        <div className="flex items-center gap-4 border-b border-white/8 pb-5 motion-safe:animate-level-up">
+        <div className="flex items-center gap-4 border-b border-foreground/8 pb-5 motion-safe:animate-level-up">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground glow-primary">
             <Check aria-hidden="true" className="size-8" strokeWidth={3} />
           </span>
@@ -331,14 +308,14 @@ export function DayBoard({
               {tFocus("allDoneBody")}
             </p>
             {xpToday > 0 ? (
-              <p className="font-mono text-sm font-bold text-primary">
+              <p className="text-sm font-bold text-primary tabular-nums">
                 {tFocus("xpToday", { xp: xpToday })}
               </p>
             ) : null}
           </div>
         </div>
       ) : left > 0 ? (
-        <div className="flex flex-col items-start gap-3 border-b border-white/8 pb-5">
+        <div className="flex flex-col items-start gap-3 border-b border-foreground/8 pb-5">
           <p className="font-heading text-2xl font-bold">
             {tFocus("restTitle")}
           </p>
@@ -357,7 +334,7 @@ export function DayBoard({
             <span className="text-muted-foreground">
               {t("progress", { done: day.done, total: day.total })}
             </span>
-            <span className="font-mono font-bold text-primary">
+            <span className="font-bold text-primary tabular-nums">
               {format.number(ratio(day), { style: "percent" })}
             </span>
           </div>
@@ -376,21 +353,12 @@ export function DayBoard({
         today={today}
         pending={pending}
         allDone={false}
-        hasHabits={plan.hasHabits}
         onToggle={toggle}
         onDelete={remove}
         onClearFilter={() => undefined}
       />
 
-      <DayGoals
-        goals={goals}
-        done={done}
-        xp={xp.items}
-        onToggleMilestone={toggleMilestone}
-        onCompleteGoal={completeGoal}
-      />
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/5 pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-foreground/5 pt-4">
         <Link
           href="/profile"
           className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"

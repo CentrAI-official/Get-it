@@ -143,7 +143,7 @@ export async function JournalDayPanel({
       ) : checkIn ? (
         <section
           aria-labelledby="journal-check-in"
-          className="flex flex-col gap-3 border-t border-white/8 pt-6"
+          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
         >
           <h3 id="journal-check-in" className="font-heading font-semibold">
             {t("day.checkIn")}
@@ -154,7 +154,7 @@ export async function JournalDayPanel({
                 <dt className="text-muted-foreground">
                   {tCheckIn(`metrics.${metric}`)}
                 </dt>
-                <dd className="font-mono font-bold">
+                <dd className="font-bold tabular-nums">
                   {tCheckIn("score", { score: checkIn[metric] })}
                 </dd>
               </div>
@@ -163,7 +163,7 @@ export async function JournalDayPanel({
         </section>
       ) : null}
 
-      <div className="border-t border-white/8 pt-6">
+      <div className="border-t border-foreground/8 pt-6">
         {page.editable ? (
           <div className="flex flex-col gap-6">
             <JournalEditor key={day} day={day} body={body} />
@@ -185,7 +185,7 @@ export async function JournalDayPanel({
               <div className="relative pl-6">
                 <span
                   aria-hidden="true"
-                  className="absolute top-0 bottom-0 left-2 w-px bg-white/12"
+                  className="absolute top-0 bottom-0 left-2 w-px bg-foreground/12"
                 />
                 <p
                   className={cn(
@@ -294,7 +294,7 @@ export async function JournalRecapPanel({
                 "flex rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 value === period
                   ? "border-primary bg-primary/15 text-foreground"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                  : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
               )}
             >
               {t(`periods.${value}`)}
@@ -332,7 +332,7 @@ export async function JournalRecapPanel({
         </div>
       </div>
 
-      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-white/8 pt-6 sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-x-6 gap-y-4 border-t border-foreground/8 pt-6 sm:grid-cols-3">
         <div className="flex flex-col gap-0.5">
           <dt className="text-sm text-muted-foreground">{t("written")}</dt>
           <dd className="font-heading text-2xl font-bold">
@@ -370,9 +370,12 @@ export async function JournalRecapPanel({
 
       <section
         aria-labelledby="journal-recap-pages"
-        className="flex flex-col gap-2 border-t border-white/8 pt-6"
+        className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
       >
-        <h2 id="journal-recap-pages" className="font-heading text-lg font-bold">
+        <h2
+          id="journal-recap-pages"
+          className="caps-label text-muted-foreground"
+        >
           {t("pages")}
         </h2>
         {recap.entries.length === 0 ? (
@@ -389,10 +392,10 @@ export async function JournalRecapPanel({
         ) : (
           <ul className="flex flex-col">
             {recap.entries.map((entry) => (
-              <li key={entry.day} className="border-b border-white/8">
+              <li key={entry.day} className="border-b border-foreground/8">
                 <Link
                   href={dayHref(entry.day, recap.today)}
-                  className="flex flex-col gap-1 rounded-md py-3 outline-none hover:bg-white/[0.02] focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="flex flex-col gap-1 rounded-md py-3 outline-none hover:bg-foreground/[0.02] focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
                   <span className="flex items-baseline justify-between gap-3">
                     <span className="font-semibold first-letter:uppercase">
@@ -403,7 +406,7 @@ export async function JournalRecapPanel({
                         timeZone: "UTC",
                       })}
                     </span>
-                    <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                       {t("wordsCount", { count: entry.words })}
                     </span>
                   </span>

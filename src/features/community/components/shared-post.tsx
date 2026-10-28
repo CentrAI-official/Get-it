@@ -52,13 +52,13 @@ export function SharedPostEmbed({
   const t = useTranslations("Community.share");
   if (shared === "unavailable") {
     return (
-      <p className="border-l-2 border-white/12 pl-3 text-sm text-muted-foreground italic">
+      <p className="border-l-2 border-foreground/12 pl-3 text-sm text-muted-foreground italic">
         {t("unavailable")}
       </p>
     );
   }
   return (
-    <div className="flex flex-col gap-2.5 border-l-2 border-white/12 pl-3">
+    <div className="flex flex-col gap-2.5 border-l-2 border-foreground/12 pl-3">
       <SharedAuthor post={shared} now={now} />
       {shared.progress ? <ProgressHero progress={shared.progress} /> : null}
       {shared.media.length > 0 ? <PostMedia media={shared.media} /> : null}
@@ -92,7 +92,7 @@ export function SharedPostPreview({
     <span className={cn("flex flex-col gap-2", className)}>
       <SharedAuthor post={shared} />
       {image ? (
-        <span className="relative block overflow-hidden rounded-2xl bg-white/5">
+        <span className="relative block overflow-hidden rounded-2xl bg-foreground/5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={image}

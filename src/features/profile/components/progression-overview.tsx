@@ -29,10 +29,10 @@ export async function ProgressionOverview() {
   return (
     <section
       aria-labelledby="progression-title"
-      className="flex flex-col gap-6 border-t border-white/8 pt-6"
+      className="flex flex-col gap-6 border-t border-foreground/8 pt-6"
     >
       <div className="flex flex-col gap-1">
-        <h2 id="progression-title" className="font-heading text-lg font-bold">
+        <h2 id="progression-title" className="caps-label text-muted-foreground">
           {t("title")}
         </h2>
         <p className="text-sm text-muted-foreground">

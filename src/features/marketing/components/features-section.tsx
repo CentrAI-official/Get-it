@@ -23,7 +23,7 @@ export function FeaturesSection() {
     <section
       id="features"
       aria-labelledby="features-title"
-      className="scroll-mt-20 border-t border-white/5"
+      className="scroll-mt-20 border-t border-foreground/5"
     >
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:py-28">
         <SectionHeading

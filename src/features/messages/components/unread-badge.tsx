@@ -15,7 +15,7 @@ export function UnreadBadge({ className }: { className?: string }) {
       <span
         aria-hidden="true"
         className={cn(
-          "flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 font-mono text-[0.6rem] leading-none font-bold text-primary-foreground",
+          "flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.6rem] leading-none font-bold text-primary-foreground tabular-nums",
           className,
         )}
       >

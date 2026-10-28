@@ -21,7 +21,7 @@ export async function GoalsOverview() {
   return (
     <div className="flex flex-col gap-10">
       <section aria-labelledby="goals-active" className="flex flex-col gap-4">
-        <h2 id="goals-active" className="font-heading text-lg font-bold">
+        <h2 id="goals-active" className="caps-label text-muted-foreground">
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
@@ -36,7 +36,7 @@ export async function GoalsOverview() {
           aria-labelledby="goals-completed"
           className="flex flex-col gap-4"
         >
-          <h2 id="goals-completed" className="font-heading text-lg font-bold">
+          <h2 id="goals-completed" className="caps-label text-muted-foreground">
             {t("sections.completed")}
           </h2>
           <GoalList goals={completed} />

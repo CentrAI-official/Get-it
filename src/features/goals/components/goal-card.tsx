@@ -30,7 +30,7 @@ export function GoalCard({ goal }: { goal: GoalSummary }) {
   return (
     <Link
       href={`/goals/${goal.id}`}
-      className="-mx-3 flex h-full items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="-mx-3 flex h-full items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <ProgressRing value={total > 0 ? done / total : 0} className="size-14">
         {goal.photoUrl ? (
@@ -49,7 +49,7 @@ export function GoalCard({ goal }: { goal: GoalSummary }) {
         <p className="font-semibold text-pretty break-words">{goal.title}</p>
         <p className="text-sm text-muted-foreground">{details.join(" · ")}</p>
         {total > 0 ? (
-          <p className="font-mono text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground tabular-nums">
             <span aria-hidden="true">
               {done}/{total}
             </span>

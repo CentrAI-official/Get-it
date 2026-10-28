@@ -21,7 +21,7 @@ type HabitListProps = {
 };
 
 const select =
-  "h-9 min-w-0 rounded-full border border-white/12 bg-white/[0.03] px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>option]:bg-popover";
+  "h-9 min-w-0 rounded-full border border-foreground/12 bg-foreground/[0.03] px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>option]:bg-popover";
 
 /** Habitudes en cours, filtrées par pilier et triées par date de création. */
 export function HabitList({ habits, today }: HabitListProps) {
@@ -60,7 +60,7 @@ export function HabitList({ habits, today }: HabitListProps) {
                       "flex h-9 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                       checked
                         ? "border-primary bg-primary/10 text-foreground"
-                        : "border-white/12 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                        : "border-foreground/12 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
                     )}
                   >
                     {value !== "all" ? (
@@ -73,7 +73,7 @@ export function HabitList({ habits, today }: HabitListProps) {
                       />
                     ) : null}
                     {value === "all" ? t("all") : tPillars(`${value}.name`)}
-                    <span className="font-mono text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground tabular-nums">
                       {value === "all" ? habits.length : counts.get(value)}
                     </span>
                   </button>

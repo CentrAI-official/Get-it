@@ -4,6 +4,7 @@ import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { UnreadPoller } from "@/features/messages/components/unread-poller";
+import { AccountThemeSync } from "@/features/settings/components/account-theme";
 import { DayPanel } from "@/features/today/components/day-panel";
 
 // L'espace personnel n'a pas à être indexé par les moteurs de recherche
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
   return (
     <div className="flex min-h-dvh">
-      {/* Fond fixe : halos orange et quadrillage, derrière tout le contenu */}
+      {/* Fond fixe et uni, derrière tout le contenu */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 -z-10 bg-app"
@@ -35,6 +36,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
         <DayPanel />
       </Suspense>
       <UnreadPoller />
+      {/* Thème choisi sur un autre appareil */}
+      <Suspense fallback={null}>
+        <AccountThemeSync />
+      </Suspense>
     </div>
   );
 }

@@ -107,7 +107,7 @@ export function SummaryStep({ draft, onEdit }: SummaryStepProps) {
   ];
 
   return (
-    <dl className="flex flex-col divide-y divide-white/8">
+    <dl className="flex flex-col divide-y divide-foreground/8">
       {rows.map((row) => (
         <div
           key={row.label}

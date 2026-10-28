@@ -69,9 +69,9 @@ async function copyText(text: string, container: HTMLElement | null) {
 }
 
 const option =
-  "flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 text-xs font-medium outline-none transition-colors hover:bg-white/[0.05] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50";
+  "flex flex-col items-center gap-1.5 rounded-2xl px-2 py-3 text-xs font-medium outline-none transition-colors hover:bg-foreground/[0.05] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50";
 const optionIcon =
-  "flex size-12 items-center justify-center rounded-full bg-white/[0.08]";
+  "flex size-12 items-center justify-center rounded-full bg-foreground/[0.08]";
 
 /**
  * « Partager » : dans mon fil (avec un mot), à une discussion ou un contact,
@@ -274,7 +274,7 @@ export function ShareDialog({
             {canWrite ? (
               <section
                 aria-labelledby={`${id}-send`}
-                className="flex flex-col gap-3 border-t border-white/8 pt-4"
+                className="flex flex-col gap-3 border-t border-foreground/8 pt-4"
               >
                 <h3 id={`${id}-send`} className="font-heading font-semibold">
                   {t("sendTitle")}
@@ -328,7 +328,7 @@ export function ShareDialog({
                       return (
                         <li
                           key={person.id}
-                          className="flex items-center gap-3 border-b border-white/8 py-2.5"
+                          className="flex items-center gap-3 border-b border-foreground/8 py-2.5"
                         >
                           <Avatar
                             name={name}

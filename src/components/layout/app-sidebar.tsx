@@ -14,7 +14,7 @@ export function AppSidebar() {
   const tCommon = useTranslations("Common");
 
   return (
-    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-white/5 bg-sidebar/60 px-3 py-6 backdrop-blur-xl lg:flex">
+    <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-r border-foreground/5 bg-sidebar/60 px-3 py-6 backdrop-blur-xl lg:flex">
       <Link href="/community" aria-label={tCommon("homeLink")} className="px-3">
         <Logo />
       </Link>
@@ -58,7 +58,7 @@ function LinkList({
         href={href}
         aria-current={active ? "page" : undefined}
         className={cn(
-          "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground",
+          "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground",
           active &&
             "bg-primary/10 text-foreground before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary hover:bg-primary/10",
         )}

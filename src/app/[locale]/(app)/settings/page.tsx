@@ -18,6 +18,10 @@ import {
 } from "@/features/community/components/community-settings";
 import { AccountEmail } from "@/features/settings/components/account-email";
 import {
+  AccountThemeSettings,
+  AccountThemeSettingsSkeleton,
+} from "@/features/settings/components/account-theme";
+import {
   AccountTypeSettings,
   AccountTypeSettingsSkeleton,
 } from "@/features/settings/components/account-type-settings";
@@ -73,6 +77,9 @@ export default function SettingsPage() {
           <LanguageSettings labelledBy="language-settings-title" />
         </CardContent>
       </Card>
+      <Suspense fallback={<AccountThemeSettingsSkeleton />}>
+        <AccountThemeSettings />
+      </Suspense>
       <Suspense fallback={<DetailsSettingsSkeleton />}>
         <DetailsSettings />
       </Suspense>

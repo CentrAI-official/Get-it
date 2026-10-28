@@ -45,7 +45,7 @@ export function OrbitFrame({ children }: { children: ReactNode }) {
           cy={CENTER.y}
           r={RADIUS}
           fill="none"
-          stroke="rgb(255 255 255 / 0.1)"
+          className="stroke-foreground/10"
           strokeDasharray="3 6"
         />
         <circle

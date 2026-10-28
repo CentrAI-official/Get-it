@@ -24,7 +24,7 @@ export function SectionTabs({ label, tabs, current }: SectionTabsProps) {
                 "flex rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 key === current
                   ? "border-primary bg-primary/15 text-foreground"
-                  : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                  : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
               )}
             >
               {tabLabel}

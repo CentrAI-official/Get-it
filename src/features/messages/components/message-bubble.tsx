@@ -77,13 +77,13 @@ export function MessageBubble({
           aria-expanded={interactive ? selected : undefined}
           aria-label={t("options")}
           onClick={onSelect}
-          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+          className="relative flex size-8 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <EllipsisVertical aria-hidden="true" className="size-4" />
           {reaction ? (
             <span
               className={cn(
-                "absolute -bottom-2 flex size-6 items-center justify-center rounded-full border border-white/10 bg-[#1b1b21] text-xs",
+                "absolute -bottom-2 flex size-6 items-center justify-center rounded-full border border-foreground/10 bg-raised text-xs",
                 mine ? "-left-5" : "-right-5",
               )}
             >
@@ -101,10 +101,10 @@ export function MessageBubble({
           className={cn(
             "relative max-w-[82%] rounded-3xl px-4 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:max-w-[70%]",
             mine
-              ? "rounded-br-lg bg-white/[0.14]"
-              : "rounded-bl-lg bg-white/[0.05] ring-1 ring-white/10",
+              ? "rounded-br-lg bg-foreground/[0.14]"
+              : "rounded-bl-lg bg-foreground/[0.05] ring-1 ring-foreground/10",
             message.deleted &&
-              "bg-transparent text-muted-foreground italic ring-1 ring-white/10",
+              "bg-transparent text-muted-foreground italic ring-1 ring-foreground/10",
             message.pending && "opacity-60",
             reaction && "mb-3",
           )}
@@ -130,7 +130,7 @@ export function MessageBubble({
           {reaction ? (
             <span
               className={cn(
-                "absolute -bottom-3 flex size-7 items-center justify-center rounded-full border border-white/10 bg-[#1b1b21] text-sm",
+                "absolute -bottom-3 flex size-7 items-center justify-center rounded-full border border-foreground/10 bg-raised text-sm",
                 mine ? "left-2" : "right-2",
               )}
             >
@@ -156,7 +156,7 @@ export function MessageBubble({
           role="group"
           aria-label={t("options")}
           className={cn(
-            "flex flex-wrap items-center gap-1 rounded-full border border-white/10 bg-[#1b1b21] p-1",
+            "flex flex-wrap items-center gap-1 rounded-full border border-foreground/10 bg-raised p-1",
             reaction && "mt-1",
           )}
         >
@@ -170,7 +170,7 @@ export function MessageBubble({
                   title={tReactions(kind)}
                   onClick={() => onReact(myReaction === kind ? null : kind)}
                   className={cn(
-                    "flex size-9 items-center justify-center rounded-full text-lg transition-colors outline-none hover:bg-white/10 focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex size-9 items-center justify-center rounded-full text-lg transition-colors outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50",
                     myReaction === kind && "bg-primary/20 ring-1 ring-primary",
                   )}
                 >
@@ -181,7 +181,7 @@ export function MessageBubble({
           <button
             type="button"
             onClick={mine ? onDelete : onReport}
-            className="flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors outline-none hover:bg-white/10 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition-colors outline-none hover:bg-foreground/10 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             {mine ? (
               <Trash2 aria-hidden="true" className="size-4" />

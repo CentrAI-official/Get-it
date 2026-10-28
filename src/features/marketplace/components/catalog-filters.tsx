@@ -16,7 +16,7 @@ import {
 const chip =
   "h-9 shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const select =
-  "h-10 w-full min-w-0 rounded-full border border-white/12 bg-white/[0.03] px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>option]:bg-popover";
+  "h-10 w-full min-w-0 rounded-full border border-foreground/12 bg-foreground/[0.03] px-3.5 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 [&>option]:bg-popover";
 
 /**
  * Filtres du catalogue : « Où », région et tranche de prix pour les services
@@ -97,7 +97,7 @@ export function CatalogFilterBar({
                   chip,
                   checked
                     ? "border-primary bg-primary/15 text-foreground"
-                    : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                    : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
                 )}
               >
                 {t(`modes.${mode ?? "both"}`)}

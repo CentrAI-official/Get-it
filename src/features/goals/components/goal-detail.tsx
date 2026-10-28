@@ -59,7 +59,7 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
             ) : (
               <span className="flex flex-col items-center gap-0.5">
                 {total > 0 ? (
-                  <span className="font-mono text-xl font-bold sm:text-2xl">
+                  <span className="font-display text-xl sm:text-2xl">
                     <PercentValue part={part} />
                   </span>
                 ) : (
@@ -142,10 +142,13 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         <section
           aria-labelledby="goal-milestones"
-          className="flex flex-col gap-4 border-t border-white/8 pt-6"
+          className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
         >
           <div className="flex flex-col gap-1">
-            <h2 id="goal-milestones" className="font-heading text-lg font-bold">
+            <h2
+              id="goal-milestones"
+              className="caps-label text-muted-foreground"
+            >
               {t("milestones.title")}
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -156,10 +159,10 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
         </section>
         <section
           aria-labelledby="goal-tasks"
-          className="flex flex-col gap-4 border-t border-white/8 pt-6"
+          className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
         >
           <div className="flex flex-col gap-1">
-            <h2 id="goal-tasks" className="font-heading text-lg font-bold">
+            <h2 id="goal-tasks" className="caps-label text-muted-foreground">
               {t("tasks.title")}
             </h2>
             <p className="text-sm text-muted-foreground">

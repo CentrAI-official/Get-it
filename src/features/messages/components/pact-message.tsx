@@ -50,7 +50,7 @@ export function PactMessage({
       : "";
 
   const pill = (text: string) => (
-    <p className="mx-auto my-3 w-fit max-w-full rounded-full bg-white/5 px-3 py-1.5 text-center text-xs text-muted-foreground">
+    <p className="mx-auto my-3 w-fit max-w-full rounded-full bg-foreground/5 px-3 py-1.5 text-center text-xs text-muted-foreground">
       {text}
     </p>
   );
@@ -101,13 +101,13 @@ function Chips({ pact }: { pact: PactCard }) {
   const t = useTranslations("Messages.pacts.card");
   return (
     <ul className="flex flex-wrap gap-1.5">
-      <li className="rounded-full bg-white/6 px-2.5 py-1.5 font-mono text-xs">
+      <li className="rounded-full bg-foreground/6 px-2.5 py-1.5 text-xs tabular-nums">
         {t("days", { days: pact.days })}
       </li>
-      <li className="rounded-full bg-white/6 px-2.5 py-1.5 text-xs">
+      <li className="rounded-full bg-foreground/6 px-2.5 py-1.5 text-xs">
         {t("startsTomorrow")}
       </li>
-      <li className="rounded-full bg-white/6 px-2.5 py-1.5 text-xs">
+      <li className="rounded-full bg-foreground/6 px-2.5 py-1.5 text-xs">
         {t("rule", { need: pact.need, days: pact.days })}
       </li>
     </ul>
@@ -243,7 +243,7 @@ function ProposalCard({
                       "flex items-center gap-3 rounded-2xl border px-3 py-2 text-left transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                       choice === option.id
                         ? "border-primary bg-primary/10"
-                        : "border-white/12 bg-white/[0.03] hover:bg-white/[0.06]",
+                        : "border-foreground/12 bg-foreground/[0.03] hover:bg-foreground/[0.06]",
                     )}
                   >
                     <span
@@ -252,7 +252,7 @@ function ProposalCard({
                         "size-4.5 shrink-0 rounded-full",
                         choice === option.id
                           ? "border-5 border-primary"
-                          : "border-2 border-white/30",
+                          : "border-2 border-foreground/30",
                       )}
                     />
                     <span className="flex min-w-0 flex-col">
@@ -315,7 +315,7 @@ function PactResult({
         "my-3 flex flex-col items-center gap-4 rounded-3xl border p-5 text-center",
         success
           ? "border-primary/50 bg-[radial-gradient(circle_at_50%_0%,rgba(255,107,0,0.22),var(--card)_65%)] shadow-[0_0_50px_rgba(255,107,0,0.15)]"
-          : "border-white/10 bg-card",
+          : "border-foreground/10 bg-card",
       )}
     >
       <span
@@ -324,7 +324,7 @@ function PactResult({
           "flex size-16 items-center justify-center rounded-full",
           success
             ? "bg-primary text-primary-foreground glow-primary"
-            : "bg-white/8 text-muted-foreground",
+            : "bg-foreground/8 text-muted-foreground",
         )}
       >
         {success ? (
@@ -353,7 +353,7 @@ function PactResult({
             </dt>
             <dd
               className={cn(
-                "font-mono text-lg font-bold",
+                "font-display text-lg",
                 stat.accent && "text-primary",
               )}
             >

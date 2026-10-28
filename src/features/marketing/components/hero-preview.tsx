@@ -88,24 +88,26 @@ export function HeroPreview() {
         aria-hidden="true"
         className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-primary/10 blur-3xl"
       />
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-white/10 bg-card/80 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-5">
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-foreground/10 bg-card/80 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl sm:p-5">
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-0.5">
             <span className="text-xs text-muted-foreground">
               {t("level", { level: EXAMPLE.level })}
             </span>
-            <span className="font-mono text-sm font-bold text-primary">
+            <span className="text-sm font-bold text-primary tabular-nums">
               {t("xp", { xp: EXAMPLE.xp })}
             </span>
           </div>
-          <span className="flex items-center gap-1.5 rounded-full bg-white/5 px-3 py-1.5 text-xs font-medium">
+          <span className="flex items-center gap-1.5 rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-medium">
             <Flame aria-hidden="true" className="size-3.5 text-primary" />
             {t("streak", { days: EXAMPLE.streakDays })}
           </span>
         </div>
         <div className="flex flex-col gap-1.5">
           <Progress value={EXAMPLE.levelProgress} aria-label={nextLevel} />
-          <p className="font-mono text-xs text-muted-foreground">{nextLevel}</p>
+          <p className="text-xs text-muted-foreground tabular-nums">
+            {nextLevel}
+          </p>
         </div>
 
         <SystemOrbit

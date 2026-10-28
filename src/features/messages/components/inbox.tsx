@@ -65,7 +65,7 @@ export function Inbox({ initial, loadedAt }: InboxProps) {
               "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
               tab === value
                 ? "border-primary bg-primary/15 text-foreground"
-                : "border-white/10 bg-white/[0.03] text-muted-foreground hover:text-foreground",
+                : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
             )}
           >
             {value === "requests" && requests.length > 0
@@ -133,7 +133,7 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
   return (
     <Link
       href={`/messages/${item.id}`}
-      className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-white/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="-mx-3 flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       {item.group ? (
         <GroupBadge topic={item.group.topic} className="size-12" />
@@ -156,7 +156,7 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
               {name}
             </span>
             {item.group || item.other.level === null ? null : (
-              <span className="shrink-0 font-mono text-xs text-muted-foreground">
+              <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                 {t("level", { level: item.other.level })}
               </span>
             )}

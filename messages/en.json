@@ -256,6 +256,13 @@
         "title": "Language",
         "description": "Choose the interface language. It’s saved to your account and follows you on all your devices."
       },
+      "theme": {
+        "title": "Theme",
+        "description": "Light or dark, or match your device setting. It’s saved to your account and follows you on all your devices.",
+        "system": "Match device",
+        "light": "Light",
+        "dark": "Dark"
+      },
       "account": {
         "title": "Account",
         "description": "The email address you log in with.",
@@ -732,21 +739,7 @@
       "close": "Close",
       "start": "Let’s go",
       "profileLink": "See my progress",
-      "goals": {
-        "title": "Your goals",
-        "all": "See all",
-        "empty": "No goal in progress.",
-        "create": "Create a goal",
-        "meta": "{pillar} · {done, number}/{total, number} milestones",
-        "nextMilestone": "Next milestone: {title}",
-        "reached": "Goal reached",
-        "confirm": "Mark “{title}” as reached? You earn {xp, number} XP.",
-        "confirmAction": "Confirm",
-        "cancel": "Cancel",
-        "achieved": "Goal reached: {title}",
-        "share": "Share in the Hub"
-      },
-      "cardDescription": "Check off today’s habits, tasks and milestones.",
+      "cardDescription": "Check off today’s habits and tasks.",
       "cardProgress": "{done, number} of {total, number} quests done today"
     },
     "system": {
@@ -769,10 +762,9 @@
       "withGoal": "{meta} · {goal}",
       "saving": "Saving…",
       "allDone": "Everything is done for today. Well done!",
-      "empty": "Nothing planned today. Add a task below or create a habit to get started.",
+      "empty": "Nothing planned today. Add a task below, or a habit in Profile › Habits.",
       "emptyFiltered": "No {pillar} quests today.",
       "showAll": "Show all quests",
-      "createHabit": "Create a habit",
       "xpReward": "+{xp, number} XP",
       "xpEarned": "{xp, number} XP",
       "withStreak": "{meta} · {count, number}-day streak",

@@ -67,7 +67,7 @@ export function PlanView({
         <CalendarView initial={calendar} scope={kind} />
       </section>
 
-      <header className="flex flex-col gap-2 border-t border-white/8 pt-6">
+      <header className="flex flex-col gap-2 border-t border-foreground/8 pt-6">
         <p className="text-sm text-muted-foreground">
           {t("updated", { date: new Date(updatedAt) })}
         </p>
@@ -91,7 +91,7 @@ export function PlanView({
       {plan.sections.map((section) => (
         <section
           key={section.title}
-          className="flex flex-col gap-3 border-t border-white/8 pt-6"
+          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
         >
           <h3 className="font-heading text-lg font-bold">{section.title}</h3>
           <ul className="flex flex-col gap-3">
@@ -142,7 +142,7 @@ export function PlanView({
 
       <RevisePlan kind={kind} onCrisis={onCrisis} />
 
-      <div className="flex flex-wrap gap-2 border-t border-white/8 pt-6">
+      <div className="flex flex-wrap gap-2 border-t border-foreground/8 pt-6">
         <Button variant="outline" onClick={onRedo}>
           <RefreshCw aria-hidden="true" />
           {t("redo")}
@@ -209,7 +209,7 @@ function AddToGetIt({
   const row = "flex items-start gap-3 py-2.5 text-sm";
 
   return (
-    <section className="flex flex-col gap-3 border-t border-white/8 pt-6">
+    <section className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
       <div className="flex flex-col gap-1">
         <h3 className="font-heading text-lg font-bold">{t("addTitle")}</h3>
         <p className="text-sm text-muted-foreground">{t("addDescription")}</p>
@@ -225,7 +225,7 @@ function AddToGetIt({
       ) : null}
       {empty ? null : (
         <>
-          <ul className="flex flex-col divide-y divide-white/8">
+          <ul className="flex flex-col divide-y divide-foreground/8">
             {plan.goal ? (
               <li>
                 <label className={row}>

@@ -48,14 +48,14 @@ export function ChecklistItem({
   return (
     <li
       className={cn(
-        "flex items-center gap-3 border-b border-white/8 py-1.5 transition-opacity",
+        "flex items-center gap-3 border-b border-foreground/8 py-1.5 transition-opacity",
         optimisticDone ? "text-muted-foreground" : null,
         isDeleting && "opacity-50",
       )}
     >
       <Checkbox
         id={checkboxId}
-        className="size-6 rounded-full border-2 border-white/20 data-checked:glow-primary [&_svg]:size-3.5"
+        className="size-6 rounded-full border-2 border-foreground/20 data-checked:glow-primary [&_svg]:size-3.5"
         checked={optimisticDone}
         onCheckedChange={(checked) =>
           startToggle(async () => {

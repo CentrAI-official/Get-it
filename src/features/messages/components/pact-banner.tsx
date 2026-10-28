@@ -59,7 +59,7 @@ export function PactBanner({
           <Handshake className="size-4.5" />
         </span>
         <span className="min-w-0 flex-1 truncate font-bold">{pact.title}</span>
-        <span className="shrink-0 font-mono text-[0.8rem] font-bold text-primary">
+        <span className="shrink-0 text-[0.8rem] font-bold text-primary tabular-nums">
           {started
             ? t("day", { day: pact.dayIndex, days: pact.days })
             : t("startsTomorrow")}
@@ -88,10 +88,10 @@ export function PactBanner({
                   cell.me && cell.them
                     ? "bg-primary"
                     : cell.state === "future"
-                      ? "bg-white/8"
+                      ? "bg-foreground/8"
                       : cell.me || cell.them
-                        ? "bg-[linear-gradient(90deg,rgba(255,107,0,0.5)_50%,rgba(255,255,255,0.12)_50%)]"
-                        : "bg-white/12",
+                        ? "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--primary)_50%,transparent)_50%,color-mix(in_oklab,var(--foreground)_12%,transparent)_50%)]"
+                        : "bg-foreground/12",
                 )}
               />
             ))}
@@ -150,7 +150,7 @@ export function PactBanner({
               {t.rich("streak", {
                 count: pact.streak,
                 strong: (chunks) => (
-                  <strong className="font-mono">{chunks}</strong>
+                  <strong className="tabular-nums">{chunks}</strong>
                 ),
               })}
             </span>
@@ -166,7 +166,7 @@ export function PactBanner({
               <button
                 type="button"
                 onClick={onEncourage}
-                className="h-9 rounded-full border border-white/15 px-3.5 text-[0.8rem] font-semibold outline-none hover:bg-white/5 focus-visible:ring-3 focus-visible:ring-ring/50"
+                className="h-9 rounded-full border border-foreground/15 px-3.5 text-[0.8rem] font-semibold outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 {t("encourage", { name })}
               </button>
@@ -203,7 +203,7 @@ function Status({
     <div
       className={cn(
         "flex min-w-0 items-center gap-2 rounded-[14px] px-2.5 py-2",
-        done ? "bg-primary/10" : "bg-white/4",
+        done ? "bg-primary/10" : "bg-foreground/4",
       )}
     >
       <span
@@ -212,7 +212,7 @@ function Status({
           "flex size-5.5 shrink-0 items-center justify-center rounded-full",
           done
             ? "bg-primary text-primary-foreground"
-            : "border-2 border-dashed border-white/35",
+            : "border-2 border-dashed border-foreground/35",
         )}
       >
         {done ? <Check className="size-3" strokeWidth={3} /> : null}

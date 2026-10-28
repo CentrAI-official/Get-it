@@ -112,7 +112,7 @@ export function ActionCard({ action, onChange }: ActionCardProps) {
         "flex flex-col gap-3 rounded-2xl border p-3 transition-colors",
         status === "applied"
           ? "border-primary/30 bg-primary/[0.06]"
-          : "border-white/10 bg-white/[0.03]",
+          : "border-foreground/10 bg-foreground/[0.03]",
         status === "dismissed" && "opacity-60",
       )}
     >
