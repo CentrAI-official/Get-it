@@ -44,6 +44,7 @@ import {
 } from "@/server/contacts/service";
 import { avatarUrls } from "@/server/profile/avatar";
 import { getDisplayLevels } from "@/server/ranked/service";
+import { notify } from "@/server/notifications/service";
 import {
   getOpenPact,
   pactCardsFor,
@@ -51,6 +52,11 @@ import {
   type PactBanner,
   type PactCard,
 } from "./pacts";
+import {
+  getGroupPact,
+  settleGroupPacts,
+  type GroupPactState,
+} from "./group-pacts";
 
 // Messagerie privée entre membres du Centre. Chaque fonction reçoit l'userId
 // de la session et vérifie qu'il participe à la conversation, sans blocage.
@@ -668,6 +674,8 @@ export type GroupChatState = {
   messages: ChatMessage[];
   hasMore: boolean;
   loadedAt: number;
+  /** Pacte de groupe ouvert (proposé ou en cours). */
+  pact: GroupPactState | null;
 };
 
 /**
@@ -680,10 +688,13 @@ export async function getGroupChat(
 ): Promise<GroupChatState | null> {
   const member = await groupChatMember(viewerId, conversationId);
   if (!member) return null;
-  const [page, allowed, blocked] = await Promise.all([
+  // Pactes arrivés au bout : terminés avant d'afficher la discussion
+  await settleGroupPacts(conversationId, viewerId);
+  const [page, allowed, blocked, pact] = await Promise.all([
     messagesPage(viewerId, conversationId, member.clearedAt),
     canWrite(viewerId),
     getBlockedIds(viewerId),
+    getGroupPact(viewerId, conversationId),
   ]);
   const messages = page.messages.filter((m) => !blocked.includes(m.senderId));
   const byId = await people([...new Set(messages.map((m) => m.senderId))]);
@@ -700,6 +711,7 @@ export async function getGroupChat(
     messages,
     hasMore: page.hasMore,
     loadedAt: Date.now(),
+    pact,
   };
 }
 
@@ -812,11 +824,42 @@ export async function sendMessage(
   const [posts, media] = await Promise.all([
     sharedPostsFor(viewerId, postId ? [postId] : []),
     messageMediaFor(mediaRows.length > 0 ? [message.id] : []),
+    notifyMessage(viewerId, conversationId),
   ]);
   return {
     ok: true,
     message: toChatMessage(viewerId, message, undefined, posts, media),
   };
+}
+
+/** Prévient les autres membres de la discussion (une notification par discussion). */
+async function notifyMessage(viewerId: string, conversationId: string) {
+  const conversation = await db.conversation.findUnique({
+    where: { id: conversationId },
+    select: {
+      group: { select: { name: true } },
+      members: {
+        where: { userId: { not: viewerId } },
+        select: { userId: true, status: true },
+      },
+    },
+  });
+  if (!conversation) return;
+  await Promise.all(
+    conversation.members.map((member) =>
+      notify({
+        userId: member.userId,
+        kind:
+          !conversation.group && member.status === "request"
+            ? "message_request"
+            : "message",
+        actorId: viewerId,
+        href: `/messages/${conversationId}`,
+        subject: conversation.group?.name ?? "",
+        groupKey: `message:${conversationId}`,
+      }),
+    ),
+  );
 }
 
 /** La conversation est lue jusqu'ici (seulement pour la pastille : pas de « Vu »). */

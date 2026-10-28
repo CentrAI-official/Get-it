@@ -23,7 +23,10 @@ import {
 } from "../rules";
 
 type ReportDialogProps = {
-  target: { type: "post" | "comment" | "user" | "message"; id: string } | null;
+  target: {
+    type: "post" | "comment" | "user" | "message" | "story";
+    id: string;
+  } | null;
   onClose: () => void;
   /** Signalement envoyé : message de confirmation. */
   onReported: () => void;

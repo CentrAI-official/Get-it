@@ -4,6 +4,7 @@ import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { UnreadPoller } from "@/features/messages/components/unread-poller";
+import { NotificationPoller } from "@/features/notifications/components/notification-bell";
 import { AccountThemeSync } from "@/features/settings/components/account-theme";
 import { DayPanel } from "@/features/today/components/day-panel";
 
@@ -36,6 +37,7 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
         <DayPanel />
       </Suspense>
       <UnreadPoller />
+      <NotificationPoller />
       {/* Thème choisi sur un autre appareil */}
       <Suspense fallback={null}>
         <AccountThemeSync />

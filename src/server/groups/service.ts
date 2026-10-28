@@ -1,6 +1,7 @@
 import "server-only";
 import type { Pillar } from "@/config/pillars";
 import {
+  canInvite,
   canManage,
   canRemove,
   DAILY_GROUP_INVITES,
@@ -21,6 +22,7 @@ import { canParticipate } from "@/server/community/posts";
 import { db } from "@/server/db";
 import { avatarUrls } from "@/server/profile/avatar";
 import { removeFiles } from "@/server/storage/service";
+import { notify } from "@/server/notifications/service";
 
 // Groupes : chaque fonction reçoit l'userId de la session et revérifie le rôle
 // de la personne dans le groupe. Un groupe privé n'existe que pour ses membres
@@ -129,6 +131,13 @@ async function membership(groupId: string, userId: string) {
   return db.groupMember.findUnique({
     where: { groupId_userId: { groupId, userId } },
     select: { role: true, status: true },
+  });
+}
+
+/** Invitations à des groupes privés en attente (pastille de la Messagerie). */
+export async function countPrivateInvitations(userId: string) {
+  return db.groupMember.count({
+    where: { userId, status: "invited", group: { visibility: "private" } },
   });
 }
 
@@ -327,10 +336,13 @@ export async function inviteToGroup(
   ]);
   if (!group || mine?.status !== "active")
     return { ok: false, error: "notFound" };
-  if (!canManage(mine.role) || group.visibility !== "private") {
+  if (!canInvite(group.visibility, mine.role)) {
     return { ok: false, error: "notAllowed" };
   }
-  if (group._count.members >= MAX_PRIVATE_MEMBERS) {
+  if (
+    group.visibility === "private" &&
+    group._count.members >= MAX_PRIVATE_MEMBERS
+  ) {
     return { ok: false, error: "memberLimit" };
   }
   const blocked = await getBlockedIds(actorId);
@@ -361,6 +373,17 @@ export async function inviteToGroup(
       status: "invited",
       invitedById: actorId,
     },
+  });
+  const name = await db.group.findUnique({
+    where: { id: groupId },
+    select: { name: true },
+  });
+  await notify({
+    userId: targetId,
+    kind: "group_invite",
+    actorId,
+    href: `/groups/${groupId}`,
+    subject: name?.name ?? "",
   });
   return { ok: true };
 }
@@ -449,9 +472,14 @@ export async function setGroupRole(
 export async function deleteGroup(
   ownerId: string,
   groupId: string,
-): Promise<Result> {
+): Promise<Result<{ visibility: GroupVisibility }>> {
   const mine = await membership(groupId, ownerId);
   if (mine?.role !== "owner") return { ok: false, error: "notAllowed" };
+  const group = await db.group.findUnique({
+    where: { id: groupId },
+    select: { visibility: true },
+  });
+  if (!group) return { ok: false, error: "notFound" };
   const [postMedia, messageMedia] = await Promise.all([
     db.postMedia.findMany({
       where: { post: { groupId } },
@@ -472,7 +500,7 @@ export async function deleteGroup(
       console.error("Fichiers d'un groupe non supprimés", error);
     });
   }
-  return { ok: true };
+  return { ok: true, visibility: group.visibility };
 }
 
 /**

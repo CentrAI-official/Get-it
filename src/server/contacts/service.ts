@@ -11,6 +11,7 @@ import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
 import { avatarUrls } from "@/server/profile/avatar";
 import { getDisplayLevels } from "@/server/ranked/service";
+import { notify } from "@/server/notifications/service";
 
 // Contacts (amis) entre membres du Centre. Chaque fonction reçoit l'userId de
 // la session ; la liste de contacts n'est visible que par son propriétaire.
@@ -118,6 +119,12 @@ export async function requestContact(
   const state = contactState(existing, viewerId);
   if (existing && state === "received") {
     await acceptPair(existing.id, viewerId, otherId);
+    await notify({
+      userId: otherId,
+      kind: "contact_accepted",
+      actorId: viewerId,
+      href: "/messages/contacts",
+    });
     return { ok: true, state: "contact" };
   }
   if (state !== "none") return { ok: true, state };
@@ -145,6 +152,12 @@ export async function requestContact(
     }
     throw error;
   }
+  await notify({
+    userId: otherId,
+    kind: "contact_request",
+    actorId: viewerId,
+    href: "/messages/contacts",
+  });
   return { ok: true, state: "sent" };
 }
 
@@ -170,6 +183,12 @@ export async function respondToContact(
   if (!(await canWrite(viewerId)).ok) return false;
   if (await isBlockedPair(viewerId, otherId)) return false;
   await acceptPair(row.id, viewerId, otherId);
+  await notify({
+    userId: otherId,
+    kind: "contact_accepted",
+    actorId: viewerId,
+    href: "/messages/contacts",
+  });
   return true;
 }
 

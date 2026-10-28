@@ -187,7 +187,7 @@ export async function setGroupRoleAction(
   );
 }
 
-/** Supprime le groupe (le créateur), puis revient aux Groupes. */
+/** Supprime le groupe (le créateur), puis revient aux Groupes (privé : à la Messagerie). */
 export async function deleteGroupAction(
   groupId: unknown,
   locale: unknown,
@@ -196,14 +196,16 @@ export async function deleteGroupAction(
   const [id] = ids(groupId) ?? [];
   const lang = z.enum(["fr", "en"]).safeParse(locale);
   if (!id || !lang.success) return { ok: false, error: "notFound" };
+  let back: "/groups" | "/messages" = "/groups";
   try {
     const result = await deleteGroup(user.id, id);
     if (!result.ok) return result;
+    if (result.visibility === "private") back = "/messages";
   } catch (error) {
     console.error("Groupe impossible à supprimer", error);
     return { ok: false, error: "unexpected" };
   }
-  return redirect({ href: "/groups", locale: lang.data });
+  return redirect({ href: back, locale: lang.data });
 }
 
 /** Retire une publication du forum (le créateur ou un admin du groupe). */

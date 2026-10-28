@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Avatar } from "@/components/avatar";
+import { BackLink } from "@/components/back-link";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,7 +25,12 @@ import {
 import { avatarUrl } from "@/server/profile/avatar";
 import { getCurrentProfile } from "@/server/profile/service";
 import { storageEnabled } from "@/server/storage/service";
-import { canManage, GROUP_TOPICS, groupFiltersSchema } from "../rules";
+import {
+  canInvite,
+  canManage,
+  GROUP_TOPICS,
+  groupFiltersSchema,
+} from "../rules";
 import { GroupBadge } from "./group-badge";
 import {
   DeleteGroupButton,
@@ -33,6 +39,7 @@ import {
   JoinGroupButton,
   LeaveGroupButton,
   MemberMenu,
+  ShareGroupButton,
 } from "./group-buttons";
 import { GroupForm } from "./group-form";
 
@@ -104,6 +111,12 @@ export async function GroupsPanel({
     getTranslations("Groups"),
   ]);
   const others = discover.filter((group) => group.status !== "active");
+  const publicGroups = mine.groups.filter(
+    (group) => group.visibility === "public",
+  );
+  const invitations = mine.invitations.filter(
+    (group) => group.visibility === "public",
+  );
   const topicHref = (topic?: string) => {
     const query = new URLSearchParams();
     if (topic) query.set("topic", topic);
@@ -121,7 +134,7 @@ export async function GroupsPanel({
         </Link>
       </Button>
 
-      {mine.invitations.length > 0 ? (
+      {invitations.length > 0 ? (
         <section
           aria-labelledby="groups-invitations"
           className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
@@ -133,7 +146,7 @@ export async function GroupsPanel({
             {t("invitations.title")}
           </h2>
           <ul className="flex flex-col">
-            {mine.invitations.map((group) => (
+            {invitations.map((group) => (
               <GroupRow
                 key={group.id}
                 group={group}
@@ -151,9 +164,9 @@ export async function GroupsPanel({
         <h2 id="groups-mine" className="caps-label text-muted-foreground">
           {t("mine.title")}
         </h2>
-        {mine.groups.length > 0 ? (
+        {publicGroups.length > 0 ? (
           <ul className="flex flex-col">
-            {mine.groups.map((group) => (
+            {publicGroups.map((group) => (
               <GroupRow key={group.id} group={group} />
             ))}
           </ul>
@@ -266,6 +279,11 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
 
   return (
     <div className="flex flex-col gap-8">
+      {group.visibility === "private" ? (
+        <BackLink href="/messages" label={t("backToMessages")} />
+      ) : (
+        <BackLink href="/groups" label={t("back")} />
+      )}
       <header className="flex flex-col gap-4">
         <div className="flex items-center gap-4">
           <GroupBadge topic={group.topic} className="size-16" />
@@ -305,8 +323,11 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
               <Link href={`/groups/${group.id}/edit`}>{t("edit")}</Link>
             </Button>
           ) : null}
-          {manager && group.visibility === "private" ? (
+          {active && canInvite(group.visibility, group.role) ? (
             <InviteDialog groupId={group.id} />
+          ) : null}
+          {group.visibility === "public" ? (
+            <ShareGroupButton groupId={group.id} name={group.name} />
           ) : null}
         </div>
       </header>
@@ -414,7 +435,10 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
           {group.role === "owner" ? (
             <DeleteGroupButton groupId={group.id} />
           ) : (
-            <LeaveGroupButton groupId={group.id} />
+            <LeaveGroupButton
+              groupId={group.id}
+              back={group.visibility === "private" ? "/messages" : "/groups"}
+            />
           )}
         </div>
       ) : null}

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { BackLink } from "@/components/back-link";
 import {
   GroupPageLoader,
   GroupsSkeleton,
@@ -17,12 +15,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function GroupPage({
   params,
 }: PageProps<"/[locale]/groups/[id]">) {
-  const t = useTranslations("Groups");
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <BackLink href="/groups" label={t("back")} />
-      {/* L'id n'est connu qu'à la requête : lu dans le Suspense */}
+      {/* L'id (et le retour : Groupes ou Messagerie) ne sont connus qu'à la requête */}
       <Suspense fallback={<GroupsSkeleton />}>
         {params.then(({ id }) => (
           <GroupPageLoader groupId={id} />

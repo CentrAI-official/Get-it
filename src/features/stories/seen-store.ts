@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from "react";
 
-// Progrès du jour déjà vus : une commodité propre à cet appareil (stockage du
-// navigateur). Sans stockage disponible, tout reste simplement « nouveau ».
+// Stories déjà vues : une commodité propre à cet appareil (stockage du
+// navigateur, jamais montré à l'auteur). Sans stockage, tout reste « nouveau ».
 
 const KEY = "getit:stories-seen";
 /** Identifiants gardés au plus : les plus anciens sont oubliés. */
@@ -33,7 +33,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-/** Marque une publication comme vue. */
+/** Marque une story comme vue. */
 export function markStorySeen(postId: string) {
   const seen = read();
   if (seen.has(postId)) return;

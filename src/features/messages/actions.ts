@@ -40,6 +40,14 @@ import {
   type ShareTarget,
 } from "@/server/messages/service";
 import type { UploadSlot } from "@/server/community/media";
+import { countPrivateInvitations } from "@/server/groups/service";
+import {
+  isGroupConversation,
+  isGroupPact,
+  leaveGroupPact,
+  proposeGroupPact,
+  respondToGroupPact,
+} from "@/server/messages/group-pacts";
 import {
   firstMessageError,
   memberSearchSchema,
@@ -91,11 +99,12 @@ export async function listInboxAction(): Promise<InboxItem[]> {
 
 export async function countUnreadAction(): Promise<number> {
   const user = await requireUser();
-  const [unread, requests] = await Promise.all([
+  const [unread, requests, invitations] = await Promise.all([
     countUnread(user.id).catch(() => 0),
     countContactRequests(user.id).catch(() => 0),
+    countPrivateInvitations(user.id).catch(() => 0),
   ]);
-  return unread + requests;
+  return unread + requests + invitations;
 }
 
 /** État à jour d'une conversation (rafraîchissement régulier). */
@@ -311,7 +320,9 @@ export async function proposePactAction(
     };
   }
   try {
-    return await proposePact(user.id, id.data, parsed.data);
+    return (await isGroupConversation(id.data))
+      ? await proposeGroupPact(user.id, id.data, parsed.data)
+      : await proposePact(user.id, id.data, parsed.data);
   } catch (error) {
     console.error("Proposition de pacte impossible", error);
     return { ok: false, error: "unexpected" };
@@ -327,7 +338,9 @@ export async function respondPactAction(
   const parsed = pactResponseSchema.safeParse(response);
   if (!id.success || !parsed.success) return { ok: false, error: "notFound" };
   try {
-    return await respondToPact(user.id, id.data, parsed.data);
+    return (await isGroupPact(id.data))
+      ? await respondToGroupPact(user.id, id.data, parsed.data)
+      : await respondToPact(user.id, id.data, parsed.data);
   } catch (error) {
     console.error("Réponse au pacte impossible", error);
     return { ok: false, error: "unexpected" };
@@ -339,5 +352,11 @@ export async function cancelPactAction(pactId: unknown) {
   const user = await requireUser();
   const id = recordIdSchema.safeParse(pactId);
   if (!id.success) return false;
-  return cancelPact(user.id, id.data).catch(() => false);
+  try {
+    return (await isGroupPact(id.data))
+      ? await leaveGroupPact(user.id, id.data)
+      : await cancelPact(user.id, id.data);
+  } catch {
+    return false;
+  }
 }

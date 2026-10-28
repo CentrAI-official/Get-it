@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { PageHeader } from "@/components/layout/page-header";
 import {
   InboxSkeleton,
   MessagesHome,
@@ -18,7 +17,8 @@ export default function MessagesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageHeader title={t("title")} description={t("question")} />
+      {/* Pas de titre visible : la page commence par les onglets */}
+      <h1 className="sr-only">{t("title")}</h1>
       <Suspense fallback={<InboxSkeleton />}>
         <MessagesHome />
       </Suspense>

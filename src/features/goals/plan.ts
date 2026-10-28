@@ -126,3 +126,60 @@ export const goalPlanSelectionSchema = z.object({
 });
 
 export type GoalPlanSelection = z.infer<typeof goalPlanSelectionSchema>;
+
+// Avant le plan, Get iT AI pose quelques questions sur la situation de la
+// personne (ex. son poids actuel, sa fréquence d'entraînement). Les réponses
+// sont ajoutées à la demande de plan, citées comme du texte (jamais comme consignes).
+
+export const QUESTION_LIMITS = {
+  /** Questions posées au plus. */
+  questions: 5,
+  question: 200,
+  hint: 80,
+  /** Réponse de la personne, en caractères. */
+  answer: 500,
+} as const;
+
+/** Sortie structurée demandée au modèle ; bornée ensuite par `normalizeGoalQuestions`. */
+export const aiGoalQuestionsSchema = z.object({
+  intro: z.string(),
+  questions: z.array(z.object({ question: z.string(), hint: z.string() })),
+});
+
+export type AiGoalQuestions = z.infer<typeof aiGoalQuestionsSchema>;
+
+export type GoalQuestions = {
+  /** Une phrase d'accueil, adressée à la personne. */
+  intro: string;
+  /** `hint` : un exemple de réponse, affiché dans le champ. */
+  questions: { question: string; hint: string }[];
+};
+
+/** Questions nettoyées : textes bornés, vides retirées, 5 au plus. */
+export function normalizeGoalQuestions(raw: AiGoalQuestions): GoalQuestions {
+  return {
+    intro: clean(raw.intro, 300),
+    questions: raw.questions
+      .map((item) => ({
+        question: clean(item.question, QUESTION_LIMITS.question),
+        hint: clean(item.hint, QUESTION_LIMITS.hint),
+      }))
+      .filter((item) => item.question.length > 0)
+      .slice(0, QUESTION_LIMITS.questions),
+  };
+}
+
+/** Réponses envoyées avec la demande de plan (les vides sont ignorées). */
+export const goalAnswersSchema = z
+  .array(
+    z.object({
+      question: z.string().trim().max(QUESTION_LIMITS.question),
+      answer: z.string().trim().max(QUESTION_LIMITS.answer),
+    }),
+  )
+  .max(QUESTION_LIMITS.questions)
+  .transform((answers) =>
+    answers.filter((item) => item.question && item.answer),
+  );
+
+export type GoalAnswers = z.infer<typeof goalAnswersSchema>;

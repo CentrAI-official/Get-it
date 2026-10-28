@@ -37,7 +37,27 @@ const nextConfig: NextConfig = {
     },
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      // Service worker des notifications : jamais mis en cache, scripts du site seulement
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/javascript; charset=utf-8",
+          },
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: "default-src 'self'; script-src 'self'",
+          },
+        ],
+      },
+    ];
   },
   async redirects() {
     // L'ancienne page Aujourd'hui est devenue le popup « Ma journée »

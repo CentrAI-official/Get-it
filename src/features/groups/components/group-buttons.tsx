@@ -4,8 +4,10 @@ import {
   Check,
   EllipsisVertical,
   LoaderCircle,
+  Link2,
   LogOut,
   Search,
+  Share2,
   ShieldCheck,
   ShieldOff,
   Trash2,
@@ -38,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { copyText } from "@/features/community/components/share-dialog";
 import { useRouter } from "@/i18n/navigation";
 import type { GroupRole } from "../rules";
 import type { GroupError } from "../rules";
@@ -133,8 +136,14 @@ export function InvitationButtons({ groupId }: { groupId: string }) {
   );
 }
 
-/** Quitter le groupe (membres et admins). */
-export function LeaveGroupButton({ groupId }: { groupId: string }) {
+/** Quitter le groupe (membres et admins), puis revenir à `back`. */
+export function LeaveGroupButton({
+  groupId,
+  back,
+}: {
+  groupId: string;
+  back: "/groups" | "/messages";
+}) {
   const t = useTranslations("Groups");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -148,7 +157,7 @@ export function LeaveGroupButton({ groupId }: { groupId: string }) {
         onClick={() =>
           startTransition(async () => {
             const result = await leaveGroupAction(groupId);
-            if (result.ok) router.push("/groups");
+            if (result.ok) router.push(back);
             else setError(result.error);
           })
         }
@@ -412,5 +421,62 @@ export function InviteDialog({ groupId }: { groupId: string }) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/** Partager un groupe public : copier le lien, ou les autres applis du téléphone. */
+export function ShareGroupButton({
+  groupId,
+  name,
+}: {
+  groupId: string;
+  name: string;
+}) {
+  const t = useTranslations("Groups.share");
+  const locale = useLocale();
+  const [copied, setCopied] = useState(false);
+  const url = () => `${window.location.origin}/${locale}/groups/${groupId}`;
+  const canNativeShare =
+    typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 2500);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm">
+          {copied ? (
+            <Check aria-hidden="true" />
+          ) : (
+            <Share2 aria-hidden="true" />
+          )}
+          {copied ? t("copied") : t("button")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuItem
+          onSelect={async () => setCopied(await copyText(url(), null))}
+        >
+          <Link2 aria-hidden="true" />
+          {t("copy")}
+        </DropdownMenuItem>
+        {canNativeShare ? (
+          <DropdownMenuItem
+            onSelect={() =>
+              navigator
+                .share({ title: t("text", { name }), url: url() })
+                .catch(() => undefined)
+            }
+          >
+            <Share2 aria-hidden="true" />
+            {t("other")}
+          </DropdownMenuItem>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

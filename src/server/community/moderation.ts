@@ -9,6 +9,7 @@ import {
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { messageMediaFor, removeMessageMedia } from "@/server/messages/media";
+import { removeFiles, signedUrls } from "@/server/storage/service";
 import { mediaForPosts, type FeedMedia } from "./media";
 import { getCommunityMember, isModerator } from "./members";
 
@@ -44,6 +45,7 @@ export async function reportContent(
         commentId: target.type === "comment" ? target.id : null,
         reportedUserId: target.type === "user" ? target.id : null,
         messageId: target.type === "message" ? target.id : null,
+        storyId: target.type === "story" ? target.id : null,
         reason: input.reason,
         details: input.details || null,
       },
@@ -77,6 +79,17 @@ export async function reportContent(
           data: { status: "hidden" },
         });
       }
+    }
+  }
+  if (target.type === "story") {
+    const reports = await db.contentReport.count({
+      where: { storyId: target.id, status: "open" },
+    });
+    if (reports >= AUTO_HIDE_REPORTS) {
+      await db.story.updateMany({
+        where: { id: target.id, status: "visible" },
+        data: { status: "hidden" },
+      });
     }
   }
   return { ok: true };
@@ -113,6 +126,13 @@ async function ownerOf(target: ModerationTarget, viewerId: string) {
           select: { senderId: true },
         })
       )?.senderId;
+    case "story":
+      return (
+        await db.story.findUnique({
+          where: { id: target.id },
+          select: { userId: true },
+        })
+      )?.userId;
     case "user":
       return (
         await db.profile.findUnique({
@@ -130,7 +150,7 @@ export async function canModerate(userId: string) {
 }
 
 export type ModerationTarget = {
-  type: "post" | "comment" | "user" | "message";
+  type: "post" | "comment" | "user" | "message" | "story";
   id: string;
 };
 
@@ -216,10 +236,35 @@ export async function listOpenReports(moderatorId: string) {
           },
         },
       },
+      story: {
+        select: {
+          id: true,
+          caption: true,
+          status: true,
+          kind: true,
+          path: true,
+          posterPath: true,
+          width: true,
+          height: true,
+          durationMs: true,
+          profile: {
+            select: {
+              id: true,
+              displayName: true,
+              username: true,
+              suspendedUntil: true,
+            },
+          },
+        },
+      },
     },
   });
 
   const items = new Map<string, ReportedItem>();
+  const stories = new Map<
+    string,
+    NonNullable<(typeof reports)[number]["story"]>
+  >();
   for (const report of reports) {
     const entry = {
       reason: report.reason,
@@ -228,15 +273,24 @@ export async function listOpenReports(moderatorId: string) {
     };
     const source = report.post ?? report.comment;
     const message = report.message;
+    const story = report.story;
+    if (story) stories.set(story.id, story);
     const type = report.post
       ? "post"
       : report.comment
         ? "comment"
         : message
           ? "message"
-          : "user";
-    const author = source?.profile ?? message?.sender ?? report.reportedUser;
-    const id = source?.id ?? message?.id ?? report.reportedUser?.id;
+          : story
+            ? "story"
+            : "user";
+    const author =
+      source?.profile ??
+      message?.sender ??
+      story?.profile ??
+      report.reportedUser;
+    const id =
+      source?.id ?? message?.id ?? story?.id ?? report.reportedUser?.id;
     if (!author || !id) continue;
     const key = `${type}:${id}`;
     const item =
@@ -247,9 +301,12 @@ export async function listOpenReports(moderatorId: string) {
           ? source.body || null
           : message
             ? message.body || null
-            : null,
+            : story
+              ? story.caption || null
+              : null,
         status:
           source?.status ??
+          story?.status ??
           (message ? (message.deletedAt ? "removed" : "visible") : null),
         author: {
           id: author.id,
@@ -267,6 +324,29 @@ export async function listOpenReports(moderatorId: string) {
     items.set(key, item);
   }
   const list = [...items.values()];
+  // Story signalée : sa photo ou sa vidéo, par un lien temporaire
+  const storyUrls = await signedUrls(
+    [...stories.values()].flatMap((story) =>
+      story.posterPath ? [story.path, story.posterPath] : [story.path],
+    ),
+  );
+  const storyMedia = (id: string): FeedMedia[] => {
+    const story = stories.get(id);
+    const url = story ? storyUrls.get(story.path) : undefined;
+    if (!story || !url) return [];
+    return [
+      {
+        kind: story.kind,
+        url,
+        posterUrl: story.posterPath
+          ? (storyUrls.get(story.posterPath) ?? null)
+          : null,
+        width: story.width,
+        height: story.height,
+        durationMs: story.durationMs,
+      },
+    ];
+  };
   const [media, messageMedia] = await Promise.all([
     mediaForPosts(
       list
@@ -287,7 +367,9 @@ export async function listOpenReports(moderatorId: string) {
       ? { ...item, media: media.get(item.target.id) ?? [] }
       : item.target.type === "message"
         ? { ...item, media: messageMedia.get(item.target.id) ?? [] }
-        : item,
+        : item.target.type === "story"
+          ? { ...item, media: storyMedia(item.target.id) }
+          : item,
   );
 }
 
@@ -323,7 +405,9 @@ export async function moderate(
         ? { commentId: target.id }
         : target.type === "message"
           ? { messageId: target.id }
-          : { reportedUserId: target.id };
+          : target.type === "story"
+            ? { storyId: target.id }
+            : { reportedUserId: target.id };
   const close = (status: "resolved" | "dismissed") =>
     db.contentReport.updateMany({
       where: { ...reportsWhere, status: "open" },
@@ -345,6 +429,36 @@ export async function moderate(
       close("resolved"),
     ]);
     await removeMessageMedia(target.id);
+    return true;
+  }
+  if (target.type === "story" && decision === "remove") {
+    // Une story retirée ne peut pas être rétablie : ses fichiers sont effacés
+    const story = await db.story.findUnique({
+      where: { id: target.id },
+      select: { path: true, posterPath: true },
+    });
+    await db.$transaction([
+      db.story.updateMany({
+        where: { id: target.id },
+        data: { status: "removed" },
+      }),
+      close("resolved"),
+    ]);
+    if (story) {
+      await removeFiles(
+        story.posterPath ? [story.path, story.posterPath] : [story.path],
+      ).catch(() => undefined);
+    }
+    return true;
+  }
+  if (target.type === "story" && decision === "restore") {
+    await db.$transaction([
+      db.story.updateMany({
+        where: { id: target.id, status: "hidden" },
+        data: { status: "visible" },
+      }),
+      close("dismissed"),
+    ]);
     return true;
   }
   if (decision === "remove" || decision === "restore") {

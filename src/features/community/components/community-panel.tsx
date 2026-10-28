@@ -1,5 +1,6 @@
 import { ShieldAlert, ShieldCheck } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
+import { after } from "next/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
@@ -8,12 +9,12 @@ import { listFeed } from "@/server/community/feed";
 import { storageEnabled } from "@/server/storage/service";
 import { getCommunityMember, isModerator } from "@/server/community/members";
 import { listShareableProgress } from "@/server/community/posts";
-import { listProgressStories } from "@/server/community/stories";
+import { StoryRow } from "@/features/stories/components/story-row";
+import { listStoryRings, purgeExpiredStories } from "@/server/stories/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CommunityFeed } from "./community-feed";
 import { JoinCommunityCard } from "./join-community-card";
 import { PostComposer } from "./post-composer";
-import { ProgressStories } from "./progress-stories";
 
 /**
  * Le Centre Get iT : rejoindre (nom d'utilisateur et règles), publier, puis le
@@ -36,23 +37,30 @@ export async function CommunityPanel({
     await Promise.all([
       searchParams,
       listFeed(profile.id),
-      listProgressStories(profile.id, now),
+      listStoryRings(profile.id, now),
       member.suspendedUntil ? [] : listShareableProgress(profile.id),
       avatarUrl(profile.avatarPath),
       getTranslations("Community"),
       getFormatter(),
     ]);
+  // Stories terminées : effacées (avec leurs fichiers) après l'envoi de la page
+  after(() =>
+    purgeExpiredStories(new Date()).catch((error: unknown) => {
+      console.error("Stories terminées non effacées", error);
+    }),
+  );
   // « ?partager=goal:<id> » : lien « Partager » depuis un objectif ou un niveau
   const preselected =
     typeof params.partager === "string" ? params.partager : null;
 
   return (
     <div className="flex flex-col gap-5">
-      <ProgressStories
-        stories={stories}
+      <StoryRow
+        mine={stories.mine}
+        contacts={stories.contacts}
         name={profile.displayName ?? member.username ?? ""}
         avatarUrl={myAvatar}
-        canWrite={!member.suspendedUntil}
+        canPost={!member.suspendedUntil && storageEnabled()}
         now={feed.loadedAt}
       />
 

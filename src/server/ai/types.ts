@@ -1,6 +1,6 @@
 import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
 import type { DevelopmentPlan } from "@/features/development/plan";
-import type { GoalPlan } from "@/features/goals/plan";
+import type { GoalPlan, GoalQuestions } from "@/features/goals/plan";
 import type { RankedAnalysis } from "@/features/ranked/analysis";
 
 // Couche d'abstraction (§53) : le reste de l'application ne connaît que ces
@@ -42,6 +42,13 @@ export type PlanResult = {
   usage: AiUsage;
 };
 
+export type QuestionsResult = {
+  /** Null si le modèle a refusé ou si la réponse n'a pas pu être lue. */
+  questions: GoalQuestions | null;
+  refused: boolean;
+  usage: AiUsage;
+};
+
 export type DevelopmentPlanResult = {
   /** Null si détresse, refus, réponse coupée ou illisible. */
   plan: DevelopmentPlan | null;
@@ -68,6 +75,12 @@ export interface AiProvider {
     onText: (delta: string) => void;
     signal?: AbortSignal;
   }): Promise<ChatResult>;
+
+  /** Questions à poser avant le plan d'un objectif, en sortie structurée. */
+  generateGoalQuestions(input: {
+    system: string;
+    prompt: string;
+  }): Promise<QuestionsResult>;
 
   /** Plan d'objectif en sortie structurée (jalons, tâches, habitudes). */
   generateGoalPlan(input: {

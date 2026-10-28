@@ -5,7 +5,12 @@ import {
   aiDevelopmentPlanSchema,
   normalizeDevelopmentPlan,
 } from "@/features/development/plan";
-import { aiGoalPlanSchema, normalizeGoalPlan } from "@/features/goals/plan";
+import {
+  aiGoalPlanSchema,
+  aiGoalQuestionsSchema,
+  normalizeGoalPlan,
+  normalizeGoalQuestions,
+} from "@/features/goals/plan";
 import {
   aiRankedAnalysisSchema,
   normalizeRankedAnalysis,
@@ -126,6 +131,30 @@ export function createClaudeProvider(apiKey: string): AiProvider {
         refused,
         truncated,
         toolCalls: refused ? [] : toolCalls,
+        usage: toUsage(message.model, message.usage),
+      };
+    },
+
+    async generateGoalQuestions({ system, prompt }) {
+      const message = await client.beta.messages.parse({
+        model: CLAUDE_MODEL,
+        max_tokens: 4000,
+        // Quelques questions courtes : peu de réflexion suffit
+        output_config: {
+          effort: "low",
+          format: betaZodOutputFormat(aiGoalQuestionsSchema),
+        },
+        system,
+        messages: [{ role: "user", content: prompt }],
+        betas: [FALLBACK_BETA],
+        fallbacks: "default",
+      });
+
+      const refused = message.stop_reason === "refusal";
+      const parsed = refused ? null : message.parsed_output;
+      return {
+        questions: parsed ? normalizeGoalQuestions(parsed) : null,
+        refused,
         usage: toUsage(message.model, message.usage),
       };
     },

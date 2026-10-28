@@ -15,6 +15,7 @@ import { getUserTimeZone } from "@/server/profile/service";
 import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
 import { removeFiles } from "@/server/storage/service";
 import { getDisplayLevels } from "@/server/ranked/service";
+import { notify } from "@/server/notifications/service";
 import { postMediaPaths, verifyMedia } from "./media";
 import { getBlockedIds, getCommunityMember } from "./members";
 
@@ -378,6 +379,13 @@ export async function addComment(
   });
   if (count >= DAILY_COMMENT_LIMIT) return { ok: false, error: "commentLimit" };
   await db.postComment.create({ data: { postId, userId, body } });
+  await notify({
+    userId: post.userId,
+    kind: "comment",
+    actorId: userId,
+    href: `/community/posts/${postId}`,
+    groupKey: `comment:${postId}`,
+  });
   return { ok: true };
 }
 
@@ -388,7 +396,7 @@ export async function deleteComment(userId: string, commentId: string) {
   return count > 0;
 }
 
-/** « Bravo » sur la publication de quelqu'un d'autre (pas sur la sienne). */
+/** « J'aime » sur la publication de quelqu'un d'autre (pas sur la sienne). */
 export async function setReaction(
   userId: string,
   postId: string,
@@ -405,10 +413,24 @@ export async function setReaction(
   if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
     return { ok: false, error: "groupJoinRequired" };
   }
+  const existing = await db.postReaction.findUnique({
+    where: { postId_userId: { postId, userId } },
+    select: { postId: true },
+  });
   await db.postReaction.upsert({
     where: { postId_userId: { postId, userId } },
     update: {},
     create: { postId, userId },
   });
+  // Un nouveau « J'aime » seulement (pas un double-tap répété)
+  if (!existing) {
+    await notify({
+      userId: post.userId,
+      kind: "like",
+      actorId: userId,
+      href: `/community/posts/${postId}`,
+      groupKey: `like:${postId}`,
+    });
+  }
   return { ok: true };
 }

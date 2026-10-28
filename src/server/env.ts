@@ -51,6 +51,17 @@ const serverEnvSchema = z.object({
       .max(64, { error: "doit contenir au plus 64 caractères" })
       .optional(),
   ),
+  // Notifications sur le téléphone (web push) : clés VAPID. La publique va au
+  // navigateur, la privée reste sur le serveur. Facultatives : sans elles, seules
+  // les notifications dans l'application fonctionnent.
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(40).max(200).optional(),
+  ),
+  VAPID_PRIVATE_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().min(20).max(200).optional(),
+  ),
   // « fake » : réponses factices pour les tests de bout en bout, sans appel payant
   AI_PROVIDER: z.preprocess(
     (value) => (value === "" ? undefined : value),

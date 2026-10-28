@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowLeft, ImagePlus, LoaderCircle, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  Handshake,
+  ImagePlus,
+  LoaderCircle,
+  Send,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -32,7 +38,9 @@ import {
   type Reaction,
 } from "../rules";
 import { refreshUnreadCount } from "../unread-store";
+import { GroupPactNote, GroupPactPanel } from "./group-pact-panel";
 import { MessageBubble } from "./message-bubble";
+import { ProposePactDialog } from "./propose-pact-dialog";
 
 type LocalMessage = ChatMessage & { pending?: boolean };
 
@@ -63,6 +71,8 @@ export function GroupChatView({
 }) {
   const t = useTranslations("Messages.conversation");
   const tGroup = useTranslations("Messages.groupChat");
+  const tPacts = useTranslations("Messages.pacts");
+  const [proposing, setProposing] = useState(false);
   const tErrors = useTranslations("Messages.errors");
   const format = useFormatter();
   const fieldId = useId();
@@ -113,6 +123,14 @@ export function GroupChatView({
       window.clearInterval(timer);
     };
   }, [initial.id]);
+
+  /** État à jour tout de suite (après une action sur un pacte). */
+  async function reload() {
+    const next = await getGroupChatAction(initial.id).catch(() => null);
+    if (!next) return;
+    setChat(next);
+    setMessages((current) => merge(current, next.messages));
+  }
 
   const lastOther = [...messages].reverse().find((m) => !m.mine)?.id;
   // Lu jusqu'ici : la pastille de la Messagerie se met à jour
@@ -271,6 +289,13 @@ export function GroupChatView({
           <Link href={`/groups/${chat.group.id}`}>{tGroup("viewGroup")}</Link>
         </Button>
       </header>
+      {chat.pact ? (
+        <GroupPactPanel
+          pact={chat.pact}
+          canWrite={chat.canWrite}
+          onChanged={() => void reload()}
+        />
+      ) : null}
 
       <div
         ref={listRef}
@@ -328,27 +353,35 @@ export function GroupChatView({
                     {dayLabel(message.day, message.createdAt)}
                   </p>
                 ) : null}
-                {showName && person ? (
+                {message.kind === "pact" ? (
+                  <GroupPactNote
+                    message={message}
+                    name={person?.displayName ?? person?.username ?? ""}
+                  />
+                ) : null}
+                {message.kind !== "pact" && showName && person ? (
                   <p className="mt-2 mb-1 px-2 text-xs font-medium text-muted-foreground">
                     {person.displayName ?? person.username}
                   </p>
                 ) : null}
-                <MessageBubble
-                  message={message}
-                  otherName={person?.displayName ?? person?.username ?? ""}
-                  groupEnd={message.groupEnd}
-                  timeZone={timeZone}
-                  selected={selected === message.id}
-                  onSelect={() =>
-                    setSelected(selected === message.id ? null : message.id)
-                  }
-                  onReact={(kind) => void react(message, kind)}
-                  onDelete={() => void remove(message)}
-                  onReport={() => {
-                    setSelected(null);
-                    setReport({ type: "message", id: message.id });
-                  }}
-                />
+                {message.kind === "pact" ? null : (
+                  <MessageBubble
+                    message={message}
+                    otherName={person?.displayName ?? person?.username ?? ""}
+                    groupEnd={message.groupEnd}
+                    timeZone={timeZone}
+                    selected={selected === message.id}
+                    onSelect={() =>
+                      setSelected(selected === message.id ? null : message.id)
+                    }
+                    onReact={(kind) => void react(message, kind)}
+                    onDelete={() => void remove(message)}
+                    onReport={() => {
+                      setSelected(null);
+                      setReport({ type: "message", id: message.id });
+                    }}
+                  />
+                )}
               </li>
             );
           })}
@@ -396,6 +429,17 @@ export function GroupChatView({
                 }}
                 className="hidden"
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-lg"
+                aria-label={tPacts("propose")}
+                disabled={chat.pact !== null}
+                onClick={() => setProposing(true)}
+                className="shrink-0 text-primary hover:text-primary"
+              >
+                <Handshake aria-hidden="true" />
+              </Button>
               <Button
                 type="button"
                 variant="ghost"
@@ -452,6 +496,13 @@ export function GroupChatView({
         ) : null}
       </div>
 
+      <ProposePactDialog
+        conversationId={initial.id}
+        name={chat.group.name}
+        open={proposing}
+        onOpenChange={setProposing}
+        onProposed={() => void reload()}
+      />
       <ReportDialog
         target={report}
         onClose={() => setReport(null)}

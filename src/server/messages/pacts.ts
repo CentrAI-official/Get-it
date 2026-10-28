@@ -15,6 +15,7 @@ import {
 import { Prisma } from "@/generated/prisma/client";
 import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
+import { notify } from "@/server/notifications/service";
 import { canWrite, loadMembership } from "./service";
 
 // Pactes : défi à deux dans une conversation. Chaque fonction reçoit l'userId
@@ -329,6 +330,13 @@ export async function proposePact(
     }
     throw error;
   }
+  await notify({
+    userId: membership.other.userId,
+    kind: "pact",
+    actorId: viewerId,
+    href: `/messages/${conversationId}`,
+    subject: input.title,
+  });
   return { ok: true };
 }
 
@@ -485,8 +493,9 @@ export async function pactTagsForHabits(
         select: {
           days: true,
           startsOn: true,
+          conversation: { select: { group: { select: { name: true } } } },
           members: {
-            where: { userId: { not: userId } },
+            where: { userId: { not: userId }, joinedAt: { not: null } },
             select: {
               habitId: true,
               userId: true,
@@ -507,20 +516,27 @@ export async function pactTagsForHabits(
   for (const member of members) {
     const partner = member.pact.members[0];
     if (!member.habitId || !member.pact.startsOn || !partner) continue;
+    const group = member.pact.conversation.group;
     // « Aujourd'hui » de l'autre, dans son propre fuseau
     const partnerToday = toCalendarDay(
       new Date(),
       partner.profile.settings?.timeZone ?? "America/Toronto",
     );
-    const partnerDone = partner.habitId
-      ? (await db.habitCompletion.count({
-          where: { habitId: partner.habitId, day: toDbDate(partnerToday) },
-        })) > 0
-      : false;
+    // Pacte de groupe : le nom du groupe, sans « a déjà fait sa part »
+    const partnerDone = group
+      ? false
+      : partner.habitId
+        ? (await db.habitCompletion.count({
+            where: { habitId: partner.habitId, day: toDbDate(partnerToday) },
+          })) > 0
+        : false;
     const startsOn = fromDbDate(member.pact.startsOn);
     tags[member.habitId] = {
       partnerName:
-        partner.profile.displayName ?? partner.profile.username ?? "",
+        group?.name ??
+        partner.profile.displayName ??
+        partner.profile.username ??
+        "",
       dayIndex: Math.min(
         member.pact.days,
         Math.round(

@@ -1,6 +1,17 @@
 import "server-only";
-import { goalPlanInstructions, goalPlanPrompt } from "@/features/coach/prompts";
-import type { GoalPlan, GoalPlanSelection } from "@/features/goals/plan";
+import {
+  goalPlanInstructions,
+  goalPlanPrompt,
+  goalQuestionsInstructions,
+  goalQuestionsPrompt,
+  type GoalPlanRequest,
+} from "@/features/coach/prompts";
+import type {
+  GoalAnswers,
+  GoalPlan,
+  GoalPlanSelection,
+  GoalQuestions,
+} from "@/features/goals/plan";
 import { addDays, daysBetween, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getAiProvider } from "@/server/ai/provider";
 import {
@@ -21,13 +32,87 @@ export type GoalPlanError =
   | "refused"
   | "unexpected";
 
+/** Ce que Get iT AI sait déjà de l'objectif (jamais l'historique brut). */
+async function planRequest(
+  userId: string,
+  goal: NonNullable<Awaited<ReturnType<typeof getGoal>>>,
+  profile: NonNullable<Awaited<ReturnType<typeof getAiProfile>>>,
+  today: string,
+): Promise<GoalPlanRequest> {
+  const habits = await listHabits(userId, profile.timeZone);
+  return {
+    today,
+    goal: {
+      title: goal.title,
+      description: goal.description,
+      pillar: goal.pillar,
+      targetDate: goal.targetDate,
+      milestones: goal.milestones,
+      tasks: goal.tasks,
+    },
+    occupation: profile.occupation,
+    dailyMinutes: profile.dailyMinutes,
+    habits: habits.filter((habit) => !habit.archived).map((h) => h.title),
+  };
+}
+
+/**
+ * Questions de Get iT AI avant le plan d'un objectif (situation actuelle,
+ * contraintes). Compte comme une requête du jour.
+ */
+export async function generateGoalQuestions(
+  userId: string,
+  goalId: string,
+): Promise<
+  | { ok: true; questions: GoalQuestions; remaining: number }
+  | { ok: false; error: GoalPlanError }
+> {
+  const provider = getAiProvider();
+  if (!provider) return { ok: false, error: "notConfigured" };
+  const profile = await getAiProfile(userId);
+  if (!profile) return { ok: false, error: "notFound" };
+  if (!profile.consented) return { ok: false, error: "consentRequired" };
+  const goal = await getGoal(userId, goalId);
+  if (!goal) return { ok: false, error: "notFound" };
+
+  const reservation = await reserveAiRequest(
+    userId,
+    "goal_plan",
+    profile.timeZone,
+  );
+  if (!reservation) return { ok: false, error: "limitReached" };
+  const today = toCalendarDay(new Date(), profile.timeZone);
+  const request = await planRequest(userId, goal, profile, today);
+  const result = await provider
+    .generateGoalQuestions({
+      system: goalQuestionsInstructions(profile.locale),
+      prompt: goalQuestionsPrompt(request),
+    })
+    .catch(async (error: unknown) => {
+      await releaseAiRequest(reservation.id).catch(() => {});
+      throw error;
+    });
+  await recordAiUsage(reservation.id, result.usage);
+  if (result.refused) return { ok: false, error: "refused" };
+  if (!result.questions || result.questions.questions.length === 0) {
+    return { ok: false, error: "unexpected" };
+  }
+  return {
+    ok: true,
+    questions: result.questions,
+    remaining: reservation.remaining,
+  };
+}
+
 /**
  * Plan proposé par Get iT AI pour un objectif (§8) : jalons, premières tâches
- * et habitudes. Rien n'est créé : l'utilisateur choisit ce qu'il garde.
+ * et habitudes, d'après les réponses aux questions s'il y en a. Rien n'est
+ * créé : l'utilisateur choisit ce qu'il garde.
  */
 export async function generateGoalPlan(
   userId: string,
   goalId: string,
+  answers: GoalAnswers = [],
 ): Promise<
   | { ok: true; plan: GoalPlan; remaining: number }
   | { ok: false; error: GoalPlanError }
@@ -48,7 +133,7 @@ export async function generateGoalPlan(
   if (!reservation) return { ok: false, error: "limitReached" };
 
   const today = toCalendarDay(new Date(), profile.timeZone);
-  const habits = await listHabits(userId, profile.timeZone);
+  const request = await planRequest(userId, goal, profile, today);
   // Les tâches ne tombent jamais après la date cible (si elle n'est pas passée)
   const untilTarget = goal.targetDate
     ? daysBetween(today, goal.targetDate)
@@ -57,20 +142,7 @@ export async function generateGoalPlan(
   const result = await provider
     .generateGoalPlan({
       system: goalPlanInstructions(profile.locale),
-      prompt: goalPlanPrompt({
-        today,
-        goal: {
-          title: goal.title,
-          description: goal.description,
-          pillar: goal.pillar,
-          targetDate: goal.targetDate,
-          milestones: goal.milestones,
-          tasks: goal.tasks,
-        },
-        occupation: profile.occupation,
-        dailyMinutes: profile.dailyMinutes,
-        habits: habits.filter((habit) => !habit.archived).map((h) => h.title),
-      }),
+      prompt: goalPlanPrompt({ ...request, answers }),
       maxDueInDays:
         untilTarget !== null && untilTarget >= 0 ? untilTarget : undefined,
     })

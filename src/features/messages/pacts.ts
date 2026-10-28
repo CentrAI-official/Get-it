@@ -124,3 +124,55 @@ export function pactOutcome({
 }): "success" | "failed" {
   return mineCount >= need && theirsCount >= need ? "success" : "failed";
 }
+
+// Pactes de groupe (discussion d'un groupe privé) : chacun relie sa propre
+// habitude ; le pacte commence avec ceux qui l'acceptent (2 au moins).
+
+/** Part des participants qui doivent réussir pour que le pacte de groupe réussisse. */
+export const PACT_GROUP_SHARE = 0.8;
+/** Participants au moins (celui qui propose compris). */
+export const PACT_GROUP_MIN = 2;
+
+/**
+ * Avancement d'un pacte de groupe jusqu'à `today` : pour chaque participant,
+ * les jours faits pendant le pacte et s'il a fait sa part aujourd'hui.
+ */
+export function groupPactProgress({
+  startsOn,
+  days,
+  today,
+  members,
+}: {
+  startsOn: string;
+  days: number;
+  today: string;
+  members: readonly { id: string; done: ReadonlySet<string> }[];
+}) {
+  const endsOn = addDays(startsOn, days - 1);
+  const last = today < endsOn ? today : endsOn;
+  return {
+    /** Jour du pacte (1 au premier jour), 0 avant le début. */
+    dayIndex: Math.min(days, Math.max(0, daysBetween(startsOn, today) + 1)),
+    members: members.map((member) => ({
+      id: member.id,
+      count: [...member.done].filter((day) => day >= startsOn && day <= last)
+        .length,
+      today: today >= startsOn && today <= endsOn && member.done.has(today),
+    })),
+  };
+}
+
+/**
+ * Résultat d'un pacte de groupe terminé : réussi si au moins 80 % des
+ * participants ont fait assez de jours (et qu'ils étaient au moins deux).
+ */
+export function groupPactOutcome(
+  need: number,
+  counts: readonly number[],
+): "success" | "failed" {
+  if (counts.length < PACT_GROUP_MIN) return "failed";
+  const succeeded = counts.filter((count) => count >= need).length;
+  return succeeded >= Math.ceil(PACT_GROUP_SHARE * counts.length)
+    ? "success"
+    : "failed";
+}

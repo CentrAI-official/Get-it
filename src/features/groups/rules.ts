@@ -77,6 +77,15 @@ export const canManage = (role: GroupRole | null) =>
   role === "owner" || role === "admin";
 
 /**
+ * Inviter quelqu'un : tout membre d'un groupe public (c'est un partage) ; dans
+ * un groupe privé, le créateur et les admins seulement.
+ */
+export const canInvite = (
+  visibility: GroupVisibility,
+  role: GroupRole | null,
+) => role !== null && (visibility === "public" || canManage(role));
+
+/**
  * Peut-on retirer cette personne du groupe ? Le créateur ne part jamais ; un
  * admin ne retire que les membres ; le créateur retire tout le monde.
  */

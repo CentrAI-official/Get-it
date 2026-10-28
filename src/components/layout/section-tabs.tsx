@@ -1,3 +1,6 @@
+"use client";
+
+import { useLayoutEffect, useRef } from "react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -10,10 +13,37 @@ type SectionTabsProps = {
   current: string;
 };
 
+// Chaque onglet est une page : la position de défilement est gardée d'une page à l'autre
+const scrollPositions = new Map<string, number>();
+
 /** Sous-onglets d'une catégorie (Profil, Marketplace), en pastilles défilantes. */
 export function SectionTabs({ label, tabs, current }: SectionTabsProps) {
+  const ref = useRef<HTMLElement>(null);
+
+  // Avant l'affichage : même position qu'à la page précédente, onglet choisi visible
+  useLayoutEffect(() => {
+    const nav = ref.current;
+    if (!nav) return;
+    nav.scrollLeft = scrollPositions.get(label) ?? 0;
+    const active = nav.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!active) return;
+    const box = nav.getBoundingClientRect();
+    const tab = active.getBoundingClientRect();
+    if (tab.left < box.left) nav.scrollLeft -= box.left - tab.left + 16;
+    else if (tab.right > box.right)
+      nav.scrollLeft += tab.right - box.right + 16;
+    scrollPositions.set(label, nav.scrollLeft);
+  }, [label, current]);
+
   return (
-    <nav aria-label={label} className="-mx-1 overflow-x-auto px-1">
+    <nav
+      ref={ref}
+      aria-label={label}
+      onScroll={(event) =>
+        scrollPositions.set(label, event.currentTarget.scrollLeft)
+      }
+      className="-mx-1 [scrollbar-width:none] overflow-x-auto px-1 [&::-webkit-scrollbar]:hidden"
+    >
       <ul className="flex w-max gap-2">
         {tabs.map(({ key, href, label: tabLabel }) => (
           <li key={key}>

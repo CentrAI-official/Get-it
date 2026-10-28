@@ -34,6 +34,7 @@ import {
   DetailsSettings,
   DetailsSettingsSkeleton,
 } from "@/features/settings/components/details-settings";
+import { PushSettingsCard } from "@/features/notifications/components/push-settings-card";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -80,6 +81,7 @@ export default function SettingsPage() {
       <Suspense fallback={<AccountThemeSettingsSkeleton />}>
         <AccountThemeSettings />
       </Suspense>
+      <PushSettingsCard />
       <Suspense fallback={<DetailsSettingsSkeleton />}>
         <DetailsSettings />
       </Suspense>

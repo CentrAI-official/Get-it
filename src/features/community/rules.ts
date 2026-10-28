@@ -21,11 +21,6 @@ export const REPORT_DETAILS_MAX_LENGTH = 500;
 /** Publications chargées à la fois (« Voir plus », jamais de défilement infini). */
 export const FEED_PAGE_SIZE = 20;
 
-/** « Progrès du jour » : progrès partagés par les contacts depuis 24 heures. */
-export const STORY_WINDOW_HOURS = 24;
-/** Progrès du jour chargés au plus (toutes personnes confondues). */
-export const STORY_POSTS_MAX = 60;
-
 /** Publications enregistrées au plus (Profil › Publications › Enregistrées). */
 export const MAX_SAVED_POSTS = 500;
 
@@ -128,6 +123,7 @@ export const reportSchema = z.object({
     z.object({ type: z.literal("comment"), id: z.uuid() }),
     z.object({ type: z.literal("user"), id: z.uuid() }),
     z.object({ type: z.literal("message"), id: z.uuid() }),
+    z.object({ type: z.literal("story"), id: z.uuid() }),
   ]),
   reason: z.enum(REPORT_REASONS),
   details: z.string().trim().max(REPORT_DETAILS_MAX_LENGTH).optional(),
@@ -192,6 +188,8 @@ export const COMMUNITY_ERRORS = [
   "saveLimit",
   "alreadyShared",
   "groupJoinRequired",
+  "storyLimit",
+  "storyCaptionTooLong",
   "unexpected",
 ] as const;
 

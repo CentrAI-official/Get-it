@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import en from "../../../messages/en.json";
 import fr from "../../../messages/fr.json";
 import {
+  canInvite,
   canManage,
   canRemove,
   GROUP_ERRORS,
@@ -20,6 +21,16 @@ const valid = {
   topic: "physical",
   visibility: "public",
 };
+
+describe("canInvite", () => {
+  it("public : tout membre invite ; privé : le créateur et les admins", () => {
+    expect(canInvite("public", "member")).toBe(true);
+    expect(canInvite("public", null)).toBe(false);
+    expect(canInvite("private", "member")).toBe(false);
+    expect(canInvite("private", "admin")).toBe(true);
+    expect(canInvite("private", "owner")).toBe(true);
+  });
+});
 
 describe("groupFormSchema", () => {
   it("accepte un groupe et nettoie le nom", () => {

@@ -246,7 +246,8 @@
       "ranked": {
         "go": "Go Ranked",
         "badge": "Ranked",
-        "view": "My ranking"
+        "view": "My ranking",
+        "leaderboard": "Leaderboard"
       }
     },
     "settings": {
@@ -596,7 +597,7 @@
     },
     "plan": {
       "title": "Create my plan with AI",
-      "description": "Get iT AI suggests milestones, your first tasks and habits for this goal. You choose what to keep.",
+      "description": "Get iT AI asks a few questions about your situation, then suggests milestones, your first tasks and habits. You choose what to keep.",
       "consent": "Enable Get iT AI first: it needs your permission to read this goal.",
       "consentCta": "Enable Get iT AI",
       "generate": "Suggest a plan",
@@ -621,7 +622,11 @@
         "refused": "Get iT AI can’t create a plan for this goal. Try rewording its title or description.",
         "unexpected": "Get iT AI couldn’t prepare your plan. Try again in a moment.",
         "apply": "The plan couldn’t be added. Try again."
-      }
+      },
+      "asking": "Get iT AI is preparing its questions…",
+      "questionsIntro": "A few questions before building your plan.",
+      "questionsHelp": "Answer what you like: the more you share, the better the plan fits you. Your answers are only used for this plan.",
+      "generateFromAnswers": "Propose my plan"
     }
   },
   "Habits": {
@@ -923,20 +928,38 @@
   },
   "Community": {
     "stories": {
-      "label": "Today’s progress",
-      "myDay": "Your day",
-      "myDayLabel": "Open My day: {done, number} of {total, number} quests done",
-      "myDayOpen": "Open My day",
-      "badge": "{done, number}/{total, number}",
-      "open": "{name}’s progress today",
-      "openNew": "{name}’s progress today, new",
+      "label": "Stories",
+      "mine": "Your story",
+      "add": "Add a story",
+      "openMine": "View your story",
+      "open": "{name}’s story",
+      "openNew": "{name}’s story, new",
       "addContacts": "Contacts",
-      "addContactsLabel": "Add contacts to see their progress of the day",
-      "viewerDescription": "The progress {name} shared in the last 24 hours.",
-      "position": "{n, number} of {total, number}",
-      "previous": "Previous progress",
-      "next": "Next progress",
-      "close": "Close"
+      "addContactsLabel": "Add contacts to see their stories",
+      "viewerDescription": "{name}’s stories from the last 24 hours.",
+      "previous": "Previous story",
+      "next": "Next story",
+      "close": "Close",
+      "pause": "Pause",
+      "play": "Resume",
+      "delete": "Delete the story",
+      "deleted": "Story deleted.",
+      "report": "Report the story",
+      "reported": "Thanks. The moderation team will review this story.",
+      "options": "Story options",
+      "composerTitle": "New story",
+      "composerDescription": "A photo or a video, visible to your contacts for 24 hours.",
+      "pick": "Choose a photo or a video",
+      "change": "Change",
+      "caption": "Caption (optional)",
+      "captionPlaceholder": "Write something…",
+      "publish": "Post the story",
+      "publishing": "Posting…",
+      "preparing": "Preparing…",
+      "uploading": "Uploading… {percent, number}%",
+      "cancel": "Cancel",
+      "expires": "Visible for {hours, plural, one {# more hour} other {# more hours}}",
+      "unavailable": "Photos and videos aren’t enabled yet."
     },
     "signedInAs": "Signed in as @{username}",
     "moderationLink": "Moderation",
@@ -1002,8 +1025,8 @@
       "block": "Block {handle}",
       "hidden": "Hidden after several reports, pending a moderation decision. Only you can still see it.",
       "question": "Question",
-      "bravo": "Kudos",
-      "bravoCount": "{count, plural, =0 {No kudos} one {# kudos} other {# kudos}}",
+      "bravo": "Like",
+      "bravoCount": "{count, plural, =0 {No likes} one {# like} other {# likes}}",
       "comments": "{count, plural, =0 {Comment} one {# comment} other {# comments}}",
       "blockTitle": "Block {handle}?",
       "blockDescription": "You won’t see each other’s posts or comments anymore. You can unblock this person in Settings.",
@@ -1080,7 +1103,8 @@
         "post": "Report post",
         "comment": "Report comment",
         "user": "Report this person",
-        "message": "Report message"
+        "message": "Report message",
+        "story": "Report the story"
       },
       "description": "Tell us what’s wrong. Your report stays anonymous.",
       "reasonLabel": "Reason for the report",
@@ -1106,7 +1130,8 @@
         "post": "Post",
         "comment": "Comment",
         "user": "Person",
-        "message": "Private message"
+        "message": "Private message",
+        "story": "Story"
       },
       "count": "{count, plural, one {# report} other {# reports}}",
       "status": {
@@ -1153,7 +1178,9 @@
       "videoTooLong": "The video is longer than 60 seconds.",
       "uploadLimit": "You’ve uploaded a lot of files today. Try again tomorrow.",
       "saveLimit": "You already have 500 saved posts. Remove a few to keep others.",
-      "alreadyShared": "You’ve already shared this post on your feed."
+      "alreadyShared": "You’ve already shared this post on your feed.",
+      "storyLimit": "You’ve posted 20 stories in the last 24 hours. Try again later.",
+      "storyCaptionTooLong": "The caption can be 200 characters at most."
     },
     "media": {
       "gallery": "Photo/video",
@@ -1213,7 +1240,13 @@
       "post": "Shared post",
       "photo": "Photo",
       "video": "Video",
-      "from": "{name}: {text}"
+      "from": "{name}: {text}",
+      "groups": "Groups",
+      "groupsCount": "Groups ({count, number})",
+      "groupsEmpty": "No private groups yet. Start a group chat and invite your contacts.",
+      "newGroup": "New private group",
+      "groupQuiet": "{count, plural, one {# member} other {# members}} · no messages yet",
+      "invitationsTitle": "Invitations"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1405,6 +1438,32 @@
       "members": "{count, plural, one {# member} other {# members}}",
       "viewGroup": "View the group",
       "privacy": "The group’s private discussion: only its members can see it. Never sent to Get iT AI."
+    },
+    "groupPact": {
+      "title": "Group pact",
+      "proposedBy": "Proposed by {name}",
+      "startsOn": "Starts on {date}",
+      "day": "Day {day, number} of {days, number}",
+      "need": "succeeds with {need, number} days out of {days, number}",
+      "participants": "Participants",
+      "count": "{count, number}/{need, number}",
+      "doneToday": "did their part today",
+      "todaySummary": "{done, number} of {total, number} did their part today",
+      "habitMissing": "Your linked habit was deleted: your days no longer count.",
+      "habit": "Link to your habit",
+      "newHabit": "Create “{title}” (every day)",
+      "privacy": "The group will only see whether you did this habit each day, nothing else.",
+      "confirmJoin": "Join the pact",
+      "join": "Join",
+      "decline": "Decline",
+      "cancel": "Cancel",
+      "leave": "Leave the pact",
+      "withdraw": "Withdraw the proposal",
+      "noteProposed": "{name} proposes a pact: “{title}”",
+      "noteProposedByMe": "You propose a pact: “{title}”",
+      "noteSuccess": "The group completed the “{title}” pact!",
+      "noteFailed": "The “{title}” pact is over, not completed this time",
+      "noteCancelled": "The pact has ended"
     }
   },
   "Contacts": {
@@ -1779,7 +1838,6 @@
     },
     "calendar": {
       "title": "My calendar",
-      "description": "Your plans, tasks, habits and goals, day by day. Tap a date to see what’s planned.",
       "planTitle": "Plan calendar",
       "period": "Your plan runs from {from} to {to}. Tap a date to see what’s planned.",
       "previous": "Previous month",
@@ -2527,6 +2585,31 @@
       "limitReached": "You’ve reached the limit of 20 Get iT AI requests today.",
       "refused": "Get iT AI couldn’t analyze your level.",
       "unexpected": "Something went wrong. Try again in a moment."
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "description": "People in Ranked mode who are Centre members, ranked by level.",
+      "back": "Back to Ranked mode",
+      "pillarsLabel": "Level",
+      "scopesLabel": "Who",
+      "pillars": {
+        "total": "Total",
+        "physical": "Physical",
+        "financial": "Financial"
+      },
+      "scopes": {
+        "all": "Everyone",
+        "contacts": "My contacts"
+      },
+      "count": "{count, plural, =0 {Nobody ranked} one {# person ranked} other {# people ranked}}",
+      "empty": "Nobody is ranked yet. Be the first!",
+      "emptyContacts": "None of your contacts is in Ranked mode yet.",
+      "notRanked": "Switch to Ranked to appear on the leaderboard and see your place.",
+      "notRankedCta": "Switch to Ranked",
+      "you": "(you)",
+      "rankLabel": "Rank {rank, number}",
+      "levelLabel": "Level {level, number}",
+      "link": "See the leaderboard"
     }
   },
   "Places": {
@@ -2647,6 +2730,7 @@
     "description": "Groups by pillar or general: a public forum, or a private discussion between invited members.",
     "create": "Create a group",
     "back": "Back to Groups",
+    "backToMessages": "Back to Messages",
     "invitations": {
       "title": "Invitations",
       "accept": "Accept",
@@ -2716,7 +2800,7 @@
     },
     "forum": {
       "title": "Forum",
-      "joinToPost": "Join the group to post, comment and cheer.",
+      "joinToPost": "Join the group to post, comment and like posts.",
       "emptyTitle": "No posts yet",
       "emptyDescription": "Get the conversation going: ask a question or share a win."
     },
@@ -2758,6 +2842,45 @@
       "blocked": "You can’t invite this person.",
       "ownerCannotLeave": "The creator doesn’t leave their group: they can delete it.",
       "unexpected": "Something went wrong. Try again in a moment."
+    },
+    "share": {
+      "button": "Share",
+      "copy": "Copy link",
+      "copied": "Link copied",
+      "other": "Other apps",
+      "text": "Join the “{name}” group on Get iT"
+    }
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "description": "Your messages, requests, invitations, pacts, comments and likes.",
+    "bellUnread": "{count, plural, one {Notifications: # new} other {Notifications: # new}}",
+    "unread": "New",
+    "emptyTitle": "Nothing new",
+    "emptyDescription": "When someone writes to you, invites you or likes your post, you’ll see it here.",
+    "items": {
+      "message": "{name} wrote to you",
+      "messages": "{name} sent you {count, number} messages",
+      "groupMessage": "{name} wrote in “{subject}”",
+      "message_request": "{name} wants to write to you (message request)",
+      "contact_request": "{name} wants to add you as a contact",
+      "contact_accepted": "{name} accepted your contact request",
+      "group_invite": "{name} invited you to the “{subject}” group",
+      "pact": "{name} proposes a pact: “{subject}”",
+      "comment": "{name} commented on your post",
+      "comments": "{name} and {others, plural, one {# other person} other {# other people}} commented on your post",
+      "like": "{name} likes your post",
+      "likes": "{name} and {others, plural, one {# other person like} other {# other people like}} your post"
+    },
+    "push": {
+      "title": "Notifications on this device",
+      "description": "Get your messages, requests and pacts even when Get iT is closed. Only the person’s name and the kind of notification show, never a message’s text.",
+      "enable": "Turn on notifications",
+      "disable": "Turn off on this device",
+      "on": "On for this device.",
+      "denied": "Notifications are blocked for Get iT in your browser or phone settings.",
+      "unsupported": "This browser doesn’t support notifications. On iPhone: tap Share, then “Add to Home Screen”, and open Get iT from the icon.",
+      "error": "Couldn’t turn on notifications. Try again."
     }
   }
 }

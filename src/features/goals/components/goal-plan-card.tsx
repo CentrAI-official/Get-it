@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScheduleLabel } from "@/features/habits/components/schedule-label";
 import { Link } from "@/i18n/navigation";
-import type { GoalPlan } from "../plan";
+import { QUESTION_LIMITS, type GoalPlan, type GoalQuestions } from "../plan";
 import {
   applyGoalPlanAction,
   generateGoalPlanAction,
+  generateGoalQuestionsAction,
   type GeneratePlanResult,
 } from "../plan-actions";
 
@@ -27,6 +28,8 @@ type State =
       step: "idle";
       added?: { milestones: number; tasks: number; habits: number };
     }
+  | { step: "asking" }
+  | { step: "questions"; questions: GoalQuestions }
   | { step: "loading" }
   | { step: "proposal"; plan: GoalPlan; keep: Set<string> }
   | { step: "error"; error: PlanError | "apply" };
@@ -41,10 +44,33 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
   const idPrefix = useId();
   const [state, setState] = useState<State>({ step: "idle" });
   const [applying, startApply] = useTransition();
+  // Réponses aux questions de Get iT AI, gardées pour « Proposer un autre plan »
+  const [answers, setAnswers] = useState<
+    { question: string; answer: string }[]
+  >([]);
 
+  /** Étape 1 : Get iT AI pose ses questions sur la situation de la personne. */
+  async function ask() {
+    setState({ step: "asking" });
+    setAnswers([]);
+    const result = await generateGoalQuestionsAction(goalId);
+    if (result.status === "error") {
+      setState({ step: "error", error: result.error });
+      return;
+    }
+    setAnswers(
+      result.questions.questions.map((item) => ({
+        question: item.question,
+        answer: "",
+      })),
+    );
+    setState({ step: "questions", questions: result.questions });
+  }
+
+  /** Étape 2 : le plan, d'après les réponses. */
   async function generate() {
     setState({ step: "loading" });
-    const result = await generateGoalPlanAction(goalId);
+    const result = await generateGoalPlanAction(goalId, answers);
     if (result.status === "error") {
       setState({ step: "error", error: result.error });
       return;
@@ -95,7 +121,7 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
   return (
     <section
       aria-labelledby={`${idPrefix}-title`}
-      aria-busy={state.step === "loading"}
+      aria-busy={state.step === "loading" || state.step === "asking"}
       className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
     >
       <div className="flex items-start gap-3">
@@ -120,6 +146,32 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
             <Link href="/coach">{t("consentCta")}</Link>
           </Button>
         </div>
+      ) : state.step === "asking" ? (
+        <p
+          role="status"
+          className="flex items-center gap-2 text-sm text-muted-foreground"
+        >
+          <LoaderCircle
+            aria-hidden="true"
+            className="size-4 animate-spin text-primary"
+          />
+          {t("asking")}
+        </p>
+      ) : state.step === "questions" ? (
+        <Questions
+          questions={state.questions}
+          answers={answers}
+          idPrefix={idPrefix}
+          onAnswer={(index, answer) =>
+            setAnswers((current) =>
+              current.map((item, position) =>
+                position === index ? { ...item, answer } : item,
+              ),
+            )
+          }
+          onSubmit={() => void generate()}
+          onCancel={() => setState({ step: "idle" })}
+        />
       ) : state.step === "loading" ? (
         <p
           role="status"
@@ -160,13 +212,87 @@ export function GoalPlanCard({ goalId, access }: GoalPlanCardProps) {
               {t("added", state.added)}
             </p>
           ) : null}
-          <Button onClick={() => void generate()}>
+          <Button onClick={() => void ask()}>
             <Sparkles aria-hidden="true" />
             {state.step === "idle" && !state.added ? t("generate") : t("again")}
           </Button>
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * Les questions de Get iT AI, comme une conversation : sa bulle d'abord, puis
+ * une réponse par question (facultative).
+ */
+function Questions({
+  questions,
+  answers,
+  idPrefix,
+  onAnswer,
+  onSubmit,
+  onCancel,
+}: {
+  questions: GoalQuestions;
+  answers: { question: string; answer: string }[];
+  idPrefix: string;
+  onAnswer: (index: number, answer: string) => void;
+  onSubmit: () => void;
+  onCancel: () => void;
+}) {
+  const t = useTranslations("Goals.plan");
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <div className="flex items-start gap-2.5">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/15">
+          <Sparkles aria-hidden="true" className="size-4 text-primary" />
+        </span>
+        <p className="rounded-2xl rounded-tl-md bg-foreground/[0.06] px-3.5 py-2.5 text-sm">
+          {questions.intro || t("questionsIntro")}
+        </p>
+      </div>
+      <ol className="flex flex-col gap-4">
+        {questions.questions.map((item, index) => {
+          const id = `${idPrefix}-answer-${index}`;
+          return (
+            <li key={id} className="flex flex-col gap-2">
+              <label
+                htmlFor={id}
+                className="ml-10 rounded-2xl rounded-tl-md bg-foreground/[0.06] px-3.5 py-2.5 text-sm"
+              >
+                {item.question}
+              </label>
+              <textarea
+                id={id}
+                rows={2}
+                maxLength={QUESTION_LIMITS.answer}
+                value={answers[index]?.answer ?? ""}
+                placeholder={item.hint}
+                onChange={(event) => onAnswer(index, event.target.value)}
+                className="ml-auto w-[85%] resize-none rounded-2xl rounded-tr-md border border-primary/30 bg-primary/[0.06] px-3.5 py-2.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+            </li>
+          );
+        })}
+      </ol>
+      <p className="text-xs text-muted-foreground">{t("questionsHelp")}</p>
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit">
+          <Sparkles aria-hidden="true" />
+          {t("generateFromAnswers")}
+        </Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          {t("cancel")}
+        </Button>
+      </div>
+    </form>
   );
 }
 

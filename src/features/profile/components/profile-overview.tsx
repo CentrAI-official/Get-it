@@ -18,12 +18,14 @@ import { getXpTotals } from "@/server/xp/service";
 import { ProfileEditor } from "./profile-editor";
 
 /**
- * Identité et niveau, puis la progression (passée en `progression`). Lit la
- * session : à placer dans un <Suspense>.
+ * Identité et niveau, « Ma journée » (`day`), puis la progression
+ * (`progression`). Lit la session : à placer dans un <Suspense>.
  */
 export async function ProfileOverview({
+  day,
   progression,
 }: {
+  day: ReactNode;
   progression: ReactNode;
 }) {
   const profile = await getCurrentProfile();
@@ -109,13 +111,21 @@ export async function ProfileOverview({
                 {tXp("xp", { xp: xp.total })}
               </span>
             </p>
-            <Link
-              href="/profile/ranked"
-              className="flex items-center gap-1 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-            >
-              {t("ranked.view")}
-              <ChevronRight aria-hidden="true" className="size-4" />
-            </Link>
+            <span className="flex items-center gap-4">
+              <Link
+                href="/profile/ranked/leaderboard"
+                className="flex items-center gap-1 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {t("ranked.leaderboard")}
+              </Link>
+              <Link
+                href="/profile/ranked"
+                className="flex items-center gap-1 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                {t("ranked.view")}
+                <ChevronRight aria-hidden="true" className="size-4" />
+              </Link>
+            </span>
           </div>
         ) : (
           // Niveau de l'XP, chemin vers le suivant, et l'option de passer en Ranked
@@ -148,6 +158,7 @@ export async function ProfileOverview({
             </p>
           </div>
         )}
+        {day}
       </div>
 
       {progression}

@@ -46,7 +46,7 @@ function postUrl(locale: string, postId: string) {
 }
 
 /** Copie un texte, aussi en http sur le Wi-Fi (sans l'API Presse-papiers). */
-async function copyText(text: string, container: HTMLElement | null) {
+export async function copyText(text: string, container: HTMLElement | null) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);

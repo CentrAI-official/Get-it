@@ -39,10 +39,15 @@ type GroupFormProps = {
     topic: GroupTopic;
     visibility: GroupVisibility;
   };
+  /** Type proposé à la création (privé depuis la Messagerie). */
+  defaultVisibility?: GroupVisibility;
 };
 
 /** Créer ou modifier un groupe : nom, description, sujet et type (à la création). */
-export function GroupForm({ group }: GroupFormProps) {
+export function GroupForm({
+  group,
+  defaultVisibility = "public",
+}: GroupFormProps) {
   const t = useTranslations("Groups");
   const locale = useLocale();
   const id = useId();
@@ -52,7 +57,7 @@ export function GroupForm({ group }: GroupFormProps) {
   );
   const [topic, setTopic] = useState<GroupTopic>(group?.topic ?? "general");
   const [visibility, setVisibility] = useState<GroupVisibility>(
-    group?.visibility ?? "public",
+    group?.visibility ?? defaultVisibility,
   );
 
   return (

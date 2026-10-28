@@ -1,6 +1,9 @@
 import "server-only";
 import { normalizeDevelopmentPlan } from "@/features/development/plan";
-import { normalizeGoalPlan } from "@/features/goals/plan";
+import {
+  normalizeGoalPlan,
+  normalizeGoalQuestions,
+} from "@/features/goals/plan";
 import { normalizeRankedAnalysis } from "@/features/ranked/analysis";
 import type { AiProvider, AiUsage } from "./types";
 
@@ -70,12 +73,30 @@ export function createFakeProvider(): AiProvider {
       return { text, refused: false, truncated: false, toolCalls, usage };
     },
 
-    async generateGoalPlan({ maxDueInDays }) {
+    async generateGoalQuestions() {
+      await pause(200);
+      return {
+        questions: normalizeGoalQuestions({
+          intro: "Quelques questions avant de bâtir ton plan.",
+          questions: [
+            { question: "Question de test 1?", hint: "Réponse 1" },
+            { question: "Question de test 2?", hint: "Réponse 2" },
+            { question: "Question de test 3?", hint: "Réponse 3" },
+          ],
+        }),
+        refused: false,
+        usage,
+      };
+    },
+
+    async generateGoalPlan({ maxDueInDays, prompt }) {
       await pause(300);
       return {
         plan: normalizeGoalPlan(
           {
-            summary: "Plan de test en trois étapes.",
+            summary: prompt.includes("The user's answers")
+              ? "Plan de test en trois étapes, d'après tes réponses."
+              : "Plan de test en trois étapes.",
             milestones: [
               { title: "Jalon de test A" },
               { title: "Jalon de test B" },

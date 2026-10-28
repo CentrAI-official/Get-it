@@ -122,6 +122,10 @@ model Profile {
   postComments         PostComment[]
   postReactions        PostReaction[]
   postSaves            PostSave[]
+  stories              Story[]
+  notifications        Notification[]       @relation("NotificationRecipient")
+  notificationsSent    Notification[]       @relation("NotificationActor")
+  pushSubscriptions    PushSubscription[]
   ownedGroups          Group[]              @relation("GroupOwner")
   groupMemberships     GroupMember[]        @relation("GroupMembership")
   groupInvitesSent     GroupMember[]        @relation("GroupInviter")
@@ -732,6 +736,7 @@ model ContentReport {
   commentId      String?      @map("comment_id") @db.Uuid
   reportedUserId String?      @map("reported_user_id") @db.Uuid
   messageId      String?      @map("message_id") @db.Uuid
+  storyId        String?      @map("story_id") @db.Uuid
   reason         ReportReason
   details        String?
   status         ReportStatus @default(open)
@@ -744,12 +749,14 @@ model ContentReport {
   comment      PostComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
   reportedUser Profile?     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
   message      Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  story        Story?       @relation(fields: [storyId], references: [id], onDelete: Cascade)
   resolvedBy   Profile?     @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   @@unique([reporterId, postId])
   @@unique([reporterId, commentId])
   @@unique([reporterId, reportedUserId])
   @@unique([reporterId, messageId])
+  @@unique([reporterId, storyId])
   @@index([status, createdAt])
   @@map("content_reports")
 }
@@ -1170,4 +1177,80 @@ model ListingFavorite {
   @@index([listingId])
   @@index([userId, createdAt])
   @@map("listing_favorites")
+}
+
+/// Story du Centre : une photo ou une vidéo, visible 24 heures par les contacts
+/// de son auteur. Fichiers dans posts/<userId> (supprimés avec la story ou le compte).
+model Story {
+  id         String        @id @default(uuid(7)) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  kind       MediaKind
+  path       String
+  posterPath String?       @map("poster_path")
+  width      Int
+  height     Int
+  durationMs Int?          @map("duration_ms")
+  sizeBytes  Int           @map("size_bytes")
+  caption    String        @default("")
+  /// Masquée après 3 signalements, ou retirée par la modération.
+  status     ContentStatus @default(visible)
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt  DateTime      @map("expires_at") @db.Timestamptz(3)
+
+  profile Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reports ContentReport[]
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@map("stories")
+}
+
+enum NotificationKind {
+  message
+  message_request
+  contact_request
+  contact_accepted
+  group_invite
+  pact
+  comment
+  like
+}
+
+/// Notification reçue : un lien et un court sujet, jamais le texte d'un message.
+/// Regroupée par « groupKey » tant qu'elle n'est pas lue (ex. une discussion).
+model Notification {
+  id        String           @id @default(uuid(7)) @db.Uuid
+  userId    String           @map("user_id") @db.Uuid
+  kind      NotificationKind
+  actorId   String?          @map("actor_id") @db.Uuid
+  /// Chemin sans la langue (ex. « /messages/<id> »).
+  href      String
+  subject   String           @default("")
+  groupKey  String?          @map("group_key")
+  count     Int              @default(1)
+  readAt    DateTime?        @map("read_at") @db.Timestamptz(3)
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor   Profile? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([userId, groupKey])
+  @@map("notifications")
+}
+
+/// Abonnement web push d'un navigateur (notifications sur le téléphone).
+model PushSubscription {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }

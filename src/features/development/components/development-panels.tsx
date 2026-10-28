@@ -66,9 +66,6 @@ export async function DevelopmentHub() {
         >
           {t("calendar.title")}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          {t("calendar.description")}
-        </p>
         <div className="mt-2">
           <CalendarView initial={calendar} scope="all" />
         </div>
@@ -135,11 +132,7 @@ export async function DevelopmentHub() {
             return (
               <li
                 key={kind}
-                className={
-                  kind === "business"
-                    ? "border-b border-foreground/8 pl-8"
-                    : "border-b border-foreground/8"
-                }
+                className="border-b border-foreground/8 last:border-b-0"
               >
                 <Link
                   href={`/services/${kind}`}

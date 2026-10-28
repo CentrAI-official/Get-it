@@ -246,7 +246,8 @@
       "ranked": {
         "go": "Passer en Ranked",
         "badge": "Classé",
-        "view": "Mon classement"
+        "view": "Mon classement",
+        "leaderboard": "Classement"
       }
     },
     "settings": {
@@ -596,7 +597,7 @@
     },
     "plan": {
       "title": "Créer mon plan avec l’IA",
-      "description": "Get iT AI propose des jalons, tes premières tâches et des habitudes pour cet objectif. Tu choisis ce que tu gardes.",
+      "description": "Get iT AI te pose quelques questions sur ta situation, puis propose des jalons, tes premières tâches et des habitudes. Tu choisis ce que tu gardes.",
       "consent": "Active d’abord Get iT AI : il a besoin de ton accord pour lire cet objectif.",
       "consentCta": "Activer Get iT AI",
       "generate": "Proposer un plan",
@@ -621,7 +622,11 @@
         "refused": "Get iT AI ne peut pas créer de plan pour cet objectif. Essaie de reformuler son titre ou sa description.",
         "unexpected": "Get iT AI n’a pas pu préparer ton plan. Réessaie dans un instant.",
         "apply": "Le plan n’a pas pu être ajouté. Réessaie."
-      }
+      },
+      "asking": "Get iT AI prépare ses questions…",
+      "questionsIntro": "Quelques questions avant de bâtir ton plan.",
+      "questionsHelp": "Réponds à ce que tu veux : plus tu en dis, plus le plan te ressemble. Tes réponses servent seulement à ce plan.",
+      "generateFromAnswers": "Proposer mon plan"
     }
   },
   "Habits": {
@@ -923,20 +928,38 @@
   },
   "Community": {
     "stories": {
-      "label": "Progrès du jour",
-      "myDay": "Ta journée",
-      "myDayLabel": "Ouvrir Ma journée : {done, number} sur {total, number} quêtes faites",
-      "myDayOpen": "Ouvrir Ma journée",
-      "badge": "{done, number}/{total, number}",
-      "open": "Progrès du jour de {name}",
-      "openNew": "Progrès du jour de {name}, nouveau",
+      "label": "Stories",
+      "mine": "Ta story",
+      "add": "Ajouter une story",
+      "openMine": "Voir ta story",
+      "open": "Story de {name}",
+      "openNew": "Story de {name}, nouvelle",
       "addContacts": "Contacts",
-      "addContactsLabel": "Ajouter des contacts pour voir leurs progrès du jour",
-      "viewerDescription": "Les progrès que {name} a partagés depuis 24 heures.",
-      "position": "{n, number} sur {total, number}",
-      "previous": "Progrès précédent",
-      "next": "Progrès suivant",
-      "close": "Fermer"
+      "addContactsLabel": "Ajouter des contacts pour voir leurs stories",
+      "viewerDescription": "Les stories de {name} des dernières 24 heures.",
+      "previous": "Story précédente",
+      "next": "Story suivante",
+      "close": "Fermer",
+      "pause": "Mettre en pause",
+      "play": "Reprendre",
+      "delete": "Supprimer la story",
+      "deleted": "Story supprimée.",
+      "report": "Signaler la story",
+      "reported": "Merci. L’équipe de modération va regarder cette story.",
+      "options": "Options de la story",
+      "composerTitle": "Nouvelle story",
+      "composerDescription": "Une photo ou une vidéo, visible 24 heures par tes contacts.",
+      "pick": "Choisir une photo ou une vidéo",
+      "change": "Changer",
+      "caption": "Légende (facultative)",
+      "captionPlaceholder": "Écris quelque chose…",
+      "publish": "Publier la story",
+      "publishing": "Publication…",
+      "preparing": "Préparation…",
+      "uploading": "Envoi… {percent, number} %",
+      "cancel": "Annuler",
+      "expires": "Visible encore {hours, plural, one {# heure} other {# heures}}",
+      "unavailable": "Les photos et vidéos ne sont pas encore activées."
     },
     "signedInAs": "Connecté en tant que @{username}",
     "moderationLink": "Modération",
@@ -1002,8 +1025,8 @@
       "block": "Bloquer {handle}",
       "hidden": "Masquée après plusieurs signalements, en attendant la décision de la modération. Toi seul la vois encore.",
       "question": "Question",
-      "bravo": "Bravo",
-      "bravoCount": "{count, plural, =0 {Aucun bravo} one {# bravo} other {# bravos}}",
+      "bravo": "J’aime",
+      "bravoCount": "{count, plural, =0 {Aucun j’aime} one {# j’aime} other {# j’aime}}",
       "comments": "{count, plural, =0 {Commenter} one {# commentaire} other {# commentaires}}",
       "blockTitle": "Bloquer {handle}?",
       "blockDescription": "Vous ne verrez plus les publications ni les commentaires l’un de l’autre. Tu pourras débloquer cette personne dans Réglages.",
@@ -1080,7 +1103,8 @@
         "post": "Signaler la publication",
         "comment": "Signaler le commentaire",
         "user": "Signaler cette personne",
-        "message": "Signaler le message"
+        "message": "Signaler le message",
+        "story": "Signaler la story"
       },
       "description": "Dis-nous ce qui ne va pas. Ton signalement reste anonyme.",
       "reasonLabel": "Raison du signalement",
@@ -1106,7 +1130,8 @@
         "post": "Publication",
         "comment": "Commentaire",
         "user": "Personne",
-        "message": "Message privé"
+        "message": "Message privé",
+        "story": "Story"
       },
       "count": "{count, plural, one {# signalement} other {# signalements}}",
       "status": {
@@ -1153,7 +1178,9 @@
       "videoTooLong": "La vidéo dépasse 60 secondes.",
       "uploadLimit": "Tu as envoyé beaucoup de fichiers aujourd’hui. Réessaie demain.",
       "saveLimit": "Tu as déjà 500 publications enregistrées. Retires-en quelques-unes pour en garder d’autres.",
-      "alreadyShared": "Tu as déjà partagé cette publication dans ton fil."
+      "alreadyShared": "Tu as déjà partagé cette publication dans ton fil.",
+      "storyLimit": "Tu as publié 20 stories dans les dernières 24 heures. Réessaie plus tard.",
+      "storyCaptionTooLong": "La légende peut faire 200 caractères au plus."
     },
     "media": {
       "gallery": "Photo/vidéo",
@@ -1213,7 +1240,13 @@
       "post": "Publication partagée",
       "photo": "Photo",
       "video": "Vidéo",
-      "from": "{name} : {text}"
+      "from": "{name} : {text}",
+      "groups": "Groupes",
+      "groupsCount": "Groupes ({count, number})",
+      "groupsEmpty": "Aucun groupe privé pour l’instant. Crée une discussion de groupe et invite tes contacts.",
+      "newGroup": "Nouveau groupe privé",
+      "groupQuiet": "{count, plural, one {# membre} other {# membres}} · aucun message pour l’instant",
+      "invitationsTitle": "Invitations"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1405,6 +1438,32 @@
       "members": "{count, plural, one {# membre} other {# membres}}",
       "viewGroup": "Voir le groupe",
       "privacy": "Discussion privée du groupe : seuls ses membres la voient. Jamais envoyée à Get iT AI."
+    },
+    "groupPact": {
+      "title": "Pacte de groupe",
+      "proposedBy": "Proposé par {name}",
+      "startsOn": "Commence le {date}",
+      "day": "Jour {day, number} sur {days, number}",
+      "need": "réussi si {need, number} jours sur {days, number}",
+      "participants": "Participants",
+      "count": "{count, number}/{need, number}",
+      "doneToday": "a fait sa part aujourd’hui",
+      "todaySummary": "{done, number} sur {total, number} ont fait leur part aujourd’hui",
+      "habitMissing": "Ton habitude reliée a été supprimée : tes jours ne comptent plus.",
+      "habit": "Relier à ton habitude",
+      "newHabit": "Créer « {title} » (tous les jours)",
+      "privacy": "Le groupe verra seulement si tu as fait cette habitude chaque jour, rien d’autre.",
+      "confirmJoin": "Rejoindre le pacte",
+      "join": "Rejoindre",
+      "decline": "Refuser",
+      "cancel": "Annuler",
+      "leave": "Quitter le pacte",
+      "withdraw": "Retirer la proposition",
+      "noteProposed": "{name} propose un pacte : « {title} »",
+      "noteProposedByMe": "Tu proposes un pacte : « {title} »",
+      "noteSuccess": "Pacte « {title} » réussi par le groupe!",
+      "noteFailed": "Pacte « {title} » terminé, pas réussi cette fois",
+      "noteCancelled": "Le pacte est terminé"
     }
   },
   "Contacts": {
@@ -1779,7 +1838,6 @@
     },
     "calendar": {
       "title": "Mon calendrier",
-      "description": "Tes plans, tes tâches, tes habitudes et tes objectifs, jour par jour. Touche une date pour voir ce qui est prévu.",
       "planTitle": "Calendrier du plan",
       "period": "Ton plan va du {from} au {to}. Touche une date pour voir ce qui est prévu.",
       "previous": "Mois précédent",
@@ -2527,6 +2585,31 @@
       "limitReached": "Tu as atteint la limite de 20 demandes à Get iT AI aujourd’hui.",
       "refused": "Get iT AI n’a pas pu analyser ton niveau.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "leaderboard": {
+      "title": "Classement",
+      "description": "Les personnes en Ranked, membres du Centre, classées par niveau.",
+      "back": "Retour au mode Ranked",
+      "pillarsLabel": "Niveau",
+      "scopesLabel": "Qui",
+      "pillars": {
+        "total": "Total",
+        "physical": "Physique",
+        "financial": "Financier"
+      },
+      "scopes": {
+        "all": "Tout le monde",
+        "contacts": "Mes contacts"
+      },
+      "count": "{count, plural, =0 {Personne de classé} one {# personne classée} other {# personnes classées}}",
+      "empty": "Personne n’est encore classé. Sois le premier!",
+      "emptyContacts": "Aucun de tes contacts n’est en Ranked pour l’instant.",
+      "notRanked": "Passe en Ranked pour apparaître dans le classement et voir ta place.",
+      "notRankedCta": "Passer en Ranked",
+      "you": "(toi)",
+      "rankLabel": "Rang {rank, number}",
+      "levelLabel": "Niveau {level, number}",
+      "link": "Voir le classement"
     }
   },
   "Places": {
@@ -2647,6 +2730,7 @@
     "description": "Des groupes par pilier ou généraux : un forum public, ou une discussion privée entre membres invités.",
     "create": "Créer un groupe",
     "back": "Retour aux Groupes",
+    "backToMessages": "Retour à la Messagerie",
     "invitations": {
       "title": "Invitations",
       "accept": "Accepter",
@@ -2716,7 +2800,7 @@
     },
     "forum": {
       "title": "Forum",
-      "joinToPost": "Rejoins le groupe pour publier, commenter et dire bravo.",
+      "joinToPost": "Rejoins le groupe pour publier, commenter et aimer les publications.",
       "emptyTitle": "Aucune publication pour l’instant",
       "emptyDescription": "Lance la discussion : pose une question ou partage une victoire."
     },
@@ -2758,6 +2842,45 @@
       "blocked": "Tu ne peux pas inviter cette personne.",
       "ownerCannotLeave": "Le créateur ne quitte pas son groupe : il peut le supprimer.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "share": {
+      "button": "Partager",
+      "copy": "Copier le lien",
+      "copied": "Lien copié",
+      "other": "Autres applis",
+      "text": "Rejoins le groupe « {name} » sur Get iT"
+    }
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "description": "Tes messages, demandes, invitations, pactes, commentaires et j’aime.",
+    "bellUnread": "{count, plural, one {Notifications : # nouvelle} other {Notifications : # nouvelles}}",
+    "unread": "Nouvelle",
+    "emptyTitle": "Rien de nouveau",
+    "emptyDescription": "Quand quelqu’un t’écrit, t’invite ou aime ta publication, tu le verras ici.",
+    "items": {
+      "message": "{name} t’a écrit",
+      "messages": "{name} t’a envoyé {count, number} messages",
+      "groupMessage": "{name} a écrit dans « {subject} »",
+      "message_request": "{name} veut t’écrire (demande de message)",
+      "contact_request": "{name} veut t’ajouter en contact",
+      "contact_accepted": "{name} a accepté ta demande de contact",
+      "group_invite": "{name} t’invite dans le groupe « {subject} »",
+      "pact": "{name} te propose un pacte : « {subject} »",
+      "comment": "{name} a commenté ta publication",
+      "comments": "{name} et {others, plural, one {# autre personne ont} other {# autres personnes ont}} commenté ta publication",
+      "like": "{name} aime ta publication",
+      "likes": "{name} et {others, plural, one {# autre personne aiment} other {# autres personnes aiment}} ta publication"
+    },
+    "push": {
+      "title": "Notifications sur cet appareil",
+      "description": "Reçois tes messages, demandes et pactes même quand Get iT est fermé. Seuls le nom de la personne et le type de notification s’affichent, jamais le texte d’un message.",
+      "enable": "Activer les notifications",
+      "disable": "Désactiver sur cet appareil",
+      "on": "Activées sur cet appareil.",
+      "denied": "Les notifications sont bloquées pour Get iT dans les réglages de ton navigateur ou de ton téléphone.",
+      "unsupported": "Ce navigateur ne permet pas les notifications. Sur iPhone : touche Partager, puis « Sur l’écran d’accueil », et ouvre Get iT depuis l’icône.",
+      "error": "Impossible d’activer les notifications. Réessaie."
     }
   }
 }

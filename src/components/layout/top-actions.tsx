@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Suspense } from "react";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
@@ -27,11 +28,14 @@ function CurrentActions() {
   const t = useTranslations("App.topActions");
   const pathname = usePathname();
   const category = currentCategory(pathname);
-  if (!category) return null;
 
+  // La cloche des notifications est partout ; les autres boutons dépendent de la catégorie
   return (
     <ul aria-label={t("label")} className="flex items-center gap-1">
-      {categoryActions[category].map((key) => {
+      <li>
+        <NotificationBell active={isActivePath(pathname, "/notifications")} />
+      </li>
+      {(category ? categoryActions[category] : []).map((key) => {
         const { href, icon: Icon } = topActions[key];
         const active = isActivePath(pathname, href);
         return (

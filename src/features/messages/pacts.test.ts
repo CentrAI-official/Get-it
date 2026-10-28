@@ -5,6 +5,8 @@ import {
   pactProgress,
   pactProposalSchema,
   pactResponseSchema,
+  groupPactOutcome,
+  groupPactProgress,
 } from "./pacts";
 
 const habitId = "0199a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b";
@@ -119,5 +121,35 @@ describe("schémas des pactes", () => {
         .success,
     ).toBe(true);
     expect(pactResponseSchema.safeParse({ accept: true }).success).toBe(false);
+  });
+});
+
+describe("pactes de groupe", () => {
+  const done = (...days: string[]) => new Set(days);
+
+  it("compte les jours de chacun pendant le pacte, jusqu'à aujourd'hui", () => {
+    const progress = groupPactProgress({
+      startsOn: "2026-11-02",
+      days: 7,
+      today: "2026-11-04",
+      members: [
+        { id: "a", done: done("2026-11-01", "2026-11-02", "2026-11-04") },
+        { id: "b", done: done("2026-11-03", "2026-11-05") },
+      ],
+    });
+    expect(progress.dayIndex).toBe(3);
+    expect(progress.members).toEqual([
+      { id: "a", count: 2, today: true },
+      { id: "b", count: 1, today: false },
+    ]);
+  });
+
+  it("réussit si 80 % des participants ont fait assez de jours", () => {
+    expect(groupPactOutcome(5, [6, 5, 5, 5, 2])).toBe("success");
+    expect(groupPactOutcome(5, [6, 5, 5, 2, 2])).toBe("failed");
+    expect(groupPactOutcome(5, [5, 5])).toBe("success");
+    expect(groupPactOutcome(5, [5, 4])).toBe("failed");
+    // Un seul participant : ce n'est plus un pacte
+    expect(groupPactOutcome(5, [7])).toBe("failed");
   });
 });

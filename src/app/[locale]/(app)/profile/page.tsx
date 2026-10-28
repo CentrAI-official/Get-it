@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { PageHeader } from "@/components/layout/page-header";
 import {
   ProfileOverview,
   ProfileOverviewSkeleton,
@@ -21,13 +20,13 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4">
-        <ProfileTabs current="overview" />
-        <PageHeader title={t("title")} description={t("question")} />
-      </div>
-      <DayPanelCard />
+      <ProfileTabs current="overview" />
+      <h1 className="sr-only">{t("title")}</h1>
       <Suspense fallback={<ProfileOverviewSkeleton />}>
-        <ProfileOverview progression={<ProgressionOverview />} />
+        <ProfileOverview
+          day={<DayPanelCard />}
+          progression={<ProgressionOverview />}
+        />
       </Suspense>
     </div>
   );

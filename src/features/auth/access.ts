@@ -22,6 +22,7 @@ export const PROTECTED_PATHS = [
   "/habits",
   "/coach",
   "/moderation",
+  "/notifications",
   "/settings",
   ONBOARDING_PATH,
 ] as const;
