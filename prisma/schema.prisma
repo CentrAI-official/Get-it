@@ -123,6 +123,7 @@ model Profile {
   postReactions        PostReaction[]
   postSaves            PostSave[]
   stories              Story[]
+  videoViews           PostVideoView[]
   notifications        Notification[]       @relation("NotificationRecipient")
   notificationsSent    Notification[]       @relation("NotificationActor")
   pushSubscriptions    PushSubscription[]
@@ -597,6 +598,7 @@ model Post {
   reports    ContentReport[]
   media      PostMedia[]
   saves      PostSave[]
+  videoViews PostVideoView[]
   messages   Message[]
 
   @@unique([userId, sharedPostId])
@@ -1253,4 +1255,19 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+/// Vue d'une vidéo de publication : une par personne (au moins 2 secondes),
+/// jamais celle de l'auteur. Le nombre est public, pas qui a regardé.
+model PostVideoView {
+  postId   String   @map("post_id") @db.Uuid
+  userId   String   @map("user_id") @db.Uuid
+  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz(3)
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("post_video_views")
 }

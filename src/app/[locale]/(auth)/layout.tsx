@@ -28,7 +28,7 @@ export default function AuthLayout({ children }: LayoutProps<"/[locale]">) {
           aria-label={t("Common.homeLink")}
           className="relative w-fit"
         >
-          <Logo className="text-2xl" />
+          <Logo className="text-4xl" />
         </Link>
         <div className="relative flex max-w-lg flex-col gap-6">
           <OrbitMark className="-ml-4 w-60 xl:w-72" />

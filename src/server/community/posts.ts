@@ -389,6 +389,22 @@ export async function addComment(
   return { ok: true };
 }
 
+/**
+ * Vue d'une vidéo (au moins 2 secondes regardées) : une par personne, jamais
+ * l'auteur. Vrai si c'est une nouvelle vue.
+ */
+export async function recordVideoView(userId: string, postId: string) {
+  const post = await reachablePost(userId, postId);
+  if (!post || post.userId === userId) return false;
+  const videos = await db.postMedia.count({ where: { postId, kind: "video" } });
+  if (videos === 0) return false;
+  const { count } = await db.postVideoView.createMany({
+    data: [{ postId, userId }],
+    skipDuplicates: true,
+  });
+  return count > 0;
+}
+
 export async function deleteComment(userId: string, commentId: string) {
   const { count } = await db.postComment.deleteMany({
     where: { id: commentId, userId },

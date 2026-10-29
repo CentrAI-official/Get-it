@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   Dialog,
@@ -28,14 +28,25 @@ type FullscreenVideo = HTMLVideoElement & {
  * quand on change de page, quand elle sort de l'écran ou quand une autre
  * vidéo démarre.
  */
+/** Secondes regardées avant de compter une vue. */
+const VIEW_AFTER_SECONDS = 2;
+
 function PostVideo({
   video,
   className,
+  views,
+  onViewed,
 }: {
   video: FeedMedia;
   className?: string;
+  /** Nombre de vues (publications seulement). */
+  views?: number;
+  onViewed?: () => void;
 }) {
+  const t = useTranslations("Community.media");
+  const format = useFormatter();
   const ref = useRef<HTMLVideoElement>(null);
+  const counted = useRef(false);
 
   // Next garde la page précédente cachée dans le DOM (Activity) au lieu de la
   // retirer : sans ce nettoyage, le son continuerait dans une autre catégorie.
@@ -67,7 +78,7 @@ function PostVideo({
     playing = element;
   }
 
-  return (
+  const player = (
     <video
       ref={ref}
       src={video.url}
@@ -76,6 +87,17 @@ function PostVideo({
       playsInline
       preload="metadata"
       onPlay={onPlay}
+      onTimeUpdate={(event) => {
+        // Une vue compte après 2 secondes regardées, une seule fois par affichage
+        if (
+          onViewed &&
+          !counted.current &&
+          event.currentTarget.currentTime >= VIEW_AFTER_SECONDS
+        ) {
+          counted.current = true;
+          onViewed();
+        }
+      }}
       className={cn(
         "max-h-[70dvh] w-full rounded-2xl bg-black object-contain",
         className,
@@ -84,6 +106,19 @@ function PostVideo({
     >
       <track kind="captions" />
     </video>
+  );
+  if (views === undefined) return player;
+  return (
+    <div className="relative">
+      {player}
+      <span className="dark pointer-events-none absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold backdrop-blur-sm">
+        <Eye aria-hidden="true" className="size-3.5" />
+        {t("views", {
+          count: views,
+          formatted: format.number(views, { notation: "compact" }),
+        })}
+      </span>
+    </div>
   );
 }
 
@@ -99,10 +134,19 @@ type PostMediaProps = {
    * court instant plus tard, le temps de reconnaître un deuxième toucher.
    */
   onDoubleTap?: () => void;
+  /** Vidéo d'une publication : son nombre de vues, et quand elle est regardée. */
+  videoViews?: number;
+  onVideoViewed?: () => void;
 };
 
 /** Photos (grille, plein écran au toucher) ou vidéo d'une publication. */
-export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
+export function PostMedia({
+  media,
+  className,
+  onDoubleTap,
+  videoViews,
+  onVideoViewed,
+}: PostMediaProps) {
   const t = useTranslations("Community.media");
   const [open, setOpen] = useState<number | null>(null);
   const lastTap = useRef(0);
@@ -138,7 +182,16 @@ export function PostMedia({ media, className, onDoubleTap }: PostMediaProps) {
     }, DOUBLE_TAP_MS);
   }
 
-  if (video) return <PostVideo video={video} className={className} />;
+  if (video) {
+    return (
+      <PostVideo
+        video={video}
+        className={className}
+        views={videoViews}
+        onViewed={onVideoViewed}
+      />
+    );
+  }
   if (images.length === 0) return null;
 
   const current = open === null ? undefined : images[open];

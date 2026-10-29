@@ -1,15 +1,18 @@
 import { cn } from "@/lib/utils";
 
-/** Logo texte « Get iT », avec « iT » en orange. */
+/** Logo texte « GET IT. » : Anton en majuscules, le point en orange. */
 export function Logo({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "font-heading text-xl font-bold tracking-tight text-foreground",
+        "font-display text-2xl leading-none tracking-tight text-foreground uppercase",
         className,
       )}
     >
-      Get <span className="text-primary">iT</span>
+      Get iT
+      <span aria-hidden="true" className="text-primary">
+        .
+      </span>
     </span>
   );
 }

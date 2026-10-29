@@ -1196,7 +1196,8 @@
       "close": "Fermer",
       "previous": "Photo précédente",
       "next": "Photo suivante",
-      "limitsPhotos": "Jusqu’à 4 photos. La position GPS des photos est retirée."
+      "limitsPhotos": "Jusqu’à 4 photos. La position GPS des photos est retirée.",
+      "views": "{count, plural, one {{formatted} vue} other {{formatted} vues}}"
     },
     "profile": {
       "back": "Communauté",

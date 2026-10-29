@@ -31,6 +31,7 @@ import {
   setReaction,
   shareProgress,
   sharePost,
+  recordVideoView,
 } from "@/server/community/posts";
 import { listSavedPosts, setPostSaved } from "@/server/community/saves";
 import {
@@ -317,6 +318,14 @@ export async function moderateAction(
     console.error("Décision de modération impossible", error);
     return false;
   }
+}
+
+/** Vidéo regardée au moins 2 secondes ; vrai si c'est une nouvelle vue. */
+export async function recordVideoViewAction(postId: unknown) {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(postId);
+  if (!id.success) return false;
+  return recordVideoView(user.id, id.data).catch(() => false);
 }
 
 /** Enregistre ou retire une publication (Profil › Publications › Enregistrées). */

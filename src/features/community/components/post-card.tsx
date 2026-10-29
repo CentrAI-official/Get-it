@@ -39,6 +39,7 @@ import { removeGroupPostAction } from "@/features/groups/actions";
 import {
   blockUserAction,
   deletePostAction,
+  recordVideoViewAction,
   setPostSavedAction,
 } from "../actions";
 import { requestContactAction } from "@/features/contacts/actions";
@@ -89,6 +90,7 @@ export function PostCard({
   // Chaque double-tap relance l'animation « Bravo » sur la photo
   const [burst, setBurst] = useState(0);
   const [comments, setComments] = useState(post.comments);
+  const [views, setViews] = useState(post.videoViews);
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState<"delete" | "block" | null>(null);
   const [pending, startTransition] = useTransition();
@@ -346,6 +348,15 @@ export function PostCard({
             media={post.media}
             className="rounded-none sm:rounded-2xl"
             onDoubleTap={photos && canReact ? doubleTap : undefined}
+            videoViews={views}
+            onVideoViewed={
+              post.mine
+                ? undefined
+                : () =>
+                    void recordVideoViewAction(post.id).then((counted) => {
+                      if (counted) setViews((current) => current + 1);
+                    })
+            }
           />
           {photos ? (
             <>

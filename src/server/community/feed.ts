@@ -42,6 +42,8 @@ export type FeedPost = {
   mine: boolean;
   /** Photos ou vidéo, avec des liens de lecture temporaires. */
   media: FeedMedia[];
+  /** Personnes qui ont regardé la vidéo (au moins 2 s), l'auteur exclu. */
+  videoViews: number;
   /** Enregistrée par la personne qui lit (privé). */
   saved: boolean;
   /**
@@ -110,6 +112,7 @@ export function postSelect(viewerId: string, blocked: readonly string[]) {
     _count: {
       select: {
         reactions: true,
+        videoViews: true,
         comments: {
           where: {
             status: "visible" as const,
@@ -205,6 +208,7 @@ export async function toFeedPosts(
       comments: post._count.comments,
       mine: post.userId === viewerId,
       media: media.get(post.id) ?? [],
+      videoViews: post._count.videoViews,
       saved: post.saves.length > 0,
       shared: post.sharedPostId
         ? (shared.get(post.sharedPostId) ?? "unavailable")

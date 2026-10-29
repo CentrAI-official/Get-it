@@ -17,7 +17,7 @@ export function AppTopbar() {
         aria-label={tCommon("homeLink")}
         className="lg:hidden"
       >
-        <Logo className="text-lg" />
+        <Logo className="text-[1.65rem]" />
       </Link>
       <TopActions />
     </header>
