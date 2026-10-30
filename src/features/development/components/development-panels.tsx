@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -26,19 +27,28 @@ import {
   KIND_PILLAR,
   type DevelopmentKind,
 } from "../questionnaires";
-import { planWeek } from "../calendar";
+import { monthOf, planWeek } from "../calendar";
 import { colorsOf } from "../colors";
 import { CalendarView } from "./calendar-view";
 import { DevelopmentFlow } from "./development-flow";
 
 // Pages de « Mon développement ». Chacune lit la session : à placer dans un <Suspense>.
 
-/** Accueil : un plan par pilier (le plan d'entreprise sous le financier), puis les professionnels. */
-export async function DevelopmentHub() {
+/**
+ * Accueil : le calendrier principal, puis un plan par pilier (le plan
+ * d'entreprise sous le financier). `day` : le jour à montrer (retour d'un
+ * événement ajouté), aujourd'hui sinon.
+ */
+export async function DevelopmentHub({ day }: { day?: string }) {
   const profile = await getCurrentProfile();
+  const chosen = z.iso.date().safeParse(day);
   const [plans, calendar, t, format] = await Promise.all([
     listPlans(profile.id),
-    getCalendar(profile.id, "all"),
+    getCalendar(
+      profile.id,
+      "all",
+      chosen.success ? monthOf(chosen.data) : undefined,
+    ),
     getTranslations("Development"),
     getFormatter(),
   ]);
@@ -67,7 +77,11 @@ export async function DevelopmentHub() {
           {t("calendar.title")}
         </h2>
         <div className="mt-2">
-          <CalendarView initial={calendar} scope="all" />
+          <CalendarView
+            initial={calendar}
+            scope="all"
+            initialDay={chosen.success ? chosen.data : undefined}
+          />
         </div>
         {calendar.plans.length > 0 ? (
           // Raccourcis : chaque plan et sa semaine en cours

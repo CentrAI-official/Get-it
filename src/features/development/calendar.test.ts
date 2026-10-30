@@ -78,6 +78,7 @@ const data: CalendarData = {
       planKind: "physical",
     },
   ],
+  events: [],
 };
 
 describe("mois", () => {
@@ -216,6 +217,43 @@ describe("vue Semaine", () => {
     const monday = dayTimeline(dayEntries(data, "2026-10-26"));
     expect(monday.map((group) => group.moment)).toEqual(["morning"]);
     expect(monday[0]?.items[0]?.type).toBe("session");
+  });
+
+  it("place les événements à leur heure, avant le reste du moment", () => {
+    const withEvents: CalendarData = {
+      ...data,
+      events: [
+        {
+          id: "e2",
+          title: "Cuisiner les lunchs",
+          location: null,
+          startsOn: "2026-10-26",
+          startMinute: 18 * 60,
+          endsOn: "2026-10-26",
+          endMinute: 19 * 60,
+          repeat: "weekdays",
+        },
+        {
+          id: "e1",
+          title: "Job",
+          location: "Bureau",
+          startsOn: "2026-10-26",
+          startMinute: 9 * 60,
+          endsOn: "2026-10-26",
+          endMinute: 17 * 60,
+          repeat: "weekdays",
+        },
+      ],
+    };
+    const monday = dayTimeline(dayEntries(withEvents, "2026-10-26"));
+    expect(monday.map((group) => group.moment)).toEqual(["morning", "evening"]);
+    expect(monday[0]?.items.map((item) => item.key)).toEqual([
+      "event:e1",
+      "session:p1",
+    ]);
+    // Le samedi, pas d'événements de semaine ; un point les jours où il y en a
+    expect(dayEntries(withEvents, "2026-10-31").events).toEqual([]);
+    expect(markedDays(withEvents).has("2026-10-27")).toBe(true);
   });
 
   it("valide un changement de moment avant de l'envoyer au serveur", () => {

@@ -36,6 +36,7 @@ import {
   reserveAiRequest,
 } from "@/server/ai/usage";
 import { db } from "@/server/db";
+import { listEventsBetween } from "@/server/events/service";
 import { hasActiveGoalRoom } from "@/server/goals/service";
 
 // « Mon développement » : chaque fonction reçoit l'userId de la session. Les
@@ -356,7 +357,15 @@ export async function getCalendar(
         ]
       : [];
   });
-  const empty = { month, today, plans, tasks: [], habits: [], goals: [] };
+  const empty = {
+    month,
+    today,
+    plans,
+    tasks: [],
+    habits: [],
+    goals: [],
+    events: [],
+  };
   // Le calendrier d'un plan qui n'existe pas encore est vide
   const planId = scope === "all" ? undefined : plans[0]?.id;
   if (scope !== "all" && !planId) return empty;
@@ -364,7 +373,7 @@ export async function getCalendar(
   const planKind = (id: string | null) =>
     id ? (kindById.get(id) ?? null) : null;
 
-  const [tasks, habits, goals] = await Promise.all([
+  const [tasks, habits, goals, events] = await Promise.all([
     db.task.findMany({
       where: { userId, dueDate: range, developmentPlanId: planId },
       orderBy: { createdAt: "asc" },
@@ -411,10 +420,13 @@ export async function getCalendar(
         developmentPlanId: true,
       },
     }),
+    // Le calendrier personnel n'apparaît que dans le calendrier principal
+    scope === "all" ? listEventsBetween(userId, first, last) : [],
   ]);
 
   return {
     ...empty,
+    events,
     tasks: tasks.flatMap((task) =>
       task.dueDate
         ? [

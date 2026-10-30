@@ -184,6 +184,22 @@ export async function setTaskDone(
   });
 }
 
+/** Renomme une tâche ou change son échéance. Faux si elle n'existe pas pour cet utilisateur. */
+export async function updateTask(
+  userId: string,
+  taskId: string,
+  input: { title: string; dueDate: string | null },
+) {
+  const { count } = await db.task.updateMany({
+    where: { id: taskId, userId },
+    data: {
+      title: input.title,
+      dueDate: input.dueDate ? toDbDate(input.dueDate) : null,
+    },
+  });
+  return count > 0;
+}
+
 export async function deleteTask(userId: string, taskId: string) {
   await db.task.deleteMany({ where: { id: taskId, userId } });
 }

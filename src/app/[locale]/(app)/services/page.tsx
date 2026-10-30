@@ -15,14 +15,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Mon développement : plans personnalisés par Get iT AI, puis le suivi par
 // des professionnels (à venir)
-export default function DevelopmentPage() {
+export default function DevelopmentPage({
+  searchParams,
+}: PageProps<"/[locale]/services">) {
   const t = useTranslations("App.services");
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <PageHeader title={t("title")} description={t("question")} />
       <Suspense fallback={<DevelopmentHubSkeleton />}>
-        <DevelopmentHub />
+        {/* Jour à montrer (retour d'un événement ajouté), connu à la requête */}
+        {searchParams.then(({ day }) => (
+          <DevelopmentHub day={typeof day === "string" ? day : undefined} />
+        ))}
       </Suspense>
     </div>
   );

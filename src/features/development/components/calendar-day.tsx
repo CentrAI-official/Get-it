@@ -1,9 +1,28 @@
 "use client";
 
-import { Check, ChevronDown, Clock, Flag } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useState } from "react";
+import {
+  Check,
+  ChevronDown,
+  Clock,
+  Flag,
+  Pencil,
+  Repeat,
+  Trash2,
+} from "lucide-react";
+import { useFormatter, useTranslations } from "next-intl";
+import { useState, useTransition } from "react";
+import {
+  SwipeAction,
+  SwipeRow,
+  swipeActionClass,
+} from "@/components/swipe-row";
 import { Button } from "@/components/ui/button";
+import { deleteEventAction } from "@/features/events/actions";
+import { eventSpan, type CalendarEvent } from "@/features/events/rules";
+import { deleteTaskAction } from "@/features/tasks/actions";
+import { TaskEditDialog } from "@/features/tasks/components/task-edit-dialog";
+import { Link } from "@/i18n/navigation";
+import { addDays, clockDate, toDbDate } from "@/lib/dates";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +32,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DAY_MOMENTS, momentIcons, type DayMoment } from "@/config/moments";
 import { cn } from "@/lib/utils";
-import type { MomentChange, TimelineGroup, TimelineItem } from "../calendar";
+import type {
+  CalendarTask,
+  MomentChange,
+  TimelineGroup,
+  TimelineItem,
+} from "../calendar";
 import { colorsOf } from "../colors";
 import type { DevelopmentKind } from "../questionnaires";
 
@@ -28,6 +52,8 @@ export function kindOfItem(item: TimelineItem): DevelopmentKind | null {
       return item.task.planKind;
     case "goal":
       return item.goal.planKind;
+    case "event":
+      return null;
   }
 }
 
@@ -35,23 +61,62 @@ export function kindOfItem(item: TimelineItem): DevelopmentKind | null {
 type ItemState = { done: boolean; editable: boolean; hint: string | null };
 
 type CalendarDayProps = {
+  /** Le jour affiché, « AAAA-MM-JJ ». */
+  day: string;
   groups: TimelineGroup[];
   /** Tout le calendrier (accueil) : le nom du plan est rappelé sur chaque élément. */
   showPlan: boolean;
   stateOf: (item: TimelineItem) => ItemState | null;
   onToggle: (item: TimelineItem, done: boolean) => void;
   onMoment: (change: MomentChange, key: string) => void;
+  /** Un événement ou une tâche a été modifié ou supprimé : le mois se recharge. */
+  onChanged: () => void;
 };
 
-/** Le jour choisi : matin, midi, soir, puis ce qui se fait dans la journée. */
+/**
+ * Le jour choisi : matin, midi, soir, puis ce qui se fait dans la journée. Un
+ * événement ou une tâche se glisse vers la droite pour le modifier ou le supprimer.
+ */
 export function CalendarDay({
+  day,
   groups,
   showPlan,
   stateOf,
   onToggle,
   onMoment,
+  onChanged,
 }: CalendarDayProps) {
   const t = useTranslations("Development.calendar");
+  // Retirés tout de suite, en attendant la réponse du serveur
+  const [removed, setRemoved] = useState<string[]>([]);
+  const [editing, setEditing] = useState<CalendarTask | null>(null);
+  const [, startTransition] = useTransition();
+
+  function remove(item: TimelineItem) {
+    setRemoved((current) => [...current, item.key]);
+    startTransition(async () => {
+      if (item.type === "event") {
+        const deleted = await deleteEventAction(item.event.id);
+        if (!deleted) {
+          setRemoved((current) => current.filter((key) => key !== item.key));
+        }
+      } else if (item.type === "task") {
+        await deleteTaskAction(item.task.id);
+      }
+      onChanged();
+    });
+  }
+
+  const deleteButton = (item: TimelineItem, title: string) => (
+    <SwipeAction
+      tone="danger"
+      aria-label={t("deleteLabel", { title })}
+      onClick={() => remove(item)}
+    >
+      <Trash2 aria-hidden="true" />
+      {t("delete")}
+    </SwipeAction>
+  );
 
   return (
     <div className="flex flex-col gap-3">
@@ -69,27 +134,150 @@ export function CalendarDay({
               </span>
             </h5>
             <ul className="flex flex-col gap-1.5">
-              {group.items.map((item) => (
-                <DayItem
-                  key={item.key}
-                  item={item}
-                  moment={group.moment}
-                  showPlan={showPlan}
-                  state={stateOf(item)}
-                  onToggle={onToggle}
-                  onMoment={onMoment}
-                />
-              ))}
+              {group.items
+                .filter((item) => !removed.includes(item.key))
+                .map((item) => {
+                  if (item.type === "event") {
+                    return (
+                      <li key={item.key}>
+                        <SwipeRow
+                          actions={
+                            <>
+                              <Link
+                                href={`/services/events/${item.event.id}`}
+                                aria-label={t("editLabel", {
+                                  title: item.event.title,
+                                })}
+                                className={swipeActionClass}
+                              >
+                                <Pencil aria-hidden="true" />
+                                {t("edit")}
+                              </Link>
+                              {deleteButton(item, item.event.title)}
+                            </>
+                          }
+                        >
+                          <EventItem event={item.event} day={day} />
+                        </SwipeRow>
+                      </li>
+                    );
+                  }
+                  const row = (
+                    <DayItem
+                      item={item}
+                      moment={group.moment}
+                      showPlan={showPlan}
+                      state={stateOf(item)}
+                      onToggle={onToggle}
+                      onMoment={onMoment}
+                    />
+                  );
+                  return (
+                    <li key={item.key}>
+                      {item.type === "task" ? (
+                        <SwipeRow
+                          actions={
+                            <>
+                              <SwipeAction
+                                aria-label={t("editLabel", {
+                                  title: item.task.title,
+                                })}
+                                onClick={() => setEditing(item.task)}
+                              >
+                                <Pencil aria-hidden="true" />
+                                {t("edit")}
+                              </SwipeAction>
+                              {deleteButton(item, item.task.title)}
+                            </>
+                          }
+                        >
+                          {row}
+                        </SwipeRow>
+                      ) : (
+                        row
+                      )}
+                    </li>
+                  );
+                })}
             </ul>
           </section>
         );
       })}
+
+      {editing ? (
+        <TaskEditDialog
+          task={editing}
+          open
+          onOpenChange={(open) => {
+            if (!open) setEditing(null);
+          }}
+          onSaved={() => {
+            setEditing(null);
+            onChanged();
+          }}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+/** Un événement du calendrier personnel, avec son heure en grand. */
+function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
+  const t = useTranslations("Development.calendar");
+  const tEvents = useTranslations("Events");
+  const format = useFormatter();
+  const time = (minute: number) =>
+    format.dateTime(clockDate(minute), {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: "UTC",
+    });
+  const span = eventSpan(event);
+  const meta = [
+    t("event"),
+    event.location,
+    event.repeat === "none" ? null : tEvents(`repeatShort.${event.repeat}`),
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <div className="flex min-h-14 items-center gap-3 rounded-2xl bg-foreground/5 py-2 pr-3 pl-3.5">
+      <span className="flex w-[4.75rem] shrink-0 flex-col">
+        <span className="font-display text-[1.6rem] leading-none whitespace-nowrap text-primary">
+          {time(event.startMinute)}
+        </span>
+        <span className="mt-1 text-[11px] whitespace-nowrap text-muted-foreground">
+          {span > 0
+            ? t("untilDay", {
+                date: format.dateTime(toDbDate(addDays(day, span)), {
+                  day: "numeric",
+                  month: "short",
+                  timeZone: "UTC",
+                }),
+              })
+            : t("until", { time: time(event.endMinute) })}
+        </span>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">
+        <span className="font-semibold break-words">{event.title}</span>
+        <span className="text-xs break-words text-muted-foreground">
+          {meta}
+        </span>
+      </span>
+      {event.repeat === "none" ? null : (
+        <Repeat
+          aria-hidden="true"
+          className="size-4 shrink-0 text-muted-foreground"
+        />
+      )}
     </div>
   );
 }
 
 type DayItemProps = {
-  item: TimelineItem;
+  /** Séance, habitude, tâche ou objectif (les événements ont leur propre ligne). */
+  item: Exclude<TimelineItem, { type: "event" }>;
   moment: DayMoment | null;
   showPlan: boolean;
   state: ItemState | null;
@@ -147,7 +335,7 @@ function DayItem({
           : null;
 
   return (
-    <li
+    <div
       className={cn(
         "flex flex-col rounded-2xl py-1.5 pr-1.5 pl-3.5 transition-colors",
         colors.tint,
@@ -267,6 +455,6 @@ function DayItem({
           ))}
         </ul>
       ) : null}
-    </li>
+    </div>
   );
 }

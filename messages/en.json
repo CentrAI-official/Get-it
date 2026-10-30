@@ -1344,7 +1344,8 @@
       "pactLimit": "You’ve proposed enough pacts for today.",
       "habitRequired": "Choose the habit to link to the pact.",
       "titleRequired": "Give the challenge a name.",
-      "titleTooLong": "The challenge name is too long (60 characters max)."
+      "titleTooLong": "The challenge name is too long (60 characters max).",
+      "futureTime": "Pick a time that has already passed: your part can’t be done later than now."
     },
     "pacts": {
       "propose": "Propose a pact",
@@ -1433,6 +1434,27 @@
         "quitDescription": "{name} will only see “The pact has ended”. Your streak in your habit stays intact.",
         "keep": "Keep the pact",
         "quitConfirm": "Leave"
+      },
+      "carousel": {
+        "label": "Current pact",
+        "dayWord": "Day",
+        "dayLabel": "Day {day, number} of {days, number}",
+        "startsTomorrow": "Starts tomorrow",
+        "with": "with {name}",
+        "open": "{title}, with {name}: open the chat",
+        "goTo": "Show pact {n, number} of {total, number}",
+        "bothDone": "You both did it!"
+      },
+      "part": {
+        "title": "I did my part",
+        "description": "{title}, pact with {name}",
+        "question": "At what time?",
+        "today": "Today",
+        "nowAt": "now, {time}",
+        "earlier": "−15 min",
+        "later": "+15 min",
+        "now": "Now",
+        "confirm": "Done at {time}"
       }
     },
     "groupChat": {
@@ -1876,7 +1898,23 @@
       "uncheck": "Undo: {title}",
       "plansLabel": "My plans",
       "planWeek": "{week, number}/{weeks, number}",
-      "planWeekLabel": "{title}, week {week, number} of {weeks, number}"
+      "planWeekLabel": "{title}, week {week, number} of {weeks, number}",
+      "addEvent": "Add an event",
+      "event": "Event",
+      "until": "until {time}",
+      "untilDay": "until {date}",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editLabel": "Edit: {title}",
+      "deleteLabel": "Delete: {title}",
+      "taskEdit": {
+        "title": "Edit task",
+        "description": "Change its name or due date.",
+        "name": "Title",
+        "due": "Due date",
+        "save": "Save",
+        "cancel": "Cancel"
+      }
     },
     "hub": {
       "plansTitle": "Your personalized plans",
@@ -2331,6 +2369,54 @@
           "hint": "E.g. Montréal, Québec."
         }
       }
+    }
+  },
+  "Events": {
+    "newTitle": "New event",
+    "editTitle": "Edit event",
+    "back": "My calendar",
+    "title": "Title",
+    "titlePlaceholder": "Work, dinner, meal prep…",
+    "location": "Place",
+    "locationPlaceholder": "Add a place",
+    "start": "Starts",
+    "end": "Ends",
+    "startDate": "Start date",
+    "startTime": "Start time",
+    "endDate": "End date",
+    "endTime": "End time",
+    "repeat": "Repeat",
+    "repeats": {
+      "none": "Never",
+      "daily": "Every day",
+      "every_two_days": "Every 2 days",
+      "weekdays": "Weekdays",
+      "weekends": "Weekends",
+      "weekly": "Every week",
+      "monthly": "Every month"
+    },
+    "repeatShort": {
+      "none": "once",
+      "daily": "every day",
+      "every_two_days": "every 2 days",
+      "weekdays": "weekdays",
+      "weekends": "weekends",
+      "weekly": "every week",
+      "monthly": "every month"
+    },
+    "add": "Add event",
+    "save": "Save",
+    "delete": "Delete event",
+    "errors": {
+      "titleRequired": "Give the event a title.",
+      "titleTooLong": "The title is too long (120 characters at most).",
+      "locationTooLong": "The place is too long (120 characters at most).",
+      "dateInvalid": "Pick a valid date and time.",
+      "endBeforeStart": "The end must come after the start.",
+      "tooLong": "An event lasts 14 days at most.",
+      "eventLimit": "You’ve reached 500 events. Delete one to add another.",
+      "notFound": "This event no longer exists.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   },
   "NotFound": {

@@ -1,5 +1,6 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { z } from "zod";
 import {
   postMediaSchema,
@@ -12,6 +13,7 @@ import { listShareableProgress } from "@/server/community/posts";
 import { countContactRequests } from "@/server/contacts/service";
 import {
   cancelPact,
+  completePactPart,
   listPactHabits,
   proposePact,
   respondToPact,
@@ -60,6 +62,7 @@ import {
   PACT_ERRORS,
   pactProposalSchema,
   pactResponseSchema,
+  partMinuteSchema,
   type PactError,
 } from "./pacts";
 
@@ -343,6 +346,25 @@ export async function respondPactAction(
       : await respondToPact(user.id, id.data, parsed.data);
   } catch (error) {
     console.error("Réponse au pacte impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** Faire ma part d'un pacte aujourd'hui, à l'heure choisie (jamais plus tard que maintenant). */
+export async function completePactPartAction(
+  pactId: unknown,
+  minute: unknown,
+): Promise<PactResult> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(pactId);
+  const parsed = partMinuteSchema.safeParse(minute);
+  if (!id.success || !parsed.success) return { ok: false, error: "notFound" };
+  try {
+    const result = await completePactPart(user.id, id.data, parsed.data);
+    if (result.ok) refresh();
+    return result;
+  } catch (error) {
+    console.error("Part du pacte impossible", error);
     return { ok: false, error: "unexpected" };
   }
 }

@@ -99,6 +99,7 @@ src/i18n/                 configuration des langues
 - [x] 9f2c. Renseignements du compte (date de naissance, sexe, région), Ranked avec taille, poids et IMC, Gear « bientôt »
 - [x] 9f2d. Mode clair et sombre (au choix dans Réglages, gardé dans le compte), typographie Inter et Anton
 - [x] 9f2e. Stories (24 h, contacts), groupes privés dans la Messagerie, pactes de groupe, plan d'objectif en conversation, classement Ranked, notifications (app et téléphone)
+- [x] 9f2f. Maquette officielle : mode sombre bleu foncé (orange seulement pour les détails), stories en carrés arrondis, pactes à faire glisser en haut de la Messagerie avec l’heure de chaque part, calendrier personnel (événements répétés) et lignes à glisser pour modifier ou supprimer
 - [ ] 9f3. Pactes à plusieurs
 - [ ] 9f. Événements (proposés par les membres, approuvés par Get iT)
 - [x] 9g1. Marketplace (lot 1) : comptes affiliés, catalogue Services et Gear, filtres, formulaire de vente, approbation par l’équipe Get iT

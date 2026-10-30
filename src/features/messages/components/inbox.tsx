@@ -11,10 +11,12 @@ import type { GroupTopic } from "@/features/groups/rules";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import type { InboxPact } from "@/server/messages/pacts";
 import type { InboxItem } from "@/server/messages/service";
 import { listInboxAction } from "../actions";
 import { INBOX_POLL_MS } from "../rules";
 import { setUnreadCount } from "../unread-store";
+import { PactCarousel } from "./pact-carousel";
 
 /** Groupe privé dont je suis membre ou à qui je suis invité. */
 export type PrivateGroupItem = {
@@ -31,12 +33,28 @@ type InboxProps = {
   loadedAt: number;
   groups: PrivateGroupItem[];
   invitations: PrivateGroupItem[];
+  /** Pactes à deux en cours, en haut de la Messagerie. */
+  pacts: InboxPact[];
+  /** Minute actuelle dans mon fuseau, au chargement. */
+  nowMinute: number;
+  timeZone: string;
 };
 
 const TABS = ["chats", "requests", "groups"] as const;
 
-/** Boîte de réception : discussions, demandes et groupes privés, rafraîchis régulièrement. */
-export function Inbox({ initial, loadedAt, groups, invitations }: InboxProps) {
+/**
+ * Boîte de réception : les pactes en cours (on les fait glisser), puis les
+ * discussions, demandes et groupes privés, rafraîchis régulièrement.
+ */
+export function Inbox({
+  initial,
+  loadedAt,
+  groups,
+  invitations,
+  pacts,
+  nowMinute,
+  timeZone,
+}: InboxProps) {
   const t = useTranslations("Messages.inbox");
   const [items, setItems] = useState(initial);
   const [now, setNow] = useState(loadedAt);
@@ -83,6 +101,7 @@ export function Inbox({ initial, loadedAt, groups, invitations }: InboxProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      <PactCarousel pacts={pacts} nowMinute={nowMinute} timeZone={timeZone} />
       <div role="tablist" aria-label={t("tabsLabel")} className="flex gap-2">
         {TABS.map((value) => (
           <button

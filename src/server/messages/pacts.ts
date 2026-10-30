@@ -13,9 +13,18 @@ import {
   type PactRule,
 } from "@/features/messages/pacts";
 import { Prisma } from "@/generated/prisma/client";
-import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
+import {
+  addDays,
+  fromDbDate,
+  minuteOfDay,
+  toCalendarDay,
+  toDbDate,
+} from "@/lib/dates";
+import { getBlockedIds } from "@/server/community/members";
 import { db } from "@/server/db";
+import { setHabitDay } from "@/server/habits/service";
 import { notify } from "@/server/notifications/service";
+import { avatarUrls } from "@/server/profile/avatar";
 import { canWrite, loadMembership } from "./service";
 
 // Pactes : défi à deux dans une conversation. Chaque fonction reçoit l'userId
@@ -47,8 +56,8 @@ export type PactBanner = PactCard & {
   streak: number;
   meToday: boolean;
   themToday: boolean;
-  /** Heure à laquelle l'autre a fait sa part aujourd'hui. */
-  themTodayAt: string | null;
+  /** Heure à laquelle l'autre a fait sa part aujourd'hui (minutes depuis minuit, son heure). */
+  themTodayMinute: number | null;
   /** L'habitude reliée a été supprimée : ses jours ne comptent plus. */
   myHabitMissing: boolean;
 };
@@ -77,15 +86,27 @@ async function timeZoneOf(userId: string) {
   return settings?.timeZone ?? "America/Toronto";
 }
 
+/** Une coche : son instant, et l'heure choisie s'il y en a une (minutes depuis minuit). */
+type Done = { at: Date; minute: number | null };
+
 /** Jours faits d'une habitude entre deux jours (avec l'heure de chaque coche). */
 async function doneDays(habitId: string | null, from: string, to: string) {
-  if (!habitId) return new Map<string, Date>();
+  if (!habitId) return new Map<string, Done>();
   const rows = await db.habitCompletion.findMany({
     where: { habitId, day: { gte: toDbDate(from), lte: toDbDate(to) } },
-    select: { day: true, createdAt: true },
+    select: { day: true, createdAt: true, doneMinute: true },
   });
-  return new Map(rows.map((row) => [fromDbDate(row.day), row.createdAt]));
+  return new Map(
+    rows.map((row) => [
+      fromDbDate(row.day),
+      { at: row.createdAt, minute: row.doneMinute },
+    ]),
+  );
 }
+
+/** Heure où la part a été faite (minutes depuis minuit, dans le fuseau de la personne). */
+const doneMinuteOf = (done: Done | undefined, timeZone: string) =>
+  done ? (done.minute ?? minuteOfDay(done.at, timeZone)) : null;
 
 /** Avancement d'un pacte commencé, vu par `viewerId`, jusqu'à `today`. */
 async function progressOf(pact: PactRow, viewerId: string, today: string) {
@@ -106,6 +127,7 @@ async function progressOf(pact: PactRow, viewerId: string, today: string) {
       mine: new Set(mine.keys()),
       theirs: new Set(theirs.keys()),
     }),
+    mine,
     theirs,
     myHabitMissing: !me?.habitId,
   };
@@ -215,6 +237,23 @@ export async function getOpenPact(
   ]);
   if (!pact) return { pact: null, count };
   const timeZone = await timeZoneOf(viewerId);
+  const partner = pact.members.find((member) => member.userId !== viewerId);
+  const banner = await bannerOf(
+    pact,
+    viewerId,
+    timeZone,
+    partner ? await timeZoneOf(partner.userId) : timeZone,
+  );
+  return { count, pact: banner.pact };
+}
+
+/** Le bandeau d'un pacte, vu par `viewerId`, et l'heure où chacun a fait sa part. */
+async function bannerOf(
+  pact: PactRow,
+  viewerId: string,
+  timeZone: string,
+  partnerTimeZone: string,
+) {
   const today = toCalendarDay(new Date(), timeZone);
   const data = await progressOf(pact, viewerId, today);
   const base = toCard(pact, viewerId, {
@@ -223,7 +262,6 @@ export async function getOpenPact(
     theirs: data?.progress.theirsCount ?? 0,
   });
   return {
-    count,
     pact: {
       ...base,
       dayIndex: data?.progress.dayIndex ?? 0,
@@ -231,10 +269,126 @@ export async function getOpenPact(
       streak: data?.progress.streak ?? 0,
       meToday: data?.progress.meToday ?? false,
       themToday: data?.progress.themToday ?? false,
-      themTodayAt: data?.theirs.get(today)?.toISOString() ?? null,
+      themTodayMinute: doneMinuteOf(data?.theirs.get(today), partnerTimeZone),
       myHabitMissing: data?.myHabitMissing ?? false,
-    },
+    } satisfies PactBanner,
+    myTodayMinute: doneMinuteOf(data?.mine.get(today), timeZone),
   };
+}
+
+export type InboxPact = PactBanner & {
+  conversationId: string;
+  partner: { name: string; avatarUrl: string | null };
+  /** Heure où j'ai fait ma part aujourd'hui (minutes depuis minuit) ; null : pas encore. */
+  myTodayMinute: number | null;
+};
+
+/**
+ * Pactes à deux en cours, en haut de la Messagerie (on les fait glisser) :
+ * ceux qui ne sont pas finis, sans les personnes bloquées.
+ */
+export async function listActivePacts(viewerId: string): Promise<InboxPact[]> {
+  const timeZone = await timeZoneOf(viewerId);
+  const today = toCalendarDay(new Date(), timeZone);
+  const blocked = await getBlockedIds(viewerId);
+  const rows = await db.pact.findMany({
+    where: {
+      status: "active",
+      endsOn: { gte: toDbDate(today) },
+      members: { some: { userId: viewerId } },
+      conversation: { groupId: null },
+    },
+    orderBy: [{ startsOn: "asc" }, { createdAt: "asc" }],
+    take: 10,
+    select: {
+      ...pactSelect,
+      conversationId: true,
+      members: {
+        select: {
+          userId: true,
+          habitId: true,
+          profile: {
+            select: {
+              displayName: true,
+              username: true,
+              avatarPath: true,
+              settings: { select: { timeZone: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  const pacts = rows.filter((row) =>
+    row.members.every((member) => !blocked.includes(member.userId)),
+  );
+  const photos = await avatarUrls(
+    pacts.flatMap((row) =>
+      row.members.map((member) => member.profile.avatarPath),
+    ),
+  );
+  return Promise.all(
+    pacts.map(async (row) => {
+      const partner = row.members.find((member) => member.userId !== viewerId);
+      const banner = await bannerOf(
+        row,
+        viewerId,
+        timeZone,
+        partner?.profile.settings?.timeZone ?? "America/Toronto",
+      );
+      return {
+        ...banner.pact,
+        conversationId: row.conversationId,
+        partner: {
+          name: partner?.profile.displayName ?? partner?.profile.username ?? "",
+          avatarUrl: partner?.profile.avatarPath
+            ? (photos.get(partner.profile.avatarPath) ?? null)
+            : null,
+        },
+        myTodayMinute: banner.myTodayMinute,
+      };
+    }),
+  );
+}
+
+/**
+ * Fait ma part d'un pacte aujourd'hui, à l'heure choisie (minutes depuis
+ * minuit, dans mon fuseau, jamais dans le futur) : coche l'habitude reliée.
+ */
+export async function completePactPart(
+  viewerId: string,
+  pactId: string,
+  minute: number,
+): Promise<{ ok: true } | Fail> {
+  const timeZone = await timeZoneOf(viewerId);
+  const now = new Date();
+  const today = toCalendarDay(now, timeZone);
+  // Une minute de marge : l'heure de l'appareil peut avancer un peu
+  if (minute > minuteOfDay(now, timeZone) + 1) {
+    return { ok: false, error: "futureTime" };
+  }
+  const member = await db.pactMember.findFirst({
+    where: {
+      pactId,
+      userId: viewerId,
+      pact: {
+        status: "active",
+        startsOn: { lte: toDbDate(today) },
+        endsOn: { gte: toDbDate(today) },
+      },
+    },
+    select: { habitId: true },
+  });
+  if (!member) return { ok: false, error: "notFound" };
+  if (!member.habitId) return { ok: false, error: "habitRequired" };
+  const done = await setHabitDay(viewerId, {
+    habitId: member.habitId,
+    day: today,
+    done: true,
+    timeZone,
+    doneMinute: minute,
+  });
+  return done ? { ok: true } : { ok: false, error: "habitRequired" };
 }
 
 /** Habitudes actives qu'on peut relier à un pacte. */

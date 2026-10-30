@@ -1,12 +1,13 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, LoaderCircle } from "lucide-react";
+import { ChevronLeft, ChevronRight, LoaderCircle, Plus } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useOptimistic, useState, useTransition } from "react";
 import type { DayMoment } from "@/config/moments";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
 import { setHabitDayAction } from "@/features/habits/actions";
 import { setTaskDoneAction } from "@/features/tasks/actions";
+import { Link } from "@/i18n/navigation";
 import { addDays, daysBetween, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { loadCalendarAction, setMomentAction } from "../actions";
@@ -30,6 +31,8 @@ type CalendarViewProps = {
   /** Mois en cours, préparé par le serveur (rafraîchi après chaque coche). */
   initial: CalendarData;
   scope: DevelopmentKind | "all";
+  /** Jour choisi à l'ouverture (retour d'un événement ajouté) ; aujourd'hui sinon. */
+  initialDay?: string;
 };
 
 type View = "week" | "month";
@@ -39,14 +42,22 @@ const asDate = (day: string) => toDbDate(day);
 /**
  * Calendrier de « Mon développement ». Vue « Semaine » par défaut : la bande
  * des 7 jours, puis le jour choisi en matin, midi et soir. Vue « Mois » : la
- * grille du mois, avec un point les jours de séance, de tâche ou d'objectif.
+ * grille du mois, avec un point les jours de séance, de tâche, d'objectif ou
+ * d'événement. Le calendrier principal sert aussi de calendrier personnel
+ * (« Ajouter un événement »).
  */
-export function CalendarView({ initial, scope }: CalendarViewProps) {
+export function CalendarView({
+  initial,
+  scope,
+  initialDay,
+}: CalendarViewProps) {
   const t = useTranslations("Development.calendar");
   const format = useFormatter();
   const today = initial.today;
   const [view, setView] = useState<View>("week");
-  const [selected, setSelected] = useState(today);
+  const [selected, setSelected] = useState(
+    initialDay && monthOf(initialDay) === initial.month ? initialDay : today,
+  );
   const [cache, setCache] = useState<Record<string, CalendarData>>({});
   const [loading, setLoading] = useState(false);
   // Coches et moments affichés tout de suite, en attendant le serveur
@@ -224,7 +235,7 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
         >
           {title}
         </h3>
-        <div className="flex items-center gap-1">
+        <div className="-mr-2 flex items-center gap-1">
           {loading ? (
             <LoaderCircle
               aria-label={t("loading")}
@@ -240,34 +251,6 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
               {t("today")}
             </button>
           )}
-        </div>
-      </div>
-
-      <div className="-mt-2 flex items-center justify-between gap-2">
-        <div
-          role="radiogroup"
-          aria-label={t("viewLabel")}
-          className="flex gap-0.5 rounded-full bg-foreground/5 p-1"
-        >
-          {(["week", "month"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              role="radio"
-              aria-checked={view === value}
-              onClick={() => changeView(value)}
-              className={cn(
-                "h-8 rounded-full px-3 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                view === value
-                  ? "bg-foreground/12 text-foreground"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {t(value)}
-            </button>
-          ))}
-        </div>
-        <div className="-mr-2 flex items-center">
           {(
             [
               [
@@ -293,6 +276,45 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="-mt-2 flex flex-wrap items-center gap-2">
+        <div
+          role="radiogroup"
+          aria-label={t("viewLabel")}
+          className="flex gap-0.5 rounded-full bg-foreground/5 p-1"
+        >
+          {(["week", "month"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={view === value}
+              onClick={() => changeView(value)}
+              className={cn(
+                "h-9 rounded-full px-3.5 text-sm font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                view === value
+                  ? "bg-foreground/12 text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(value)}
+            </button>
+          ))}
+        </div>
+        {scope === "all" ? (
+          // Calendrier personnel : un événement sur le jour choisi
+          <Link
+            href={{
+              pathname: "/services/events/new",
+              query: { day: selected },
+            }}
+            className="flex h-11 items-center gap-1.5 rounded-full bg-primary pr-4 pl-3 text-sm font-bold whitespace-nowrap text-primary-foreground transition-colors outline-none hover:bg-primary/90 focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Plus aria-hidden="true" className="size-4" strokeWidth={2.6} />
+            {t("addEvent")}
+          </Link>
+        ) : null}
       </div>
 
       {view === "week" ? (
@@ -389,11 +411,14 @@ export function CalendarView({ initial, scope }: CalendarViewProps) {
           <p className="text-sm text-muted-foreground">{t("empty")}</p>
         ) : (
           <CalendarDay
+            key={selected}
+            day={selected}
             groups={groups}
             showPlan={scope === "all"}
             stateOf={(item) => stateOf(item, selected)}
             onToggle={(item, done) => toggle(item, done, selected)}
             onMoment={changeMoment}
+            onChanged={() => void reload(monthOf(selected))}
           />
         )}
       </section>

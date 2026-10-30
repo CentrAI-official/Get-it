@@ -177,7 +177,14 @@ export async function deleteHabit(userId: string, habitId: string) {
  */
 export async function setHabitDay(
   userId: string,
-  input: { habitId: string; day: string; done: boolean; timeZone: string },
+  input: {
+    habitId: string;
+    day: string;
+    done: boolean;
+    timeZone: string;
+    /** Heure choisie (minutes depuis minuit), en faisant sa part d'un pacte. */
+    doneMinute?: number;
+  },
 ) {
   const habit = await db.habit.findFirst({
     where: { id: input.habitId, userId, archivedAt: null },
@@ -195,10 +202,18 @@ export async function setHabitDay(
   const day = toDbDate(input.day);
   if (input.done) {
     await db.$transaction(async (tx) => {
+      // Déjà fait : seule l'heure choisie change (l'XP reste celle du jour)
       const completion = await tx.habitCompletion.upsert({
         where: { habitId_day: { habitId: input.habitId, day } },
-        update: {},
-        create: { habitId: input.habitId, day },
+        update:
+          input.doneMinute === undefined
+            ? {}
+            : { doneMinute: input.doneMinute },
+        create: {
+          habitId: input.habitId,
+          day,
+          doneMinute: input.doneMinute ?? null,
+        },
         select: { id: true },
       });
       await awardHabitDay(tx, completion.id, {

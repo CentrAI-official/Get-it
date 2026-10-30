@@ -8,7 +8,7 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 export const THEME_COOKIE = "theme";
 
 /** Couleur de la barre du navigateur sur téléphone : le fond de chaque thème. */
-export const THEME_COLORS = { light: "#f2efe8", dark: "#0b0b0d" } as const;
+export const THEME_COLORS = { light: "#f2efe8", dark: "#0e1220" } as const;
 
 export function isThemePreference(value: unknown): value is ThemePreference {
   return THEME_PREFERENCES.some((theme) => theme === value);

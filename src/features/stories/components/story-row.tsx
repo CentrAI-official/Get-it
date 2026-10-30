@@ -57,6 +57,10 @@ import { markStorySeen, useSeenStories } from "../seen-store";
 
 const BUBBLE =
   "flex w-[4.5rem] flex-col items-center gap-1.5 rounded-2xl py-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
+// Stories en carré arrondi (maquette « Bento », décision du fondateur, 2026-10-29)
+const RING = "flex size-16 rounded-[22px] p-[3px]";
+const INNER = "flex size-full rounded-[19px] bg-background p-[2px]";
+const FACE = "size-full rounded-[17px] text-lg";
 
 /** Une personne et l'une de ses stories, ouvertes dans la visionneuse. */
 type Opened = { ring: number; story: number };
@@ -122,7 +126,7 @@ export function StoryRow({
           >
             <span
               className={cn(
-                "flex size-16 rounded-full p-[3px]",
+                RING,
                 mine && hasUnseen(mine, seen)
                   ? "bg-primary"
                   : mine
@@ -130,12 +134,8 @@ export function StoryRow({
                     : "",
               )}
             >
-              <span className="flex size-full rounded-full bg-background p-[2px]">
-                <Avatar
-                  name={name}
-                  url={avatarUrl}
-                  className="size-full text-lg"
-                />
+              <span className={INNER}>
+                <Avatar name={name} url={avatarUrl} className={FACE} />
               </span>
             </span>
             <span className="max-w-full truncate text-xs font-semibold">
@@ -172,15 +172,16 @@ export function StoryRow({
               >
                 <span
                   className={cn(
-                    "flex size-16 rounded-full p-[3px] transition-colors duration-300",
+                    RING,
+                    "transition-colors duration-300",
                     unseen ? "bg-primary" : "bg-foreground/15",
                   )}
                 >
-                  <span className="flex size-full rounded-full bg-background p-[2px]">
+                  <span className={INNER}>
                     <Avatar
                       name={who}
                       url={ring.author.avatarUrl}
-                      className="size-full text-lg"
+                      className={FACE}
                     />
                   </span>
                 </span>
@@ -207,7 +208,7 @@ export function StoryRow({
               aria-label={t("addContactsLabel")}
               className={BUBBLE}
             >
-              <span className="flex size-16 items-center justify-center rounded-full border-2 border-dashed border-foreground/20 text-muted-foreground">
+              <span className="flex size-16 items-center justify-center rounded-[22px] border-2 border-dashed border-foreground/20 text-muted-foreground">
                 <UserPlus aria-hidden="true" className="size-6" />
               </span>
               <span className="max-w-full truncate text-xs text-muted-foreground">

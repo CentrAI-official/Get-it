@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { DAY_MOMENTS, type DayMoment } from "@/config/moments";
+import {
+  eventMoment,
+  occursOn,
+  type CalendarEvent,
+} from "@/features/events/rules";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
 import type { DevelopmentPlan } from "./plan";
@@ -58,6 +63,8 @@ export type CalendarData = {
   tasks: CalendarTask[];
   habits: CalendarHabit[];
   goals: CalendarGoal[];
+  /** Événements personnels (calendrier principal seulement). */
+  events: CalendarEvent[];
 };
 
 export const monthOf = (day: string): Month => day.slice(0, 7);
@@ -158,18 +165,22 @@ export function dayEntries(data: CalendarData, day: string) {
     habits: data.habits
       .filter((habit) => habitActive(habit, day))
       .map((habit) => ({ habit, done: habit.doneDays.includes(day) })),
+    events: data.events
+      .filter((event) => occursOn(event, day))
+      .sort((a, b) => a.startMinute - b.startMinute),
   };
 }
 
 /**
- * Jours marqués d'un point : une séance, une tâche ou un objectif. Les
- * habitudes n'en ont pas (elles reviennent presque chaque jour).
+ * Jours marqués d'un point : une séance, une tâche, un objectif ou un
+ * événement. Les habitudes n'en ont pas (elles reviennent presque chaque jour).
  */
 export function markedDays(data: CalendarData): Set<string> {
   const { first, last } = monthRange(data.month);
   const marked = new Set<string>();
   for (let day = first; day <= last; day = addDays(day, 1)) {
     if (data.plans.some((plan) => sessionOn(plan, day))) marked.add(day);
+    if (data.events.some((event) => occursOn(event, day))) marked.add(day);
   }
   for (const task of data.tasks) marked.add(task.dueDate);
   for (const goal of data.goals) marked.add(goal.targetDate);
@@ -206,7 +217,8 @@ export type TimelineItem =
   | { type: "session"; key: string; plan: CalendarPlan; session: Session }
   | { type: "habit"; key: string; habit: CalendarHabit; done: boolean }
   | { type: "task"; key: string; task: CalendarTask }
-  | { type: "goal"; key: string; goal: CalendarGoal };
+  | { type: "goal"; key: string; goal: CalendarGoal }
+  | { type: "event"; key: string; event: CalendarEvent };
 
 export type TimelineGroup = {
   /** Null : « dans la journée », sans moment choisi. */
@@ -224,18 +236,25 @@ const momentOfItem = (item: TimelineItem): DayMoment | null => {
       return item.task.moment;
     case "goal":
       return null;
+    case "event":
+      return eventMoment(item.event.startMinute);
   }
 };
 
 /**
  * Le jour en moments : matin, midi, soir, puis « dans la journée » pour ce qui
- * n'a pas de moment. Dans chaque moment : séances, habitudes, tâches, objectifs.
- * Les moments vides sont omis.
+ * n'a pas de moment. Dans chaque moment : les événements à leur heure, puis
+ * séances, habitudes, tâches et objectifs. Les moments vides sont omis.
  */
 export function dayTimeline(
   entries: ReturnType<typeof dayEntries>,
 ): TimelineGroup[] {
   const items: TimelineItem[] = [
+    ...entries.events.map((event): TimelineItem => ({
+      type: "event",
+      key: `event:${event.id}`,
+      event,
+    })),
     ...entries.sessions.map(({ plan, session }): TimelineItem => ({
       type: "session",
       key: `session:${plan.id}`,

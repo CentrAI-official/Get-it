@@ -1344,7 +1344,8 @@
       "pactLimit": "Tu as proposé assez de pactes pour aujourd’hui.",
       "habitRequired": "Choisis l’habitude à relier au pacte.",
       "titleRequired": "Donne un nom au défi.",
-      "titleTooLong": "Le nom du défi est trop long (60 caractères au plus)."
+      "titleTooLong": "Le nom du défi est trop long (60 caractères au plus).",
+      "futureTime": "Choisis une heure déjà passée : ta part ne peut pas être faite plus tard que maintenant."
     },
     "pacts": {
       "propose": "Proposer un pacte",
@@ -1433,6 +1434,27 @@
         "quitDescription": "{name} verra seulement « Le pacte est terminé ». Ta série dans ton habitude reste intacte.",
         "keep": "Continuer le pacte",
         "quitConfirm": "Quitter"
+      },
+      "carousel": {
+        "label": "Pacte en cours",
+        "dayWord": "Jour",
+        "dayLabel": "Jour {day, number} sur {days, number}",
+        "startsTomorrow": "Commence demain",
+        "with": "avec {name}",
+        "open": "{title}, avec {name} : ouvrir la discussion",
+        "goTo": "Voir le pacte {n, number} sur {total, number}",
+        "bothDone": "Tous les deux, c’est fait!"
+      },
+      "part": {
+        "title": "J’ai fait ma part",
+        "description": "{title}, pacte avec {name}",
+        "question": "À quelle heure?",
+        "today": "Aujourd’hui",
+        "nowAt": "maintenant, {time}",
+        "earlier": "−15 min",
+        "later": "+15 min",
+        "now": "Maintenant",
+        "confirm": "C’est fait à {time}"
       }
     },
     "groupChat": {
@@ -1876,7 +1898,23 @@
       "uncheck": "Annuler : {title}",
       "plansLabel": "Mes plans",
       "planWeek": "{week, number}/{weeks, number}",
-      "planWeekLabel": "{title}, semaine {week, number} sur {weeks, number}"
+      "planWeekLabel": "{title}, semaine {week, number} sur {weeks, number}",
+      "addEvent": "Ajouter un événement",
+      "event": "Événement",
+      "until": "à {time}",
+      "untilDay": "jusqu’au {date}",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "editLabel": "Modifier : {title}",
+      "deleteLabel": "Supprimer : {title}",
+      "taskEdit": {
+        "title": "Modifier la tâche",
+        "description": "Change son nom ou son échéance.",
+        "name": "Titre",
+        "due": "Échéance",
+        "save": "Enregistrer",
+        "cancel": "Annuler"
+      }
     },
     "hub": {
       "plansTitle": "Tes plans personnalisés",
@@ -2331,6 +2369,54 @@
           "hint": "Ex. Montréal, Québec."
         }
       }
+    }
+  },
+  "Events": {
+    "newTitle": "Nouvel événement",
+    "editTitle": "Modifier l’événement",
+    "back": "Mon calendrier",
+    "title": "Titre",
+    "titlePlaceholder": "Job, souper, cuisiner les lunchs…",
+    "location": "Lieu",
+    "locationPlaceholder": "Ajouter un lieu",
+    "start": "Début",
+    "end": "Fin",
+    "startDate": "Date de début",
+    "startTime": "Heure de début",
+    "endDate": "Date de fin",
+    "endTime": "Heure de fin",
+    "repeat": "Répétition",
+    "repeats": {
+      "none": "Jamais",
+      "daily": "Chaque jour",
+      "every_two_days": "Aux 2 jours",
+      "weekdays": "Jours de semaine",
+      "weekends": "Fins de semaine",
+      "weekly": "Chaque semaine",
+      "monthly": "Chaque mois"
+    },
+    "repeatShort": {
+      "none": "une fois",
+      "daily": "chaque jour",
+      "every_two_days": "aux 2 jours",
+      "weekdays": "jours de semaine",
+      "weekends": "fins de semaine",
+      "weekly": "chaque semaine",
+      "monthly": "chaque mois"
+    },
+    "add": "Ajouter l’événement",
+    "save": "Enregistrer",
+    "delete": "Supprimer l’événement",
+    "errors": {
+      "titleRequired": "Donne un titre à l’événement.",
+      "titleTooLong": "Le titre est trop long (120 caractères au plus).",
+      "locationTooLong": "Le lieu est trop long (120 caractères au plus).",
+      "dateInvalid": "Choisis une date et une heure valides.",
+      "endBeforeStart": "La fin doit venir après le début.",
+      "tooLong": "Un événement dure 14 jours au plus.",
+      "eventLimit": "Tu as atteint 500 événements. Supprimes-en un pour en ajouter un autre.",
+      "notFound": "Cet événement n’existe plus.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   },
   "NotFound": {

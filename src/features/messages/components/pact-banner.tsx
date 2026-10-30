@@ -3,10 +3,11 @@
 import { Check, ChevronRight, Flame, Handshake } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState } from "react";
-import { openDayPanel } from "@/features/today/day-panel-store";
+import { clockDate, minuteOfDay } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { PactBanner as PactBannerData } from "@/server/messages/pacts";
 import { PactDetailDialog } from "./pact-detail-dialog";
+import { PartTimeDialog } from "./part-time-dialog";
 
 type PactBannerProps = {
   pact: PactBannerData;
@@ -29,6 +30,8 @@ export function PactBanner({
   const t = useTranslations("Messages.pacts.banner");
   const format = useFormatter();
   const [detail, setDetail] = useState(false);
+  // « Faire ma part » : l'heure se choisit, jusqu'à maintenant
+  const [partFrom, setPartFrom] = useState<number | null>(null);
   const started = pact.dayIndex > 0;
   const bothDone = pact.meToday && pact.themToday;
 
@@ -129,13 +132,17 @@ export function PactBanner({
                 done={pact.themToday}
                 detail={
                   pact.themToday
-                    ? pact.themTodayAt
+                    ? pact.themTodayMinute !== null
                       ? t("doneAt", {
-                          time: format.dateTime(new Date(pact.themTodayAt), {
-                            hour: "numeric",
-                            minute: "2-digit",
-                            timeZone,
-                          }),
+                          // Son heure à elle, choisie ou celle de la coche
+                          time: format.dateTime(
+                            clockDate(pact.themTodayMinute),
+                            {
+                              hour: "numeric",
+                              minute: "2-digit",
+                              timeZone: "UTC",
+                            },
+                          ),
                         })
                       : t("done")
                     : t("notYet")
@@ -157,7 +164,7 @@ export function PactBanner({
             {!pact.meToday ? (
               <button
                 type="button"
-                onClick={() => openDayPanel()}
+                onClick={() => setPartFrom(minuteOfDay(new Date(), timeZone))}
                 className="h-9 rounded-full bg-primary px-3.5 text-[0.8rem] font-bold text-primary-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
                 {t("doMyPart")}
@@ -186,6 +193,18 @@ export function PactBanner({
         onEncourage={onEncourage}
         onChanged={onChanged}
       />
+      {partFrom === null ? null : (
+        <PartTimeDialog
+          pactId={pact.id}
+          title={pact.title}
+          name={name}
+          nowMinute={partFrom}
+          onClose={() => {
+            setPartFrom(null);
+            onChanged();
+          }}
+        />
+      )}
     </section>
   );
 }

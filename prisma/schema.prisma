@@ -110,6 +110,7 @@ model Profile {
   goals                Goal[]
   tasks                Task[]
   habits               Habit[]
+  calendarEvents       CalendarEvent[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -310,16 +311,52 @@ model Habit {
 
 /// Jour où une habitude a été faite (jour du calendrier dans le fuseau de l'utilisateur).
 model HabitCompletion {
-  id        String   @id @default(uuid(7)) @db.Uuid
-  habitId   String   @map("habit_id") @db.Uuid
-  day       DateTime @db.Date
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  id         String   @id @default(uuid(7)) @db.Uuid
+  habitId    String   @map("habit_id") @db.Uuid
+  day        DateTime @db.Date
+  /// Heure choisie en faisant sa part d'un pacte (minutes depuis minuit, dans le
+  /// fuseau de la personne, 0 à 1439) ; null : l'heure de la coche (createdAt).
+  doneMinute Int?     @map("done_minute") @db.SmallInt
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   habit   Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
   xpEvent XpEvent?
 
   @@unique([habitId, day])
   @@map("habit_completions")
+}
+
+/// Répétition d'un événement du calendrier personnel (alignée sur EVENT_REPEATS).
+enum EventRepeat {
+  none
+  daily
+  every_two_days
+  weekdays
+  weekends
+  weekly
+  monthly
+}
+
+/// Événement du calendrier personnel (job, souper, cuisiner les lunchs…) : privé,
+/// sans XP. Jours et heures tels qu'affichés, dans le fuseau de la personne.
+model CalendarEvent {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  title       String
+  location    String?
+  startsOn    DateTime    @map("starts_on") @db.Date
+  /// Minutes depuis minuit (0 à 1439).
+  startMinute Int         @map("start_minute") @db.SmallInt
+  endsOn      DateTime    @map("ends_on") @db.Date
+  endMinute   Int         @map("end_minute") @db.SmallInt
+  repeat      EventRepeat @default(none)
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, startsOn])
+  @@map("calendar_events")
 }
 
 /// Check-in quotidien : comment l'utilisateur se sent, une fois par jour (§29).

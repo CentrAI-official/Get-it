@@ -43,6 +43,36 @@ export function lastDays(today: string, count: number): string[] {
   );
 }
 
+/** Minutes depuis minuit (0 à 1439) d'un instant, dans le fuseau de l'utilisateur. */
+export function minuteOfDay(date: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+  const read = (type: "hour" | "minute") =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+  return (read("hour") % 24) * 60 + read("minute");
+}
+
+/** Heure « HH:MM » d'un champ de formulaire → minutes depuis minuit ; null si invalide. */
+export function parseClock(value: string): number | null {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(value);
+  return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+}
+
+/** Minutes depuis minuit → « HH:MM » (valeur d'un champ de formulaire). */
+export function formatClock(minute: number): string {
+  const hours = String(Math.floor(minute / 60)).padStart(2, "0");
+  return `${hours}:${String(minute % 60).padStart(2, "0")}`;
+}
+
+/** Minutes depuis minuit → instant à formater avec timeZone: "UTC" (heure localisée). */
+export function clockDate(minute: number): Date {
+  return new Date(Date.UTC(2000, 0, 1, Math.floor(minute / 60), minute % 60));
+}
+
 /** Jours de `from` à `to` (négatif si `to` est avant). */
 export function daysBetween(from: string, to: string): number {
   return Math.round(

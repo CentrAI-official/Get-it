@@ -38,9 +38,13 @@ export const PACT_ERRORS = [
   "habitRequired",
   "titleRequired",
   "titleTooLong",
+  "futureTime",
 ] as const;
 
 export type PactError = (typeof PACT_ERRORS)[number];
+
+/** Heure choisie en faisant sa part : minutes depuis minuit, aujourd'hui. */
+export const partMinuteSchema = z.number().int().min(0).max(1439);
 
 export const pactResponseSchema = z.discriminatedUnion("accept", [
   z.object({ accept: z.literal(false) }),

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ContactsView } from "@/features/contacts/components/contacts-view";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { Link } from "@/i18n/navigation";
+import { minuteOfDay } from "@/lib/dates";
 import { getCommunityMember } from "@/server/community/members";
 import { listMyGroups } from "@/server/groups/service";
 import { countContactRequests, listContacts } from "@/server/contacts/service";
@@ -15,6 +16,7 @@ import {
   getGroupChat,
   listInbox,
 } from "@/server/messages/service";
+import { listActivePacts } from "@/server/messages/pacts";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ConversationView } from "./conversation-view";
 import { GroupChatView } from "./group-chat-view";
@@ -44,10 +46,11 @@ export async function MessagesHome() {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinFirst />;
-  const [inbox, contactRequests, groups, t] = await Promise.all([
+  const [inbox, contactRequests, groups, pacts, t] = await Promise.all([
     listInbox(profile.id),
     countContactRequests(profile.id),
     listMyGroups(profile.id),
+    listActivePacts(profile.id),
     getTranslations("Contacts"),
   ]);
   // Groupes privés : leur discussion est dans la Messagerie
@@ -86,6 +89,9 @@ export async function MessagesHome() {
         loadedAt={inbox.loadedAt}
         groups={privateOnly(groups.groups)}
         invitations={privateOnly(groups.invitations)}
+        pacts={pacts}
+        nowMinute={minuteOfDay(new Date(), profile.timeZone)}
+        timeZone={profile.timeZone}
       />
     </>
   );
