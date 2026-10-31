@@ -37,13 +37,17 @@ describe("notifications", () => {
   });
 
   it("la migration garde les mêmes types et active le RLS", () => {
-    const sql = readFileSync(
-      new URL(
-        "../../../prisma/migrations/20261101140000_notifications/migration.sql",
-        import.meta.url,
-      ),
-      "utf8",
-    );
+    const read = (name: string) =>
+      readFileSync(
+        new URL(
+          `../../../prisma/migrations/${name}/migration.sql`,
+          import.meta.url,
+        ),
+        "utf8",
+      );
+    // « story » s'ajoute dans sa propre migration (valeur d'enum à part)
+    const sql =
+      read("20261101140000_notifications") + read("20261106120000_story_kinds");
     for (const kind of NOTIFICATION_KINDS) expect(sql).toContain(`'${kind}'`);
     expect(sql).toContain(
       'ALTER TABLE "notifications" ENABLE ROW LEVEL SECURITY',

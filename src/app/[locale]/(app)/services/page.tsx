@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { PageHeader } from "@/components/layout/page-header";
 import {
   DevelopmentHub,
   DevelopmentHubSkeleton,
@@ -22,7 +21,8 @@ export default function DevelopmentPage({
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageHeader title={t("title")} description={t("question")} />
+      {/* Pas de titre visible : la page commence par « Mon calendrier » */}
+      <h1 className="sr-only">{t("title")}</h1>
       <Suspense fallback={<DevelopmentHubSkeleton />}>
         {/* Jour à montrer (retour d'un événement ajouté), connu à la requête */}
         {searchParams.then(({ day }) => (

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { DAY_MOMENTS, asDayMoment, type DayMoment } from "@/config/moments";
+import {
+  DAY_MOMENTS,
+  asDayMoment,
+  minuteOfDaySchema,
+  type DayMoment,
+} from "@/config/moments";
 import {
   GOAL_TITLE_MAX_LENGTH,
   ITEM_TITLE_MAX_LENGTH,
@@ -71,6 +76,8 @@ export type DevelopmentPlan = {
     weekday: number;
     /** Null : dans la journée (plans créés avant les moments, ou sans préférence). */
     moment: DayMoment | null;
+    /** Heure choisie par l'utilisateur (minutes depuis minuit) ; null : pas d'heure. */
+    time: number | null;
     title: string;
     items: { name: string; detail: string }[];
   }[];
@@ -136,6 +143,8 @@ export function normalizeDevelopmentPlan(
       .map((day) => ({
         weekday: day.weekday,
         moment: asDayMoment(day.moment),
+        // L'heure se choisit ensuite dans le calendrier
+        time: null,
         title: clean(day.title, 80),
         items: day.items
           .map((entry) => ({
@@ -228,6 +237,12 @@ const storedMoment = z
   .optional()
   .transform((moment) => moment ?? null);
 
+/** Heure enregistrée : absente des plans créés avant les heures. */
+const storedTime = minuteOfDaySchema
+  .nullable()
+  .optional()
+  .transform((time) => time ?? null);
+
 /** Plan relu depuis la base (déjà normalisé à l'enregistrement). */
 export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
   title: z.string(),
@@ -237,6 +252,7 @@ export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
     z.object({
       weekday: z.number().int(),
       moment: storedMoment,
+      time: storedTime,
       title: z.string(),
       items: z.array(z.object({ name: z.string(), detail: z.string() })),
     }),

@@ -192,6 +192,7 @@ export function GroupChatView({
       progress: null,
       pact: null,
       post: null,
+      story: null,
       media: previews,
       deleted: false,
       createdAt: new Date().toISOString(),

@@ -16,30 +16,32 @@ import {
   SwipeRow,
   swipeActionClass,
 } from "@/components/swipe-row";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { deleteEventAction } from "@/features/events/actions";
+import { momentIcons } from "@/config/moments";
 import { eventSpan, type CalendarEvent } from "@/features/events/rules";
-import { deleteTaskAction } from "@/features/tasks/actions";
-import { TaskEditDialog } from "@/features/tasks/components/task-edit-dialog";
 import { Link } from "@/i18n/navigation";
 import { addDays, clockDate, toDbDate } from "@/lib/dates";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { DAY_MOMENTS, momentIcons, type DayMoment } from "@/config/moments";
 import { cn } from "@/lib/utils";
-import type {
-  CalendarTask,
-  MomentChange,
-  TimelineGroup,
-  TimelineItem,
+import { removeCalendarItemAction } from "../actions";
+import {
+  timeOfItem,
+  type CalendarTarget,
+  type TimelineGroup,
+  type TimelineItem,
 } from "../calendar";
 import { colorsOf } from "../colors";
 import type { DevelopmentKind } from "../questionnaires";
+import { ItemEditDialog, type EditTarget } from "./item-edit-dialog";
 
 /** Plan d'origine d'un élément du jour (null : hors plan). */
 export function kindOfItem(item: TimelineItem): DevelopmentKind | null {
@@ -60,6 +62,63 @@ export function kindOfItem(item: TimelineItem): DevelopmentKind | null {
 /** Ce qu'il faut pour cocher un élément : état affiché et règle du jour. */
 type ItemState = { done: boolean; editable: boolean; hint: string | null };
 
+const titleOf = (item: TimelineItem) => {
+  switch (item.type) {
+    case "session":
+      return item.session.title;
+    case "habit":
+      return item.habit.title;
+    case "task":
+      return item.task.title;
+    case "goal":
+      return item.goal.title;
+    case "event":
+      return item.event.title;
+  }
+};
+
+/** L'élément visé par « Supprimer », tel que le serveur le revalide. */
+const targetOf = (item: TimelineItem): CalendarTarget => {
+  switch (item.type) {
+    case "session":
+      return {
+        type: "session",
+        kind: item.plan.kind,
+        weekday: item.session.weekday,
+      };
+    case "habit":
+      return { type: "habit", id: item.habit.id };
+    case "task":
+      return { type: "task", id: item.task.id };
+    case "goal":
+      return { type: "goal", id: item.goal.id };
+    case "event":
+      return { type: "event", id: item.event.id };
+  }
+};
+
+/** Ce que « Modifier » ouvre dans une fenêtre (les autres ont leur page). */
+const editOf = (item: TimelineItem): EditTarget | null => {
+  switch (item.type) {
+    case "session":
+      return { type: "session", plan: item.plan, session: item.session };
+    case "habit":
+      return { type: "habit", habit: item.habit };
+    case "task":
+      return { type: "task", task: item.task };
+    default:
+      return null;
+  }
+};
+
+/** Page de modification des éléments qui en ont une. */
+const editHref = (item: TimelineItem) =>
+  item.type === "event"
+    ? `/services/events/${item.event.id}`
+    : item.type === "goal"
+      ? `/goals/${item.goal.id}/edit`
+      : null;
+
 type CalendarDayProps = {
   /** Le jour affiché, « AAAA-MM-JJ ». */
   day: string;
@@ -68,14 +127,14 @@ type CalendarDayProps = {
   showPlan: boolean;
   stateOf: (item: TimelineItem) => ItemState | null;
   onToggle: (item: TimelineItem, done: boolean) => void;
-  onMoment: (change: MomentChange, key: string) => void;
-  /** Un événement ou une tâche a été modifié ou supprimé : le mois se recharge. */
+  /** Un élément a été modifié ou supprimé : le mois se recharge. */
   onChanged: () => void;
 };
 
 /**
- * Le jour choisi : matin, midi, soir, puis ce qui se fait dans la journée. Un
- * événement ou une tâche se glisse vers la droite pour le modifier ou le supprimer.
+ * Le jour choisi : matin, midi, soir, puis ce qui se fait dans la journée. Ce
+ * qui a une heure la montre en grand. Chaque élément se glisse vers la droite
+ * pour le modifier (son heure) ou le supprimer.
  */
 export function CalendarDay({
   day,
@@ -83,141 +142,201 @@ export function CalendarDay({
   showPlan,
   stateOf,
   onToggle,
-  onMoment,
   onChanged,
 }: CalendarDayProps) {
   const t = useTranslations("Development.calendar");
   // Retirés tout de suite, en attendant la réponse du serveur
   const [removed, setRemoved] = useState<string[]>([]);
-  const [editing, setEditing] = useState<CalendarTask | null>(null);
+  const [editing, setEditing] = useState<EditTarget | null>(null);
+  // Habitude, objectif ou séance : on confirme avant de supprimer
+  const [confirming, setConfirming] = useState<TimelineItem | null>(null);
   const [, startTransition] = useTransition();
 
   function remove(item: TimelineItem) {
     setRemoved((current) => [...current, item.key]);
     startTransition(async () => {
-      if (item.type === "event") {
-        const deleted = await deleteEventAction(item.event.id);
-        if (!deleted) {
-          setRemoved((current) => current.filter((key) => key !== item.key));
-        }
-      } else if (item.type === "task") {
-        await deleteTaskAction(item.task.id);
+      const deleted = await removeCalendarItemAction(targetOf(item));
+      if (!deleted) {
+        setRemoved((current) => current.filter((key) => key !== item.key));
       }
       onChanged();
     });
   }
 
-  const deleteButton = (item: TimelineItem, title: string) => (
-    <SwipeAction
-      tone="danger"
-      aria-label={t("deleteLabel", { title })}
-      onClick={() => remove(item)}
-    >
-      <Trash2 aria-hidden="true" />
-      {t("delete")}
-    </SwipeAction>
-  );
+  function askRemove(item: TimelineItem) {
+    if (item.type === "task" || item.type === "event") remove(item);
+    else setConfirming(item);
+  }
+
+  function actionsOf(item: TimelineItem) {
+    const title = titleOf(item);
+    const href = editHref(item);
+    const edit = editOf(item);
+    return (
+      <>
+        {href ? (
+          <Link
+            href={href}
+            aria-label={t("editLabel", { title })}
+            className={swipeActionClass}
+          >
+            <Pencil aria-hidden="true" />
+            {t("edit")}
+          </Link>
+        ) : (
+          <SwipeAction
+            aria-label={t("editLabel", { title })}
+            onClick={() => setEditing(edit)}
+          >
+            <Pencil aria-hidden="true" />
+            {t("edit")}
+          </SwipeAction>
+        )}
+        <SwipeAction
+          tone="danger"
+          aria-label={t("deleteLabel", { title })}
+          onClick={() => askRemove(item)}
+        >
+          <Trash2 aria-hidden="true" />
+          {t("delete")}
+        </SwipeAction>
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
       {groups.map((group) => {
         const Icon = group.moment ? momentIcons[group.moment] : Clock;
         return (
+          // Le moment au-dessus de ses lignes : elles gardent toute la largeur
           <section
             key={group.moment ?? "none"}
-            className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-2.5"
+            className="flex flex-col gap-1.5"
           >
-            <h5 className="flex items-start gap-1.5 pt-3.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+            <h5 className="flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
               <Icon aria-hidden="true" className="size-3.5 shrink-0" />
-              <span className="break-words">
-                {t(`moments.${group.moment ?? "none"}`)}
-              </span>
+              {t(`moments.${group.moment ?? "none"}`)}
             </h5>
             <ul className="flex flex-col gap-1.5">
               {group.items
                 .filter((item) => !removed.includes(item.key))
-                .map((item) => {
-                  if (item.type === "event") {
-                    return (
-                      <li key={item.key}>
-                        <SwipeRow
-                          actions={
-                            <>
-                              <Link
-                                href={`/services/events/${item.event.id}`}
-                                aria-label={t("editLabel", {
-                                  title: item.event.title,
-                                })}
-                                className={swipeActionClass}
-                              >
-                                <Pencil aria-hidden="true" />
-                                {t("edit")}
-                              </Link>
-                              {deleteButton(item, item.event.title)}
-                            </>
-                          }
-                        >
-                          <EventItem event={item.event} day={day} />
-                        </SwipeRow>
-                      </li>
-                    );
-                  }
-                  const row = (
-                    <DayItem
-                      item={item}
-                      moment={group.moment}
-                      showPlan={showPlan}
-                      state={stateOf(item)}
-                      onToggle={onToggle}
-                      onMoment={onMoment}
-                    />
-                  );
-                  return (
-                    <li key={item.key}>
-                      {item.type === "task" ? (
-                        <SwipeRow
-                          actions={
-                            <>
-                              <SwipeAction
-                                aria-label={t("editLabel", {
-                                  title: item.task.title,
-                                })}
-                                onClick={() => setEditing(item.task)}
-                              >
-                                <Pencil aria-hidden="true" />
-                                {t("edit")}
-                              </SwipeAction>
-                              {deleteButton(item, item.task.title)}
-                            </>
-                          }
-                        >
-                          {row}
-                        </SwipeRow>
+                .map((item) => (
+                  <li key={item.key}>
+                    <SwipeRow actions={actionsOf(item)}>
+                      {item.type === "event" ? (
+                        <EventItem event={item.event} day={day} />
                       ) : (
-                        row
+                        <DayItem
+                          item={item}
+                          showPlan={showPlan}
+                          state={stateOf(item)}
+                          onToggle={onToggle}
+                          onEdit={() => setEditing(editOf(item))}
+                        />
                       )}
-                    </li>
-                  );
-                })}
+                    </SwipeRow>
+                  </li>
+                ))}
             </ul>
           </section>
         );
       })}
 
       {editing ? (
-        <TaskEditDialog
-          task={editing}
-          open
-          onOpenChange={(open) => {
-            if (!open) setEditing(null);
-          }}
+        <ItemEditDialog
+          target={editing}
+          onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
             onChanged();
           }}
         />
       ) : null}
+
+      <RemoveConfirm
+        item={confirming}
+        onCancel={() => setConfirming(null)}
+        onConfirm={(item) => {
+          setConfirming(null);
+          remove(item);
+        }}
+      />
     </div>
+  );
+}
+
+/** Confirmation avant de supprimer une habitude, un objectif ou une séance. */
+function RemoveConfirm({
+  item,
+  onCancel,
+  onConfirm,
+}: {
+  item: TimelineItem | null;
+  onCancel: () => void;
+  onConfirm: (item: TimelineItem) => void;
+}) {
+  const t = useTranslations("Development.calendar.removeConfirm");
+  const format = useFormatter();
+  const description =
+    item?.type === "habit"
+      ? t("habit")
+      : item?.type === "goal"
+        ? t("goal")
+        : item?.type === "session"
+          ? t("session", {
+              // 2024-01-01 est un lundi : le jour de la semaine de la séance
+              weekday: format.dateTime(
+                toDbDate(addDays("2024-01-01", item.session.weekday - 1)),
+                { weekday: "long", timeZone: "UTC" },
+              ),
+            })
+          : "";
+
+  return (
+    <AlertDialog
+      open={item !== null}
+      onOpenChange={(open) => (open ? null : onCancel())}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {t("title", { title: item ? titleOf(item) : "" })}
+          </AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogAction
+            variant="destructive"
+            onClick={() => (item ? onConfirm(item) : null)}
+          >
+            {t("confirm")}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
+/** L'heure en grand, à gauche d'un élément qui en a une. */
+function HourColumn({ minute, below }: { minute: number; below?: string }) {
+  const format = useFormatter();
+  return (
+    <span className="flex w-[4.75rem] shrink-0 flex-col">
+      <span className="font-display text-[1.6rem] leading-none whitespace-nowrap text-primary">
+        {format.dateTime(clockDate(minute), {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "UTC",
+        })}
+      </span>
+      {below ? (
+        <span className="mt-1 text-[11px] whitespace-nowrap text-muted-foreground">
+          {below}
+        </span>
+      ) : null}
+    </span>
   );
 }
 
@@ -226,12 +345,6 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
   const t = useTranslations("Development.calendar");
   const tEvents = useTranslations("Events");
   const format = useFormatter();
-  const time = (minute: number) =>
-    format.dateTime(clockDate(minute), {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "UTC",
-    });
   const span = eventSpan(event);
   const meta = [
     t("event"),
@@ -243,12 +356,10 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
 
   return (
     <div className="flex min-h-14 items-center gap-3 rounded-2xl bg-foreground/5 py-2 pr-3 pl-3.5">
-      <span className="flex w-[4.75rem] shrink-0 flex-col">
-        <span className="font-display text-[1.6rem] leading-none whitespace-nowrap text-primary">
-          {time(event.startMinute)}
-        </span>
-        <span className="mt-1 text-[11px] whitespace-nowrap text-muted-foreground">
-          {span > 0
+      <HourColumn
+        minute={event.startMinute}
+        below={
+          span > 0
             ? t("untilDay", {
                 date: format.dateTime(toDbDate(addDays(day, span)), {
                   day: "numeric",
@@ -256,9 +367,15 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
                   timeZone: "UTC",
                 }),
               })
-            : t("until", { time: time(event.endMinute) })}
-        </span>
-      </span>
+            : t("until", {
+                time: format.dateTime(clockDate(event.endMinute), {
+                  hour: "numeric",
+                  minute: "2-digit",
+                  timeZone: "UTC",
+                }),
+              })
+        }
+      />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">
         <span className="font-semibold break-words">{event.title}</span>
         <span className="text-xs break-words text-muted-foreground">
@@ -278,37 +395,24 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
 type DayItemProps = {
   /** Séance, habitude, tâche ou objectif (les événements ont leur propre ligne). */
   item: Exclude<TimelineItem, { type: "event" }>;
-  moment: DayMoment | null;
   showPlan: boolean;
   state: ItemState | null;
   onToggle: (item: TimelineItem, done: boolean) => void;
-  onMoment: (change: MomentChange, key: string) => void;
+  /** Bouton horloge : changer l'heure (séance, habitude, tâche). */
+  onEdit: () => void;
 };
 
 /** Un élément du jour, sur un fond de la couleur de son plan. */
-function DayItem({
-  item,
-  moment,
-  showPlan,
-  state,
-  onToggle,
-  onMoment,
-}: DayItemProps) {
+function DayItem({ item, showPlan, state, onToggle, onEdit }: DayItemProps) {
   const t = useTranslations("Development.calendar");
   const tKinds = useTranslations("Development.kinds");
   const [open, setOpen] = useState(false);
   const kind = kindOfItem(item);
   const colors = colorsOf(kind);
   const planName = kind && showPlan ? tKinds(`${kind}.title`) : null;
+  const title = titleOf(item);
+  const time = timeOfItem(item);
 
-  const title =
-    item.type === "session"
-      ? item.session.title
-      : item.type === "habit"
-        ? item.habit.title
-        : item.type === "task"
-          ? item.task.title
-          : item.goal.title;
   const typeLabel =
     item.type === "session"
       ? t("exercises", { count: item.session.items.length })
@@ -320,20 +424,6 @@ function DayItem({
   const meta = planName ? `${planName} · ${typeLabel}` : typeLabel;
   const done = state?.done ?? false;
 
-  const change: MomentChange | null =
-    item.type === "session"
-      ? {
-          type: "session",
-          kind: item.plan.kind,
-          weekday: item.session.weekday,
-          moment,
-        }
-      : item.type === "habit"
-        ? { type: "habit", id: item.habit.id, moment }
-        : item.type === "task"
-          ? { type: "task", id: item.task.id, moment }
-          : null;
-
   return (
     <div
       className={cn(
@@ -342,6 +432,7 @@ function DayItem({
       )}
     >
       <div className="flex min-h-11 items-center gap-2">
+        {time !== null ? <HourColumn minute={time} /> : null}
         {item.type === "goal" ? (
           <Flag aria-hidden="true" className="size-4 shrink-0 text-silver" />
         ) : null}
@@ -387,41 +478,18 @@ function DayItem({
           </Button>
         ) : null}
 
-        {change ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                aria-label={t("momentMenu", { title })}
-                className="size-10 shrink-0 rounded-full text-muted-foreground"
-              >
-                <Clock aria-hidden="true" className="size-[18px]" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuRadioGroup
-                value={moment ?? "none"}
-                onValueChange={(value) =>
-                  onMoment(
-                    {
-                      ...change,
-                      moment: value === "none" ? null : (value as DayMoment),
-                    },
-                    item.key,
-                  )
-                }
-              >
-                {[...DAY_MOMENTS, "none" as const].map((value) => (
-                  <DropdownMenuRadioItem key={value} value={value}>
-                    {t(`moments.${value}`)}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
+        {item.type === "goal" ? null : (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t("timeButton", { title })}
+            onClick={onEdit}
+            className="size-10 shrink-0 rounded-full text-muted-foreground"
+          >
+            <Clock aria-hidden="true" className="size-[18px]" />
+          </Button>
+        )}
 
         {state?.editable ? (
           <button

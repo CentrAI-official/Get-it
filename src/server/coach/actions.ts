@@ -44,6 +44,7 @@ async function create(
           weekdays: payload.weekdays,
           goalId: payload.goal?.id ?? null,
           moment: null,
+          time: null,
         })) ?? false
       );
     case "task":

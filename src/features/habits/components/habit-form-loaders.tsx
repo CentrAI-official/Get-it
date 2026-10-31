@@ -56,6 +56,7 @@ export async function EditHabitForm({ habitId }: { habitId: string }) {
           weekdays: habit.weekdays,
           goalId: habit.goal?.id ?? "",
           moment: habit.moment,
+          time: habit.timeMinute,
         }}
         submitLabel={t("form.save")}
         pendingLabel={t("form.saving")}

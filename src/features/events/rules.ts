@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { DayMoment } from "@/config/moments";
 import { routing } from "@/i18n/routing";
 import { daysBetween, isoWeekday, parseClock } from "@/lib/dates";
 import { fieldErrorsFrom } from "@/lib/form-errors";
@@ -158,14 +157,4 @@ export function occursOn(
 /** Nombre de jours entre le début et la fin d'un événement (0 : le même jour). */
 export function eventSpan(event: Pick<CalendarEvent, "startsOn" | "endsOn">) {
   return daysBetween(event.startsOn, event.endsOn);
-}
-
-/**
- * Moment de la journée d'un événement, d'après son heure de début : le matin
- * avant midi, le midi jusqu'à 14 h, le soir ensuite.
- */
-export function eventMoment(startMinute: number): DayMoment {
-  if (startMinute < 12 * 60) return "morning";
-  if (startMinute < 14 * 60) return "noon";
-  return "evening";
 }

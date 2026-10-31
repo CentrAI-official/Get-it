@@ -1,11 +1,16 @@
 import { z } from "zod";
-import { DAY_MOMENTS, type DayMoment } from "@/config/moments";
 import {
-  eventMoment,
-  occursOn,
-  type CalendarEvent,
-} from "@/features/events/rules";
-import { recordIdSchema } from "@/features/goals/schemas";
+  DAY_MOMENTS,
+  minuteOfDaySchema,
+  momentOfMinute,
+  type DayMoment,
+} from "@/config/moments";
+import { occursOn, type CalendarEvent } from "@/features/events/rules";
+import {
+  itemTitleSchema,
+  optionalDaySchema,
+  recordIdSchema,
+} from "@/features/goals/schemas";
 import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
 import type { DevelopmentPlan } from "./plan";
 import { DEVELOPMENT_KINDS, type DevelopmentKind } from "./questionnaires";
@@ -32,6 +37,8 @@ export type CalendarTask = {
   dueDate: string;
   done: boolean;
   moment: DayMoment | null;
+  /** Heure prévue (minutes depuis minuit) ; null : pas d'heure. */
+  time: number | null;
   planKind: DevelopmentKind | null;
 };
 
@@ -40,6 +47,8 @@ export type CalendarHabit = {
   title: string;
   weekdays: number[];
   moment: DayMoment | null;
+  /** Heure prévue (minutes depuis minuit) ; null : pas d'heure. */
+  time: number | null;
   /** Premier jour suivi (création) et jour de la mise en pause, s'il y en a une. */
   from: string;
   until: string | null;
@@ -226,7 +235,26 @@ export type TimelineGroup = {
   items: TimelineItem[];
 };
 
+/** Heure d'un élément du jour (minutes depuis minuit) ; null : pas d'heure. */
+export function timeOfItem(item: TimelineItem): number | null {
+  switch (item.type) {
+    case "session":
+      return item.session.time;
+    case "habit":
+      return item.habit.time;
+    case "task":
+      return item.task.time;
+    case "goal":
+      return null;
+    case "event":
+      return item.event.startMinute;
+  }
+}
+
+/** Un élément qui a une heure est rangé par elle ; sinon par son moment choisi. */
 const momentOfItem = (item: TimelineItem): DayMoment | null => {
+  const time = timeOfItem(item);
+  if (time !== null) return momentOfMinute(time);
   switch (item.type) {
     case "session":
       return item.session.moment;
@@ -234,17 +262,15 @@ const momentOfItem = (item: TimelineItem): DayMoment | null => {
       return item.habit.moment;
     case "task":
       return item.task.moment;
-    case "goal":
+    default:
       return null;
-    case "event":
-      return eventMoment(item.event.startMinute);
   }
 };
 
 /**
  * Le jour en moments : matin, midi, soir, puis « dans la journée » pour ce qui
- * n'a pas de moment. Dans chaque moment : les événements à leur heure, puis
- * séances, habitudes, tâches et objectifs. Les moments vides sont omis.
+ * n'a pas de moment. Dans chaque moment : ce qui a une heure, dans l'ordre des
+ * heures, puis séances, habitudes, tâches et objectifs. Les moments vides sont omis.
  */
 export function dayTimeline(
   entries: ReturnType<typeof dayEntries>,
@@ -278,34 +304,68 @@ export function dayTimeline(
       goal,
     })),
   ];
+  // Tri stable : sans heure, l'ordre de la liste ci-dessus est gardé
+  const byTime = (a: TimelineItem, b: TimelineItem) =>
+    (timeOfItem(a) ?? Infinity) - (timeOfItem(b) ?? Infinity);
   return [...DAY_MOMENTS, null]
     .map((moment) => ({
       moment,
-      items: items.filter((item) => momentOfItem(item) === moment),
+      items: items.filter((item) => momentOfItem(item) === moment).sort(byTime),
     }))
     .filter((group) => group.items.length > 0);
 }
 
 const momentSchema = z.enum(DAY_MOMENTS).nullable();
+const kindSchema = z.enum(DEVELOPMENT_KINDS);
+const weekdaySchema = z.number().int().min(1).max(7);
 
-/** Changement de moment demandé depuis le calendrier : revalidé par le serveur. */
-export const momentChangeSchema = z.discriminatedUnion("type", [
+/**
+ * « Modifier » dans le calendrier (glisser, ou le bouton horloge) : l'heure,
+ * ou à défaut le moment ; pour une tâche, aussi son titre et son échéance.
+ * Revalidé par le serveur. Une heure range l'élément : le moment en découle.
+ */
+export const itemEditSchema = z
+  .discriminatedUnion("type", [
+    z.object({
+      type: z.literal("task"),
+      id: recordIdSchema,
+      title: itemTitleSchema,
+      dueDate: optionalDaySchema,
+      time: minuteOfDaySchema.nullable(),
+      moment: momentSchema,
+    }),
+    z.object({
+      type: z.literal("habit"),
+      id: recordIdSchema,
+      time: minuteOfDaySchema.nullable(),
+      moment: momentSchema,
+    }),
+    z.object({
+      type: z.literal("session"),
+      kind: kindSchema,
+      weekday: weekdaySchema,
+      time: minuteOfDaySchema.nullable(),
+      moment: momentSchema,
+    }),
+  ])
+  .transform((input) => ({
+    ...input,
+    moment: input.time === null ? input.moment : momentOfMinute(input.time),
+  }));
+
+export type ItemEdit = z.input<typeof itemEditSchema>;
+
+/** « Supprimer » dans le calendrier : l'élément visé, revalidé par le serveur. */
+export const calendarTargetSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("habit"),
+    type: z.enum(["task", "habit", "goal", "event"]),
     id: recordIdSchema,
-    moment: momentSchema,
-  }),
-  z.object({
-    type: z.literal("task"),
-    id: recordIdSchema,
-    moment: momentSchema,
   }),
   z.object({
     type: z.literal("session"),
-    kind: z.enum(DEVELOPMENT_KINDS),
-    weekday: z.number().int().min(1).max(7),
-    moment: momentSchema,
+    kind: kindSchema,
+    weekday: weekdaySchema,
   }),
 ]);
 
-export type MomentChange = z.infer<typeof momentChangeSchema>;
+export type CalendarTarget = z.infer<typeof calendarTargetSchema>;

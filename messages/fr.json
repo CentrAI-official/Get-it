@@ -687,7 +687,10 @@
       "creating": "Création…",
       "save": "Enregistrer",
       "saving": "Enregistrement…",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "timeLabel": "À quelle heure?",
+      "clearTime": "Sans heure",
+      "momentFromTime": "Avec une heure, l’habitude est rangée selon elle."
     },
     "manage": {
       "title": "Gérer l’habitude",
@@ -775,7 +778,8 @@
       "withStreak": "{meta} · série de {count, number} j",
       "pact": "Pacte avec {name} · jour {day, number}/{days, number}",
       "pactPartnerDone": "{name} a déjà fait sa part",
-      "pactPartnerPending": "{name} n’a pas encore fait sa part"
+      "pactPartnerPending": "{name} n’a pas encore fait sa part",
+      "atTime": "{time} · {meta}"
     },
     "checkIn": {
       "title": "Check-in du jour",
@@ -959,7 +963,120 @@
       "uploading": "Envoi… {percent, number} %",
       "cancel": "Annuler",
       "expires": "Visible encore {hours, plural, one {# heure} other {# heures}}",
-      "unavailable": "Les photos et vidéos ne sont pas encore activées."
+      "unavailable": "Les photos et vidéos ne sont pas encore activées.",
+      "studio": {
+        "description": "Ajoute des textes, des stickers, des emoji et une musique sur ta photo ou ta vidéo.",
+        "close": "Fermer",
+        "back": "Retour",
+        "done": "Terminé",
+        "add": "Ajouter",
+        "loading": "Chargement…",
+        "text": "Texte",
+        "stickers": "Stickers",
+        "music": "Musique",
+        "emoji": "Emoji",
+        "publish": "Publier la story",
+        "publishing": "Publication…",
+        "interactiveLimit": "Une story peut avoir un seul sondage ou une seule question.",
+        "limit": "{max, number} éléments au plus par story.",
+        "itemLabel": "{label}. Déplace avec les flèches, agrandis avec + et −, tourne avec [ et ], retire avec Suppr.",
+        "keyboardHelp": "Chaque élément se déplace au doigt ou aux flèches ; deux doigts l’agrandissent et le tournent ; glisse-le vers la corbeille pour le retirer.",
+        "textLabel": "Ton texte",
+        "textPlaceholder": "Écris quelque chose…",
+        "fontLabel": "Écriture",
+        "fonts": {
+          "classic": "Classique",
+          "strong": "Affiche",
+          "serif": "Carnet",
+          "typewriter": "Machine",
+          "neon": "Néon"
+        },
+        "sizeLabel": "Taille du texte",
+        "colorLabel": "Couleur",
+        "color": "Couleur {color}",
+        "align": {
+          "left": "Aligné à gauche",
+          "center": "Centré",
+          "right": "Aligné à droite"
+        },
+        "background": {
+          "none": "Sans fond",
+          "solid": "Fond plein",
+          "soft": "Fond voilé"
+        },
+        "stickerTypes": {
+          "time": "Heure",
+          "date": "Date",
+          "location": "Lieu",
+          "mention": "Mention",
+          "hashtag": "Hashtag",
+          "streak": "Série",
+          "pillar": "Pilier",
+          "poll": "Sondage",
+          "question": "Question",
+          "music": "Musique"
+        },
+        "emojiCategories": {
+          "smileys": "Visages",
+          "gestures": "Gestes",
+          "sport": "Sport",
+          "life": "Au quotidien",
+          "hearts": "Cœurs et fête"
+        },
+        "locationPlaceholder": "Où es-tu?",
+        "hashtagPlaceholder": "#objectif",
+        "questionPlaceholder": "Pose une question",
+        "questionDefault": "Pose-moi une question",
+        "pollQuestion": "Question du sondage",
+        "pollQuestionPlaceholder": "Tu préfères…",
+        "pollOption": "Choix {n, number}",
+        "yes": "Oui",
+        "no": "Non",
+        "noContacts": "Ajoute des contacts pour pouvoir les mentionner.",
+        "noHabits": "Crée une habitude pour montrer ta série.",
+        "days": "{count, plural, one {# jour} other {# jours}}",
+        "streak": "Série",
+        "streakLabel": "{title} : {days, plural, one {# jour} other {# jours}}",
+        "musicLabel": "{title} · {artist}",
+        "musicTabs": {
+          "trending": "Tendances",
+          "forYou": "Pour toi",
+          "search": "Recherche"
+        },
+        "musicSearch": "Chercher un titre, un artiste ou une ambiance",
+        "musicEmpty": "Aucune musique pour l’instant. L’équipe Get iT ajoute le catalogue bientôt.",
+        "musicNoResult": "Aucun morceau ne correspond à ta recherche.",
+        "play": "Écouter {title}",
+        "pause": "Pause",
+        "choose": "Choisir {title}",
+        "clipLabel": "Extrait de 15 secondes",
+        "clip": "De {from} à {to}",
+        "listenClip": "Écouter l’extrait",
+        "removeMusic": "Retirer la musique",
+        "answerHere": "Touche pour répondre",
+        "answered": "Réponse envoyée",
+        "answerPlaceholder": "Ta réponse…",
+        "answerPrivacy": "Seule la personne qui a publié la story verra ta réponse.",
+        "sendAnswer": "Envoyer la réponse",
+        "answerSent": "Réponse envoyée",
+        "percent": "{value, number} %",
+        "mute": "Couper le son",
+        "unmute": "Activer le son",
+        "replyLabel": "Répondre à {name}",
+        "replyPlaceholder": "Répondre à {name}…",
+        "send": "Envoyer",
+        "reactions": "Réactions rapides",
+        "react": "Réagir avec {emoji}",
+        "replySent": "Message envoyé",
+        "reactionSent": "Réaction envoyée",
+        "replyFailed": "Le message n’a pas pu être envoyé. Réessaie.",
+        "viewedBy": "{count, plural, =0 {Pas encore vue} one {Vue par # personne} other {Vue par # personnes}}",
+        "activity": "Activité de ta story",
+        "activityFailed": "L’activité de cette story n’a pas pu être chargée.",
+        "noViews": "Personne ne l’a encore vue.",
+        "noAnswers": "Pas encore de réponse.",
+        "votes": "{count, plural, one {# vote} other {# votes}}"
+      }
     },
     "signedInAs": "Connecté en tant que @{username}",
     "moderationLink": "Modération",
@@ -1180,7 +1297,12 @@
       "saveLimit": "Tu as déjà 500 publications enregistrées. Retires-en quelques-unes pour en garder d’autres.",
       "alreadyShared": "Tu as déjà partagé cette publication dans ton fil.",
       "storyLimit": "Tu as publié 20 stories dans les dernières 24 heures. Réessaie plus tard.",
-      "storyCaptionTooLong": "La légende peut faire 200 caractères au plus."
+      "storyCaptionTooLong": "La légende peut faire 200 caractères au plus.",
+      "storyOverlays": "Un texte ou un sticker n’est pas valide. Retire-le et réessaie.",
+      "storyMention": "Tu ne peux mentionner que tes contacts qui ont un nom d’utilisateur.",
+      "storyStreak": "Cette habitude est introuvable.",
+      "storyMusic": "Cette musique n’est plus disponible. Choisis-en une autre.",
+      "storyAnswerInvalid": "Ta réponse doit faire entre 1 et 200 caractères."
     },
     "media": {
       "gallery": "Photo/vidéo",
@@ -1247,7 +1369,8 @@
       "groupsEmpty": "Aucun groupe privé pour l’instant. Crée une discussion de groupe et invite tes contacts.",
       "newGroup": "Nouveau groupe privé",
       "groupQuiet": "{count, plural, one {# membre} other {# membres}} · aucun message pour l’instant",
-      "invitationsTitle": "Invitations"
+      "invitationsTitle": "Invitations",
+      "story": "Story : {text}"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1303,7 +1426,10 @@
       "pending": "Demande envoyée. Tu pourras écrire de nouveau quand {handle} l’aura acceptée.",
       "cannotWrite": "Ton compte est suspendu du Centre : tu peux lire tes messages, mais pas écrire.",
       "viewPost": "Voir la publication",
-      "attach": "Joindre une photo ou une vidéo"
+      "attach": "Joindre une photo ou une vidéo",
+      "storyReplyMine": "Tu as répondu à sa story",
+      "storyReplyTheirs": "A répondu à ta story",
+      "storyUnavailable": "Story terminée"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -1886,7 +2012,6 @@
         "evening": "Soir",
         "none": "Dans la journée"
       },
-      "momentMenu": "Moment de la journée : {title}",
       "daySummary": "{done, number} sur {total, number} faites",
       "dayPlanned": "{total, plural, one {# prévue} other {# prévues}}",
       "exercises": "Séance · {count, plural, =0 {à ta façon} one {# exercice} other {# exercices}}",
@@ -1907,13 +2032,29 @@
       "delete": "Supprimer",
       "editLabel": "Modifier : {title}",
       "deleteLabel": "Supprimer : {title}",
-      "taskEdit": {
-        "title": "Modifier la tâche",
-        "description": "Change son nom ou son échéance.",
+      "timeButton": "Changer l’heure : {title}",
+      "itemEdit": {
+        "title": "Modifier",
+        "taskDescription": "Change son nom, son échéance ou son heure.",
         "name": "Titre",
         "due": "Échéance",
+        "time": "Heure",
+        "clearTime": "Sans heure",
+        "noTimeHint": "Sans heure, choisis le moment de la journée.",
+        "timeHint": "À {time}, rangé dans « {moment} ».",
+        "moment": "Moment de la journée",
+        "habitSettings": "Tous les réglages de l’habitude",
+        "planLink": "Voir le plan",
         "save": "Enregistrer",
         "cancel": "Annuler"
+      },
+      "removeConfirm": {
+        "title": "Supprimer « {title} »?",
+        "habit": "L’habitude et tout son historique seront supprimés.",
+        "goal": "L’objectif, ses jalons et ses tâches seront supprimés.",
+        "session": "La séance du {weekday} sera retirée de chaque semaine du plan.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
       }
     },
     "hub": {
@@ -2957,7 +3098,8 @@
       "comment": "{name} a commenté ta publication",
       "comments": "{name} et {others, plural, one {# autre personne ont} other {# autres personnes ont}} commenté ta publication",
       "like": "{name} aime ta publication",
-      "likes": "{name} et {others, plural, one {# autre personne aiment} other {# autres personnes aiment}} ta publication"
+      "likes": "{name} et {others, plural, one {# autre personne aiment} other {# autres personnes aiment}} ta publication",
+      "story": "{name} a répondu à ta question : « {subject} »"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -2968,6 +3110,51 @@
       "denied": "Les notifications sont bloquées pour Get iT dans les réglages de ton navigateur ou de ton téléphone.",
       "unsupported": "Ce navigateur ne permet pas les notifications. Sur iPhone : touche Partager, puis « Sur l’écran d’accueil », et ouvre Get iT depuis l’icône.",
       "error": "Impossible d’activer les notifications. Réessaie."
+    }
+  },
+  "MusicCatalog": {
+    "title": "Musique des stories",
+    "description": "Le catalogue libre de droits proposé dans le studio des stories. Ajoute seulement des morceaux dont Get iT a la licence.",
+    "back": "Réglages",
+    "addTitle": "Ajouter un morceau",
+    "storageOff": "Le stockage des fichiers n’est pas activé sur ce serveur.",
+    "catalogTitle": "{count, plural, =0 {Catalogue} one {Catalogue (# morceau)} other {Catalogue (# morceaux)}}",
+    "emptyTitle": "Aucun morceau",
+    "emptyDescription": "Ajoute un premier morceau libre de droits : il apparaîtra dans l’onglet Musique du studio.",
+    "removed": "Retiré",
+    "meta": "{artist} · {duration} · {uses, plural, =0 {jamais utilisé} one {# story} other {# stories}}",
+    "license": "Licence : {license}",
+    "remove": "Retirer",
+    "restore": "Remettre",
+    "removeLabel": "Retirer {title} du catalogue",
+    "restoreLabel": "Remettre {title} au catalogue",
+    "toggleFailed": "Le changement n’a pas pu être enregistré.",
+    "settingsTitle": "Musique des stories",
+    "settingsDescription": "Équipe Get iT : gère le catalogue de musique libre de droits.",
+    "settingsLink": "Ouvrir le catalogue",
+    "form": {
+      "file": "Fichier audio",
+      "fileHint": "MP3, M4A, AAC ou WAV, 20 Mo au plus, de 5 secondes à 10 minutes.",
+      "title": "Titre",
+      "artist": "Artiste",
+      "moods": "Ambiances (facultatif)",
+      "moodsPlaceholder": "énergie, calme, focus",
+      "pillars": "Piliers (facultatif)",
+      "pillarsHint": "Sert à « Pour toi » : le morceau est proposé aux personnes qui ont ces piliers prioritaires.",
+      "license": "Licence",
+      "licensePlaceholder": "Ex. : licence achetée chez…, libre de droits pour usage commercial",
+      "licenseHint": "Garde la preuve de la licence : elle peut être demandée.",
+      "submit": "Ajouter au catalogue",
+      "uploading": "Envoi… {percent, number} %",
+      "added": "Morceau ajouté au catalogue.",
+      "errors": {
+        "fileType": "Ce fichier n’est pas un MP3, un M4A, un AAC ou un WAV.",
+        "fileSize": "Ce fichier dépasse 20 Mo.",
+        "fileDuration": "Le morceau doit durer de 5 secondes à 10 minutes.",
+        "uploadFailed": "L’envoi du fichier a échoué. Réessaie.",
+        "invalid": "Vérifie le titre, l’artiste et la licence.",
+        "unexpected": "Le morceau n’a pas pu être ajouté. Réessaie."
+      }
     }
   }
 }

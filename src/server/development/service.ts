@@ -384,6 +384,7 @@ export async function getCalendar(
         dueDate: true,
         completedAt: true,
         moment: true,
+        timeMinute: true,
         developmentPlanId: true,
       },
     }),
@@ -399,6 +400,7 @@ export async function getCalendar(
         title: true,
         weekdays: true,
         moment: true,
+        timeMinute: true,
         createdAt: true,
         archivedAt: true,
         developmentPlanId: true,
@@ -436,6 +438,7 @@ export async function getCalendar(
               dueDate: fromDbDate(task.dueDate),
               done: task.completedAt !== null,
               moment: task.moment,
+              time: task.timeMinute,
               planKind: planKind(task.developmentPlanId),
             },
           ]
@@ -447,6 +450,7 @@ export async function getCalendar(
         title: habit.title,
         weekdays: habit.weekdays,
         moment: habit.moment,
+        time: habit.timeMinute,
         from: toCalendarDay(habit.createdAt, timeZone),
         until: habit.archivedAt
           ? toCalendarDay(habit.archivedAt, timeZone)
@@ -474,14 +478,46 @@ export async function getCalendar(
 }
 
 /**
- * Moment de la journée de la séance d'un jour de la semaine type (calendrier
- * « Semaine »). Faux si le plan ou la séance n'existe pas.
+ * Heure et moment de la séance d'un jour de la semaine type (calendrier :
+ * « Modifier »). Faux si le plan ou la séance n'existe pas.
  */
-export async function setSessionMoment(
+export async function setSessionSchedule(
   userId: string,
   kind: DevelopmentKind,
   weekday: number,
-  moment: DayMoment | null,
+  input: { time: number | null; moment: DayMoment | null },
+) {
+  return editSchedule(userId, kind, weekday, (schedule) =>
+    schedule.map((session) =>
+      session.weekday === weekday
+        ? { ...session, time: input.time, moment: input.moment }
+        : session,
+    ),
+  );
+}
+
+/**
+ * Retire la séance d'un jour de la semaine type (toutes les semaines du
+ * plan). Faux si le plan ou la séance n'existe pas.
+ */
+export async function removeSession(
+  userId: string,
+  kind: DevelopmentKind,
+  weekday: number,
+) {
+  return editSchedule(userId, kind, weekday, (schedule) =>
+    schedule.filter((session) => session.weekday !== weekday),
+  );
+}
+
+/** Change la semaine type d'un plan, si la séance de ce jour existe. */
+async function editSchedule(
+  userId: string,
+  kind: DevelopmentKind,
+  weekday: number,
+  change: (
+    schedule: DevelopmentPlan["schedule"],
+  ) => DevelopmentPlan["schedule"],
 ) {
   return db.$transaction(async (tx) => {
     const row = await tx.developmentPlan.findUnique({
@@ -496,9 +532,7 @@ export async function setSessionMoment(
     }
     const updated: DevelopmentPlan = {
       ...plan,
-      schedule: plan.schedule.map((session) =>
-        session.weekday === weekday ? { ...session, moment } : session,
-      ),
+      schedule: change(plan.schedule),
     };
     await tx.developmentPlan.update({
       where: { id: row.id },

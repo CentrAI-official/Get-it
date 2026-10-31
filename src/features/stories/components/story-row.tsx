@@ -1,17 +1,20 @@
 "use client";
 
 import {
-  ChevronLeft,
-  ChevronRight,
   EllipsisVertical,
+  Eye,
   Flag,
-  ImagePlus,
+  Heart,
   LoaderCircle,
   Pause,
   Play,
   Plus,
+  SendHorizontal,
   Trash2,
   UserPlus,
+  Volume2,
+  VolumeX,
+  X,
 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import {
@@ -37,23 +40,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { ReportDialog } from "@/features/community/components/report-dialog";
 import type { CommunityError } from "@/features/community/rules";
-import { useMediaUploads } from "@/features/community/use-media-uploads";
+import { MESSAGE_MAX_LENGTH } from "@/features/messages/rules";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import type { StoryRing } from "@/server/stories/service";
-import { createStoryAction, deleteStoryAction } from "../actions";
+import type { StoryActivity, StoryRing } from "@/server/stories/service";
+import {
+  answerQuestionAction,
+  deleteStoryAction,
+  recordStoryViewAction,
+  replyToStoryAction,
+  storyActivityAction,
+  votePollAction,
+} from "../actions";
+import { MUSIC_CLIP_MS } from "../music";
 import {
   firstUnseenIndex,
   hasUnseen,
+  imageDuration,
   orderRings,
-  STORY_CAPTION_MAX,
-  STORY_IMAGE_MS,
+  STORY_REACTIONS,
   STORY_TTL_MS,
 } from "../rules";
 import { markStorySeen, useSeenStories } from "../seen-store";
+import { STORY_ANSWER_MAX } from "../studio";
+import { OverlayLayer, StoryFrame } from "./story-overlays";
+import { FRAME_WIDTH, StoryStudio } from "./story-studio";
 
 const BUBBLE =
   "flex w-[4.5rem] flex-col items-center gap-1.5 rounded-2xl py-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
@@ -61,6 +74,8 @@ const BUBBLE =
 const RING = "flex size-16 rounded-[22px] p-[3px]";
 const INNER = "flex size-full rounded-[19px] bg-background p-[2px]";
 const FACE = "size-full rounded-[17px] text-lg";
+/** Glissée vers le bas qui ferme la visionneuse, en pixels. */
+const DISMISS_PX = 100;
 
 /** Une personne et l'une de ses stories, ouvertes dans la visionneuse. */
 type Opened = { ring: number; story: number };
@@ -233,7 +248,7 @@ export function StoryRow({
         onClose={close}
         now={now}
       />
-      <StoryComposer
+      <StoryStudio
         open={composing}
         onOpenChange={setComposing}
         onPosted={() => setComposing(false)}
@@ -265,6 +280,16 @@ function StoryViewer({
   const ring = opened ? rings[opened.ring] : undefined;
   const story = opened && ring ? ring.stories[opened.story] : undefined;
   const [report, setReport] = useState<string | null>(null);
+  // Son coupé ou non, gardé d'une story à l'autre
+  const [muted, setMuted] = useState(false);
+  // Glisser vers le bas : la story suit le doigt, puis se ferme (comme Instagram)
+  const [pull, setPull] = useState({ y: 0, active: false });
+
+  function pullTo(y: number, done: boolean) {
+    if (!done) return setPull({ y, active: true });
+    setPull({ y: 0, active: false });
+    if (y >= DISMISS_PX) onClose();
+  }
 
   function next() {
     if (!opened || !ring) return;
@@ -303,7 +328,20 @@ function StoryViewer({
         <DialogContent
           closeLabel={t("close")}
           // Plein écran sur téléphone, fenêtre haute sur ordinateur ; toujours sombre
-          className="dark inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-3 rounded-none bg-black p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:ring-1"
+          className={cn(
+            "dark inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-3 rounded-none bg-black p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:ring-1",
+            // Relâchée avant le seuil : la story remonte en douceur
+            !pull.active && "transition-[transform,opacity,border-radius]",
+          )}
+          style={
+            pull.y > 0
+              ? {
+                  transform: `translateY(${pull.y}px) scale(${1 - Math.min(pull.y, 400) / 2000})`,
+                  opacity: 1 - Math.min(pull.y, 400) / 800,
+                  borderRadius: "1.5rem",
+                }
+              : undefined
+          }
         >
           {ring && story && opened ? (
             // Une story à la fois : son état (avancement, pause) repart de zéro
@@ -313,9 +351,12 @@ function StoryViewer({
               index={opened.story}
               mine={ring.author.id === mineId}
               held={report !== null}
+              muted={muted}
+              onMutedChange={setMuted}
               now={now}
               onNext={next}
               onPrevious={previous}
+              onPull={pullTo}
               onReport={() => setReport(story.id)}
               onDeleted={() => onClose(t("deleted"))}
             />
@@ -340,56 +381,87 @@ type StoryStageProps = {
   mine: boolean;
   /** Signalement ouvert : la story attend. */
   held: boolean;
+  muted: boolean;
+  onMutedChange: (muted: boolean) => void;
   now: number;
   onNext: () => void;
   onPrevious: () => void;
+  /** Glissée vers le bas : sa distance pendant le geste, puis `done` au relâchement. */
+  onPull: (y: number, done: boolean) => void;
   onReport: () => void;
   onDeleted: () => void;
 };
 
-/** Une story : barres d'avancement, auteur, média et légende. */
+type Sheet = "reply" | "answer" | "activity" | null;
+
+/**
+ * Une story : barres d'avancement, auteur, le cadre 9:16 avec ses textes et
+ * stickers, la musique, puis la barre de réponse (ou « Vu par » pour l'auteur).
+ */
 function StoryStage({
   ring,
   index,
   mine,
   held,
+  muted,
+  onMutedChange,
   now,
   onNext,
   onPrevious,
+  onPull,
   onReport,
   onDeleted,
 }: StoryStageProps) {
   const t = useTranslations("Community.stories");
+  const tStudio = useTranslations("Community.stories.studio");
   const tErrors = useTranslations("Community.errors");
   const format = useFormatter();
   // ring.stories[index] existe : la visionneuse ne rend StoryStage qu'avec une story
   const story = ring.stories[index]!;
   const [paused, setPaused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sheet, setSheet] = useState<Sheet>(null);
   const [progress, setProgress] = useState(0);
+  const [poll, setPoll] = useState(story.poll);
+  const [answered, setAnswered] = useState(story.answered);
+  const [notice, setNotice] = useState<string | null>(null);
   const elapsed = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [error, setError] = useState<CommunityError | null>(null);
   const [deleting, startDelete] = useTransition();
-  const hold = paused || menuOpen || held;
+  const hold = paused || menuOpen || held || sheet !== null;
   const advance = useEffectEvent(() => onNext());
+  // Geste en cours sur le cadre : appui long (pause) ou glissée vers le bas (fermer)
+  const gesture = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    pulling: boolean;
+    dy: number;
+  } | null>(null);
+  const swallowClick = useRef(false);
+  const muteRefused = useEffectEvent(() => onMutedChange(true));
+  const music = story.music;
+  const hasMusic = music !== null;
+  const duration = imageDuration(hasMusic);
+  const clipStart = (music?.startMs ?? 0) / 1000;
+  const clipEnd = clipStart + MUSIC_CLIP_MS / 1000;
 
-  // Une story affichée est vue (sur cet appareil seulement)
+  // Une story affichée est vue : sur cet appareil (anneau), et pour son auteur (« Vu par »)
   useEffect(() => {
     markStorySeen(story.id);
-  }, [story.id]);
+    if (!mine) void recordStoryViewAction(story.id);
+  }, [story.id, mine]);
 
-  // Photo : la barre avance pendant 5 s, puis la story suivante
+  // Photo : la barre avance pendant 5 s (15 s avec une musique), puis la story suivante
   useEffect(() => {
     if (story.kind !== "image" || hold) return;
     let frame = 0;
     let last = performance.now();
     // Reprend là où la pause l'a arrêtée
     const tick = (time: number) => {
-      elapsed.current = Math.min(
-        1,
-        elapsed.current + (time - last) / STORY_IMAGE_MS,
-      );
+      elapsed.current = Math.min(1, elapsed.current + (time - last) / duration);
       last = time;
       setProgress(elapsed.current);
       if (elapsed.current >= 1) advance();
@@ -397,12 +469,13 @@ function StoryStage({
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [story.kind, hold]);
+  }, [story.kind, hold, duration]);
 
-  // Vidéo : lecture et pause suivent l'état de la visionneuse
+  // Vidéo : lecture et pause suivent l'état de la visionneuse (muette sous une musique)
   useEffect(() => {
     const video = videoRef.current;
     if (!video || story.kind !== "video") return;
+    video.muted = hasMusic || muted;
     if (hold) {
       video.pause();
       return;
@@ -410,14 +483,37 @@ function StoryStage({
     video.play().catch(() => {
       // Son refusé sans geste : la lecture continue en sourdine
       video.muted = true;
+      if (!hasMusic) muteRefused();
       video.play().catch(() => undefined);
     });
-  }, [story.kind, hold]);
+  }, [story.kind, hold, muted, hasMusic]);
 
-  // Page quittée (gardée cachée par Next) : la vidéo s'arrête
+  // Musique : l'extrait de 15 s, en boucle sous une vidéo
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !hasMusic) return;
+    audio.muted = muted;
+    if (hold) {
+      audio.pause();
+      return;
+    }
+    if (
+      audio.readyState > 0 &&
+      (audio.currentTime < clipStart || audio.currentTime >= clipEnd)
+    ) {
+      audio.currentTime = clipStart;
+    }
+    audio.play().catch(() => muteRefused());
+  }, [hold, muted, hasMusic, clipStart, clipEnd]);
+
+  // Page quittée (gardée cachée par Next) : la vidéo et la musique s'arrêtent
   useLayoutEffect(() => {
     const video = videoRef.current;
-    return () => video?.pause();
+    const audio = audioRef.current;
+    return () => {
+      video?.pause();
+      audio?.pause();
+    };
   }, []);
 
   function remove() {
@@ -428,6 +524,25 @@ function StoryStage({
     });
   }
 
+  function endGesture() {
+    const active = gesture.current;
+    gesture.current = null;
+    setPaused(false);
+    if (active?.pulling) onPull(active.dy, true);
+  }
+
+  function vote(choice: 0 | 1) {
+    // Le vote s'affiche tout de suite, puis les vrais chiffres arrivent
+    setPoll((current) => {
+      const counts: [number, number] = [...(current?.counts ?? [0, 0])];
+      counts[choice] += 1;
+      return { counts, mine: choice };
+    });
+    void votePollAction(story.id, choice).then((result) => {
+      if (result.ok) setPoll({ counts: result.counts, mine: result.mine });
+    });
+  }
+
   const who = ring.author.displayName ?? ring.author.username ?? "";
   const hoursLeft = Math.max(
     1,
@@ -435,6 +550,8 @@ function StoryStage({
       (new Date(story.createdAt).getTime() + STORY_TTL_MS - now) / 3_600_000,
     ),
   );
+  const question = story.overlays.find((item) => item.kind === "question");
+  const hasSound = hasMusic || story.kind === "video";
 
   return (
     <>
@@ -466,19 +583,34 @@ function StoryStage({
         ))}
       </ol>
 
-      <header className="mr-10 flex items-center gap-3">
+      <header className="mr-10 flex items-center gap-1">
         <Avatar name={who} url={ring.author.avatarUrl} className="size-9" />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="ml-1 flex min-w-0 flex-1 flex-col">
           <DialogTitle className="truncate text-sm font-semibold">
             {who}
           </DialogTitle>
-          <p className="text-xs text-muted-foreground">
+          <p className="truncate text-xs text-muted-foreground">
             <time dateTime={story.createdAt}>
               {format.relativeTime(new Date(story.createdAt), now)}
             </time>
             {mine ? ` · ${t("expires", { hours: hoursLeft })}` : null}
           </p>
         </div>
+        {hasSound ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={muted ? tStudio("unmute") : tStudio("mute")}
+            onClick={() => onMutedChange(!muted)}
+          >
+            {muted ? (
+              <VolumeX aria-hidden="true" />
+            ) : (
+              <Volume2 aria-hidden="true" />
+            )}
+          </Button>
+        ) : null}
         <Button
           type="button"
           variant="ghost"
@@ -523,52 +655,134 @@ function StoryStage({
         {t("viewerDescription", { name: who })}
       </DialogDescription>
 
-      {/* Média : toucher à gauche recule, à droite avance ; appuyer longtemps met en pause */}
-      <div
-        className="relative -mx-3 flex min-h-0 flex-1 items-center justify-center overflow-hidden"
-        onPointerDown={() => setPaused(true)}
-        onPointerUp={() => setPaused(false)}
-        onPointerLeave={() => setPaused(false)}
-      >
-        {story.kind === "image" ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+      {music ? (
+        <audio
+          ref={audioRef}
+          src={music.url}
+          preload="auto"
+          onLoadedMetadata={(event) => {
+            event.currentTarget.currentTime = clipStart;
+          }}
+          onTimeUpdate={(event) => {
+            // Fin de l'extrait : il reprend au début (la photo, elle, passe à la suite)
+            const audio = event.currentTarget;
+            if (audio.currentTime >= clipEnd) audio.currentTime = clipStart;
+          }}
+        />
+      ) : null}
+
+      {/* Le cadre : toucher à gauche recule, à droite avance ; appuyer longtemps met en pause */}
+      <div className="[container-type:size] relative flex min-h-0 flex-1 items-center justify-center">
+        <div
+          className="relative touch-none select-none"
+          style={{ width: FRAME_WIDTH }}
+          onPointerDown={(event) => {
+            setPaused(true);
+            swallowClick.current = false;
+            gesture.current = {
+              id: event.pointerId,
+              x: event.clientX,
+              y: event.clientY,
+              pulling: false,
+              dy: 0,
+            };
+          }}
+          onPointerMove={(event) => {
+            const active = gesture.current;
+            if (!active || active.id !== event.pointerId) return;
+            const dy = event.clientY - active.y;
+            const dx = event.clientX - active.x;
+            // Vers le bas et surtout vertical : la story suit le doigt
+            if (!active.pulling && dy > 10 && dy > Math.abs(dx) * 1.2) {
+              active.pulling = true;
+              swallowClick.current = true;
+            }
+            if (active.pulling) {
+              active.dy = Math.max(0, dy);
+              onPull(active.dy, false);
+            }
+          }}
+          onPointerUp={endGesture}
+          onPointerCancel={endGesture}
+          onPointerLeave={endGesture}
+          // Après une glissée, le toucher ne change pas de story
+          onClickCapture={(event) => {
+            if (!swallowClick.current) return;
+            swallowClick.current = false;
+            event.preventDefault();
+            event.stopPropagation();
+          }}
+        >
+          <StoryFrame
+            kind={story.kind}
             src={story.url}
-            alt=""
-            className="max-h-full w-full object-contain"
-          />
-        ) : (
-          <video
-            ref={videoRef}
-            src={story.url}
-            poster={story.posterUrl ?? undefined}
-            playsInline
-            preload="auto"
-            onTimeUpdate={(event) => {
-              const video = event.currentTarget;
-              if (video.duration > 0)
-                setProgress(video.currentTime / video.duration);
+            poster={story.posterUrl}
+            videoRef={videoRef}
+            videoProps={{
+              preload: "auto",
+              onTimeUpdate: (event) => {
+                const video = event.currentTarget;
+                if (video.duration > 0)
+                  setProgress(video.currentTime / video.duration);
+              },
+              onEnded: onNext,
             }}
-            onEnded={onNext}
-            className="max-h-full w-full object-contain"
+          >
+            <button
+              type="button"
+              aria-label={t("previous")}
+              onClick={onPrevious}
+              className="absolute inset-y-0 left-0 w-1/3 outline-none focus-visible:bg-foreground/10"
+            />
+            <button
+              type="button"
+              aria-label={t("next")}
+              onClick={onNext}
+              className="absolute inset-y-0 right-0 w-2/3 outline-none focus-visible:bg-foreground/10"
+            />
+            <OverlayLayer
+              overlays={story.overlays}
+              context={{
+                createdAt: new Date(story.createdAt),
+                music: music
+                  ? { title: music.title, artist: music.artist }
+                  : null,
+                poll,
+                mine,
+                answered,
+                onVote: vote,
+                onAnswer: () => setSheet("answer"),
+              }}
+            />
+            {notice ? (
+              <p
+                role="status"
+                className="absolute inset-x-0 bottom-4 mx-auto w-fit rounded-full bg-black/70 px-4 py-2 text-sm font-semibold text-white"
+              >
+                {notice}
+              </p>
+            ) : null}
+          </StoryFrame>
+        </div>
+        {sheet === "answer" && question?.kind === "question" ? (
+          <AnswerSheet
+            storyId={story.id}
+            prompt={question.prompt}
+            onClose={() => setSheet(null)}
+            onSent={() => {
+              setSheet(null);
+              setAnswered(true);
+              setNotice(tStudio("answerSent"));
+            }}
           />
-        )}
-        <button
-          type="button"
-          aria-label={t("previous")}
-          onClick={onPrevious}
-          className="absolute inset-y-0 left-0 w-1/3 outline-none focus-visible:bg-foreground/10"
-        >
-          <ChevronLeft aria-hidden="true" className="sr-only" />
-        </button>
-        <button
-          type="button"
-          aria-label={t("next")}
-          onClick={onNext}
-          className="absolute inset-y-0 right-0 w-2/3 outline-none focus-visible:bg-foreground/10"
-        >
-          <ChevronRight aria-hidden="true" className="sr-only" />
-        </button>
+        ) : null}
+        {sheet === "activity" ? (
+          <ActivitySheet
+            storyId={story.id}
+            now={now}
+            onClose={() => setSheet(null)}
+          />
+        ) : null}
       </div>
 
       {story.caption ? (
@@ -581,146 +795,397 @@ function StoryStage({
           {tErrors(error)}
         </p>
       ) : null}
+
+      {mine ? (
+        <button
+          type="button"
+          onClick={() => setSheet("activity")}
+          className="flex h-11 w-fit items-center gap-2 rounded-full px-3 text-sm font-semibold outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <Eye aria-hidden="true" className="size-5" />
+          {tStudio("viewedBy", { count: story.views })}
+        </button>
+      ) : (
+        <ReplyBar
+          storyId={story.id}
+          name={who}
+          open={sheet === "reply"}
+          onOpenChange={(open) => setSheet(open ? "reply" : null)}
+          onSent={(reaction) => {
+            setSheet(null);
+            setNotice(
+              reaction ? tStudio("reactionSent") : tStudio("replySent"),
+            );
+          }}
+        />
+      )}
     </>
   );
 }
 
-/** Nouvelle story : une photo ou une vidéo, une légende, puis « Publier ». */
-function StoryComposer({
+/**
+ * Répondre à une story : un message, ou une réaction rapide. Tout arrive dans la
+ * Messagerie de l'auteur, avec un aperçu de la story.
+ */
+function ReplyBar({
+  storyId,
+  name,
   open,
   onOpenChange,
-  onPosted,
+  onSent,
 }: {
+  storyId: string;
+  name: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onPosted: () => void;
+  onSent: (reaction: boolean) => void;
 }) {
-  const t = useTranslations("Community.stories");
-  const tErrors = useTranslations("Community.errors");
+  const tStudio = useTranslations("Community.stories.studio");
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const uploads = useMediaUploads();
-  const [caption, setCaption] = useState("");
-  const [error, setError] = useState<CommunityError | null>(null);
+  const [body, setBody] = useState("");
+  const [failed, setFailed] = useState(false);
   const [pending, startTransition] = useTransition();
-  const item = uploads.items[0];
-  const failure = error ?? uploads.error ?? item?.error ?? null;
 
-  function reset() {
-    uploads.reset();
-    setCaption("");
-    setError(null);
-  }
-
-  function publish() {
-    setError(null);
+  function send(text: string, reaction: boolean) {
+    setFailed(false);
     startTransition(async () => {
-      const result = await createStoryAction({
-        media: JSON.parse(uploads.payload) as unknown,
-        caption,
-      });
+      const result = await replyToStoryAction(storyId, text);
       if (!result.ok) {
-        setError(result.error);
+        setFailed(true);
         return;
       }
-      reset();
-      onPosted();
+      setBody("");
+      // Envoyé : le clavier se ferme et la story reprend
+      inputRef.current?.blur();
+      onSent(reaction);
     });
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(value) => {
-        if (!value) reset();
-        onOpenChange(value);
-      }}
-    >
-      <DialogContent closeLabel={t("cancel")} className="sm:max-w-md">
-        <DialogTitle>{t("composerTitle")}</DialogTitle>
-        <DialogDescription>{t("composerDescription")}</DialogDescription>
+    <div className="flex flex-col gap-2">
+      {open ? (
+        <div
+          role="group"
+          aria-label={tStudio("reactions")}
+          className="flex justify-around"
+        >
+          {STORY_REACTIONS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              aria-label={tStudio("react", { emoji })}
+              disabled={pending}
+              // Le champ garde le focus : la story reste en pause
+              onPointerDown={(event) => event.preventDefault()}
+              onClick={() => send(emoji, true)}
+              className="flex size-12 items-center justify-center rounded-full text-3xl transition-transform outline-none hover:scale-110 focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {failed ? (
+        <p role="alert" className="text-sm text-destructive">
+          {tStudio("replyFailed")}
+        </p>
+      ) : null}
+      <form
+        className="flex items-center gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          const text = body.trim();
+          if (text) send(text, false);
+        }}
+      >
+        <label htmlFor={`${id}-reply`} className="sr-only">
+          {tStudio("replyLabel", { name })}
+        </label>
         <input
           ref={inputRef}
-          type="file"
-          accept="image/*,video/*"
-          className="sr-only"
-          tabIndex={-1}
-          onChange={(event) => {
-            uploads.reset();
-            setError(null);
-            uploads.add(event.currentTarget.files);
-            event.currentTarget.value = "";
+          id={`${id}-reply`}
+          value={body}
+          maxLength={MESSAGE_MAX_LENGTH}
+          placeholder={tStudio("replyPlaceholder", { name })}
+          onFocus={() => onOpenChange(true)}
+          onBlur={() => {
+            if (!body.trim()) onOpenChange(false);
           }}
+          onChange={(event) => setBody(event.target.value)}
+          className="h-11 min-w-0 flex-1 rounded-full border border-foreground/30 bg-transparent px-4 text-base outline-none placeholder:text-foreground/60 focus-visible:border-foreground/70"
         />
-        {item ? (
-          <div className="relative overflow-hidden rounded-2xl bg-black">
-            {item.kind === "image" ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={item.previewUrl}
-                alt=""
-                className="max-h-[50dvh] w-full object-contain"
-              />
+        {body.trim() ? (
+          <Button
+            type="submit"
+            size="icon"
+            aria-label={tStudio("send")}
+            disabled={pending}
+            className="size-11 rounded-full"
+          >
+            {pending ? (
+              <LoaderCircle aria-hidden="true" className="animate-spin" />
             ) : (
-              <video
-                src={item.previewUrl}
-                muted
-                playsInline
-                className="max-h-[50dvh] w-full object-contain"
-              />
+              <SendHorizontal aria-hidden="true" />
             )}
-            {item.status === "processing" || item.status === "uploading" ? (
-              <span className="dark absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 text-sm font-medium">
-                <LoaderCircle
-                  aria-hidden="true"
-                  className="size-5 animate-spin"
-                />
-                {item.status === "uploading"
-                  ? t("uploading", { percent: Math.round(item.progress * 100) })
-                  : t("preparing")}
+          </Button>
+        ) : (
+          <button
+            type="button"
+            aria-label={tStudio("react", { emoji: "❤️" })}
+            disabled={pending}
+            onClick={() => send("❤️", true)}
+            className="flex size-11 shrink-0 items-center justify-center rounded-full outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <Heart aria-hidden="true" className="size-6" />
+          </button>
+        )}
+      </form>
+    </div>
+  );
+}
+
+/** Réponse à la question d'une story : lue par son auteur seulement. */
+function AnswerSheet({
+  storyId,
+  prompt,
+  onClose,
+  onSent,
+}: {
+  storyId: string;
+  prompt: string;
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const tStudio = useTranslations("Community.stories.studio");
+  const tErrors = useTranslations("Community.errors");
+  const id = useId();
+  const [body, setBody] = useState("");
+  const [error, setError] = useState<CommunityError | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <form
+      aria-label={prompt}
+      className="absolute inset-x-0 bottom-0 z-20 flex flex-col gap-3 rounded-3xl border border-foreground/10 bg-raised p-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        setError(null);
+        startTransition(async () => {
+          const result = await answerQuestionAction(storyId, body);
+          if (result.ok) onSent();
+          else setError(result.error);
+        });
+      }}
+    >
+      <div className="flex items-start gap-2">
+        <label
+          htmlFor={`${id}-answer`}
+          className="flex-1 text-base font-semibold break-words"
+        >
+          {prompt}
+        </label>
+        <button
+          type="button"
+          aria-label={tStudio("close")}
+          onClick={onClose}
+          className="-mt-1 flex size-10 shrink-0 items-center justify-center rounded-full outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <X aria-hidden="true" className="size-5" />
+        </button>
+      </div>
+      <textarea
+        id={`${id}-answer`}
+        autoFocus
+        rows={3}
+        value={body}
+        maxLength={STORY_ANSWER_MAX}
+        placeholder={tStudio("answerPlaceholder")}
+        onChange={(event) => setBody(event.target.value)}
+        className="resize-none rounded-xl border border-foreground/15 bg-foreground/5 p-3 text-base outline-none placeholder:text-foreground/50 focus-visible:ring-3 focus-visible:ring-ring/50"
+      />
+      <p className="text-xs text-muted-foreground">
+        {tStudio("answerPrivacy")}
+      </p>
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {tErrors(error)}
+        </p>
+      ) : null}
+      <Button
+        type="submit"
+        disabled={pending || !body.trim()}
+        className="h-11 rounded-full"
+      >
+        {pending ? (
+          <LoaderCircle aria-hidden="true" className="animate-spin" />
+        ) : null}
+        {tStudio("sendAnswer")}
+      </Button>
+    </form>
+  );
+}
+
+/** Activité de ma story : qui l'a vue, les votes du sondage, les réponses. */
+function ActivitySheet({
+  storyId,
+  now,
+  onClose,
+}: {
+  storyId: string;
+  now: number;
+  onClose: () => void;
+}) {
+  const tStudio = useTranslations("Community.stories.studio");
+  const format = useFormatter();
+  const [activity, setActivity] = useState<StoryActivity | null | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    let active = true;
+    void storyActivityAction(storyId).then((result) => {
+      if (active) setActivity(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, [storyId]);
+
+  return (
+    <div
+      role="dialog"
+      aria-label={tStudio("activity")}
+      className="absolute inset-x-0 bottom-0 z-20 flex max-h-[85%] flex-col gap-4 overflow-y-auto rounded-3xl border border-foreground/10 bg-raised p-4"
+    >
+      <div className="flex items-center gap-2">
+        <p className="text-base font-semibold">{tStudio("activity")}</p>
+        <button
+          type="button"
+          aria-label={tStudio("close")}
+          onClick={onClose}
+          className="ml-auto flex size-10 items-center justify-center rounded-full outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <X aria-hidden="true" className="size-5" />
+        </button>
+      </div>
+
+      {activity === undefined ? (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+          {tStudio("loading")}
+        </p>
+      ) : activity === null ? (
+        <p role="alert" className="text-sm text-destructive">
+          {tStudio("activityFailed")}
+        </p>
+      ) : (
+        <>
+          {activity.poll ? <PollResults poll={activity.poll} /> : null}
+
+          {activity.question ? (
+            <section className="flex flex-col gap-2">
+              <h3 className="caps-label text-muted-foreground">
+                {activity.question.prompt}
+              </h3>
+              {activity.question.answers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {tStudio("noAnswers")}
+                </p>
+              ) : (
+                <ul className="flex flex-col">
+                  {activity.question.answers.map((answer) => (
+                    <li
+                      key={answer.id}
+                      className="border-b border-foreground/8 py-2"
+                    >
+                      <p className="text-sm font-semibold">{answer.name}</p>
+                      <p className="text-base break-words whitespace-pre-wrap">
+                        {answer.body}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+
+          <section className="flex flex-col gap-2">
+            <h3 className="caps-label text-muted-foreground">
+              {tStudio("viewedBy", { count: activity.views.length })}
+            </h3>
+            {activity.views.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {tStudio("noViews")}
+              </p>
+            ) : (
+              <ul className="flex flex-col">
+                {activity.views.map((viewer) => (
+                  <li
+                    key={viewer.id}
+                    className="flex items-center gap-3 border-b border-foreground/8 py-2"
+                  >
+                    <Avatar
+                      name={viewer.name}
+                      url={viewer.avatarUrl}
+                      className="size-9"
+                    />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      {viewer.username ? (
+                        <Link
+                          href={`/community/members/${viewer.username}`}
+                          className="truncate text-sm font-semibold hover:underline"
+                        >
+                          {viewer.name}
+                        </Link>
+                      ) : (
+                        <span className="truncate text-sm font-semibold">
+                          {viewer.name}
+                        </span>
+                      )}
+                      <time
+                        dateTime={viewer.viewedAt}
+                        className="text-xs text-muted-foreground"
+                      >
+                        {format.relativeTime(new Date(viewer.viewedAt), now)}
+                      </time>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
+      )}
+    </div>
+  );
+}
+
+/** Résultats du sondage pour l'auteur : chaque option, son nombre de votes et qui l'a choisie. */
+function PollResults({ poll }: { poll: NonNullable<StoryActivity["poll"]> }) {
+  const tStudio = useTranslations("Community.stories.studio");
+  const format = useFormatter();
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="caps-label text-muted-foreground">{poll.question}</h3>
+      {poll.options.map((option, choice) => {
+        const voters = poll.voters.filter((voter) => voter.choice === choice);
+        return (
+          <div key={choice} className="border-b border-foreground/8 pb-2">
+            <p className="flex items-baseline gap-2 font-semibold">
+              <span className="min-w-0 flex-1 truncate">{option}</span>
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {tStudio("votes", { count: poll.counts[choice] ?? 0 })}
               </span>
+            </p>
+            {voters.length > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {format.list(voters.map((voter) => voter.name))}
+              </p>
             ) : null}
           </div>
-        ) : null}
-        <Button
-          type="button"
-          variant="outline"
-          className="w-fit"
-          onClick={() => inputRef.current?.click()}
-        >
-          <ImagePlus aria-hidden="true" />
-          {item ? t("change") : t("pick")}
-        </Button>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`${id}-caption`} className="text-sm font-medium">
-            {t("caption")}
-          </label>
-          <Input
-            id={`${id}-caption`}
-            value={caption}
-            maxLength={STORY_CAPTION_MAX}
-            placeholder={t("captionPlaceholder")}
-            onChange={(event) => setCaption(event.currentTarget.value)}
-          />
-        </div>
-        {failure ? (
-          <p role="alert" className="text-sm text-destructive">
-            {tErrors(failure)}
-          </p>
-        ) : null}
-        <Button
-          type="button"
-          disabled={
-            pending || !item || item.status !== "done" || !uploads.ready
-          }
-          onClick={publish}
-        >
-          {pending ? (
-            <LoaderCircle aria-hidden="true" className="animate-spin" />
-          ) : null}
-          {pending ? t("publishing") : t("publish")}
-        </Button>
-      </DialogContent>
-    </Dialog>
+        );
+      })}
+    </section>
   );
 }

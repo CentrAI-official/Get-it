@@ -1,5 +1,5 @@
 import "server-only";
-import type { DayMoment } from "@/config/moments";
+import { momentOfMinute, type DayMoment } from "@/config/moments";
 import type { Pillar } from "@/config/pillars";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
 import { habitDayXp } from "@/features/xp/rules";
@@ -22,6 +22,8 @@ export type HabitSummary = {
   startDay: string;
   /** Jours faits, « AAAA-MM-JJ », du plus ancien au plus récent. */
   completions: string[];
+  /** Heure prévue (minutes depuis minuit) ; null : pas d'heure. */
+  time: number | null;
 };
 
 /** Toutes les habitudes, avec leurs jours faits (pour calculer les séries). */
@@ -39,6 +41,7 @@ export async function listHabits(
       weekdays: true,
       archivedAt: true,
       createdAt: true,
+      timeMinute: true,
       goal: { select: { id: true, title: true } },
       completions: { orderBy: { day: "asc" }, select: { day: true } },
     },
@@ -55,6 +58,7 @@ export async function listHabits(
     completions: habit.completions.map((completion) =>
       fromDbDate(completion.day),
     ),
+    time: habit.timeMinute,
   }));
 }
 
@@ -68,6 +72,7 @@ export async function getHabit(userId: string, habitId: string) {
       pillar: true,
       weekdays: true,
       moment: true,
+      timeMinute: true,
       goal: { select: { id: true, title: true } },
       archivedAt: true,
     },
@@ -75,15 +80,18 @@ export async function getHabit(userId: string, habitId: string) {
   return habit ? { ...habit, archived: habit.archivedAt !== null } : null;
 }
 
-/** Moment de la journée d'une habitude (calendrier « Semaine »). Faux si elle n'existe pas. */
-export async function setHabitMoment(
+/**
+ * Heure et moment d'une habitude (calendrier : « Modifier »). Faux si elle
+ * n'existe pas pour cet utilisateur.
+ */
+export async function setHabitSchedule(
   userId: string,
   habitId: string,
-  moment: DayMoment | null,
+  input: { time: number | null; moment: DayMoment | null },
 ) {
   const { count } = await db.habit.updateMany({
     where: { id: habitId, userId },
-    data: { moment },
+    data: { timeMinute: input.time, moment: input.moment },
   });
   return count > 0;
 }
@@ -94,6 +102,8 @@ type HabitFields = {
   weekdays: number[];
   goalId: string | null;
   moment: DayMoment | null;
+  /** Heure prévue (minutes depuis minuit) ; elle range l'habitude dans son moment. */
+  time: number | null;
 };
 
 /** Seulement les colonnes de l'habitude (l'entrée validée contient aussi la langue). */
@@ -103,7 +113,8 @@ function toHabitData(input: HabitFields) {
     pillar: input.pillar,
     weekdays: input.weekdays,
     goalId: input.goalId,
-    moment: input.moment,
+    moment: input.time === null ? input.moment : momentOfMinute(input.time),
+    timeMinute: input.time,
   };
 }
 

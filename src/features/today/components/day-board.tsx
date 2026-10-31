@@ -115,6 +115,7 @@ export function DayBoard({
         pillar: habit.pillar,
         done: isDone,
         xp: xp.items[key] ?? 0,
+        time: habit.time,
         late: false,
         streak: current,
         days: habitDays(completions, habit.weekdays, today),
@@ -133,12 +134,18 @@ export function DayBoard({
           pillar: task.goal?.pillar ?? null,
           done: done[key] ?? false,
           xp: xp.items[key] ?? 0,
+          time: task.time,
           late: task.dueDate !== null && task.dueDate < today,
           dueDate: task.dueDate,
           goalTitle: task.goal?.title ?? null,
         };
       }),
-  ].sort((a, b) => pillarRank(a.pillar) - pillarRank(b.pillar));
+  ].sort(
+    (a, b) =>
+      // Ce qui a une heure d’abord, dans l’ordre des heures ; puis par pilier
+      (a.time ?? Infinity) - (b.time ?? Infinity) ||
+      pillarRank(a.pillar) - pillarRank(b.pillar),
+  );
 
   // Mode Focus : ordre de passage figé à l'ouverture, « Plus tard » le temps
   // de l'ouverture seulement

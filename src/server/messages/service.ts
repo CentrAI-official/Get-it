@@ -43,6 +43,8 @@ import {
   getContactState,
 } from "@/server/contacts/service";
 import { avatarUrls } from "@/server/profile/avatar";
+import { signedUrls } from "@/server/storage/service";
+import { visibleStory } from "@/server/stories/access";
 import { getDisplayLevels } from "@/server/ranked/service";
 import { notify } from "@/server/notifications/service";
 import {
@@ -81,7 +83,7 @@ export type ChatMessage = {
   id: string;
   senderId: string;
   mine: boolean;
-  kind: "text" | "progress" | "pact" | "post";
+  kind: "text" | "progress" | "pact" | "post" | "story";
   /** Texte ; pour un pacte, l'étape (« proposed », « ended », « cancelled »). */
   body: string;
   progress: ProgressData | null;
@@ -90,6 +92,11 @@ export type ChatMessage = {
    * la voir, ou « unavailable » (supprimée, retirée, auteur bloqué).
    */
   post: SharedPost | "unavailable" | null;
+  /**
+   * Story à laquelle le message répond (message « story ») : son aperçu tant
+   * qu'elle est en ligne, sinon « unavailable ».
+   */
+  story: { thumbnailUrl: string } | "unavailable" | null;
   /** Photos ou vidéo jointes (liens de lecture temporaires). */
   media: FeedMedia[];
   /** Le pacte d'un message « pact », dans son état actuel. */
@@ -111,7 +118,7 @@ export type InboxItem = {
   unread: boolean;
   lastMessage: {
     mine: boolean;
-    kind: "text" | "progress" | "pact" | "post";
+    kind: "text" | "progress" | "pact" | "post" | "story";
     body: string;
     deleted: boolean;
     /** Première photo ou vidéo jointe, pour l'aperçu sans texte. */
@@ -150,6 +157,7 @@ const messageSelect = {
   progress: true,
   pactId: true,
   postId: true,
+  storyId: true,
   mediaCount: true,
   deletedAt: true,
   createdAt: true,
@@ -164,6 +172,7 @@ function toChatMessage(
   pacts: Map<string, PactCard> = new Map(),
   posts: Map<string, SharedPost> = new Map(),
   media: Map<string, FeedMedia[]> = new Map(),
+  stories: Map<string, string> = new Map(),
 ): ChatMessage {
   const progress = row.progress
     ? progressDataSchema.safeParse(row.progress)
@@ -180,6 +189,12 @@ function toChatMessage(
       row.kind === "post" && !row.deletedAt
         ? ((row.postId ? posts.get(row.postId) : undefined) ?? "unavailable")
         : null,
+    story:
+      row.kind === "story" && !row.deletedAt
+        ? row.storyId && stories.has(row.storyId)
+          ? { thumbnailUrl: stories.get(row.storyId)! }
+          : "unavailable"
+        : null,
     media: row.deletedAt ? [] : (media.get(row.id) ?? []),
     deleted: row.deletedAt !== null,
     createdAt: row.createdAt.toISOString(),
@@ -188,6 +203,32 @@ function toChatMessage(
       mine: reaction.userId === viewerId,
     })),
   };
+}
+
+/**
+ * Aperçus des stories citées par des réponses, tant qu'elles sont en ligne :
+ * la photo, ou l'image d'aperçu d'une vidéo (liens temporaires).
+ */
+async function storyThumbnails(storyIds: string[]) {
+  const thumbnails = new Map<string, string>();
+  if (storyIds.length === 0) return thumbnails;
+  const rows = await db.story.findMany({
+    where: {
+      id: { in: [...new Set(storyIds)] },
+      status: "visible",
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true, kind: true, path: true, posterPath: true },
+  });
+  const pathOf = (row: (typeof rows)[number]) =>
+    row.kind === "image" ? row.path : row.posterPath;
+  const urls = await signedUrls(rows.flatMap((row) => pathOf(row) ?? []));
+  for (const row of rows) {
+    const path = pathOf(row);
+    const url = path ? urls.get(path) : undefined;
+    if (url) thumbnails.set(row.id, url);
+  }
+  return thumbnails;
 }
 
 /** Peut écrire : membre du Centre et pas suspendu. */
@@ -530,7 +571,7 @@ async function messagesPage(
     select: messageSelect,
   });
   const page = rows.slice(0, MESSAGE_PAGE_SIZE);
-  const [pacts, posts, media] = await Promise.all([
+  const [pacts, posts, media, stories] = await Promise.all([
     pactCardsFor(viewerId, [
       ...new Set(page.flatMap((row) => (row.pactId ? [row.pactId] : []))),
     ]),
@@ -543,12 +584,13 @@ async function messagesPage(
         .filter((row) => row.mediaCount > 0 && !row.deletedAt)
         .map((row) => row.id),
     ),
+    storyThumbnails(page.flatMap((row) => (row.storyId ? [row.storyId] : []))),
   ]);
   return {
     // Du plus ancien au plus récent, pour l'affichage
     messages: page
       .reverse()
-      .map((row) => toChatMessage(viewerId, row, pacts, posts, media)),
+      .map((row) => toChatMessage(viewerId, row, pacts, posts, media, stories)),
     hasMore: rows.length > MESSAGE_PAGE_SIZE,
   };
 }
@@ -739,7 +781,8 @@ async function sendAccess(
 export type MessageInput =
   | { kind: "text"; body: string; media?: PostMediaInput }
   | { kind: "progress"; source: ProgressSource; body: string }
-  | { kind: "post"; postId: string; body: string };
+  | { kind: "post"; postId: string; body: string }
+  | { kind: "story"; storyId: string; body: string };
 
 /** Envoie un message (texte, ou progrès réel revérifié et figé par le serveur). */
 export async function sendMessage(
@@ -781,6 +824,25 @@ export async function sendMessage(
     if (!post) return { ok: false, error: "notFound" };
     postId = post.id;
   }
+  // Réponse à une story : celle d'un autre membre de cette conversation à deux
+  let storyId: string | null = null;
+  if (input.kind === "story") {
+    const story = await visibleStory(viewerId, input.storyId);
+    const member = story
+      ? await db.conversationMember.findFirst({
+          where: {
+            conversationId,
+            userId: story.userId,
+            conversation: { groupId: null },
+          },
+          select: { userId: true },
+        })
+      : null;
+    if (!story || story.userId === viewerId || !member) {
+      return { ok: false, error: "notFound" };
+    }
+    storyId = story.id;
+  }
 
   const now = new Date();
   const message = await db.$transaction(
@@ -793,6 +855,7 @@ export async function sendMessage(
           body: input.body,
           progress: progress ?? Prisma.DbNull,
           postId,
+          storyId,
           mediaCount: mediaRows.length,
           createdAt: now,
         },
@@ -821,14 +884,15 @@ export async function sendMessage(
     },
     { maxWait: 10_000, timeout: 20_000 },
   );
-  const [posts, media] = await Promise.all([
+  const [posts, media, stories] = await Promise.all([
     sharedPostsFor(viewerId, postId ? [postId] : []),
     messageMediaFor(mediaRows.length > 0 ? [message.id] : []),
+    storyThumbnails(storyId ? [storyId] : []),
     notifyMessage(viewerId, conversationId),
   ]);
   return {
     ok: true,
-    message: toChatMessage(viewerId, message, undefined, posts, media),
+    message: toChatMessage(viewerId, message, undefined, posts, media, stories),
   };
 }
 

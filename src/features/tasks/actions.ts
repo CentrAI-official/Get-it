@@ -7,12 +7,7 @@ import {
   type ItemFormState,
 } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
-import {
-  addTask,
-  deleteTask,
-  setTaskDone,
-  updateTask,
-} from "@/server/tasks/service";
+import { addTask, deleteTask, setTaskDone } from "@/server/tasks/service";
 import { taskFormSchema } from "./schemas";
 
 // Points d'entrée publics : session, identifiants et saisies sont revalidés ici.
@@ -46,31 +41,6 @@ export async function addTaskAction(
   } catch (error) {
     console.error("Ajout de la tâche impossible", error);
     return { status: "error", error: "unexpected", values };
-  }
-  refresh();
-  return { status: "success" };
-}
-
-/** Renomme une tâche ou change son échéance (calendrier : glisser, puis « Modifier »). */
-export async function updateTaskAction(
-  taskId: string,
-  _previous: ItemFormState,
-  formData: FormData,
-): Promise<ItemFormState> {
-  const user = await requireUser();
-  const id = recordIdSchema.safeParse(taskId);
-  if (!id.success) return { status: "error", error: "notFound" };
-
-  const parsed = taskFormSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) {
-    return { status: "error", error: firstGoalError(parsed.error) };
-  }
-  try {
-    const updated = await updateTask(user.id, id.data, parsed.data);
-    if (!updated) return { status: "error", error: "notFound" };
-  } catch (error) {
-    console.error("Modification de la tâche impossible", error);
-    return { status: "error", error: "unexpected" };
   }
   refresh();
   return { status: "success" };

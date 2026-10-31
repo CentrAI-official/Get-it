@@ -268,6 +268,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       progress: input.kind === "progress" ? input.progress : null,
       pact: null,
       post: null,
+      story: null,
       media: input.kind === "text" ? (input.previews ?? []) : [],
       deleted: false,
       createdAt: new Date().toISOString(),

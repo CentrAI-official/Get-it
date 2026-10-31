@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { Pillar } from "@/config/pillars";
 import { AddItemForm } from "@/features/goals/components/checklist";
 import { addTaskAction } from "@/features/tasks/actions";
-import { toDbDate } from "@/lib/dates";
+import { clockDate, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import type { FocusDay } from "../focus";
 
@@ -19,6 +19,8 @@ type QuestBase = {
   done: boolean;
   /** XP rapportée (ou déjà gagnée) ; 0 au-delà du plafond quotidien de tâches. */
   xp: number;
+  /** Heure prévue (minutes depuis minuit) ; null : pas d’heure. */
+  time: number | null;
 };
 
 export type HabitQuest = QuestBase & {
@@ -197,8 +199,19 @@ export function useQuestMeta() {
       : meta;
   }
 
-  return (quest: Quest) =>
-    quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
+  return (quest: Quest) => {
+    const meta = quest.kind === "habit" ? habitMeta(quest) : taskMeta(quest);
+    return quest.time === null
+      ? meta
+      : t("atTime", {
+          time: format.dateTime(clockDate(quest.time), {
+            hour: "numeric",
+            minute: "2-digit",
+            timeZone: "UTC",
+          }),
+          meta,
+        });
+  };
 }
 
 /** Pacte en cours sur une habitude : jour du pacte et part du partenaire. */

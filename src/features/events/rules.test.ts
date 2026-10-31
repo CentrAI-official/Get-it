@@ -8,9 +8,9 @@ import {
   EVENT_TITLE_MAX,
   eventFieldErrors,
   eventFormSchema,
-  eventMoment,
   occursOn,
 } from "./rules";
+import { momentOfMinute } from "@/config/moments";
 
 const valid = {
   locale: "fr",
@@ -145,11 +145,11 @@ describe("occursOn", () => {
   });
 });
 
-describe("eventMoment", () => {
-  it("place l'événement dans le matin, le midi ou le soir", () => {
-    expect(eventMoment(9 * 60)).toBe("morning");
-    expect(eventMoment(12 * 60 + 15)).toBe("noon");
-    expect(eventMoment(18 * 60)).toBe("evening");
+describe("momentOfMinute", () => {
+  it("range une heure dans le matin, le midi ou le soir", () => {
+    expect(momentOfMinute(9 * 60)).toBe("morning");
+    expect(momentOfMinute(12 * 60 + 15)).toBe("noon");
+    expect(momentOfMinute(18 * 60)).toBe("evening");
   });
 });
 

@@ -258,9 +258,11 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
         ? t("progress")
         : last.kind === "post" && !last.body
           ? t("post")
-          : !last.body && last.media
-            ? t(last.media === "video" ? "video" : "photo")
-            : last.body;
+          : last.kind === "story"
+            ? t("story", { text: last.body })
+            : !last.body && last.media
+              ? t(last.media === "video" ? "video" : "photo")
+              : last.body;
   const preview = last.mine
     ? t("you", { text })
     : item.group

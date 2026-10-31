@@ -66,6 +66,7 @@ export function HeroPreview() {
       pillar: quest.pillar,
       done: isDone,
       xp: XP_REWARDS.habitScheduled,
+      time: null,
       late: false,
       streak: quest.streak + (isDone ? 1 : 0),
     };

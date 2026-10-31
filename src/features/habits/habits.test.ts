@@ -84,8 +84,15 @@ describe("habitFormSchema", () => {
       pillar: "mental",
       weekdays: [1, 3, 5],
       moment: null,
+      time: null,
       goalId: null,
     });
+  });
+
+  it("lit l'heure facultative en minutes, ignore une heure invalide", () => {
+    expect(habitFormSchema.parse({ ...valid, time: "07:15" }).time).toBe(435);
+    expect(habitFormSchema.parse({ ...valid, time: "" }).time).toBeNull();
+    expect(habitFormSchema.parse({ ...valid, time: "25:00" }).time).toBeNull();
   });
 
   it("garde un moment de la journée valide, sinon « n'importe quand »", () => {

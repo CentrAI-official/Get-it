@@ -114,6 +114,9 @@ export function MessageBubble({
             t("deleted")
           ) : (
             <span className="flex flex-col gap-2">
+              {message.story ? (
+                <StoryReply story={message.story} mine={mine} />
+              ) : null}
               {message.progress ? (
                 <ProgressShare progress={message.progress} className="-mx-1" />
               ) : null}
@@ -211,5 +214,35 @@ export function MessageBubble({
         </time>
       ) : null}
     </div>
+  );
+}
+
+/** Réponse à une story : l'aperçu de la story (ou « Story terminée ») au-dessus du message. */
+function StoryReply({
+  story,
+  mine,
+}: {
+  story: NonNullable<ChatMessage["story"]>;
+  mine: boolean;
+}) {
+  const t = useTranslations("Messages.conversation");
+  return (
+    <span className="flex flex-col gap-1.5">
+      <span className="text-xs text-muted-foreground">
+        {mine ? t("storyReplyMine") : t("storyReplyTheirs")}
+      </span>
+      {story === "unavailable" ? (
+        <span className="flex aspect-[9/16] w-20 items-center justify-center rounded-xl border border-dashed border-foreground/20 p-2 text-center text-xs text-muted-foreground">
+          {t("storyUnavailable")}
+        </span>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={story.thumbnailUrl}
+          alt=""
+          className="aspect-[9/16] w-20 rounded-xl object-cover"
+        />
+      )}
+    </span>
   );
 }

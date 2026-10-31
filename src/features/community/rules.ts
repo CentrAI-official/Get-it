@@ -190,6 +190,11 @@ export const COMMUNITY_ERRORS = [
   "groupJoinRequired",
   "storyLimit",
   "storyCaptionTooLong",
+  "storyOverlays",
+  "storyMention",
+  "storyStreak",
+  "storyMusic",
+  "storyAnswerInvalid",
   "unexpected",
 ] as const;
 

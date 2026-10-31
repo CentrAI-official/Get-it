@@ -36,6 +36,7 @@ import {
 } from "@/features/settings/components/details-settings";
 import { PushSettingsCard } from "@/features/notifications/components/push-settings-card";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
+import { MusicCatalogLink } from "@/features/stories/components/music-panels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("App.settings");
@@ -93,6 +94,10 @@ export default function SettingsPage() {
       </Suspense>
       <Suspense fallback={<CommunitySettingsSkeleton />}>
         <CommunitySettings />
+      </Suspense>
+      {/* Équipe Get iT seulement : rien ne s'affiche pour les autres */}
+      <Suspense fallback={null}>
+        <MusicCatalogLink />
       </Suspense>
       <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>

@@ -124,6 +124,10 @@ model Profile {
   postReactions        PostReaction[]
   postSaves            PostSave[]
   stories              Story[]
+  storyViews           StoryView[]          @relation("StoryViewer")
+  storyPollVotes       StoryPollVote[]      @relation("StoryPollVoter")
+  storyAnswers         StoryAnswer[]        @relation("StoryAnswerer")
+  musicTracksAdded     MusicTrack[]         @relation("MusicTrackAdder")
   videoViews           PostVideoView[]
   notifications        Notification[]       @relation("NotificationRecipient")
   notificationsSent    Notification[]       @relation("NotificationActor")
@@ -247,6 +251,8 @@ model Task {
   completedAt       DateTime?  @map("completed_at") @db.Timestamptz(3)
   /// Moment de la journée choisi (calendrier « Semaine ») ; null : dans la journée.
   moment            DayMoment?
+  /// Heure prévue (minutes depuis minuit, 0 à 1439) ; null : pas d'heure.
+  timeMinute        Int?       @map("time_minute") @db.SmallInt
   /// Plan de « Mon développement » d'où vient la tâche ; détachée si le plan est supprimé.
   developmentPlanId String?    @map("development_plan_id") @db.Uuid
   createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -292,6 +298,8 @@ model Habit {
   archivedAt        DateTime?  @map("archived_at") @db.Timestamptz(3)
   /// Moment de la journée choisi (calendrier « Semaine ») ; null : dans la journée.
   moment            DayMoment?
+  /// Heure prévue (minutes depuis minuit, 0 à 1439) ; null : pas d'heure.
+  timeMinute        Int?       @map("time_minute") @db.SmallInt
   /// Plan de « Mon développement » d'où vient l'habitude ; détachée si le plan est supprimé.
   developmentPlanId String?    @map("development_plan_id") @db.Uuid
   createdAt         DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -830,6 +838,8 @@ enum MessageKind {
   pact
   /// Publication du Centre envoyée dans la conversation (mot facultatif).
   post
+  /// Réponse à une story (texte ou réaction emoji), avec son aperçu tant qu'elle existe.
+  story
 }
 
 /// Réactions de la Messagerie : Bravo, Force, Fier de toi, Merci.
@@ -892,6 +902,8 @@ model Message {
   pactId         String?     @map("pact_id") @db.Uuid
   /// Publication envoyée (message « post ») ; vide si elle a été supprimée.
   postId         String?     @map("post_id") @db.Uuid
+  /// Story à laquelle le message répond (message « story ») ; vide si elle a été supprimée.
+  storyId        String?     @map("story_id") @db.Uuid
   /// Photos ou vidéo jointes (0 à 4) : un message avec médias peut être sans texte.
   mediaCount     Int         @default(0) @map("media_count") @db.SmallInt
   /// Supprimé par son auteur ou retiré par la modération : contenu effacé.
@@ -902,6 +914,7 @@ model Message {
   sender       Profile           @relation(fields: [senderId], references: [id], onDelete: Cascade)
   pact         Pact?             @relation(fields: [pactId], references: [id], onDelete: Cascade)
   post         Post?             @relation(fields: [postId], references: [id], onDelete: SetNull)
+  story        Story?            @relation(fields: [storyId], references: [id], onDelete: SetNull)
   media        MessageMedia[]
   reactions    MessageReaction[]
   reports      ContentReport[]
@@ -909,6 +922,7 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId, createdAt])
   @@index([postId])
+  @@index([storyId])
   @@map("messages")
 }
 
@@ -1221,27 +1235,112 @@ model ListingFavorite {
 /// Story du Centre : une photo ou une vidéo, visible 24 heures par les contacts
 /// de son auteur. Fichiers dans posts/<userId> (supprimés avec la story ou le compte).
 model Story {
-  id         String        @id @default(uuid(7)) @db.Uuid
-  userId     String        @map("user_id") @db.Uuid
-  kind       MediaKind
-  path       String
-  posterPath String?       @map("poster_path")
-  width      Int
-  height     Int
-  durationMs Int?          @map("duration_ms")
-  sizeBytes  Int           @map("size_bytes")
-  caption    String        @default("")
+  id           String        @id @default(uuid(7)) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  kind         MediaKind
+  path         String
+  posterPath   String?       @map("poster_path")
+  width        Int
+  height       Int
+  durationMs   Int?          @map("duration_ms")
+  sizeBytes    Int           @map("size_bytes")
+  caption      String        @default("")
   /// Masquée après 3 signalements, ou retirée par la modération.
-  status     ContentStatus @default(visible)
-  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
-  expiresAt  DateTime      @map("expires_at") @db.Timestamptz(3)
+  status       ContentStatus @default(visible)
+  /// Textes, emoji et stickers posés sur le média (src/features/stories/studio.ts).
+  overlays     Json          @default("[]")
+  /// Musique du catalogue Get iT ; vide si le morceau a été retiré.
+  musicTrackId String?       @map("music_track_id") @db.Uuid
+  /// Début de l'extrait (ms) ; l'extrait dure 15 s.
+  musicStartMs Int?          @map("music_start_ms")
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt    DateTime      @map("expires_at") @db.Timestamptz(3)
 
-  profile Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reports ContentReport[]
+  profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  musicTrack MusicTrack?     @relation(fields: [musicTrackId], references: [id], onDelete: SetNull)
+  reports    ContentReport[]
+  views      StoryView[]
+  pollVotes  StoryPollVote[]
+  answers    StoryAnswer[]
+  messages   Message[]
 
   @@index([userId, expiresAt])
   @@index([expiresAt])
+  @@index([musicTrackId, createdAt])
   @@map("stories")
+}
+
+/// Morceau du catalogue Get iT (libre de droits, licence qui permet l'usage dans l'app).
+model MusicTrack {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  title      String
+  artist     String
+  /// Ambiances et genres : recherche et « Pour toi ».
+  moods      String[] @default([])
+  /// Piliers associés : « Pour toi » selon les piliers prioritaires.
+  pillars    Pillar[] @default([])
+  /// Fichier audio dans le compartiment privé « media » (dossier music/).
+  path       String
+  durationMs Int      @map("duration_ms")
+  sizeBytes  Int      @map("size_bytes")
+  /// Source et licence qui permettent l'usage dans l'application.
+  license    String
+  /// Retiré du catalogue : n'est plus proposé (les stories le gardent jusqu'à leur fin).
+  active     Boolean  @default(true)
+  addedById  String?  @map("added_by_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  addedBy Profile? @relation("MusicTrackAdder", fields: [addedById], references: [id], onDelete: SetNull)
+  stories Story[]
+
+  @@index([active, createdAt])
+  @@map("music_tracks")
+}
+
+/// Une personne a vu une story (liste « Vu par », montrée à l'auteur seulement).
+model StoryView {
+  storyId  String   @map("story_id") @db.Uuid
+  viewerId String   @map("viewer_id") @db.Uuid
+  viewedAt DateTime @default(now()) @map("viewed_at") @db.Timestamptz(3)
+
+  story   Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  profile Profile @relation("StoryViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, viewerId])
+  @@index([viewerId])
+  @@map("story_views")
+}
+
+/// Vote au sondage d'une story : un par personne (0 ou 1, l'option choisie).
+model StoryPollVote {
+  storyId   String   @map("story_id") @db.Uuid
+  voterId   String   @map("voter_id") @db.Uuid
+  choice    Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  story   Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  profile Profile @relation("StoryPollVoter", fields: [voterId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, voterId])
+  @@index([voterId])
+  @@map("story_poll_votes")
+}
+
+/// Réponse à la question d'une story : une par personne, lue par l'auteur seulement.
+model StoryAnswer {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  storyId   String   @map("story_id") @db.Uuid
+  authorId  String   @map("author_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  story   Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  profile Profile @relation("StoryAnswerer", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, authorId])
+  @@index([authorId])
+  @@map("story_answers")
 }
 
 enum NotificationKind {
@@ -1253,6 +1352,8 @@ enum NotificationKind {
   pact
   comment
   like
+  /// Réponse à la question d'une story.
+  story
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.

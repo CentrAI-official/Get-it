@@ -2,6 +2,7 @@ import { z } from "zod";
 import { DAY_MOMENTS } from "@/config/moments";
 import { PILLARS } from "@/config/pillars";
 import { routing } from "@/i18n/routing";
+import { parseClock } from "@/lib/dates";
 import { fieldErrorsFrom } from "@/lib/form-errors";
 
 /** Erreurs affichables pour les habitudes (clés de `Habits.errors`). */
@@ -64,6 +65,17 @@ export const habitFormSchema = z.object({
       (value) => (value === "" || value === undefined ? null : value),
       z.enum(DAY_MOMENTS).nullable(),
     )
+    .catch(null),
+  /** Heure prévue, facultative : « HH:MM » → minutes depuis minuit ; vide → null. */
+  time: z
+    .preprocess(
+      (value) => (value === "" || value === undefined ? null : value),
+      z
+        .string()
+        .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+        .nullable(),
+    )
+    .transform((value) => (value === null ? null : parseClock(value)))
     .catch(null),
   /** Objectif lié, facultatif : champ vide → null. */
   goalId: z

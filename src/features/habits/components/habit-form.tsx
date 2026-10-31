@@ -16,9 +16,15 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DAY_MOMENTS, momentIcons, type DayMoment } from "@/config/moments";
+import {
+  DAY_MOMENTS,
+  momentIcons,
+  momentOfMinute,
+  type DayMoment,
+} from "@/config/moments";
 import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
 import { Link } from "@/i18n/navigation";
+import { formatClock, parseClock } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import {
   HABIT_TITLE_MAX_LENGTH,
@@ -47,6 +53,8 @@ type HabitFormProps = {
     weekdays: number[];
     goalId: string;
     moment: DayMoment | null;
+    /** Heure prévue (minutes depuis minuit) ; null : pas d'heure. */
+    time: number | null;
   };
   submitLabel: string;
   pendingLabel: string;
@@ -79,6 +87,11 @@ export function HabitForm({
   const [moment, setMoment] = useState<DayMoment | null>(
     defaults?.moment ?? null,
   );
+  const [time, setTime] = useState(
+    defaults?.time == null ? "" : formatClock(defaults.time),
+  );
+  // Une heure range l'habitude : le moment en découle
+  const minute = parseClock(time);
   const errors = state.fieldErrors ?? {};
 
   function toggleWeekday(weekday: number) {
@@ -227,6 +240,36 @@ export function HabitForm({
           ) : null}
         </FieldSet>
 
+        {/* Heure, facultative : elle range l'habitude dans son moment */}
+        <Field>
+          <FieldLabel htmlFor={`${id}-time`}>
+            {t("form.timeLabel")}
+            <span className="font-normal text-muted-foreground">
+              ({t("form.optional")})
+            </span>
+          </FieldLabel>
+          <div className="flex max-w-xs gap-2">
+            <Input
+              id={`${id}-time`}
+              name="time"
+              type="time"
+              value={time}
+              onChange={(change) => setTime(change.target.value)}
+              className="h-10 flex-1"
+            />
+            {time ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10"
+                onClick={() => setTime("")}
+              >
+                {t("form.clearTime")}
+              </Button>
+            ) : null}
+          </div>
+        </Field>
+
         {/* Moment de la journée : place l'habitude dans la vue « Semaine » */}
         <FieldSet>
           <FieldLegend variant="label">
@@ -235,6 +278,11 @@ export function HabitForm({
               ({t("form.optional")})
             </span>
           </FieldLegend>
+          {minute === null ? null : (
+            <p className="text-sm text-muted-foreground">
+              {t("form.momentFromTime")}
+            </p>
+          )}
           <div
             role="radiogroup"
             aria-label={t("form.momentLabel")}
@@ -242,16 +290,18 @@ export function HabitForm({
           >
             {[...DAY_MOMENTS, null].map((value) => {
               const Icon = value ? momentIcons[value] : null;
-              const active = moment === value;
+              const active =
+                (minute === null ? moment : momentOfMinute(minute)) === value;
               return (
                 <button
                   key={value ?? "none"}
                   type="button"
                   role="radio"
                   aria-checked={active}
+                  disabled={minute !== null}
                   onClick={() => setMoment(value)}
                   className={cn(
-                    "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    "flex h-10 items-center gap-2 rounded-full border px-4 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-default disabled:opacity-70",
                     active
                       ? "border-primary bg-primary/10 text-foreground"
                       : "border-input text-muted-foreground hover:text-foreground",

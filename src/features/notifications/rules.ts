@@ -11,6 +11,7 @@ export const NOTIFICATION_KINDS = [
   "pact",
   "comment",
   "like",
+  "story",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 

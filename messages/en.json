@@ -687,7 +687,10 @@
       "creating": "Creating…",
       "save": "Save",
       "saving": "Saving…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "timeLabel": "At what time?",
+      "clearTime": "No time",
+      "momentFromTime": "With a time, the habit is placed by it."
     },
     "manage": {
       "title": "Manage habit",
@@ -775,7 +778,8 @@
       "withStreak": "{meta} · {count, number}-day streak",
       "pact": "Pact with {name} · day {day, number}/{days, number}",
       "pactPartnerDone": "{name} already did their part",
-      "pactPartnerPending": "{name} hasn’t done their part yet"
+      "pactPartnerPending": "{name} hasn’t done their part yet",
+      "atTime": "{time} · {meta}"
     },
     "checkIn": {
       "title": "Daily check-in",
@@ -959,7 +963,120 @@
       "uploading": "Uploading… {percent, number}%",
       "cancel": "Cancel",
       "expires": "Visible for {hours, plural, one {# more hour} other {# more hours}}",
-      "unavailable": "Photos and videos aren’t enabled yet."
+      "unavailable": "Photos and videos aren’t enabled yet.",
+      "studio": {
+        "description": "Add text, stickers, emoji and music to your photo or video.",
+        "close": "Close",
+        "back": "Back",
+        "done": "Done",
+        "add": "Add",
+        "loading": "Loading…",
+        "text": "Text",
+        "stickers": "Stickers",
+        "music": "Music",
+        "emoji": "Emoji",
+        "publish": "Share story",
+        "publishing": "Sharing…",
+        "interactiveLimit": "A story can have only one poll or one question.",
+        "limit": "{max, number} items at most per story.",
+        "itemLabel": "{label}. Move with the arrow keys, resize with + and −, rotate with [ and ], remove with Delete.",
+        "keyboardHelp": "Drag each item with a finger or the arrow keys; pinch with two fingers to resize and rotate; drag it to the trash to remove it.",
+        "textLabel": "Your text",
+        "textPlaceholder": "Write something…",
+        "fontLabel": "Font",
+        "fonts": {
+          "classic": "Classic",
+          "strong": "Poster",
+          "serif": "Notebook",
+          "typewriter": "Typewriter",
+          "neon": "Neon"
+        },
+        "sizeLabel": "Text size",
+        "colorLabel": "Color",
+        "color": "Color {color}",
+        "align": {
+          "left": "Left aligned",
+          "center": "Centered",
+          "right": "Right aligned"
+        },
+        "background": {
+          "none": "No background",
+          "solid": "Solid background",
+          "soft": "Soft background"
+        },
+        "stickerTypes": {
+          "time": "Time",
+          "date": "Date",
+          "location": "Location",
+          "mention": "Mention",
+          "hashtag": "Hashtag",
+          "streak": "Streak",
+          "pillar": "Pillar",
+          "poll": "Poll",
+          "question": "Question",
+          "music": "Music"
+        },
+        "emojiCategories": {
+          "smileys": "Faces",
+          "gestures": "Gestures",
+          "sport": "Sport",
+          "life": "Everyday",
+          "hearts": "Hearts & party"
+        },
+        "locationPlaceholder": "Where are you?",
+        "hashtagPlaceholder": "#goal",
+        "questionPlaceholder": "Ask a question",
+        "questionDefault": "Ask me a question",
+        "pollQuestion": "Poll question",
+        "pollQuestionPlaceholder": "Would you rather…",
+        "pollOption": "Option {n, number}",
+        "yes": "Yes",
+        "no": "No",
+        "noContacts": "Add contacts to be able to mention them.",
+        "noHabits": "Create a habit to show your streak.",
+        "days": "{count, plural, one {# day} other {# days}}",
+        "streak": "Streak",
+        "streakLabel": "{title}: {days, plural, one {# day} other {# days}}",
+        "musicLabel": "{title} · {artist}",
+        "musicTabs": {
+          "trending": "Trending",
+          "forYou": "For you",
+          "search": "Search"
+        },
+        "musicSearch": "Search a title, an artist or a mood",
+        "musicEmpty": "No music yet. The Get iT team is adding the catalog soon.",
+        "musicNoResult": "No song matches your search.",
+        "play": "Play {title}",
+        "pause": "Pause",
+        "choose": "Choose {title}",
+        "clipLabel": "15-second clip",
+        "clip": "From {from} to {to}",
+        "listenClip": "Play the clip",
+        "removeMusic": "Remove music",
+        "answerHere": "Tap to answer",
+        "answered": "Answer sent",
+        "answerPlaceholder": "Your answer…",
+        "answerPrivacy": "Only the person who shared the story will see your answer.",
+        "sendAnswer": "Send answer",
+        "answerSent": "Answer sent",
+        "percent": "{value, number}%",
+        "mute": "Mute",
+        "unmute": "Unmute",
+        "replyLabel": "Reply to {name}",
+        "replyPlaceholder": "Reply to {name}…",
+        "send": "Send",
+        "reactions": "Quick reactions",
+        "react": "React with {emoji}",
+        "replySent": "Message sent",
+        "reactionSent": "Reaction sent",
+        "replyFailed": "The message couldn’t be sent. Try again.",
+        "viewedBy": "{count, plural, =0 {No views yet} one {Seen by # person} other {Seen by # people}}",
+        "activity": "Your story’s activity",
+        "activityFailed": "This story’s activity couldn’t be loaded.",
+        "noViews": "No one has seen it yet.",
+        "noAnswers": "No answers yet.",
+        "votes": "{count, plural, one {# vote} other {# votes}}"
+      }
     },
     "signedInAs": "Signed in as @{username}",
     "moderationLink": "Moderation",
@@ -1180,7 +1297,12 @@
       "saveLimit": "You already have 500 saved posts. Remove a few to keep others.",
       "alreadyShared": "You’ve already shared this post on your feed.",
       "storyLimit": "You’ve posted 20 stories in the last 24 hours. Try again later.",
-      "storyCaptionTooLong": "The caption can be 200 characters at most."
+      "storyCaptionTooLong": "The caption can be 200 characters at most.",
+      "storyOverlays": "A text or sticker isn’t valid. Remove it and try again.",
+      "storyMention": "You can only mention contacts who have a username.",
+      "storyStreak": "This habit can’t be found.",
+      "storyMusic": "This song is no longer available. Pick another one.",
+      "storyAnswerInvalid": "Your answer must be between 1 and 200 characters."
     },
     "media": {
       "gallery": "Photo/video",
@@ -1247,7 +1369,8 @@
       "groupsEmpty": "No private groups yet. Start a group chat and invite your contacts.",
       "newGroup": "New private group",
       "groupQuiet": "{count, plural, one {# member} other {# members}} · no messages yet",
-      "invitationsTitle": "Invitations"
+      "invitationsTitle": "Invitations",
+      "story": "Story: {text}"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1303,7 +1426,10 @@
       "pending": "Request sent. You’ll be able to write again once {handle} accepts it.",
       "cannotWrite": "Your account is suspended from the Hub: you can read your messages, but not write.",
       "viewPost": "View post",
-      "attach": "Attach a photo or video"
+      "attach": "Attach a photo or video",
+      "storyReplyMine": "You replied to their story",
+      "storyReplyTheirs": "Replied to your story",
+      "storyUnavailable": "Story ended"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -1886,7 +2012,6 @@
         "evening": "Evening",
         "none": "Any time"
       },
-      "momentMenu": "Time of day: {title}",
       "daySummary": "{done, number} of {total, number} done",
       "dayPlanned": "{total, number} planned",
       "exercises": "Session · {count, plural, =0 {your way} one {# exercise} other {# exercises}}",
@@ -1907,13 +2032,29 @@
       "delete": "Delete",
       "editLabel": "Edit: {title}",
       "deleteLabel": "Delete: {title}",
-      "taskEdit": {
-        "title": "Edit task",
-        "description": "Change its name or due date.",
+      "timeButton": "Change the time: {title}",
+      "itemEdit": {
+        "title": "Edit",
+        "taskDescription": "Change its name, due date or time.",
         "name": "Title",
         "due": "Due date",
+        "time": "Time",
+        "clearTime": "No time",
+        "noTimeHint": "Without a time, pick the moment of the day.",
+        "timeHint": "At {time}, placed in “{moment}”.",
+        "moment": "Moment of the day",
+        "habitSettings": "All habit settings",
+        "planLink": "See the plan",
         "save": "Save",
         "cancel": "Cancel"
+      },
+      "removeConfirm": {
+        "title": "Delete “{title}”?",
+        "habit": "The habit and its whole history will be deleted.",
+        "goal": "The goal, its milestones and its tasks will be deleted.",
+        "session": "The {weekday} session will be removed from every week of the plan.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
       }
     },
     "hub": {
@@ -2957,7 +3098,8 @@
       "comment": "{name} commented on your post",
       "comments": "{name} and {others, plural, one {# other person} other {# other people}} commented on your post",
       "like": "{name} likes your post",
-      "likes": "{name} and {others, plural, one {# other person like} other {# other people like}} your post"
+      "likes": "{name} and {others, plural, one {# other person like} other {# other people like}} your post",
+      "story": "{name} answered your question: “{subject}”"
     },
     "push": {
       "title": "Notifications on this device",
@@ -2968,6 +3110,51 @@
       "denied": "Notifications are blocked for Get iT in your browser or phone settings.",
       "unsupported": "This browser doesn’t support notifications. On iPhone: tap Share, then “Add to Home Screen”, and open Get iT from the icon.",
       "error": "Couldn’t turn on notifications. Try again."
+    }
+  },
+  "MusicCatalog": {
+    "title": "Story music",
+    "description": "The royalty-free catalog offered in the story studio. Only add songs Get iT holds a license for.",
+    "back": "Settings",
+    "addTitle": "Add a song",
+    "storageOff": "File storage isn’t enabled on this server.",
+    "catalogTitle": "{count, plural, =0 {Catalog} one {Catalog (# song)} other {Catalog (# songs)}}",
+    "emptyTitle": "No songs",
+    "emptyDescription": "Add a first royalty-free song: it will show up in the studio’s Music tab.",
+    "removed": "Removed",
+    "meta": "{artist} · {duration} · {uses, plural, =0 {never used} one {# story} other {# stories}}",
+    "license": "License: {license}",
+    "remove": "Remove",
+    "restore": "Restore",
+    "removeLabel": "Remove {title} from the catalog",
+    "restoreLabel": "Restore {title} to the catalog",
+    "toggleFailed": "The change couldn’t be saved.",
+    "settingsTitle": "Story music",
+    "settingsDescription": "Get iT team: manage the royalty-free music catalog.",
+    "settingsLink": "Open the catalog",
+    "form": {
+      "file": "Audio file",
+      "fileHint": "MP3, M4A, AAC or WAV, 20 MB at most, from 5 seconds to 10 minutes.",
+      "title": "Title",
+      "artist": "Artist",
+      "moods": "Moods (optional)",
+      "moodsPlaceholder": "energy, calm, focus",
+      "pillars": "Pillars (optional)",
+      "pillarsHint": "Used for “For you”: the song is suggested to people with these priority pillars.",
+      "license": "License",
+      "licensePlaceholder": "E.g. license bought from…, royalty-free for commercial use",
+      "licenseHint": "Keep proof of the license: it may be requested.",
+      "submit": "Add to catalog",
+      "uploading": "Uploading… {percent, number}%",
+      "added": "Song added to the catalog.",
+      "errors": {
+        "fileType": "This file isn’t an MP3, M4A, AAC or WAV.",
+        "fileSize": "This file is larger than 20 MB.",
+        "fileDuration": "The song must last from 5 seconds to 10 minutes.",
+        "uploadFailed": "The file upload failed. Try again.",
+        "invalid": "Check the title, artist and license.",
+        "unexpected": "The song couldn’t be added. Try again."
+      }
     }
   }
 }

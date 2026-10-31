@@ -9,7 +9,8 @@ import {
   MAX_PLAN_DAYS,
   monthGrid,
   monthRange,
-  momentChangeSchema,
+  calendarTargetSchema,
+  itemEditSchema,
   planPeriod,
   planWeek,
   sessionOn,
@@ -31,12 +32,14 @@ const plan: CalendarPlan = {
     {
       weekday: 1,
       moment: "morning",
+      time: null,
       title: "Haut du corps",
       items: [{ name: "Pompes", detail: "3 × 10" }],
     },
     {
       weekday: 4,
       moment: null,
+      time: null,
       title: "Bas du corps",
       items: [{ name: "Squats", detail: "3 × 12" }],
     },
@@ -54,6 +57,7 @@ const data: CalendarData = {
       dueDate: "2026-10-24",
       done: false,
       moment: "noon",
+      time: null,
       planKind: "physical",
     },
   ],
@@ -63,6 +67,7 @@ const data: CalendarData = {
       title: "Marcher 20 min",
       weekdays: [6, 7],
       moment: null,
+      time: null,
       from: "2026-10-10",
       until: null,
       doneDays: ["2026-10-17"],
@@ -256,26 +261,90 @@ describe("vue Semaine", () => {
     expect(markedDays(withEvents).has("2026-10-27")).toBe(true);
   });
 
-  it("valide un changement de moment avant de l'envoyer au serveur", () => {
+  it("range ce qui a une heure par elle, avant le reste du moment", () => {
+    const timed: CalendarData = {
+      ...data,
+      plans: [
+        {
+          ...plan,
+          schedule: plan.schedule.map((session) =>
+            session.weekday === 1 ? { ...session, time: 19 * 60 } : session,
+          ),
+        },
+      ],
+      habits: [{ ...data.habits[0]!, weekdays: [1], time: 7 * 60 + 15 }],
+    };
+    const monday = dayTimeline(dayEntries(timed, "2026-10-26"));
+    // La séance « du matin » à 19 h passe au soir ; l'habitude à 7 h 15, au matin
+    expect(monday.map((group) => group.moment)).toEqual(["morning", "evening"]);
+    expect(monday[0]?.items.map((item) => item.key)).toEqual(["habit:h1"]);
+    expect(monday[1]?.items.map((item) => item.key)).toEqual(["session:p1"]);
+  });
+
+  it("valide « Modifier » : l'heure range l'élément, le moment en découle", () => {
     const id = "0192c1f0-0000-7000-8000-000000000001";
     expect(
-      momentChangeSchema.safeParse({ type: "habit", id, moment: "evening" })
-        .success,
-    ).toBe(true);
+      itemEditSchema.parse({ type: "habit", id, time: 20 * 60, moment: null }),
+    ).toEqual({ type: "habit", id, time: 20 * 60, moment: "evening" });
     expect(
-      momentChangeSchema.safeParse({ type: "task", id, moment: null }).success,
-    ).toBe(true);
+      itemEditSchema.parse({ type: "habit", id, time: null, moment: "noon" })
+        .moment,
+    ).toBe("noon");
+    const task = itemEditSchema.parse({
+      type: "task",
+      id,
+      title: "  Appeler maman ",
+      dueDate: "",
+      time: 9 * 60,
+      moment: "evening",
+    });
+    expect(task).toMatchObject({
+      title: "Appeler maman",
+      dueDate: null,
+      moment: "morning",
+    });
     expect(
-      momentChangeSchema.safeParse({
-        type: "session",
-        kind: "physical",
-        weekday: 8,
-        moment: "noon",
+      itemEditSchema.safeParse({
+        type: "task",
+        id,
+        title: " ",
+        dueDate: "",
+        time: null,
+        moment: null,
       }).success,
     ).toBe(false);
     expect(
-      momentChangeSchema.safeParse({ type: "habit", id, moment: "night" })
+      itemEditSchema.safeParse({ type: "habit", id, time: 1440, moment: null })
         .success,
+    ).toBe(false);
+    expect(
+      itemEditSchema.safeParse({
+        type: "session",
+        kind: "physical",
+        weekday: 8,
+        time: null,
+        moment: null,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("valide « Supprimer » : un élément ou la séance d'un jour", () => {
+    const id = "0192c1f0-0000-7000-8000-000000000001";
+    for (const type of ["task", "habit", "goal", "event"]) {
+      expect(calendarTargetSchema.safeParse({ type, id }).success).toBe(true);
+    }
+    expect(
+      calendarTargetSchema.safeParse({
+        type: "session",
+        kind: "mental",
+        weekday: 3,
+      }).success,
+    ).toBe(true);
+    expect(calendarTargetSchema.safeParse({ type: "plan", id }).success).toBe(
+      false,
+    );
+    expect(
+      calendarTargetSchema.safeParse({ type: "habit", id: "x" }).success,
     ).toBe(false);
   });
 });

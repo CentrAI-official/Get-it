@@ -3,14 +3,13 @@
 import { ChevronLeft, ChevronRight, LoaderCircle, Plus } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useOptimistic, useState, useTransition } from "react";
-import type { DayMoment } from "@/config/moments";
 import { EDITABLE_DAYS } from "@/features/habits/schemas";
 import { setHabitDayAction } from "@/features/habits/actions";
 import { setTaskDoneAction } from "@/features/tasks/actions";
 import { Link } from "@/i18n/navigation";
 import { addDays, daysBetween, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import { loadCalendarAction, setMomentAction } from "../actions";
+import { loadCalendarAction } from "../actions";
 import {
   addMonths,
   dayEntries,
@@ -20,7 +19,6 @@ import {
   monthOf,
   weekOf,
   type CalendarData,
-  type MomentChange,
   type TimelineItem,
 } from "../calendar";
 import type { DevelopmentKind } from "../questionnaires";
@@ -60,15 +58,11 @@ export function CalendarView({
   );
   const [cache, setCache] = useState<Record<string, CalendarData>>({});
   const [loading, setLoading] = useState(false);
-  // Coches et moments affichés tout de suite, en attendant le serveur
+  // Coches affichées tout de suite, en attendant le serveur
   const [optimistic, applyOptimistic] = useOptimistic<
     Record<string, boolean>,
     { key: string; done: boolean }
   >({}, (current, change) => ({ ...current, [change.key]: change.done }));
-  const [moments, applyMoment] = useOptimistic<
-    Record<string, DayMoment | null>,
-    { key: string; moment: DayMoment | null }
-  >({}, (current, change) => ({ ...current, [change.key]: change.moment }));
   const [, startTransition] = useTransition();
 
   const month = monthOf(selected);
@@ -108,34 +102,10 @@ export function CalendarView({
     void ensure(next === "week" ? week.map(monthOf) : [month]);
   }
 
-  /** Le jour avec les moments choisis à l'instant, avant la réponse du serveur. */
+  /** Le jour rangé en moments (null : mois pas encore chargé). */
   function groupsOf(day: string) {
     const data = dataFor(monthOf(day));
-    if (!data) return null;
-    const entries = dayEntries(data, day);
-    const pick = <T,>(key: string, saved: T) =>
-      key in moments ? (moments[key] as T) : saved;
-    return dayTimeline({
-      ...entries,
-      sessions: entries.sessions.map((entry) => ({
-        ...entry,
-        session: {
-          ...entry.session,
-          moment: pick(`session:${entry.plan.id}`, entry.session.moment),
-        },
-      })),
-      habits: entries.habits.map((entry) => ({
-        ...entry,
-        habit: {
-          ...entry.habit,
-          moment: pick(`habit:${entry.habit.id}`, entry.habit.moment),
-        },
-      })),
-      tasks: entries.tasks.map((task) => ({
-        ...task,
-        moment: pick(`task:${task.id}`, task.moment),
-      })),
-    });
+    return data ? dayTimeline(dayEntries(data, day)) : null;
   }
 
   function stateOf(item: TimelineItem, day: string) {
@@ -171,15 +141,6 @@ export function CalendarView({
         await setHabitDayAction(item.habit.id, day, done);
       }
       await reload(monthOf(day));
-    });
-  }
-
-  function changeMoment(change: MomentChange, key: string) {
-    startTransition(async () => {
-      applyMoment({ key, moment: change.moment });
-      await setMomentAction(change);
-      // Une séance revient chaque semaine : tous les mois chargés changent
-      await Promise.all(Object.keys(cache).map(reload));
     });
   }
 
@@ -417,8 +378,8 @@ export function CalendarView({
             showPlan={scope === "all"}
             stateOf={(item) => stateOf(item, selected)}
             onToggle={(item, done) => toggle(item, done, selected)}
-            onMoment={changeMoment}
-            onChanged={() => void reload(monthOf(selected))}
+            // Une séance ou une habitude revient chaque semaine : tous les mois chargés changent
+            onChanged={() => void Promise.all(Object.keys(cache).map(reload))}
           />
         )}
       </section>

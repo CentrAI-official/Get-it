@@ -15,6 +15,8 @@ export type DayTask = {
   /** « AAAA-MM-JJ » */
   dueDate: string | null;
   done: boolean;
+  /** Heure prévue (minutes depuis minuit) ; null : pas d’heure. */
+  time: number | null;
   /** Objectif de la tâche : il lui donne son pilier. */
   goal: { id: string; title: string; pillar: Pillar } | null;
 };
@@ -49,6 +51,7 @@ export async function listDayTasks(
       title: true,
       dueDate: true,
       completedAt: true,
+      timeMinute: true,
       goal: { select: { id: true, title: true, pillar: true } },
     },
   });
@@ -64,6 +67,7 @@ export async function listDayTasks(
     title: task.title,
     dueDate: task.dueDate ? fromDbDate(task.dueDate) : null,
     done: task.completedAt !== null,
+    time: task.timeMinute,
     goal: task.goal,
   }));
 }
@@ -130,19 +134,6 @@ export async function addTask(
   return true;
 }
 
-/** Moment de la journée d'une tâche (calendrier « Semaine »). Faux si elle n'existe pas. */
-export async function setTaskMoment(
-  userId: string,
-  taskId: string,
-  moment: DayMoment | null,
-) {
-  const { count } = await db.task.updateMany({
-    where: { id: taskId, userId },
-    data: { moment },
-  });
-  return count > 0;
-}
-
 /**
  * Termine une tâche (avec son XP, dans la limite quotidienne) ou la rouvre
  * (son XP est retirée).
@@ -184,17 +175,27 @@ export async function setTaskDone(
   });
 }
 
-/** Renomme une tâche ou change son échéance. Faux si elle n'existe pas pour cet utilisateur. */
+/**
+ * Modifie une tâche depuis le calendrier : titre, échéance, heure et moment.
+ * Faux si elle n'existe pas pour cet utilisateur.
+ */
 export async function updateTask(
   userId: string,
   taskId: string,
-  input: { title: string; dueDate: string | null },
+  input: {
+    title: string;
+    dueDate: string | null;
+    time: number | null;
+    moment: DayMoment | null;
+  },
 ) {
   const { count } = await db.task.updateMany({
     where: { id: taskId, userId },
     data: {
       title: input.title,
       dueDate: input.dueDate ? toDbDate(input.dueDate) : null,
+      timeMinute: input.time,
+      moment: input.moment,
     },
   });
   return count > 0;
