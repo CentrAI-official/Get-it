@@ -82,13 +82,8 @@ export async function JournalDayPanel({
             </Link>
           </Button>
           <div className="flex min-w-0 flex-col items-center text-center">
-            {/* La date en tête de page, comme dans un carnet */}
-            <h2
-              className={cn(
-                journalFont.className,
-                "text-2xl font-semibold italic first-letter:uppercase",
-              )}
-            >
+            {/* La date en tête de page, dans l'écriture de l'application */}
+            <h2 className="text-xl font-semibold first-letter:uppercase">
               {date}
             </h2>
             {day === today ? (

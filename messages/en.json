@@ -8,7 +8,14 @@
     "slogan": "If you want it, you can get it.",
     "skipToContent": "Skip to main content",
     "loading": "Loading…",
-    "homeLink": "Get iT — home"
+    "homeLink": "Get iT — home",
+    "timeWheel": {
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "period": "a.m. or p.m.",
+      "am": "a.m.",
+      "pm": "p.m."
+    }
   },
   "LocaleSwitcher": {
     "label": "Language",
@@ -690,7 +697,8 @@
       "cancel": "Cancel",
       "timeLabel": "At what time?",
       "clearTime": "No time",
-      "momentFromTime": "With a time, the habit is placed by it."
+      "momentFromTime": "With a time, the habit is placed by it.",
+      "addTime": "Choose a time"
     },
     "manage": {
       "title": "Manage habit",
@@ -1341,6 +1349,13 @@
       "ranked": "Ranked",
       "unranked": "Unranked",
       "private": "Private"
+    },
+    "camera": {
+      "open": "Camera",
+      "photo": "Take a photo",
+      "video": "Record a video",
+      "gallery": "Gallery",
+      "openWithGallery": "Photo or video"
     }
   },
   "Messages": {
@@ -1418,7 +1433,7 @@
       "reported": "Thanks! Moderation will review this report.",
       "gone": "This conversation is no longer available.",
       "firstMessage": "Say hi to {name}! Your first message will arrive as a request.",
-      "privacy": "Private messages: never shared in the Hub or sent to Get iT AI. No “Seen” or “Online”: reply at your own pace.",
+      "privacy": "Private messages: never shared in the Hub or sent to Get iT AI. “Seen” shows under your last message once the other person has read it.",
       "requestTitle": "{name} wants to write to you",
       "requestDescription": "Accept to reply. Until you do, this person doesn’t know whether you read their message.",
       "accept": "Accept",
@@ -1429,7 +1444,8 @@
       "attach": "Attach a photo or video",
       "storyReplyMine": "You replied to their story",
       "storyReplyTheirs": "Replied to your story",
-      "storyUnavailable": "Story ended"
+      "storyUnavailable": "Story ended",
+      "seen": "Seen"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -2039,14 +2055,40 @@
         "name": "Title",
         "due": "Due date",
         "time": "Time",
-        "clearTime": "No time",
+        "clearTime": "Remove time",
         "noTimeHint": "Without a time, pick the moment of the day.",
         "timeHint": "At {time}, placed in “{moment}”.",
         "moment": "Moment of the day",
         "habitSettings": "All habit settings",
         "planLink": "See the plan",
         "save": "Save",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "days": "Days",
+        "addTime": "Choose a time",
+        "ai": {
+          "open": "Edit with Get iT AI",
+          "question": "What do you want to change?",
+          "placeholder": {
+            "task": "E.g. move it to tomorrow at 6 p.m.",
+            "habit": "E.g. weekdays only, in the morning at 6:30",
+            "session": "E.g. put this session in the evening at 7 p.m."
+          },
+          "ask": "Ask Get iT AI",
+          "thinking": "Get iT AI is preparing the changes…",
+          "cancel": "Cancel",
+          "privacy": "Get iT AI only receives this item and your request. The request counts toward your limit of 20 per day.",
+          "filled": "Get iT AI filled in the fields.",
+          "review": "Check them, then save.",
+          "consentLink": "Turn on Get iT AI",
+          "errors": {
+            "notConfigured": "Get iT AI is coming soon.",
+            "consentRequired": "You first need to agree that Get iT AI can receive your data.",
+            "notFound": "This item can’t be found.",
+            "limitReached": "You reached your limit of 20 Get iT AI requests today.",
+            "refused": "Get iT AI can’t make this change. Rephrase your request.",
+            "unexpected": "Get iT AI couldn’t answer. Try again."
+          }
+        }
       },
       "removeConfirm": {
         "title": "Delete “{title}”?",
@@ -2558,7 +2600,9 @@
       "eventLimit": "You’ve reached 500 events. Delete one to add another.",
       "notFound": "This event no longer exists.",
       "unexpected": "Something went wrong. Try again in a moment."
-    }
+    },
+    "startTimeAt": "Start time: {time}",
+    "endTimeAt": "End time: {time}"
   },
   "NotFound": {
     "title": "Page not found",

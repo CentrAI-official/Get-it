@@ -84,14 +84,24 @@ export async function getHabit(userId: string, habitId: string) {
  * Heure et moment d'une habitude (calendrier : « Modifier »). Faux si elle
  * n'existe pas pour cet utilisateur.
  */
-export async function setHabitSchedule(
+export async function updateHabitBasics(
   userId: string,
   habitId: string,
-  input: { time: number | null; moment: DayMoment | null },
+  input: {
+    title: string;
+    weekdays: number[];
+    time: number | null;
+    moment: DayMoment | null;
+  },
 ) {
   const { count } = await db.habit.updateMany({
     where: { id: habitId, userId },
-    data: { timeMinute: input.time, moment: input.moment },
+    data: {
+      title: input.title,
+      weekdays: input.weekdays,
+      timeMinute: input.time,
+      moment: input.moment,
+    },
   });
   return count > 0;
 }

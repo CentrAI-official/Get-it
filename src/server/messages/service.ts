@@ -143,6 +143,8 @@ export type ConversationState = {
   pact: PactBanner | null;
   /** Pactes déjà proposés ici (la suggestion « Faites-le ensemble » n'apparaît qu'au début). */
   pactCount: number;
+  /** Dernière lecture de l'autre personne (« Vu ») ; null tant qu'elle n'a pas accepté la conversation. */
+  otherReadAt: string | null;
   /** Moment du chargement : base de « Aujourd'hui » et « Hier ». */
   loadedAt: number;
 };
@@ -632,6 +634,10 @@ export async function getConversation(
     contact,
     pact: open.pact,
     pactCount: open.count,
+    otherReadAt:
+      membership.other.status === "accepted" && membership.other.lastReadAt
+        ? membership.other.lastReadAt.toISOString()
+        : null,
     loadedAt: Date.now(),
   };
 }

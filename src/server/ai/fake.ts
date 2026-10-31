@@ -196,5 +196,28 @@ export function createFakeProvider(): AiProvider {
         usage,
       };
     },
+
+    async suggestItemEdit({ prompt }) {
+      // Réponse de test : « soir » place l'élément à 19 h, sinon rien ne change
+      await pause(200);
+      const current = JSON.parse(
+        /Current fields: (.*)/.exec(prompt)?.[1] ?? "{}",
+      ) as { title?: string; due_date?: string | null; weekdays?: number[] };
+      const evening = /soir|evening/i.test(prompt.split("request:")[1] ?? "");
+      return {
+        edit: {
+          title: current.title ?? "",
+          time: evening ? "19:00" : null,
+          moment: evening ? "evening" : null,
+          due_date: current.due_date ?? null,
+          weekdays: current.weekdays ?? [],
+          summary: evening
+            ? "Je l’ai placée à 19 h, en soirée."
+            : "Rien à changer pour cette demande.",
+        },
+        refused: false,
+        usage,
+      };
+    },
   };
 }

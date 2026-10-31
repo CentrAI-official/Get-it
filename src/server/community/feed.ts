@@ -239,9 +239,10 @@ export async function getFeedPost(
 
 /**
  * Une page du fil, de la plus récente à la plus ancienne ; avec `authorId`,
- * seulement les publications de cette personne (son profil) ; avec
- * `groupId`, le forum de ce groupe public. Les publications des groupes
- * restent hors du fil du Centre et des profils.
+ * seulement les publications de cette personne (son profil, sans celles des
+ * groupes) ; avec `groupId`, le forum de ce groupe public. Le fil du Centre
+ * montre aussi les publications des groupes publics dont la personne est
+ * membre, comme sur Facebook.
  */
 export async function listFeed(
   viewerId: string,
@@ -262,7 +263,19 @@ export async function listFeed(
       authorId ? { userId: authorId } : {},
       groupId
         ? { groupId, group: { visibility: "public" as const } }
-        : { groupId: null },
+        : authorId
+          ? { groupId: null }
+          : {
+              OR: [
+                { groupId: null },
+                {
+                  group: {
+                    visibility: "public" as const,
+                    members: { some: { userId: viewerId, status: "active" } },
+                  },
+                },
+              ],
+            },
       cursor
         ? {
             OR: [

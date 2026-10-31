@@ -80,9 +80,8 @@ export function Inbox({
     };
   }, []);
 
-  const chats = items.filter(
-    (item) => item.status === "accepted" && !item.group,
-  );
+  // Discussions : à deux et de groupe mêlées ; « Groupes » ne montre que les groupes
+  const chats = items.filter((item) => item.status === "accepted");
   const requests = items.filter((item) => item.status === "request");
   const groupChats = items.filter(
     (item) => item.status === "accepted" && item.group,

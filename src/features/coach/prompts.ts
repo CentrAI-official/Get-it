@@ -5,7 +5,7 @@ import type { Pillar } from "@/config/pillars";
 
 export type AiLocale = "fr" | "en";
 
-const LANGUAGE: Record<AiLocale, string> = {
+export const LANGUAGE: Record<AiLocale, string> = {
   fr: 'French as spoken in Québec. Address the user as "tu".',
   en: "English.",
 };

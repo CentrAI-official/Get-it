@@ -6,6 +6,7 @@ import {
   AlignRight,
   ArrowLeft,
   Calendar,
+  Camera,
   Clock,
   Flame,
   Hash,
@@ -21,6 +22,7 @@ import {
   Sticker,
   Trash2,
   Type,
+  Video,
   AtSign,
   ListChecks,
   X,
@@ -44,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
 import type { CommunityError } from "@/features/community/rules";
+import { CameraInputs } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
 import { cn } from "@/lib/utils";
 import type { MusicTrackItem } from "@/server/stories/music";
@@ -125,7 +128,10 @@ export function StoryStudio({
   const t = useTranslations("Community.stories");
   const tStudio = useTranslations("Community.stories.studio");
   const tErrors = useTranslations("Community.errors");
+  const tCamera = useTranslations("Community.camera");
   const inputRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLInputElement>(null);
   const uploads = useMediaUploads();
   const [overlays, setOverlays] = useState<StoryOverlay[]>([]);
   const [music, setMusic] = useState<ChosenMusic | null>(null);
@@ -233,6 +239,14 @@ export function StoryStudio({
     });
   }
 
+  /** Une photo ou une vidéo choisie (galerie ou caméra) remplace la précédente. */
+  function choose(event: React.ChangeEvent<HTMLInputElement>) {
+    uploads.reset();
+    setError(null);
+    uploads.add(event.currentTarget.files);
+    event.currentTarget.value = "";
+  }
+
   function publish() {
     setError(null);
     startTransition(async () => {
@@ -271,12 +285,12 @@ export function StoryStudio({
           accept="image/*,video/*"
           className="sr-only"
           tabIndex={-1}
-          onChange={(event) => {
-            uploads.reset();
-            setError(null);
-            uploads.add(event.currentTarget.files);
-            event.currentTarget.value = "";
-          }}
+          onChange={choose}
+        />
+        <CameraInputs
+          photoRef={photoRef}
+          videoRef={videoRef}
+          onChange={choose}
         />
 
         {/* Barre du haut : fermer, puis les outils du studio */}
@@ -335,15 +349,41 @@ export function StoryStudio({
               onEditText={openText}
             />
           ) : (
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              className="flex aspect-[9/16] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-foreground/25 text-base font-semibold outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
+            // Caméra d'abord, comme Instagram ; la galerie ensuite
+            <div
+              className="flex aspect-[9/16] flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-foreground/25 p-6"
               style={{ width: FRAME_WIDTH }}
             >
-              <ImagePlus aria-hidden="true" className="size-10 text-primary" />
-              {t("pick")}
-            </button>
+              <p className="mb-2 text-center text-base font-semibold">
+                {t("pick")}
+              </p>
+              <Button
+                type="button"
+                className="h-12 w-full max-w-60 rounded-full text-base"
+                onClick={() => photoRef.current?.click()}
+              >
+                <Camera aria-hidden="true" />
+                {tCamera("photo")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 w-full max-w-60 rounded-full text-base"
+                onClick={() => videoRef.current?.click()}
+              >
+                <Video aria-hidden="true" />
+                {tCamera("video")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 w-full max-w-60 rounded-full text-base"
+                onClick={() => inputRef.current?.click()}
+              >
+                <ImagePlus aria-hidden="true" />
+                {tCamera("gallery")}
+              </Button>
+            </div>
           )}
           {panel === "text" && draft ? (
             <TextPanel draft={draft} onChange={setDraft} onDone={saveText} />

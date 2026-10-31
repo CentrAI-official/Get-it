@@ -15,6 +15,7 @@ import {
   aiRankedAnalysisSchema,
   normalizeRankedAnalysis,
 } from "@/features/ranked/analysis";
+import { aiItemEditSchema } from "@/features/development/item-ai";
 import type { AiProvider, AiUsage } from "./types";
 
 /** Modèle choisi pour Get iT AI (validé à l'étape 8). */
@@ -236,6 +237,33 @@ export function createClaudeProvider(apiKey: string): AiProvider {
           : message.parsed_output;
       return {
         analysis: parsed ? normalizeRankedAnalysis(parsed) : null,
+        refused,
+        usage: toUsage(message.model, message.usage),
+      };
+    },
+
+    async suggestItemEdit({ system, prompt }) {
+      // Quelques champs à remplir : réponse courte, peu de réflexion
+      const message = await client.beta.messages.parse({
+        model: CLAUDE_MODEL,
+        max_tokens: 2000,
+        output_config: {
+          effort: "low",
+          format: betaZodOutputFormat(aiItemEditSchema),
+        },
+        system,
+        messages: [{ role: "user", content: prompt }],
+        betas: [FALLBACK_BETA],
+        fallbacks: "default",
+      });
+
+      const refused = message.stop_reason === "refusal";
+      const parsed =
+        refused || message.stop_reason === "max_tokens"
+          ? null
+          : message.parsed_output;
+      return {
+        edit: parsed ?? null,
         refused,
         usage: toUsage(message.model, message.usage),
       };

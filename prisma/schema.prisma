@@ -485,6 +485,8 @@ enum AiRequestKind {
   development_revision
   /// Analyse d'un niveau Ranked.
   ranked_analysis
+  /// « Modifier avec Get iT AI » : un élément du calendrier.
+  item_edit
 }
 
 /// Évaluation du mode Ranked : une par passage, la plus récente fait foi.

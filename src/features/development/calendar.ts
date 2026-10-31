@@ -12,7 +12,8 @@ import {
   recordIdSchema,
 } from "@/features/goals/schemas";
 import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
-import type { DevelopmentPlan } from "./plan";
+import { HABIT_TITLE_MAX_LENGTH } from "@/features/habits/schemas";
+import { SESSION_TITLE_MAX_LENGTH, type DevelopmentPlan } from "./plan";
 import { DEVELOPMENT_KINDS, type DevelopmentKind } from "./questionnaires";
 
 // Calendrier de « Mon développement » : la semaine type de chaque plan se
@@ -318,10 +319,17 @@ export function dayTimeline(
 const momentSchema = z.enum(DAY_MOMENTS).nullable();
 const kindSchema = z.enum(DEVELOPMENT_KINDS);
 const weekdaySchema = z.number().int().min(1).max(7);
+const titleOf = (max: number) =>
+  z
+    .string({ error: "titleRequired" })
+    .trim()
+    .min(1, { error: "titleRequired" })
+    .max(max, { error: "titleTooLong" });
 
 /**
  * « Modifier » dans le calendrier (glisser, ou le bouton horloge) : l'heure,
- * ou à défaut le moment ; pour une tâche, aussi son titre et son échéance.
+ * ou à défaut le moment, et le titre ; pour une tâche, aussi son échéance ;
+ * pour une habitude, ses jours.
  * Revalidé par le serveur. Une heure range l'élément : le moment en découle.
  */
 export const itemEditSchema = z
@@ -337,6 +345,12 @@ export const itemEditSchema = z
     z.object({
       type: z.literal("habit"),
       id: recordIdSchema,
+      title: titleOf(HABIT_TITLE_MAX_LENGTH),
+      weekdays: z
+        .array(weekdaySchema)
+        .min(1)
+        .max(7)
+        .transform((days) => [...new Set(days)].sort((a, b) => a - b)),
       time: minuteOfDaySchema.nullable(),
       moment: momentSchema,
     }),
@@ -344,6 +358,7 @@ export const itemEditSchema = z
       type: z.literal("session"),
       kind: kindSchema,
       weekday: weekdaySchema,
+      title: titleOf(SESSION_TITLE_MAX_LENGTH),
       time: minuteOfDaySchema.nullable(),
       moment: momentSchema,
     }),

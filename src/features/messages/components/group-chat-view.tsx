@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Handshake,
-  ImagePlus,
-  LoaderCircle,
-  Send,
-} from "lucide-react";
+import { ArrowLeft, Handshake, LoaderCircle, Send } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +8,7 @@ import { MediaPicker } from "@/features/community/components/media-picker";
 import { ReportDialog } from "@/features/community/components/report-dialog";
 import type { PostMediaInput } from "@/features/community/media";
 import { COMMUNITY_ERRORS } from "@/features/community/rules";
+import { CameraMenu } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
 import { GroupBadge } from "@/features/groups/components/group-badge";
 import { Link } from "@/i18n/navigation";
@@ -100,7 +95,6 @@ export function GroupChatView({
           };
     },
   });
-  const attachRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const sending = useRef(0);
   const stickToBottom = useRef(true);
@@ -417,19 +411,6 @@ export function GroupChatView({
               }}
               className="flex items-end gap-1"
             >
-              <input
-                ref={attachRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                tabIndex={-1}
-                aria-hidden="true"
-                onChange={(event) => {
-                  uploads.add(event.target.files);
-                  event.target.value = "";
-                }}
-                className="hidden"
-              />
               <Button
                 type="button"
                 variant="ghost"
@@ -441,16 +422,11 @@ export function GroupChatView({
               >
                 <Handshake aria-hidden="true" />
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                aria-label={t("attach")}
-                onClick={() => attachRef.current?.click()}
+              <CameraMenu
+                gallery
+                onFiles={(files) => uploads.add(files)}
                 className="shrink-0 text-primary hover:text-primary"
-              >
-                <ImagePlus aria-hidden="true" />
-              </Button>
+              />
               <label htmlFor={fieldId} className="sr-only">
                 {t("label")}
               </label>

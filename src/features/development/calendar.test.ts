@@ -283,13 +283,44 @@ describe("vue Semaine", () => {
 
   it("valide « Modifier » : l'heure range l'élément, le moment en découle", () => {
     const id = "0192c1f0-0000-7000-8000-000000000001";
+    const habit = {
+      type: "habit",
+      id,
+      title: " Méditer ",
+      weekdays: [5, 1, 1],
+    };
     expect(
-      itemEditSchema.parse({ type: "habit", id, time: 20 * 60, moment: null }),
-    ).toEqual({ type: "habit", id, time: 20 * 60, moment: "evening" });
+      itemEditSchema.parse({ ...habit, time: 20 * 60, moment: null }),
+    ).toEqual({
+      type: "habit",
+      id,
+      title: "Méditer",
+      weekdays: [1, 5],
+      time: 20 * 60,
+      moment: "evening",
+    });
     expect(
-      itemEditSchema.parse({ type: "habit", id, time: null, moment: "noon" })
-        .moment,
+      itemEditSchema.parse({ ...habit, time: null, moment: "noon" }).moment,
     ).toBe("noon");
+    // Une habitude garde au moins un jour
+    expect(
+      itemEditSchema.safeParse({
+        ...habit,
+        weekdays: [],
+        time: null,
+        moment: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      itemEditSchema.parse({
+        type: "session",
+        kind: "physical",
+        weekday: 2,
+        title: "Haut du corps",
+        time: null,
+        moment: "evening",
+      }).title,
+    ).toBe("Haut du corps");
     const task = itemEditSchema.parse({
       type: "task",
       id,
@@ -314,14 +345,14 @@ describe("vue Semaine", () => {
       }).success,
     ).toBe(false);
     expect(
-      itemEditSchema.safeParse({ type: "habit", id, time: 1440, moment: null })
-        .success,
+      itemEditSchema.safeParse({ ...habit, time: 1440, moment: null }).success,
     ).toBe(false);
     expect(
       itemEditSchema.safeParse({
         type: "session",
         kind: "physical",
         weekday: 8,
+        title: "Haut du corps",
         time: null,
         moment: null,
       }).success,

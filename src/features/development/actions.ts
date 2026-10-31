@@ -3,7 +3,11 @@
 import { refresh } from "next/cache";
 import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
-import { firstGoalError, type GoalErrorKey } from "@/features/goals/schemas";
+import {
+  firstGoalError,
+  recordIdSchema,
+  type GoalErrorKey,
+} from "@/features/goals/schemas";
 import {
   applyPlan,
   deletePlan,
@@ -11,14 +15,16 @@ import {
   getCalendar,
   removeSession,
   revisePlan,
-  setSessionSchedule,
+  updateSession,
   type DevelopmentError,
 } from "@/server/development/service";
 import { deleteEvent } from "@/server/events/service";
 import { deleteGoal } from "@/server/goals/service";
-import { deleteHabit, setHabitSchedule } from "@/server/habits/service";
+import { deleteHabit, updateHabitBasics } from "@/server/habits/service";
+import { suggestItemEdit } from "@/server/development/item-ai";
 import { deleteTask, updateTask } from "@/server/tasks/service";
 import { calendarTargetSchema, itemEditSchema } from "./calendar";
+import { ITEM_AI_REQUEST_MAX } from "./item-ai";
 import { developmentSelectionSchema } from "./plan";
 import { REVISION_MAX_LENGTH } from "./prompts";
 import { DEVELOPMENT_KINDS } from "./questionnaires";
@@ -115,13 +121,15 @@ export async function saveItemAction(
             ...schedule,
           })
         : input.type === "habit"
-          ? await setHabitSchedule(user.id, input.id, schedule)
-          : await setSessionSchedule(
-              user.id,
-              input.kind,
-              input.weekday,
-              schedule,
-            );
+          ? await updateHabitBasics(user.id, input.id, {
+              title: input.title,
+              weekdays: input.weekdays,
+              ...schedule,
+            })
+          : await updateSession(user.id, input.kind, input.weekday, {
+              title: input.title,
+              ...schedule,
+            });
     if (!done) return { ok: false, error: "notFound" };
   } catch (error) {
     console.error("Élément du calendrier impossible à modifier", error);
@@ -188,5 +196,38 @@ export async function revisePlanAction(
   } catch (error) {
     console.error("Plan de développement impossible à modifier", error);
     return { ok: false, error: "unexpected" };
+  }
+}
+
+const itemAiSchema = z.object({
+  target: z.discriminatedUnion("type", [
+    z.object({ type: z.enum(["task", "habit"]), id: recordIdSchema }),
+    z.object({
+      type: z.literal("session"),
+      kind: z.enum(DEVELOPMENT_KINDS),
+      weekday: z.number().int().min(1).max(7),
+    }),
+  ]),
+  request: z.string().trim().min(1).max(ITEM_AI_REQUEST_MAX),
+});
+
+/**
+ * « Modifier avec Get iT AI » : les champs proposés pour remplir le formulaire.
+ * Rien n'est enregistré avant « Enregistrer ».
+ */
+export async function suggestItemEditAction(input: unknown) {
+  const user = await requireUser();
+  const parsed = itemAiSchema.safeParse(input);
+  if (!parsed.success)
+    return { ok: false as const, error: "unexpected" as const };
+  try {
+    return await suggestItemEdit(
+      user.id,
+      parsed.data.target,
+      parsed.data.request,
+    );
+  } catch (error) {
+    console.error("Modification par Get iT AI impossible", error);
+    return { ok: false as const, error: "unexpected" as const };
   }
 }

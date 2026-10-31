@@ -1,4 +1,5 @@
 import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
+import type { AiItemEdit } from "@/features/development/item-ai";
 import type { DevelopmentPlan } from "@/features/development/plan";
 import type { GoalPlan, GoalQuestions } from "@/features/goals/plan";
 import type { RankedAnalysis } from "@/features/ranked/analysis";
@@ -65,6 +66,13 @@ export type RankedAnalysisResult = {
   usage: AiUsage;
 };
 
+export type ItemEditResult = {
+  /** Null si refus ou réponse illisible (normalisée ensuite avec l'élément actuel). */
+  edit: AiItemEdit | null;
+  refused: boolean;
+  usage: AiUsage;
+};
+
 export interface AiProvider {
   /** Réponse du coach, transmise morceau par morceau à `onText`. */
   streamChat(input: {
@@ -101,4 +109,10 @@ export interface AiProvider {
     system: string;
     prompt: string;
   }): Promise<RankedAnalysisResult>;
+
+  /** Nouveaux champs d'un élément du calendrier, d'après la demande de la personne. */
+  suggestItemEdit(input: {
+    system: string;
+    prompt: string;
+  }): Promise<ItemEditResult>;
 }

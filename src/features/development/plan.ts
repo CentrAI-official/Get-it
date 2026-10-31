@@ -11,6 +11,9 @@ import {
 } from "@/features/goals/schemas";
 import { HABIT_TITLE_MAX_LENGTH, WEEKDAYS } from "@/features/habits/schemas";
 
+/** Titre d'une séance de la semaine type. */
+export const SESSION_TITLE_MAX_LENGTH = 80;
+
 /** Taille d'un plan de « Mon développement » : complet, mais lisible sur un téléphone. */
 export const DEVELOPMENT_PLAN_LIMITS = {
   highlights: 6,
@@ -145,7 +148,7 @@ export function normalizeDevelopmentPlan(
         moment: asDayMoment(day.moment),
         // L'heure se choisit ensuite dans le calendrier
         time: null,
-        title: clean(day.title, 80),
+        title: clean(day.title, SESSION_TITLE_MAX_LENGTH),
         items: day.items
           .map((entry) => ({
             name: clean(entry.name, 100),

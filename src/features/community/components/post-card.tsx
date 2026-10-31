@@ -374,57 +374,9 @@ export function PostCard({
               {post.progress ? (
                 <ProgressBadge
                   progress={post.progress}
-                  className="absolute bottom-3 left-3 max-w-[calc(100%-6rem)]"
+                  className="absolute bottom-3 left-3 max-w-[calc(100%-1.5rem)]"
                 />
               ) : null}
-              <div className="dark absolute right-3 bottom-3 flex flex-col items-center gap-3 text-xs font-bold tabular-nums [text-shadow:0_1px_3px_rgb(0_0_0/0.8)]">
-                {post.mine ? (
-                  <span className="flex flex-col items-center gap-1">
-                    <span className="flex size-12 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm">
-                      <HandHeart aria-hidden="true" className="size-6" />
-                    </span>
-                    <span className="sr-only">
-                      {t("bravoCount", { count: reaction.count })}
-                    </span>
-                    <span aria-hidden="true">{reaction.count}</span>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    aria-pressed={reaction.on}
-                    disabled={!canReact}
-                    onClick={toggleReaction}
-                    className="group flex flex-col items-center gap-1 outline-none disabled:opacity-60"
-                  >
-                    <span
-                      className={cn(
-                        "flex size-12 items-center justify-center rounded-full backdrop-blur-sm transition-colors group-focus-visible:ring-3 group-focus-visible:ring-ring/50",
-                        reaction.on
-                          ? "bg-primary text-primary-foreground ring-2 ring-black/60"
-                          : "bg-black/70",
-                      )}
-                    >
-                      <HandHeart aria-hidden="true" className="size-6" />
-                    </span>
-                    <span className="sr-only">{t("bravo")}</span>
-                    <span>{reaction.count}</span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  aria-expanded={open}
-                  onClick={() => setOpen(!open)}
-                  className="group flex flex-col items-center gap-1 outline-none"
-                >
-                  <span className="flex size-12 items-center justify-center rounded-full bg-black/70 backdrop-blur-sm group-focus-visible:ring-3 group-focus-visible:ring-ring/50">
-                    <MessageCircle aria-hidden="true" className="size-6" />
-                  </span>
-                  <span className="sr-only">
-                    {t("comments", { count: comments })}
-                  </span>
-                  <span aria-hidden="true">{comments}</span>
-                </button>
-              </div>
             </>
           ) : null}
         </div>
@@ -434,9 +386,9 @@ export function PostCard({
       ) : null}
       {post.shared ? <SharedPostEmbed shared={post.shared} now={now} /> : null}
 
-      {/* Sur une photo, « Bravo » et les commentaires sont posés dessus */}
+      {/* « J'aime » et les commentaires sous le média, photo comme vidéo */}
       <div className="flex flex-wrap items-center gap-2">
-        {photos ? null : post.mine ? (
+        {post.mine ? (
           <span className="flex items-center gap-1.5 px-2 text-sm text-muted-foreground">
             <HandHeart aria-hidden="true" className="size-4" />
             {t("bravoCount", { count: reaction.count })}
@@ -457,17 +409,15 @@ export function PostCard({
             <span className="tabular-nums">{reaction.count}</span>
           </Button>
         )}
-        {photos ? null : (
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-expanded={open}
-            onClick={() => setOpen(!open)}
-          >
-            <MessageCircle aria-hidden="true" />
-            {t("comments", { count: comments })}
-          </Button>
-        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          <MessageCircle aria-hidden="true" />
+          {t("comments", { count: comments })}
+        </Button>
         <Button
           variant="ghost"
           size="icon-sm"

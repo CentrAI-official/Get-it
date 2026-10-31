@@ -8,7 +8,14 @@
     "slogan": "Si tu le veux, tu peux l’avoir.",
     "skipToContent": "Aller au contenu principal",
     "loading": "Chargement…",
-    "homeLink": "Get iT — accueil"
+    "homeLink": "Get iT — accueil",
+    "timeWheel": {
+      "hours": "Heures",
+      "minutes": "Minutes",
+      "period": "Avant ou après midi",
+      "am": "a.m.",
+      "pm": "p.m."
+    }
   },
   "LocaleSwitcher": {
     "label": "Langue",
@@ -690,7 +697,8 @@
       "cancel": "Annuler",
       "timeLabel": "À quelle heure?",
       "clearTime": "Sans heure",
-      "momentFromTime": "Avec une heure, l’habitude est rangée selon elle."
+      "momentFromTime": "Avec une heure, l’habitude est rangée selon elle.",
+      "addTime": "Choisir une heure"
     },
     "manage": {
       "title": "Gérer l’habitude",
@@ -1341,6 +1349,13 @@
       "ranked": "Classé",
       "unranked": "Non classé",
       "private": "Privé"
+    },
+    "camera": {
+      "open": "Caméra",
+      "photo": "Prendre une photo",
+      "video": "Filmer une vidéo",
+      "gallery": "Galerie",
+      "openWithGallery": "Photo ou vidéo"
     }
   },
   "Messages": {
@@ -1418,7 +1433,7 @@
       "reported": "Merci! La modération va examiner ce signalement.",
       "gone": "Cette conversation n’est plus disponible.",
       "firstMessage": "Dis bonjour à {name}! Ton premier message lui arrivera comme une demande.",
-      "privacy": "Messages privés : jamais partagés dans le Centre ni envoyés à Get iT AI. Pas de « Vu » ni de « En ligne » : réponds à ton rythme.",
+      "privacy": "Messages privés : jamais partagés dans le Centre ni envoyés à Get iT AI. « Vu » s’affiche sous ton dernier message quand l’autre personne l’a lu.",
       "requestTitle": "{name} veut t’écrire",
       "requestDescription": "Accepte pour lui répondre. Tant que tu n’acceptes pas, cette personne ne sait pas si tu as lu son message.",
       "accept": "Accepter",
@@ -1429,7 +1444,8 @@
       "attach": "Joindre une photo ou une vidéo",
       "storyReplyMine": "Tu as répondu à sa story",
       "storyReplyTheirs": "A répondu à ta story",
-      "storyUnavailable": "Story terminée"
+      "storyUnavailable": "Story terminée",
+      "seen": "Vu"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -2039,14 +2055,40 @@
         "name": "Titre",
         "due": "Échéance",
         "time": "Heure",
-        "clearTime": "Sans heure",
+        "clearTime": "Retirer l’heure",
         "noTimeHint": "Sans heure, choisis le moment de la journée.",
         "timeHint": "À {time}, rangé dans « {moment} ».",
         "moment": "Moment de la journée",
         "habitSettings": "Tous les réglages de l’habitude",
         "planLink": "Voir le plan",
         "save": "Enregistrer",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "days": "Jours",
+        "addTime": "Choisir une heure",
+        "ai": {
+          "open": "Modifier avec Get iT AI",
+          "question": "Qu’est-ce que tu veux changer?",
+          "placeholder": {
+            "task": "Ex. : déplace-la à demain 18 h",
+            "habit": "Ex. : seulement en semaine, le matin à 6 h 30",
+            "session": "Ex. : mets cette séance le soir à 19 h"
+          },
+          "ask": "Demander à Get iT AI",
+          "thinking": "Get iT AI prépare les changements…",
+          "cancel": "Annuler",
+          "privacy": "Get iT AI reçoit seulement cet élément et ta demande. La demande compte dans ta limite de 20 par jour.",
+          "filled": "Get iT AI a rempli les champs.",
+          "review": "Vérifie, puis enregistre.",
+          "consentLink": "Activer Get iT AI",
+          "errors": {
+            "notConfigured": "Get iT AI arrive bientôt.",
+            "consentRequired": "Il faut d’abord accepter que Get iT AI reçoive tes données.",
+            "notFound": "Cet élément est introuvable.",
+            "limitReached": "Tu as atteint ta limite de 20 demandes à Get iT AI aujourd’hui.",
+            "refused": "Get iT AI ne peut pas faire cette modification. Reformule ta demande.",
+            "unexpected": "Get iT AI n’a pas pu répondre. Réessaie."
+          }
+        }
       },
       "removeConfirm": {
         "title": "Supprimer « {title} »?",
@@ -2558,7 +2600,9 @@
       "eventLimit": "Tu as atteint 500 événements. Supprimes-en un pour en ajouter un autre.",
       "notFound": "Cet événement n’existe plus.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
-    }
+    },
+    "startTimeAt": "Heure de début : {time}",
+    "endTimeAt": "Heure de fin : {time}"
   },
   "NotFound": {
     "title": "Page introuvable",

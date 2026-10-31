@@ -481,16 +481,21 @@ export async function getCalendar(
  * Heure et moment de la séance d'un jour de la semaine type (calendrier :
  * « Modifier »). Faux si le plan ou la séance n'existe pas.
  */
-export async function setSessionSchedule(
+export async function updateSession(
   userId: string,
   kind: DevelopmentKind,
   weekday: number,
-  input: { time: number | null; moment: DayMoment | null },
+  input: { title: string; time: number | null; moment: DayMoment | null },
 ) {
   return editSchedule(userId, kind, weekday, (schedule) =>
     schedule.map((session) =>
       session.weekday === weekday
-        ? { ...session, time: input.time, moment: input.moment }
+        ? {
+            ...session,
+            title: input.title,
+            time: input.time,
+            moment: input.moment,
+          }
         : session,
     ),
   );

@@ -5,7 +5,6 @@ import {
   Ban,
   EllipsisVertical,
   Flag,
-  ImagePlus,
   LoaderCircle,
   Send,
   Handshake,
@@ -48,6 +47,7 @@ import {
   COMMUNITY_ERRORS,
   type ProgressData,
 } from "@/features/community/rules";
+import { CameraMenu } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
 import type { FeedMedia } from "@/server/community/media";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -100,6 +100,7 @@ function meta(state: ConversationState) {
     pact: state.pact,
     pactCount: state.pactCount,
     contact: state.contact,
+    otherReadAt: state.otherReadAt,
   };
 }
 
@@ -163,7 +164,6 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
           };
     },
   });
-  const attachRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const sending = useRef(0);
   // Défilement : en bas à l'ouverture et à chaque nouveau message (si on y est déjà)
@@ -174,6 +174,15 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
   const name = other.displayName ?? other.username ?? "";
   const handle = `@${other.username ?? ""}`;
   const lastOther = [...messages].reverse().find((m) => !m.mine)?.id;
+  // « Vu » : le dernier message est le mien et l'autre personne l'a lu depuis
+  const last = messages.at(-1);
+  const seen = Boolean(
+    last?.mine &&
+    !last.pending &&
+    !last.deleted &&
+    state.otherReadAt &&
+    state.otherReadAt >= last.createdAt,
+  );
 
   // Rafraîchissement toutes les 3 secondes, quand la page est visible
   useEffect(() => {
@@ -586,6 +595,11 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             </li>
           ))}
         </ol>
+        {seen ? (
+          <p className="-mt-2 mb-2 text-right text-xs font-medium text-muted-foreground">
+            {t("seen")}
+          </p>
+        ) : null}
 
         {/* Suggestion « Faites-le ensemble », tant qu'aucun pacte n'a été proposé */}
         {canSend &&
@@ -686,30 +700,12 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
               }}
               className="flex items-end gap-1"
             >
-              <input
-                ref={attachRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                tabIndex={-1}
-                aria-hidden="true"
-                onChange={(event) => {
-                  uploads.add(event.target.files);
-                  event.target.value = "";
-                }}
-                className="hidden"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                aria-label={t("attach")}
+              <CameraMenu
+                gallery
+                onFiles={(files) => uploads.add(files)}
                 disabled={!canSend}
-                onClick={() => attachRef.current?.click()}
                 className="shrink-0 text-primary hover:text-primary"
-              >
-                <ImagePlus aria-hidden="true" />
-              </Button>
+              />
               <Button
                 type="button"
                 variant="ghost"

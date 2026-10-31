@@ -3,6 +3,7 @@
 import { CircleAlert, LoaderCircle } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useActionState, useId, useState } from "react";
+import { TimeWheel } from "@/components/time-wheel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -242,32 +243,43 @@ export function HabitForm({
 
         {/* Heure, facultative : elle range l'habitude dans son moment */}
         <Field>
-          <FieldLabel htmlFor={`${id}-time`}>
-            {t("form.timeLabel")}
-            <span className="font-normal text-muted-foreground">
-              ({t("form.optional")})
+          <div className="flex max-w-xs items-center justify-between gap-2">
+            <span id={`${id}-time`} className="text-sm font-medium">
+              {t("form.timeLabel")}{" "}
+              <span className="font-normal text-muted-foreground">
+                ({t("form.optional")})
+              </span>
             </span>
-          </FieldLabel>
-          <div className="flex max-w-xs gap-2">
-            <Input
-              id={`${id}-time`}
-              name="time"
-              type="time"
-              value={time}
-              onChange={(change) => setTime(change.target.value)}
-              className="h-10 flex-1"
-            />
             {time ? (
               <Button
                 type="button"
-                variant="outline"
-                className="h-10"
+                variant="ghost"
+                size="sm"
                 onClick={() => setTime("")}
               >
                 {t("form.clearTime")}
               </Button>
             ) : null}
           </div>
+          {/* Envoyée avec le formulaire ; vide : pas d'heure */}
+          <input type="hidden" name="time" value={time} />
+          {time ? (
+            <TimeWheel
+              value={time}
+              onChange={setTime}
+              labelledBy={`${id}-time`}
+              className="max-w-xs"
+            />
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 w-fit"
+              onClick={() => setTime("08:00")}
+            >
+              {t("form.addTime")}
+            </Button>
+          )}
         </Field>
 
         {/* Moment de la journée : place l'habitude dans la vue « Semaine » */}

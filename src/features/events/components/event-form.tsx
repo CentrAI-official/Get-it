@@ -1,10 +1,17 @@
 "use client";
 
 import { LoaderCircle, MapPin, Trash2 } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useActionState, useId, useState, useTransition } from "react";
+import { TimeWheel } from "@/components/time-wheel";
 import { Button } from "@/components/ui/button";
-import { addDays, daysBetween, formatClock, parseClock } from "@/lib/dates";
+import {
+  addDays,
+  clockDate,
+  daysBetween,
+  formatClock,
+  parseClock,
+} from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import {
   deleteEventAndReturnAction,
@@ -54,6 +61,7 @@ const TIME_FIELD = cn(FIELD, "w-28 shrink-0");
  */
 export function EventForm({ event, defaults }: EventFormProps) {
   const t = useTranslations("Events");
+  const format = useFormatter();
   const locale = useLocale();
   const id = useId();
   const [state, formAction, pending] = useActionState<EventFormState, FormData>(
@@ -76,6 +84,18 @@ export function EventForm({ event, defaults }: EventFormProps) {
   const [endDate, setEndDate] = useState(end.day);
   const [endTime, setEndTime] = useState(end.time);
   const [repeat, setRepeat] = useState<EventRepeat>(event?.repeat ?? "none");
+  // Roulette ouverte sous le début ou la fin (une seule à la fois)
+  const [wheel, setWheel] = useState<"start" | "end" | null>(null);
+  const clock = (value: string) => {
+    const minute = parseClock(value);
+    return minute === null
+      ? value
+      : format.dateTime(clockDate(minute), {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "UTC",
+        });
+  };
 
   function moveStart(day: string, time: string) {
     const before = toAbsolute(startDate, startTime);
@@ -191,19 +211,28 @@ export function EventForm({ event, defaults }: EventFormProps) {
                   aria-invalid={fieldError("startDate") ? true : undefined}
                   className={DATE_FIELD}
                 />
-                <input
-                  type="time"
-                  name="startTime"
-                  aria-label={t("startTime")}
-                  value={startTime}
-                  onChange={(change) =>
-                    moveStart(startDate, change.target.value)
-                  }
-                  required
-                  aria-invalid={fieldError("startTime") ? true : undefined}
-                  className={TIME_FIELD}
-                />
+                <input type="hidden" name="startTime" value={startTime} />
+                <button
+                  type="button"
+                  aria-label={t("startTimeAt", { time: clock(startTime) })}
+                  aria-expanded={wheel === "start"}
+                  onClick={() => setWheel(wheel === "start" ? null : "start")}
+                  className={cn(
+                    TIME_FIELD,
+                    "text-left tabular-nums",
+                    wheel === "start" && "border-primary text-primary",
+                  )}
+                >
+                  {clock(startTime)}
+                </button>
               </span>
+              {wheel === "start" ? (
+                <TimeWheel
+                  value={startTime}
+                  onChange={(value) => moveStart(startDate, value)}
+                  labelledBy={`${id}-start`}
+                />
+              ) : null}
             </div>
             <div
               role="group"
@@ -228,17 +257,28 @@ export function EventForm({ event, defaults }: EventFormProps) {
                   aria-invalid={fieldError("endDate") ? true : undefined}
                   className={DATE_FIELD}
                 />
-                <input
-                  type="time"
-                  name="endTime"
-                  aria-label={t("endTime")}
-                  value={endTime}
-                  onChange={(change) => setEndTime(change.target.value)}
-                  required
-                  aria-invalid={fieldError("endTime") ? true : undefined}
-                  className={TIME_FIELD}
-                />
+                <input type="hidden" name="endTime" value={endTime} />
+                <button
+                  type="button"
+                  aria-label={t("endTimeAt", { time: clock(endTime) })}
+                  aria-expanded={wheel === "end"}
+                  onClick={() => setWheel(wheel === "end" ? null : "end")}
+                  className={cn(
+                    TIME_FIELD,
+                    "text-left tabular-nums",
+                    wheel === "end" && "border-primary text-primary",
+                  )}
+                >
+                  {clock(endTime)}
+                </button>
               </span>
+              {wheel === "end" ? (
+                <TimeWheel
+                  value={endTime}
+                  onChange={setEndTime}
+                  labelledBy={`${id}-end`}
+                />
+              ) : null}
             </div>
           </div>
           {startError ? (
