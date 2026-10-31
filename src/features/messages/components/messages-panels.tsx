@@ -17,6 +17,7 @@ import {
   listInbox,
 } from "@/server/messages/service";
 import { listActivePacts } from "@/server/messages/pacts";
+import { onlineContactIds } from "@/server/presence/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ConversationView } from "./conversation-view";
 import { GroupChatView } from "./group-chat-view";
@@ -86,6 +87,7 @@ export async function MessagesHome() {
       ) : null}
       <Inbox
         initial={inbox.items}
+        initialOnline={inbox.online}
         loadedAt={inbox.loadedAt}
         groups={privateOnly(groups.groups)}
         invitations={privateOnly(groups.invitations)}
@@ -108,8 +110,11 @@ export async function ContactsGate() {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinFirst />;
-  const lists = await listContacts(profile.id);
-  return <ContactsView {...lists} />;
+  const [lists, online] = await Promise.all([
+    listContacts(profile.id),
+    onlineContactIds(profile.id),
+  ]);
+  return <ContactsView {...lists} online={[...online]} />;
 }
 
 export async function ConversationLoader({ id }: { id: string }) {

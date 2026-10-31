@@ -24,6 +24,8 @@ type CommunityFeedProps = {
   saved?: boolean;
   /** Une seule publication (lien partagé) : pas de « Tu as tout vu ». */
   single?: boolean;
+  /** Fil « Abonnements ». */
+  following?: boolean;
   /** Forum de ce groupe public. */
   groupId?: string;
   /** Créateur ou admin du groupe : peut retirer les publications du forum. */
@@ -40,6 +42,7 @@ export function CommunityFeed({
   empty,
   saved = false,
   single = false,
+  following = false,
   groupId,
   groupManager = false,
 }: CommunityFeedProps) {
@@ -58,7 +61,7 @@ export function CommunityFeed({
     startLoading(async () => {
       const page = saved
         ? await loadMoreSavedAction(cursor)
-        : await loadMorePostsAction(cursor, authorId, groupId);
+        : await loadMorePostsAction(cursor, authorId, groupId, following);
       setPosts((current) => [
         ...current,
         ...page.posts.filter((post) => !current.some((p) => p.id === post.id)),

@@ -6,6 +6,8 @@ export function BackLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
+      // On revient : la page précédente arrive depuis la gauche
+      transitionTypes={["nav-back"]}
       className="flex w-fit items-center gap-1.5 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
     >
       <ArrowLeft aria-hidden="true" className="size-4" />

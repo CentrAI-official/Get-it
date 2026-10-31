@@ -47,7 +47,9 @@ describe("notifications", () => {
       );
     // « story » s'ajoute dans sa propre migration (valeur d'enum à part)
     const sql =
-      read("20261101140000_notifications") + read("20261106120000_story_kinds");
+      read("20261101140000_notifications") +
+      read("20261106120000_story_kinds") +
+      read("20261108110000_follow_kind");
     for (const kind of NOTIFICATION_KINDS) expect(sql).toContain(`'${kind}'`);
     expect(sql).toContain(
       'ALTER TABLE "notifications" ENABLE ROW LEVEL SECURITY',

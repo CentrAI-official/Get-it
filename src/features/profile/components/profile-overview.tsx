@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { levelFromXp } from "@/features/xp/rules";
 import { Link } from "@/i18n/navigation";
 import { getCommunityMember } from "@/server/community/members";
+import { followCounts } from "@/server/follows/service";
 import { avatarUrl } from "@/server/profile/avatar";
 import { countContacts } from "@/server/profile/public";
 import { getCurrentProfile } from "@/server/profile/service";
@@ -29,12 +30,13 @@ export async function ProfileOverview({
   progression: ReactNode;
 }) {
   const profile = await getCurrentProfile();
-  const [xp, ranked, photo, contacts, member, t, tXp, tOnboarding] =
+  const [xp, ranked, photo, contacts, follows, member, t, tXp, tOnboarding] =
     await Promise.all([
       getXpTotals(profile.id),
       getRankedLevels(profile.id),
       avatarUrl(profile.avatarPath),
       countContacts(profile.id),
+      followCounts(profile.id, profile.id),
       getCommunityMember(profile.id),
       getTranslations("App.profile"),
       getTranslations("Xp"),
@@ -69,7 +71,6 @@ export async function ProfileOverview({
               </p>
             ) : null}
             <p className="text-sm text-muted-foreground">
-              {t("contacts", { count: contacts })} ·{" "}
               {t("memberSince", { date: profile.createdAt })}
             </p>
           </div>
@@ -77,6 +78,57 @@ export async function ProfileOverview({
         {profile.bio ? (
           <p className="break-words whitespace-pre-wrap">{profile.bio}</p>
         ) : null}
+        {/* Contacts = amis ; abonnés = ceux qui suivent ma page ; abonnements = ceux que je suis */}
+        <ul className="grid max-w-sm grid-cols-3 gap-2">
+          {[
+            {
+              key: "contacts" as const,
+              count: contacts,
+              href: "/messages/contacts",
+            },
+            {
+              key: "followers" as const,
+              count: follows.followers,
+              href: member?.username
+                ? `/community/members/${member.username}/followers`
+                : null,
+            },
+            {
+              key: "following" as const,
+              count: follows.following,
+              href: member?.username
+                ? `/community/members/${member.username}/following`
+                : null,
+            },
+          ].map(({ key, count, href }) => {
+            const body = (
+              <>
+                <span className="font-heading text-xl font-bold tabular-nums">
+                  {count}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {t(`counts.${key}`, { count })}
+                </span>
+              </>
+            );
+            return (
+              <li key={key}>
+                {href ? (
+                  <Link
+                    href={href}
+                    className="flex flex-col items-center rounded-2xl py-1 outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    {body}
+                  </Link>
+                ) : (
+                  <span className="flex flex-col items-center py-1">
+                    {body}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <ProfileEditor
             name={name}

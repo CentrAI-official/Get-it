@@ -47,6 +47,7 @@ import { signedUrls } from "@/server/storage/service";
 import { visibleStory } from "@/server/stories/access";
 import { getDisplayLevels } from "@/server/ranked/service";
 import { notify } from "@/server/notifications/service";
+import { onlineContactIds } from "@/server/presence/service";
 import {
   getOpenPact,
   pactCardsFor,
@@ -116,6 +117,8 @@ export type InboxItem = {
   /** « request » : demande reçue, pas encore acceptée. */
   status: MemberStatus;
   unread: boolean;
+  /** Conversation à deux avec un contact en ligne (rond orange). */
+  online: boolean;
   lastMessage: {
     mine: boolean;
     kind: "text" | "progress" | "pact" | "post" | "story";
@@ -127,9 +130,17 @@ export type InboxItem = {
   lastMessageAt: string;
 };
 
+/** Contact en ligne, avec sa conversation s'il y en a une (filtre « En ligne »). */
+export type OnlineContact = {
+  person: MessagePerson;
+  conversationId: string | null;
+};
+
 export type ConversationState = {
   id: string;
   other: MessagePerson;
+  /** L'autre personne est un contact en ligne. */
+  otherOnline: boolean;
   viewerStatus: MemberStatus;
   otherStatus: MemberStatus;
   permission: ReturnType<typeof sendPermission>;
@@ -470,11 +481,30 @@ async function inboxRows(viewerId: string) {
 }
 
 /** Boîte de réception : discussions et demandes reçues, les plus récentes d'abord. */
-export async function listInbox(
-  viewerId: string,
-): Promise<{ items: InboxItem[]; loadedAt: number }> {
-  const rows = await inboxRows(viewerId);
-  const byId = await people([...new Set(rows.map((item) => item.otherId))]);
+export async function listInbox(viewerId: string): Promise<{
+  items: InboxItem[];
+  online: OnlineContact[];
+  loadedAt: number;
+}> {
+  const [rows, online] = await Promise.all([
+    inboxRows(viewerId),
+    onlineContactIds(viewerId),
+  ]);
+  const byId = await people([
+    ...new Set([...rows.map((item) => item.otherId), ...online]),
+  ]);
+  // Conversation déjà ouverte avec chaque contact en ligne
+  const keys = new Map([...online].map((id) => [directKey(viewerId, id), id]));
+  const conversations =
+    keys.size > 0
+      ? await db.conversation.findMany({
+          where: { directKey: { in: [...keys.keys()] } },
+          select: { id: true, directKey: true },
+        })
+      : [];
+  const conversationOf = new Map(
+    conversations.map((row) => [keys.get(row.directKey ?? ""), row.id]),
+  );
   const items = rows.flatMap(({ row, last, otherId, unread }) => {
     const other = byId.get(otherId);
     if (!other) return [];
@@ -487,6 +517,7 @@ export async function listInbox(
         : null,
       status: row.status,
       unread,
+      online: !group && online.has(otherId),
       lastMessage: {
         mine: last.senderId === viewerId,
         kind: last.kind,
@@ -497,7 +528,20 @@ export async function listInbox(
       lastMessageAt: row.conversation.lastMessageAt.toISOString(),
     };
   });
-  return { items, loadedAt: Date.now() };
+  const onlineList = [...online]
+    .flatMap((id) => {
+      const person = byId.get(id);
+      return person
+        ? [{ person, conversationId: conversationOf.get(id) ?? null }]
+        : [];
+    })
+    .sort((a, b) =>
+      (a.person.displayName ?? a.person.username ?? "").localeCompare(
+        b.person.displayName ?? b.person.username ?? "",
+        "fr",
+      ),
+    );
+  return { items, online: onlineList, loadedAt: Date.now() };
 }
 
 export type ShareTarget = {
@@ -605,7 +649,7 @@ export async function getConversation(
   const membership = await loadMembership(viewerId, conversationId);
   if (!membership) return null;
   await settlePacts(conversationId, viewerId);
-  const [byId, viewerMessages, page, allowed, open, contact] =
+  const [byId, viewerMessages, page, allowed, open, contact, online] =
     await Promise.all([
       people([membership.other.userId]),
       db.message.count({
@@ -615,12 +659,14 @@ export async function getConversation(
       canWrite(viewerId),
       getOpenPact(viewerId, conversationId),
       getContactState(viewerId, membership.other.userId),
+      onlineContactIds(viewerId),
     ]);
   const other = byId.get(membership.other.userId);
   if (!other) return null;
   return {
     id: membership.id,
     other,
+    otherOnline: online.has(membership.other.userId),
     viewerStatus: membership.viewer.status,
     otherStatus: membership.other.status,
     permission: sendPermission({

@@ -182,6 +182,7 @@ export async function loadMorePostsAction(
   cursor: FeedCursor,
   authorId?: unknown,
   groupId?: unknown,
+  following?: unknown,
 ): Promise<{ posts: FeedPost[]; nextCursor: FeedCursor | null }> {
   const user = await requireUser();
   const parsed = cursorSchema.safeParse(cursor);
@@ -195,7 +196,13 @@ export async function loadMorePostsAction(
   ) {
     return { posts: [], nextCursor: null };
   }
-  return listFeed(user.id, parsed.data, author?.data, group?.data);
+  return listFeed(
+    user.id,
+    parsed.data,
+    author?.data,
+    group?.data,
+    following === true,
+  );
 }
 
 export async function deletePostAction(postId: string) {

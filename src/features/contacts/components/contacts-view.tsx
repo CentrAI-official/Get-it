@@ -24,12 +24,19 @@ type ContactsViewProps = {
   contacts: ContactPerson[];
   received: ContactPerson[];
   sent: ContactPerson[];
+  /** Contacts en ligne (rond orange). */
+  online: string[];
 };
 
 type Tab = "contacts" | "received" | "sent";
 
 /** Contacts, demandes reçues et envoyées, et recherche pour en ajouter. */
-export function ContactsView({ contacts, received, sent }: ContactsViewProps) {
+export function ContactsView({
+  contacts,
+  received,
+  sent,
+  online,
+}: ContactsViewProps) {
   const t = useTranslations("Contacts");
   const [tab, setTab] = useState<Tab>(
     received.length > 0 ? "received" : "contacts",
@@ -76,7 +83,11 @@ export function ContactsView({ contacts, received, sent }: ContactsViewProps) {
         <ul className="flex flex-col divide-y divide-foreground/8">
           {shown.map((person) => (
             <li key={person.id}>
-              <ContactRow person={person} tab={tab} />
+              <ContactRow
+                person={person}
+                tab={tab}
+                online={tab === "contacts" && online.includes(person.id)}
+              />
             </li>
           ))}
         </ul>
@@ -87,18 +98,28 @@ export function ContactsView({ contacts, received, sent }: ContactsViewProps) {
 
 function Person({
   person,
+  online = false,
   children,
 }: {
   person: ContactPerson;
+  online?: boolean;
   children?: React.ReactNode;
 }) {
   const t = useTranslations("Contacts");
   const name = person.displayName ?? person.username ?? "";
   return (
     <div className="flex items-center gap-3 py-3">
-      <Avatar name={name} url={person.avatarUrl} className="size-11" />
+      <Avatar
+        name={name}
+        url={person.avatarUrl}
+        online={online}
+        className="size-11"
+      />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-semibold">{name}</span>
+        <span className="truncate font-semibold">
+          {name}
+          {online ? <span className="sr-only"> · {t("online")}</span> : null}
+        </span>
         <span className="truncate text-sm text-muted-foreground">
           @{person.username}
           {person.level === null
@@ -113,7 +134,15 @@ function Person({
   );
 }
 
-function ContactRow({ person, tab }: { person: ContactPerson; tab: Tab }) {
+function ContactRow({
+  person,
+  tab,
+  online,
+}: {
+  person: ContactPerson;
+  tab: Tab;
+  online: boolean;
+}) {
   const t = useTranslations("Contacts");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -126,7 +155,7 @@ function ContactRow({ person, tab }: { person: ContactPerson; tab: Tab }) {
   }
 
   return (
-    <Person person={person}>
+    <Person person={person} online={online}>
       {tab === "contacts" ? (
         <>
           <Button

@@ -255,6 +255,11 @@
         "badge": "Classé",
         "view": "Mon classement",
         "leaderboard": "Classement"
+      },
+      "counts": {
+        "contacts": "{count, plural, one {contact} other {contacts}}",
+        "followers": "{count, plural, one {abonné} other {abonnés}}",
+        "following": "{count, plural, one {abonnement} other {abonnements}}"
       }
     },
     "settings": {
@@ -307,7 +312,17 @@
       "accountType": {
         "title": "Type de compte",
         "description": "Un compte affilié peut aussi vendre des services ou du gear dans le Marketplace."
+      },
+      "presence": {
+        "title": "Présence en ligne",
+        "description": "Tes contacts voient un petit rond orange sur ta photo quand tu es dans Get iT.",
+        "label": "Montrer quand je suis en ligne",
+        "hint": "Si tu la caches, tu ne vois pas non plus quand tes contacts sont en ligne.",
+        "error": "Le réglage n’a pas pu être enregistré. Réessaie."
       }
+    },
+    "refresh": {
+      "refreshing": "Rechargement de la page…"
     }
   },
   "Auth": {
@@ -1348,7 +1363,9 @@
       "openProfile": "Voir le profil de {name}",
       "ranked": "Classé",
       "unranked": "Non classé",
-      "private": "Privé"
+      "private": "Privé",
+      "followers": "{count, plural, =0 {0 abonné} one {# abonné} other {# abonnés}}",
+      "following": "{count, plural, =0 {0 abonnement} one {# abonnement} other {# abonnements}}"
     },
     "camera": {
       "open": "Caméra",
@@ -1356,6 +1373,13 @@
       "video": "Filmer une vidéo",
       "gallery": "Galerie",
       "openWithGallery": "Photo ou vidéo"
+    },
+    "feedTabs": {
+      "label": "Fils",
+      "all": "Tout le monde",
+      "following": "Abonnements",
+      "followingEmptyTitle": "Rien dans tes abonnements",
+      "followingEmptyDescription": "Suis des membres depuis leur profil : leurs publications et celles de tes groupes apparaîtront ici."
     }
   },
   "Messages": {
@@ -1385,7 +1409,11 @@
       "newGroup": "Nouveau groupe privé",
       "groupQuiet": "{count, plural, one {# membre} other {# membres}} · aucun message pour l’instant",
       "invitationsTitle": "Invitations",
-      "story": "Story : {text}"
+      "story": "Story : {text}",
+      "onlineCount": "En ligne · {count, number}",
+      "online": "En ligne",
+      "onlineEmpty": "Aucun de tes contacts n’est en ligne pour l’instant.",
+      "write": "Écrire"
     },
     "join": {
       "title": "Rejoins le Centre pour écrire aux membres",
@@ -1445,7 +1473,8 @@
       "storyReplyMine": "Tu as répondu à sa story",
       "storyReplyTheirs": "A répondu à ta story",
       "storyUnavailable": "Story terminée",
-      "seen": "Vu"
+      "seen": "Vu",
+      "online": "En ligne"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -1681,7 +1710,8 @@
       "notFound": "Ce membre n’est plus disponible.",
       "contactLimit": "Tu as envoyé beaucoup de demandes aujourd’hui. Réessaie demain.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
-    }
+    },
+    "online": "en ligne"
   },
   "Marketplace": {
     "vitrine": {
@@ -3143,7 +3173,8 @@
       "comments": "{name} et {others, plural, one {# autre personne ont} other {# autres personnes ont}} commenté ta publication",
       "like": "{name} aime ta publication",
       "likes": "{name} et {others, plural, one {# autre personne aiment} other {# autres personnes aiment}} ta publication",
-      "story": "{name} a répondu à ta question : « {subject} »"
+      "story": "{name} a répondu à ta question : « {subject} »",
+      "follow": "{name} s’est abonné à toi"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -3200,5 +3231,24 @@
         "unexpected": "Le morceau n’a pas pu être ajouté. Réessaie."
       }
     }
+  },
+  "Follows": {
+    "follow": "Suivre",
+    "following": "Abonné",
+    "followLabel": "Suivre {name}",
+    "unfollowLabel": "Ne plus suivre {name}",
+    "error": "Le changement n’a pas pu être enregistré. Réessaie.",
+    "listsLabel": "Abonnés et abonnements",
+    "followers": "{count, plural, =0 {Aucun abonné} one {# abonné} other {# abonnés}}",
+    "followingCount": "{count, plural, =0 {Aucun abonnement} one {# abonnement} other {# abonnements}}",
+    "followersTitle": "Abonnés",
+    "followingTitle": "Abonnements",
+    "backToProfile": "Retour au profil",
+    "followersEmpty": "Pas encore d’abonnés",
+    "followingEmpty": "Aucun abonnement",
+    "followersEmptyMine": "Quand quelqu’un suivra ta page, tu le verras ici.",
+    "followersEmptyOther": "Personne ne suit encore {name}.",
+    "followingEmptyMine": "Suis des membres du Centre pour voir leurs publications dans le fil « Abonnements ».",
+    "followingEmptyOther": "{name} ne suit encore personne."
   }
 }

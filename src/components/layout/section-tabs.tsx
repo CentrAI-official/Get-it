@@ -49,6 +49,7 @@ export function SectionTabs({ label, tabs, current }: SectionTabsProps) {
           <li key={key}>
             <Link
               href={href}
+              transitionTypes={["nav-tab"]}
               aria-current={key === current ? "page" : undefined}
               className={cn(
                 "flex rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",

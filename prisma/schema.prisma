@@ -82,6 +82,8 @@ model Profile {
   accountType    AccountType @default(consumer) @map("account_type")
   /// Suspension du Centre Get iT par la modération ; null : pas suspendu.
   suspendedUntil DateTime?   @map("suspended_until") @db.Timestamptz(3)
+  /// Dernière activité dans l'application (présence en ligne, vue par les contacts).
+  lastSeenAt     DateTime?   @map("last_seen_at") @db.Timestamptz(3)
   /// Prénom ou nom affiché, demandé à l'onboarding.
   displayName    String?     @map("display_name")
   /// Courte présentation, visible des membres du Centre (160 caractères au plus).
@@ -147,6 +149,8 @@ model Profile {
   mediaUploads         MediaUpload[]
   contactsRequested    Contact[]            @relation("ContactRequester")
   contactsReceived     Contact[]            @relation("ContactAddressee")
+  following            Follow[]             @relation("Follower")
+  followers            Follow[]             @relation("Followed")
   pactsProposed        Pact[]               @relation("PactProposer")
   pactsEnded           Pact[]               @relation("PactEnder")
   pactMembers          PactMember[]
@@ -174,6 +178,8 @@ model UserSettings {
   aiConsentAt      DateTime?       @map("ai_consent_at") @db.Timestamptz(3)
   /// Acceptation des règles du Centre Get iT, avant la première publication.
   communityRulesAt DateTime?       @map("community_rules_at") @db.Timestamptz(3)
+  /// Montrer à mes contacts quand je suis en ligne (sinon je ne vois pas non plus les leurs).
+  showPresence     Boolean         @default(true) @map("show_presence")
   /// Dernier jour (fuseau de l'utilisateur) où « Ma journée » s'est ouvert tout seul.
   dayPanelSeenOn   DateTime?       @map("day_panel_seen_on") @db.Date
   createdAt        DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -1085,6 +1091,21 @@ enum ContactStatus {
 }
 
 /// Contact (ami) entre deux membres du Centre : une demande, puis une relation acceptée.
+/// Abonnement : une personne en suit une autre (sans acceptation), comme Instagram.
+/// Les abonnés et abonnements se voient par les membres ; le fil « Abonnements » en dépend.
+model Follow {
+  followerId String   @map("follower_id") @db.Uuid
+  followedId String   @map("followed_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  follower Profile @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followed Profile @relation("Followed", fields: [followedId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followedId])
+  @@index([followedId, createdAt])
+  @@map("follows")
+}
+
 model Contact {
   id          String        @id @default(uuid(7)) @db.Uuid
   requesterId String        @map("requester_id") @db.Uuid
@@ -1356,6 +1377,8 @@ enum NotificationKind {
   like
   /// Réponse à la question d'une story.
   story
+  /// Nouvel abonné.
+  follow
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.

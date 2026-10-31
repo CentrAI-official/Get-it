@@ -93,6 +93,7 @@ function meta(state: ConversationState) {
   return {
     id: state.id,
     other: state.other,
+    otherOnline: state.otherOnline,
     viewerStatus: state.viewerStatus,
     otherStatus: state.otherStatus,
     permission: state.permission,
@@ -446,17 +447,29 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background lg:static lg:z-auto lg:h-[calc(100dvh-7rem)] lg:overflow-hidden lg:rounded-3xl lg:glass">
-      {/* En-tête : retour, personne (niveau plutôt qu'« en ligne »), menu */}
+      {/* En-tête : retour, personne (en ligne, niveau), menu */}
       <header className="flex h-16 shrink-0 items-center gap-2 border-b border-foreground/5 px-2 sm:px-4">
         <Button asChild variant="ghost" size="icon-lg">
-          <Link href="/messages" aria-label={t("back")}>
+          <Link
+            href="/messages"
+            aria-label={t("back")}
+            transitionTypes={["nav-back"]}
+          >
             <ArrowLeft aria-hidden="true" />
           </Link>
         </Button>
-        <Avatar name={name} url={other.avatarUrl} className="size-10" />
+        <Avatar
+          name={name}
+          url={other.avatarUrl}
+          online={state.otherOnline}
+          className="size-10"
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <h1 className="truncate font-heading font-bold">{name}</h1>
           <p className="truncate text-xs text-muted-foreground">
+            {state.otherOnline ? (
+              <span className="font-medium text-primary">{t("online")} · </span>
+            ) : null}
             {handle}
             {other.level === null
               ? null

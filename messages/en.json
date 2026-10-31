@@ -255,6 +255,11 @@
         "badge": "Ranked",
         "view": "My ranking",
         "leaderboard": "Leaderboard"
+      },
+      "counts": {
+        "contacts": "{count, plural, one {contact} other {contacts}}",
+        "followers": "{count, plural, one {follower} other {followers}}",
+        "following": "following"
       }
     },
     "settings": {
@@ -307,7 +312,17 @@
       "accountType": {
         "title": "Account type",
         "description": "An affiliate account can also sell services or gear in the Marketplace."
+      },
+      "presence": {
+        "title": "Online status",
+        "description": "Your contacts see a small orange dot on your photo when you’re in Get iT.",
+        "label": "Show when I’m online",
+        "hint": "If you hide it, you won’t see when your contacts are online either.",
+        "error": "The setting couldn’t be saved. Try again."
       }
+    },
+    "refresh": {
+      "refreshing": "Reloading the page…"
     }
   },
   "Auth": {
@@ -1348,7 +1363,9 @@
       "openProfile": "View {name}’s profile",
       "ranked": "Ranked",
       "unranked": "Unranked",
-      "private": "Private"
+      "private": "Private",
+      "followers": "{count, plural, =0 {0 followers} one {# follower} other {# followers}}",
+      "following": "{count, plural, =0 {0 following} one {# following} other {# following}}"
     },
     "camera": {
       "open": "Camera",
@@ -1356,6 +1373,13 @@
       "video": "Record a video",
       "gallery": "Gallery",
       "openWithGallery": "Photo or video"
+    },
+    "feedTabs": {
+      "label": "Feeds",
+      "all": "Everyone",
+      "following": "Following",
+      "followingEmptyTitle": "Nothing from the people you follow",
+      "followingEmptyDescription": "Follow members from their profile: their posts and your groups’ posts will show up here."
     }
   },
   "Messages": {
@@ -1385,7 +1409,11 @@
       "newGroup": "New private group",
       "groupQuiet": "{count, plural, one {# member} other {# members}} · no messages yet",
       "invitationsTitle": "Invitations",
-      "story": "Story: {text}"
+      "story": "Story: {text}",
+      "onlineCount": "Online · {count, number}",
+      "online": "Online",
+      "onlineEmpty": "None of your contacts are online right now.",
+      "write": "Write"
     },
     "join": {
       "title": "Join the Hub to write to members",
@@ -1445,7 +1473,8 @@
       "storyReplyMine": "You replied to their story",
       "storyReplyTheirs": "Replied to your story",
       "storyUnavailable": "Story ended",
-      "seen": "Seen"
+      "seen": "Seen",
+      "online": "Online"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -1681,7 +1710,8 @@
       "notFound": "This member is no longer available.",
       "contactLimit": "You’ve sent a lot of requests today. Try again tomorrow.",
       "unexpected": "Something went wrong. Try again in a moment."
-    }
+    },
+    "online": "online"
   },
   "Marketplace": {
     "vitrine": {
@@ -3143,7 +3173,8 @@
       "comments": "{name} and {others, plural, one {# other person} other {# other people}} commented on your post",
       "like": "{name} likes your post",
       "likes": "{name} and {others, plural, one {# other person like} other {# other people like}} your post",
-      "story": "{name} answered your question: “{subject}”"
+      "story": "{name} answered your question: “{subject}”",
+      "follow": "{name} started following you"
     },
     "push": {
       "title": "Notifications on this device",
@@ -3200,5 +3231,24 @@
         "unexpected": "The song couldn’t be added. Try again."
       }
     }
+  },
+  "Follows": {
+    "follow": "Follow",
+    "following": "Following",
+    "followLabel": "Follow {name}",
+    "unfollowLabel": "Unfollow {name}",
+    "error": "The change couldn’t be saved. Try again.",
+    "listsLabel": "Followers and following",
+    "followers": "{count, plural, =0 {No followers} one {# follower} other {# followers}}",
+    "followingCount": "{count, plural, =0 {Not following anyone} one {# following} other {# following}}",
+    "followersTitle": "Followers",
+    "followingTitle": "Following",
+    "backToProfile": "Back to profile",
+    "followersEmpty": "No followers yet",
+    "followingEmpty": "Not following anyone",
+    "followersEmptyMine": "When someone follows your page, you’ll see them here.",
+    "followersEmptyOther": "Nobody follows {name} yet.",
+    "followingEmptyMine": "Follow Hub members to see their posts in the “Following” feed.",
+    "followingEmptyOther": "{name} isn’t following anyone yet."
   }
 }

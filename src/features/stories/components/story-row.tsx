@@ -76,6 +76,10 @@ const INNER = "flex size-full rounded-[19px] bg-background p-[2px]";
 const FACE = "size-full rounded-[17px] text-lg";
 /** Glissée vers le bas qui ferme la visionneuse, en pixels. */
 const DISMISS_PX = 100;
+/** Glissée sur le côté qui change de personne, en pixels. */
+const SWIPE_PX = 70;
+
+type DragOffset = { x: number; y: number };
 
 /** Une personne et l'une de ses stories, ouvertes dans la visionneuse. */
 type Opened = { ring: number; story: number };
@@ -272,7 +276,7 @@ function StoryViewer({
   mineId,
   opened,
   onChange,
-  onClose,
+  onClose: closeViewer,
   now,
 }: StoryViewerProps) {
   const t = useTranslations("Community.stories");
@@ -282,13 +286,45 @@ function StoryViewer({
   const [report, setReport] = useState<string | null>(null);
   // Son coupé ou non, gardé d'une story à l'autre
   const [muted, setMuted] = useState(false);
-  // Glisser vers le bas : la story suit le doigt, puis se ferme (comme Instagram)
-  const [pull, setPull] = useState({ y: 0, active: false });
+  // Glissée : la story suit le doigt ; vers le bas elle se ferme, sur le côté
+  // elle passe à la personne suivante ou précédente (comme Instagram)
+  const [drag, setDrag] = useState({ x: 0, y: 0, active: false });
+  // Sens d'arrivée de la personne suivante (animation d'entrée)
+  const [enter, setEnter] = useState<"left" | "right" | null>(null);
 
-  function pullTo(y: number, done: boolean) {
-    if (!done) return setPull({ y, active: true });
-    setPull({ y: 0, active: false });
-    if (y >= DISMISS_PX) onClose();
+  /** Fermée : la prochaine ouverture arrive sans glisser. */
+  function onClose(notice?: string) {
+    setEnter(null);
+    closeViewer(notice);
+  }
+
+  function dragTo(offset: DragOffset, done: boolean) {
+    if (!done) return setDrag({ ...offset, active: true });
+    setDrag({ x: 0, y: 0, active: false });
+    if (offset.y >= DISMISS_PX) onClose();
+    else if (offset.x <= -SWIPE_PX) nextRing();
+    else if (offset.x >= SWIPE_PX) previousRing();
+  }
+
+  /** La personne suivante (ou la fermeture après la dernière). */
+  function nextRing() {
+    if (!opened) return;
+    const following = rings[opened.ring + 1];
+    if (!following) return onClose();
+    setEnter("right");
+    onChange({
+      ring: opened.ring + 1,
+      story: firstUnseenIndex(following, seen),
+    });
+  }
+
+  /** La personne précédente (rien avant la première). */
+  function previousRing() {
+    if (!opened) return;
+    const before = rings[opened.ring - 1];
+    if (!before) return;
+    setEnter("left");
+    onChange({ ring: opened.ring - 1, story: firstUnseenIndex(before, seen) });
   }
 
   function next() {
@@ -299,6 +335,7 @@ function StoryViewer({
     }
     const following = rings[opened.ring + 1];
     if (following) {
+      setEnter("right");
       onChange({
         ring: opened.ring + 1,
         story: firstUnseenIndex(following, seen),
@@ -312,6 +349,7 @@ function StoryViewer({
       onChange({ ring: opened.ring, story: opened.story - 1 });
     } else if (opened.ring > 0) {
       const before = rings[opened.ring - 1];
+      setEnter("left");
       onChange({
         ring: opened.ring - 1,
         story: (before?.stories.length ?? 1) - 1,
@@ -330,36 +368,51 @@ function StoryViewer({
           // Plein écran sur téléphone, fenêtre haute sur ordinateur ; toujours sombre
           className={cn(
             "dark inset-0 top-0 left-0 flex h-dvh max-h-dvh w-full max-w-none translate-x-0 translate-y-0 flex-col gap-3 rounded-none bg-black p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] ring-0 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:h-[min(52rem,calc(100dvh-4rem))] sm:max-w-md sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-3xl sm:ring-1",
-            // Relâchée avant le seuil : la story remonte en douceur
-            !pull.active && "transition-[transform,opacity,border-radius]",
+            // Relâchée avant le seuil : la story revient en douceur
+            !drag.active && "transition-[transform,opacity,border-radius]",
           )}
           style={
-            pull.y > 0
+            drag.y > 0
               ? {
-                  transform: `translateY(${pull.y}px) scale(${1 - Math.min(pull.y, 400) / 2000})`,
-                  opacity: 1 - Math.min(pull.y, 400) / 800,
+                  transform: `translateY(${drag.y}px) scale(${1 - Math.min(drag.y, 400) / 2000})`,
+                  opacity: 1 - Math.min(drag.y, 400) / 800,
                   borderRadius: "1.5rem",
                 }
-              : undefined
+              : drag.x !== 0
+                ? {
+                    transform: `translateX(${drag.x}px)`,
+                    opacity: 1 - Math.min(Math.abs(drag.x), 400) / 1000,
+                  }
+                : undefined
           }
         >
           {ring && story && opened ? (
-            // Une story à la fois : son état (avancement, pause) repart de zéro
-            <StoryStage
-              key={story.id}
-              ring={ring}
-              index={opened.story}
-              mine={ring.author.id === mineId}
-              held={report !== null}
-              muted={muted}
-              onMutedChange={setMuted}
-              now={now}
-              onNext={next}
-              onPrevious={previous}
-              onPull={pullTo}
-              onReport={() => setReport(story.id)}
-              onDeleted={() => onClose(t("deleted"))}
-            />
+            // Une personne à la fois : elle arrive du côté où l'on a glissé
+            <div
+              key={ring.author.id}
+              className={cn(
+                "flex min-h-0 flex-1 flex-col gap-3",
+                enter === "right" && "story-in-right",
+                enter === "left" && "story-in-left",
+              )}
+            >
+              {/* Une story à la fois : son état (avancement, pause) repart de zéro */}
+              <StoryStage
+                key={story.id}
+                ring={ring}
+                index={opened.story}
+                mine={ring.author.id === mineId}
+                held={report !== null}
+                muted={muted}
+                onMutedChange={setMuted}
+                now={now}
+                onNext={next}
+                onPrevious={previous}
+                onDrag={dragTo}
+                onReport={() => setReport(story.id)}
+                onDeleted={() => onClose(t("deleted"))}
+              />
+            </div>
           ) : null}
         </DialogContent>
       </Dialog>
@@ -386,8 +439,8 @@ type StoryStageProps = {
   now: number;
   onNext: () => void;
   onPrevious: () => void;
-  /** Glissée vers le bas : sa distance pendant le geste, puis `done` au relâchement. */
-  onPull: (y: number, done: boolean) => void;
+  /** Glissée (bas ou côté) : sa distance pendant le geste, puis `done` au relâchement. */
+  onDrag: (offset: DragOffset, done: boolean) => void;
   onReport: () => void;
   onDeleted: () => void;
 };
@@ -408,7 +461,7 @@ function StoryStage({
   now,
   onNext,
   onPrevious,
-  onPull,
+  onDrag,
   onReport,
   onDeleted,
 }: StoryStageProps) {
@@ -432,13 +485,14 @@ function StoryStage({
   const [deleting, startDelete] = useTransition();
   const hold = paused || menuOpen || held || sheet !== null;
   const advance = useEffectEvent(() => onNext());
-  // Geste en cours sur le cadre : appui long (pause) ou glissée vers le bas (fermer)
+  // Geste en cours sur le cadre : appui long (pause), glissée vers le bas
+  // (fermer) ou sur le côté (changer de personne)
   const gesture = useRef<{
     id: number;
     x: number;
     y: number;
-    pulling: boolean;
-    dy: number;
+    axis: "x" | "y" | null;
+    offset: DragOffset;
   } | null>(null);
   const swallowClick = useRef(false);
   const muteRefused = useEffectEvent(() => onMutedChange(true));
@@ -528,7 +582,7 @@ function StoryStage({
     const active = gesture.current;
     gesture.current = null;
     setPaused(false);
-    if (active?.pulling) onPull(active.dy, true);
+    if (active?.axis) onDrag(active.offset, true);
   }
 
   function vote(choice: 0 | 1) {
@@ -683,8 +737,8 @@ function StoryStage({
               id: event.pointerId,
               x: event.clientX,
               y: event.clientY,
-              pulling: false,
-              dy: 0,
+              axis: null,
+              offset: { x: 0, y: 0 },
             };
           }}
           onPointerMove={(event) => {
@@ -692,14 +746,19 @@ function StoryStage({
             if (!active || active.id !== event.pointerId) return;
             const dy = event.clientY - active.y;
             const dx = event.clientX - active.x;
-            // Vers le bas et surtout vertical : la story suit le doigt
-            if (!active.pulling && dy > 10 && dy > Math.abs(dx) * 1.2) {
-              active.pulling = true;
-              swallowClick.current = true;
+            // Vers le bas ou sur le côté : la story suit le doigt
+            if (active.axis === null) {
+              if (dy > 10 && dy > Math.abs(dx) * 1.2) active.axis = "y";
+              else if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy) * 1.2)
+                active.axis = "x";
+              if (active.axis) swallowClick.current = true;
             }
-            if (active.pulling) {
-              active.dy = Math.max(0, dy);
-              onPull(active.dy, false);
+            if (active.axis) {
+              active.offset =
+                active.axis === "y"
+                  ? { x: 0, y: Math.max(0, dy) }
+                  : { x: dx, y: 0 };
+              onDrag(active.offset, false);
             }
           }}
           onPointerUp={endGesture}

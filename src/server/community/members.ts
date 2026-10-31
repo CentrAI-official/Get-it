@@ -97,9 +97,17 @@ export async function blockUser(userId: string, blockedId: string) {
     select: { id: true },
   });
   if (!exists) return false;
-  // Le contact disparaît, et les pactes ouverts entre les deux s'arrêtent
+  // Le contact et les abonnements disparaissent, et les pactes ouverts entre les deux s'arrêtent
   await db.contact.deleteMany({
     where: { pairKey: directKey(userId, blockedId) },
+  });
+  await db.follow.deleteMany({
+    where: {
+      OR: [
+        { followerId: userId, followedId: blockedId },
+        { followerId: blockedId, followedId: userId },
+      ],
+    },
   });
   await db.pact.updateMany({
     where: {

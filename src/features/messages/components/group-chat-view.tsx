@@ -269,7 +269,11 @@ export function GroupChatView({
     <div className="fixed inset-0 z-50 flex flex-col bg-background lg:static lg:z-auto lg:h-[calc(100dvh-7rem)] lg:overflow-hidden lg:rounded-3xl lg:glass">
       <header className="flex h-16 shrink-0 items-center gap-2 border-b border-foreground/5 px-2 sm:px-4">
         <Button asChild variant="ghost" size="icon-lg">
-          <Link href="/messages" aria-label={t("back")}>
+          <Link
+            href="/messages"
+            aria-label={t("back")}
+            transitionTypes={["nav-back"]}
+          >
             <ArrowLeft aria-hidden="true" />
           </Link>
         </Button>

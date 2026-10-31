@@ -380,7 +380,7 @@ export function CoachChat({
         {/* Zone de saisie : reste visible au-dessus de la barre flottante */}
         <form
           onSubmit={onSubmit}
-          className="sticky bottom-[calc(6rem+env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-foreground/8 bg-background/95 py-3 backdrop-blur-xl lg:bottom-4"
+          className="sticky bottom-[calc(4.25rem+env(safe-area-inset-bottom))] flex flex-col gap-2 border-t border-foreground/8 bg-background/95 py-3 backdrop-blur-xl lg:bottom-4"
         >
           {error ? (
             <p

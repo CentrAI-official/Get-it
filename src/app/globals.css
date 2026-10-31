@@ -345,3 +345,89 @@
     scroll-behavior: smooth;
   }
 }
+
+/* Stories : la personne suivante arrive du côté où l'on a glissé */
+@keyframes story-in {
+  from {
+    opacity: 0;
+    translate: var(--story-from) 0;
+  }
+}
+@utility story-in-right {
+  --story-from: 40%;
+  animation: story-in 280ms ease-out;
+}
+@utility story-in-left {
+  --story-from: -40%;
+  animation: story-in 280ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-in-right,
+  .story-in-left {
+    animation: none;
+  }
+}
+
+/* Changement de page (ViewTransition de la mise en page) : on avance, la page
+   arrive de la droite ; on revient, de la gauche ; un onglet se fond. Le reste
+   de l'écran (barres du haut et du bas) ne bouge pas. */
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+::view-transition-old(.nav-forward) {
+  --page-offset: -18%;
+  animation:
+    160ms ease-in both page-fade reverse,
+    320ms cubic-bezier(0.32, 0.72, 0, 1) both page-slide reverse;
+}
+::view-transition-new(.nav-forward) {
+  --page-offset: 32%;
+  animation:
+    220ms ease-out both page-fade,
+    320ms cubic-bezier(0.32, 0.72, 0, 1) both page-slide;
+}
+::view-transition-old(.nav-back) {
+  --page-offset: 18%;
+  animation:
+    160ms ease-in both page-fade reverse,
+    320ms cubic-bezier(0.32, 0.72, 0, 1) both page-slide reverse;
+}
+::view-transition-new(.nav-back) {
+  --page-offset: -32%;
+  animation:
+    220ms ease-out both page-fade,
+    320ms cubic-bezier(0.32, 0.72, 0, 1) both page-slide;
+}
+::view-transition-old(.nav-tab) {
+  animation: 120ms ease-in both page-fade reverse;
+}
+::view-transition-new(.nav-tab) {
+  animation: 180ms ease-out 60ms both page-fade;
+}
+::view-transition-group(.nav-forward),
+::view-transition-group(.nav-back),
+::view-transition-group(.nav-tab) {
+  animation-duration: 320ms;
+}
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes page-slide {
+  from {
+    translate: var(--page-offset) 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}

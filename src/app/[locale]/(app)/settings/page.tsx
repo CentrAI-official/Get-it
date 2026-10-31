@@ -37,6 +37,10 @@ import {
 import { PushSettingsCard } from "@/features/notifications/components/push-settings-card";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 import { MusicCatalogLink } from "@/features/stories/components/music-panels";
+import {
+  PresenceSettings,
+  PresenceSettingsSkeleton,
+} from "@/features/settings/components/presence-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("App.settings");
@@ -94,6 +98,9 @@ export default function SettingsPage() {
       </Suspense>
       <Suspense fallback={<CommunitySettingsSkeleton />}>
         <CommunitySettings />
+      </Suspense>
+      <Suspense fallback={<PresenceSettingsSkeleton />}>
+        <PresenceSettings />
       </Suspense>
       {/* Équipe Get iT seulement : rien ne s'affiche pour les autres */}
       <Suspense fallback={null}>

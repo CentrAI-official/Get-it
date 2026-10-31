@@ -7,6 +7,7 @@ import {
 import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
+import { followingIds } from "@/server/follows/service";
 import { avatarUrls } from "@/server/profile/avatar";
 import { getDisplayLevels } from "@/server/ranked/service";
 import { mediaForPosts, type FeedMedia } from "./media";
@@ -249,18 +250,37 @@ export async function listFeed(
   cursor?: FeedCursor,
   authorId?: string,
   groupId?: string,
+  /** Fil « Abonnements » : les comptes que je suis, moi-même et mes groupes. */
+  following = false,
 ): Promise<{
   posts: FeedPost[];
   nextCursor: FeedCursor | null;
   /** Moment du chargement : base des dates relatives (« il y a 5 min »). */
   loadedAt: number;
 }> {
-  const blocked = await getBlockedIds(viewerId);
+  const [blocked, followed] = await Promise.all([
+    getBlockedIds(viewerId),
+    following ? followingIds(viewerId) : Promise.resolve([]),
+  ]);
+  const myGroups = {
+    group: {
+      visibility: "public" as const,
+      members: { some: { userId: viewerId, status: "active" as const } },
+    },
+  };
   const where: Prisma.PostWhereInput = {
     AND: [
       visibleTo(viewerId),
       blocked.length > 0 ? { userId: { notIn: blocked } } : {},
       authorId ? { userId: authorId } : {},
+      following
+        ? {
+            OR: [
+              { groupId: null, userId: { in: [...followed, viewerId] } },
+              myGroups,
+            ],
+          }
+        : {},
       groupId
         ? { groupId, group: { visibility: "public" as const } }
         : authorId

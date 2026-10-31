@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import { avatarUrl } from "@/server/profile/avatar";
 import { listFeed } from "@/server/community/feed";
 import { storageEnabled } from "@/server/storage/service";
@@ -33,16 +34,17 @@ export async function CommunityPanel({
 
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const now = new Date();
-  const [params, feed, stories, shareable, myAvatar, t, format] =
-    await Promise.all([
-      searchParams,
-      listFeed(profile.id),
-      listStoryRings(profile.id, now),
-      member.suspendedUntil ? [] : listShareableProgress(profile.id),
-      avatarUrl(profile.avatarPath),
-      getTranslations("Community"),
-      getFormatter(),
-    ]);
+  const params = await searchParams;
+  // « ?fil=abonnements » : seulement les comptes que je suis et mes groupes
+  const following = params.fil === "abonnements";
+  const [feed, stories, shareable, myAvatar, t, format] = await Promise.all([
+    listFeed(profile.id, undefined, undefined, undefined, following),
+    listStoryRings(profile.id, now),
+    member.suspendedUntil ? [] : listShareableProgress(profile.id),
+    avatarUrl(profile.avatarPath),
+    getTranslations("Community"),
+    getFormatter(),
+  ]);
   // Stories terminées : effacées (avec leurs fichiers) après l'envoi de la page
   after(() =>
     purgeExpiredStories(new Date()).catch((error: unknown) => {
@@ -104,13 +106,48 @@ export async function CommunityPanel({
         />
       )}
 
+      <nav aria-label={t("feedTabs.label")} className="flex gap-2">
+        {(["all", "following"] as const).map((value) => {
+          const active = (value === "following") === following;
+          return (
+            <Link
+              key={value}
+              href={
+                value === "following"
+                  ? { pathname: "/community", query: { fil: "abonnements" } }
+                  : "/community"
+              }
+              transitionTypes={["nav-tab"]}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                active
+                  ? "border-primary bg-primary/15 text-foreground"
+                  : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {t(`feedTabs.${value}`)}
+            </Link>
+          );
+        })}
+      </nav>
+
       <CommunityFeed
-        // Une nouvelle publication (ou une suppression) recharge le fil
-        key={feed.posts[0]?.id ?? "empty"}
+        // Une nouvelle publication, une suppression ou l'autre fil recharge la liste
+        key={`${following ? "following" : "all"}:${feed.posts[0]?.id ?? "empty"}`}
         initialPosts={feed.posts}
         initialCursor={feed.nextCursor}
         now={feed.loadedAt}
         canWrite={!member.suspendedUntil}
+        following={following}
+        empty={
+          following
+            ? {
+                title: t("feedTabs.followingEmptyTitle"),
+                description: t("feedTabs.followingEmptyDescription"),
+              }
+            : undefined
+        }
       />
     </div>
   );

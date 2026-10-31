@@ -8,6 +8,7 @@ import { routing } from "@/i18n/routing";
 import { deleteAccount } from "@/server/account/service";
 import { signOut } from "@/server/auth/service";
 import { getSessionUser, requireUser } from "@/server/auth/session";
+import { setShowPresence } from "@/server/presence/service";
 import { updateLocale, updateTheme } from "@/server/profile/service";
 
 /** Enregistre la langue choisie dans le compte. Sans session, ne fait rien : le cookie suffit. */
@@ -48,4 +49,17 @@ export async function deleteAccountAction(
     href: { pathname: "/login", query: { accountDeleted: "1" } },
     locale,
   });
+}
+
+/** « Montrer quand je suis en ligne » (réciproque : sinon je ne vois pas celle des autres). */
+export async function setPresenceAction(show: unknown) {
+  if (typeof show !== "boolean") return false;
+  const user = await requireUser();
+  try {
+    await setShowPresence(user.id, show);
+    return true;
+  } catch (error) {
+    console.error("Réglage de présence impossible", error);
+    return false;
+  }
 }

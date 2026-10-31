@@ -1,19 +1,24 @@
 "use client";
 
-import { MessageCircle, SquarePen, UsersRound } from "lucide-react";
+import {
+  LoaderCircle,
+  MessageCircle,
+  SquarePen,
+  UsersRound,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Avatar } from "@/components/avatar";
 import { GroupBadge } from "@/features/groups/components/group-badge";
 import { InvitationButtons } from "@/features/groups/components/group-buttons";
 import type { GroupTopic } from "@/features/groups/rules";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import type { InboxPact } from "@/server/messages/pacts";
-import type { InboxItem } from "@/server/messages/service";
-import { listInboxAction } from "../actions";
+import type { InboxItem, OnlineContact } from "@/server/messages/service";
+import { listInboxAction, startConversationAction } from "../actions";
 import { INBOX_POLL_MS } from "../rules";
 import { setUnreadCount } from "../unread-store";
 import { PactCarousel } from "./pact-carousel";
@@ -29,6 +34,8 @@ export type PrivateGroupItem = {
 
 type InboxProps = {
   initial: InboxItem[];
+  /** Contacts en ligne (filtre « En ligne »). */
+  initialOnline: OnlineContact[];
   /** Moment du chargement : base des dates relatives. */
   loadedAt: number;
   groups: PrivateGroupItem[];
@@ -48,6 +55,7 @@ const TABS = ["chats", "requests", "groups"] as const;
  */
 export function Inbox({
   initial,
+  initialOnline,
   loadedAt,
   groups,
   invitations,
@@ -57,8 +65,11 @@ export function Inbox({
 }: InboxProps) {
   const t = useTranslations("Messages.inbox");
   const [items, setItems] = useState(initial);
+  const [online, setOnline] = useState(initialOnline);
   const [now, setNow] = useState(loadedAt);
   const [tab, setTab] = useState<(typeof TABS)[number]>("chats");
+  // Seulement les contacts en ligne (comme le rond vert d'Instagram)
+  const [onlineOnly, setOnlineOnly] = useState(false);
 
   // Rafraîchie dès qu'elle s'affiche (retour d'une conversation refusée,
   // bloquée ou supprimée), puis toutes les 10 secondes
@@ -68,9 +79,10 @@ export function Inbox({
       if (document.visibilityState !== "visible") return;
       const next = await listInboxAction().catch(() => null);
       if (!active || !next) return;
-      setItems(next);
+      setItems(next.items);
+      setOnline(next.online);
       setNow(Date.now());
-      setUnreadCount(next.filter((item) => item.unread).length);
+      setUnreadCount(next.items.filter((item) => item.unread).length);
     }
     void refresh();
     const timer = window.setInterval(refresh, INBOX_POLL_MS);
@@ -101,27 +113,71 @@ export function Inbox({
   return (
     <div className="flex flex-col gap-4">
       <PactCarousel pacts={pacts} nowMinute={nowMinute} timeZone={timeZone} />
-      <div role="tablist" aria-label={t("tabsLabel")} className="flex gap-2">
-        {TABS.map((value) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={tab === value}
-            onClick={() => setTab(value)}
-            className={cn(
-              "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-              tab === value
-                ? "border-primary bg-primary/15 text-foreground"
-                : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {label(value)}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <div role="tablist" aria-label={t("tabsLabel")} className="flex gap-2">
+          {TABS.map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={tab === value}
+              onClick={() => {
+                setTab(value);
+                setOnlineOnly(false);
+              }}
+              className={cn(
+                "rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                tab === value && !onlineOnly
+                  ? "border-primary bg-primary/15 text-foreground"
+                  : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {label(value)}
+            </button>
+          ))}
+        </div>
+        {/* Filtre : seulement les contacts en ligne (hors des onglets) */}
+        <button
+          type="button"
+          aria-pressed={onlineOnly}
+          onClick={() => {
+            setOnlineOnly(!onlineOnly);
+            setTab("chats");
+          }}
+          className={cn(
+            "ml-auto flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+            onlineOnly
+              ? "border-primary bg-primary/15 text-foreground"
+              : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <span aria-hidden="true" className="size-2 rounded-full bg-primary" />
+          {t("onlineCount", { count: online.length })}
+        </button>
       </div>
 
-      {tab === "groups" ? (
+      {onlineOnly ? (
+        online.length > 0 ? (
+          <ul className="flex flex-col gap-1">
+            {online.map((contact) => (
+              <li key={contact.person.id}>
+                <OnlineRow
+                  contact={contact}
+                  item={items.find(
+                    (item) =>
+                      !item.group && item.other.id === contact.person.id,
+                  )}
+                  now={now}
+                />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="py-2 text-sm text-muted-foreground">
+            {t("onlineEmpty")}
+          </p>
+        )
+      ) : tab === "groups" ? (
         <GroupsTab
           chats={groupChats}
           quiet={quiet}
@@ -279,6 +335,7 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
         <Avatar
           name={name}
           url={item.other.avatarUrl}
+          online={item.online}
           className="size-12 text-lg"
         />
       )}
@@ -293,6 +350,9 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
             >
               {name}
             </span>
+            {item.online ? (
+              <span className="sr-only">{t("online")}</span>
+            ) : null}
             {item.group || item.other.level === null ? null : (
               <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                 {t("level", { level: item.other.level })}
@@ -330,5 +390,69 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
         </span>
       </span>
     </Link>
+  );
+}
+
+/**
+ * Contact en ligne : sa conversation (avec le dernier message), ou « Écrire »
+ * s'il n'y en a pas encore.
+ */
+function OnlineRow({
+  contact,
+  item,
+  now,
+}: {
+  contact: OnlineContact;
+  item: InboxItem | undefined;
+  now: number;
+}) {
+  const t = useTranslations("Messages.inbox");
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  if (item) return <InboxRow item={{ ...item, online: true }} now={now} />;
+  const name = contact.person.displayName ?? contact.person.username ?? "";
+  const body = (
+    <>
+      <Avatar
+        name={name}
+        url={contact.person.avatarUrl}
+        online
+        className="size-12 text-lg"
+      />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 text-left">
+        <span className="truncate font-semibold">{name}</span>
+        <span className="truncate text-sm text-muted-foreground">
+          {t("online")}
+        </span>
+      </span>
+    </>
+  );
+  const row =
+    "-mx-3 flex w-[calc(100%+1.5rem)] items-center gap-3 rounded-2xl px-3 py-3 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50";
+  return contact.conversationId ? (
+    <Link href={`/messages/${contact.conversationId}`} className={row}>
+      {body}
+    </Link>
+  ) : (
+    <button
+      type="button"
+      disabled={pending}
+      onClick={() =>
+        startTransition(async () => {
+          const result = await startConversationAction(contact.person.id);
+          if (result.ok) router.push(`/messages/${result.id}`);
+        })
+      }
+      className={row}
+    >
+      {body}
+      {pending ? (
+        <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+      ) : (
+        <span className="shrink-0 text-sm font-medium text-primary">
+          {t("write")}
+        </span>
+      )}
+    </button>
   );
 }

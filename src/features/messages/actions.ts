@@ -9,6 +9,7 @@ import {
 import { progressShareSchema } from "@/features/community/rules";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
+import { touchPresence } from "@/server/presence/service";
 import { listShareableProgress } from "@/server/community/posts";
 import { countContactRequests } from "@/server/contacts/service";
 import {
@@ -38,6 +39,7 @@ import {
   type ConversationState,
   type GroupChatState,
   type InboxItem,
+  type OnlineContact,
   type MessagePerson,
   type ShareTarget,
 } from "@/server/messages/service";
@@ -95,17 +97,23 @@ export async function startConversationAction(
   }
 }
 
-export async function listInboxAction(): Promise<InboxItem[]> {
+export async function listInboxAction(): Promise<{
+  items: InboxItem[];
+  online: OnlineContact[];
+}> {
   const user = await requireUser();
-  return (await listInbox(user.id)).items;
+  const { items, online } = await listInbox(user.id);
+  return { items, online };
 }
 
 export async function countUnreadAction(): Promise<number> {
   const user = await requireUser();
+  // L'application est ouverte : la présence en ligne avance au passage
   const [unread, requests, invitations] = await Promise.all([
     countUnread(user.id).catch(() => 0),
     countContactRequests(user.id).catch(() => 0),
     countPrivateInvitations(user.id).catch(() => 0),
+    touchPresence(user.id).catch(() => {}),
   ]);
   return unread + requests + invitations;
 }

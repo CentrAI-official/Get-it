@@ -7,9 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PILLARS, pillarIcons } from "@/config/pillars";
 import { CommunityFeed } from "@/features/community/components/community-feed";
 import { JoinCommunityCard } from "@/features/community/components/join-community-card";
+import { FollowButton } from "@/features/follows/components/follow-button";
 import { Link } from "@/i18n/navigation";
 import { listFeed } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
+import { followCounts } from "@/server/follows/service";
 import { getPublicProfile } from "@/server/profile/public";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ProfileActions } from "./profile-actions";
@@ -24,8 +26,9 @@ export async function PublicProfileLoader({ username }: { username: string }) {
   if (!member?.joined) return <JoinCommunityCard />;
   const profile = await getPublicProfile(viewer.id, username);
   if (!profile) notFound();
-  const [feed, t, tPillars, format] = await Promise.all([
+  const [feed, follows, t, tPillars, format] = await Promise.all([
     listFeed(viewer.id, undefined, profile.id),
+    followCounts(viewer.id, profile.id),
     getTranslations("Community.profile"),
     getTranslations("Pillars"),
     getFormatter(),
@@ -66,6 +69,23 @@ export async function PublicProfileLoader({ username }: { username: string }) {
             <li className="text-muted-foreground">{t("unranked")}</li>
           )}
           <li>{t("contacts", { count: profile.contacts })}</li>
+          {/* Abonnés et abonnements : leurs listes se voient par les membres */}
+          <li>
+            <Link
+              href={`/community/members/${profile.username}/followers`}
+              className="font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("followers", { count: follows.followers })}
+            </Link>
+          </li>
+          <li>
+            <Link
+              href={`/community/members/${profile.username}/following`}
+              className="font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("following", { count: follows.following })}
+            </Link>
+          </li>
           <li className="text-muted-foreground">
             {t("memberSince", {
               date: format.dateTime(new Date(profile.memberSince), {
@@ -83,10 +103,17 @@ export async function PublicProfileLoader({ username }: { username: string }) {
             </Link>
           </Button>
         ) : (
-          <ProfileActions
-            userId={profile.id}
-            contactState={profile.contactState}
-          />
+          <div className="flex flex-wrap items-start gap-2">
+            <FollowButton
+              userId={profile.id}
+              name={name}
+              following={follows.isFollowing}
+            />
+            <ProfileActions
+              userId={profile.id}
+              contactState={profile.contactState}
+            />
+          </div>
         )}
       </header>
 

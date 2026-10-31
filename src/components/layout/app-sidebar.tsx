@@ -56,6 +56,7 @@ function LinkList({
       <Link
         key={key}
         href={href}
+        transitionTypes={["nav-tab"]}
         aria-current={active ? "page" : undefined}
         className={cn(
           "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground",

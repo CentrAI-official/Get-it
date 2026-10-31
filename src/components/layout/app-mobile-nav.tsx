@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 import { UnreadBadge } from "@/features/messages/components/unread-badge";
 import { appNavItems, isActiveItem } from "./nav-items";
 
-/** Barre de navigation flottante en bas de l'écran sur mobile, « Mes services » au centre. */
+/** Barre de navigation collée au bas de l'écran sur mobile, « Mon développement » au centre. */
 export function AppMobileNav() {
   const t = useTranslations("App.nav");
 
   return (
     <nav
       aria-label={t("label")}
-      className="fixed inset-x-3 bottom-[calc(0.75rem+env(safe-area-inset-bottom))] z-40 rounded-3xl border border-foreground/10 bg-nav/85 shadow-2xl shadow-black/40 backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground/10 bg-nav/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
     >
       {/* Onglets prérendus, puis onglet actif dès que l'adresse est connue */}
       <Suspense fallback={<Tabs pathname={null} />}>
@@ -42,6 +42,8 @@ function Tabs({ pathname }: { pathname: string | null }) {
           <li key={key}>
             <Link
               href={href}
+              // Changer de catégorie : un fondu, pas un glissement
+              transitionTypes={["nav-tab"]}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "flex h-[68px] flex-col items-center justify-center gap-1 text-[0.64rem] font-medium tracking-tight whitespace-nowrap text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:text-foreground",
