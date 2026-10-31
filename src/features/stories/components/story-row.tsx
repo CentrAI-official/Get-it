@@ -27,6 +27,7 @@ import {
   useTransition,
 } from "react";
 import { Avatar } from "@/components/avatar";
+import { ProfileLink } from "@/components/profile-link";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -409,6 +410,7 @@ function StoryViewer({
                 onNext={next}
                 onPrevious={previous}
                 onDrag={dragTo}
+                onLeave={() => onClose()}
                 onReport={() => setReport(story.id)}
                 onDeleted={() => onClose(t("deleted"))}
               />
@@ -441,6 +443,8 @@ type StoryStageProps = {
   onPrevious: () => void;
   /** Glissée (bas ou côté) : sa distance pendant le geste, puis `done` au relâchement. */
   onDrag: (offset: DragOffset, done: boolean) => void;
+  /** On quitte la visionneuse pour un profil. */
+  onLeave: () => void;
   onReport: () => void;
   onDeleted: () => void;
 };
@@ -462,6 +466,7 @@ function StoryStage({
   onNext,
   onPrevious,
   onDrag,
+  onLeave,
   onReport,
   onDeleted,
 }: StoryStageProps) {
@@ -638,18 +643,25 @@ function StoryStage({
       </ol>
 
       <header className="mr-10 flex items-center gap-1">
-        <Avatar name={who} url={ring.author.avatarUrl} className="size-9" />
-        <div className="ml-1 flex min-w-0 flex-1 flex-col">
-          <DialogTitle className="truncate text-sm font-semibold">
-            {who}
-          </DialogTitle>
-          <p className="truncate text-xs text-muted-foreground">
-            <time dateTime={story.createdAt}>
-              {format.relativeTime(new Date(story.createdAt), now)}
-            </time>
-            {mine ? ` · ${t("expires", { hours: hoursLeft })}` : null}
-          </p>
-        </div>
+        {/* L'auteur mène à son profil (la visionneuse se ferme) */}
+        <ProfileLink
+          username={ring.author.username}
+          onClick={onLeave}
+          className="flex min-w-0 flex-1 items-center gap-2"
+        >
+          <Avatar name={who} url={ring.author.avatarUrl} className="size-9" />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <DialogTitle className="truncate text-sm font-semibold">
+              {who}
+            </DialogTitle>
+            <p className="truncate text-xs text-muted-foreground">
+              <time dateTime={story.createdAt}>
+                {format.relativeTime(new Date(story.createdAt), now)}
+              </time>
+              {mine ? ` · ${t("expires", { hours: hoursLeft })}` : null}
+            </p>
+          </span>
+        </ProfileLink>
         {hasSound ? (
           <Button
             type="button"
@@ -840,6 +852,7 @@ function StoryStage({
             storyId={story.id}
             now={now}
             onClose={() => setSheet(null)}
+            onLeave={onLeave}
           />
         ) : null}
       </div>
@@ -1090,10 +1103,12 @@ function ActivitySheet({
   storyId,
   now,
   onClose,
+  onLeave,
 }: {
   storyId: string;
   now: number;
   onClose: () => void;
+  onLeave: () => void;
 }) {
   const tStudio = useTranslations("Community.stories.studio");
   const format = useFormatter();
@@ -1184,31 +1199,28 @@ function ActivitySheet({
                     key={viewer.id}
                     className="flex items-center gap-3 border-b border-foreground/8 py-2"
                   >
-                    <Avatar
-                      name={viewer.name}
-                      url={viewer.avatarUrl}
-                      className="size-9"
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      {viewer.username ? (
-                        <Link
-                          href={`/community/members/${viewer.username}`}
-                          className="truncate text-sm font-semibold hover:underline"
-                        >
-                          {viewer.name}
-                        </Link>
-                      ) : (
+                    <ProfileLink
+                      username={viewer.username}
+                      onClick={onLeave}
+                      className="flex min-w-0 flex-1 items-center gap-3"
+                    >
+                      <Avatar
+                        name={viewer.name}
+                        url={viewer.avatarUrl}
+                        className="size-9"
+                      />
+                      <span className="flex min-w-0 flex-1 flex-col">
                         <span className="truncate text-sm font-semibold">
                           {viewer.name}
                         </span>
-                      )}
-                      <time
-                        dateTime={viewer.viewedAt}
-                        className="text-xs text-muted-foreground"
-                      >
-                        {format.relativeTime(new Date(viewer.viewedAt), now)}
-                      </time>
-                    </div>
+                        <time
+                          dateTime={viewer.viewedAt}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {format.relativeTime(new Date(viewer.viewedAt), now)}
+                        </time>
+                      </span>
+                    </ProfileLink>
                   </li>
                 ))}
               </ul>

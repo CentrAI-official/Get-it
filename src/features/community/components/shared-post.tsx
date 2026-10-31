@@ -3,6 +3,7 @@
 import { Video } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Avatar } from "@/components/avatar";
+import { ProfileLink } from "@/components/profile-link";
 import { cn } from "@/lib/utils";
 import type { SharedPost } from "@/server/community/feed";
 import { PostMedia } from "./post-media";
@@ -12,20 +13,37 @@ import { ProgressHero, ProgressShare } from "./progress-share";
 function SharedAuthor({
   post,
   now,
+  linked = false,
 }: {
   post: SharedPost;
   /** Avec l'heure du serveur : « il y a 2 h » à côté du nom. */
   now?: number;
+  /** Le nom et la photo mènent au profil (pas dans un bouton). */
+  linked?: boolean;
 }) {
   const format = useFormatter();
   const name = post.author.displayName ?? post.author.username ?? "";
-  return (
-    <p className="flex min-w-0 items-center gap-2 text-sm">
+  const who = (
+    <>
       <Avatar name={name} url={post.author.avatarUrl} className="size-6" />
       <span className="truncate font-semibold">{name}</span>
       <span className="truncate text-muted-foreground">
         @{post.author.username ?? ""}
       </span>
+    </>
+  );
+  return (
+    <p className="flex min-w-0 items-center gap-2 text-sm">
+      {linked ? (
+        <ProfileLink
+          username={post.author.username}
+          className="flex min-w-0 items-center gap-2"
+        >
+          {who}
+        </ProfileLink>
+      ) : (
+        who
+      )}
       {now ? (
         <time
           dateTime={post.createdAt}
@@ -59,7 +77,7 @@ export function SharedPostEmbed({
   }
   return (
     <div className="flex flex-col gap-2.5 border-l-2 border-foreground/12 pl-3">
-      <SharedAuthor post={shared} now={now} />
+      <SharedAuthor post={shared} now={now} linked />
       {shared.progress ? <ProgressHero progress={shared.progress} /> : null}
       {shared.media.length > 0 ? <PostMedia media={shared.media} /> : null}
       {shared.body ? (

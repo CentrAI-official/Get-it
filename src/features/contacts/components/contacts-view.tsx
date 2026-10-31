@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
+import { ProfileLink } from "@/components/profile-link";
 import { Input } from "@/components/ui/input";
 import {
   searchMembersAction,
@@ -109,24 +110,29 @@ function Person({
   const name = person.displayName ?? person.username ?? "";
   return (
     <div className="flex items-center gap-3 py-3">
-      <Avatar
-        name={name}
-        url={person.avatarUrl}
-        online={online}
-        className="size-11"
-      />
-      <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate font-semibold">
-          {name}
-          {online ? <span className="sr-only"> · {t("online")}</span> : null}
+      <ProfileLink
+        username={person.username}
+        className="flex min-w-0 flex-1 items-center gap-3"
+      >
+        <Avatar
+          name={name}
+          url={person.avatarUrl}
+          online={online}
+          className="size-11"
+        />
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className="truncate font-semibold">
+            {name}
+            {online ? <span className="sr-only"> · {t("online")}</span> : null}
+          </span>
+          <span className="truncate text-sm text-muted-foreground">
+            @{person.username}
+            {person.level === null
+              ? null
+              : ` · ${t("level", { level: person.level })}`}
+          </span>
         </span>
-        <span className="truncate text-sm text-muted-foreground">
-          @{person.username}
-          {person.level === null
-            ? null
-            : ` · ${t("level", { level: person.level })}`}
-        </span>
-      </span>
+      </ProfileLink>
       <span className="flex shrink-0 flex-wrap justify-end gap-1.5">
         {children}
       </span>

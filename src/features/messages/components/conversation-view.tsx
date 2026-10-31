@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
+import { ProfileLink } from "@/components/profile-link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -458,24 +459,31 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             <ArrowLeft aria-hidden="true" />
           </Link>
         </Button>
-        <Avatar
-          name={name}
-          url={other.avatarUrl}
-          online={state.otherOnline}
-          className="size-10"
-        />
-        <div className="flex min-w-0 flex-1 flex-col">
-          <h1 className="truncate font-heading font-bold">{name}</h1>
-          <p className="truncate text-xs text-muted-foreground">
-            {state.otherOnline ? (
-              <span className="font-medium text-primary">{t("online")} · </span>
-            ) : null}
-            {handle}
-            {other.level === null
-              ? null
-              : ` · ${tInbox("level", { level: other.level })}`}
-          </p>
-        </div>
+        <ProfileLink
+          username={other.username}
+          className="flex min-w-0 flex-1 items-center gap-2"
+        >
+          <Avatar
+            name={name}
+            url={other.avatarUrl}
+            online={state.otherOnline}
+            className="size-10"
+          />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <h1 className="truncate font-heading font-bold">{name}</h1>
+            <p className="truncate text-xs text-muted-foreground">
+              {state.otherOnline ? (
+                <span className="font-medium text-primary">
+                  {t("online")} ·{" "}
+                </span>
+              ) : null}
+              {handle}
+              {other.level === null
+                ? null
+                : ` · ${tInbox("level", { level: other.level })}`}
+            </p>
+          </span>
+        </ProfileLink>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon-lg" aria-label={t("menu")}>

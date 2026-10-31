@@ -8,6 +8,7 @@ import { MediaPicker } from "@/features/community/components/media-picker";
 import { ReportDialog } from "@/features/community/components/report-dialog";
 import type { PostMediaInput } from "@/features/community/media";
 import { COMMUNITY_ERRORS } from "@/features/community/rules";
+import { ProfileLink } from "@/components/profile-link";
 import { CameraMenu } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
 import { GroupBadge } from "@/features/groups/components/group-badge";
@@ -360,7 +361,12 @@ export function GroupChatView({
                 ) : null}
                 {message.kind !== "pact" && showName && person ? (
                   <p className="mt-2 mb-1 px-2 text-xs font-medium text-muted-foreground">
-                    {person.displayName ?? person.username}
+                    <ProfileLink
+                      username={person.username}
+                      className="hover:text-foreground hover:underline"
+                    >
+                      {person.displayName ?? person.username}
+                    </ProfileLink>
                   </p>
                 ) : null}
                 {message.kind === "pact" ? null : (

@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { Avatar } from "@/components/avatar";
+import { ProfileLink } from "@/components/profile-link";
 import { BackLink } from "@/components/back-link";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
@@ -398,22 +399,27 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
                   key={person.id}
                   className="flex items-center gap-3 border-b border-foreground/8 py-2.5"
                 >
-                  <Avatar
-                    name={name}
-                    url={person.avatarUrl}
-                    className="size-9"
-                  />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-semibold">
-                      {name}
+                  <ProfileLink
+                    username={person.username}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                  >
+                    <Avatar
+                      name={name}
+                      url={person.avatarUrl}
+                      className="size-9"
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-sm font-semibold">
+                        {name}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">
+                        @{person.username ?? ""} ·{" "}
+                        {status === "invited"
+                          ? t("memberList.invited")
+                          : t(`roles.${role}`)}
+                      </span>
                     </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      @{person.username ?? ""} ·{" "}
-                      {status === "invited"
-                        ? t("memberList.invited")
-                        : t(`roles.${role}`)}
-                    </span>
-                  </span>
+                  </ProfileLink>
                   {manager && group.role && person.id !== profile.id ? (
                     <MemberMenu
                       groupId={group.id}
