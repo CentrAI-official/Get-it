@@ -16,7 +16,7 @@ const SHOW_COUNT_FROM = JOURNAL_BODY_MAX_LENGTH - 1000;
 type Status =
   | { kind: "idle" }
   | { kind: "saving" }
-  | { kind: "saved"; xp: number }
+  | { kind: "saved" }
   | { kind: "cleared" }
   | { kind: "error"; error: "locked" | "invalid" | "unexpected" };
 
@@ -56,9 +56,7 @@ export function JournalEditor({
       return;
     }
     setSavedText(value);
-    setStatus(
-      result.saved ? { kind: "saved", xp: result.xp } : { kind: "cleared" },
-    );
+    setStatus(result.saved ? { kind: "saved" } : { kind: "cleared" });
     // Écrit pendant l'envoi : on enregistre la suite
     if (latest.current !== value) void save();
   }
@@ -129,7 +127,7 @@ export function JournalEditor({
           ) : status.kind === "saved" ? (
             <span className="flex items-center gap-1.5 text-primary">
               <Check aria-hidden="true" className="size-4" />
-              {status.xp > 0 ? t("savedXp", { xp: status.xp }) : t("saved")}
+              {t("saved")}
             </span>
           ) : status.kind === "cleared" ? (
             <span className="text-muted-foreground">{t("cleared")}</span>

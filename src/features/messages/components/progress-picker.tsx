@@ -32,9 +32,9 @@ type ProgressPickerProps = {
 };
 
 const keyOf = (item: ShareableProgress) =>
-  item.source.type === "level"
-    ? "level"
-    : `${item.source.type}:${item.source.id}`;
+  "id" in item.source
+    ? `${item.source.type}:${item.source.id}`
+    : item.source.type;
 
 /** Choisir un vrai progrès à envoyer dans la conversation. */
 export function ProgressPicker({

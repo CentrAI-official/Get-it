@@ -1,45 +1,30 @@
-import type {
-  RankedAnswers,
-  RankedCountry,
-  RankedPerson,
-} from "./questionnaire";
+import type { RankedCountry } from "./questionnaire";
 import {
-  BMI_AGE_GROUPS,
-  BMI_NORMS,
-  BMI_REFERENCE,
+  BENCH_AGE_GROUPS,
+  BENCH_NORMS,
   CA_INFLATION_2023_TO_2025,
   CA_WEALTH_2023,
   CAD_PER_USD_PPP,
-  HEALTHY_BMI,
   HOURLY_AGE_GROUPS,
-  HOURLY_REFERENCE,
   INCOME_TAIL_ALPHA,
   JUMP_AGE_GROUPS,
   JUMP_NORMS,
-  JUMP_REFERENCE,
   JUMP_SPREAD,
   PUSH_UP_AGE_GROUPS,
   PUSH_UP_BANDS,
-  PUSH_UP_REFERENCE,
   REACH_AGE_GROUPS,
   REACH_NORMS,
-  REACH_REFERENCE,
   REACH_TOES_INCHES,
   SAVINGS_RATE,
-  SAVINGS_REFERENCE,
   SQUAT_AGE_GROUPS,
   SQUAT_NORMS,
-  SQUAT_REFERENCE,
   US_HOUSEHOLDS,
   US_INFLATION_2023_TO_2025,
   VO2_AGE_GROUPS,
   VO2MAX_NORMS,
-  VO2MAX_REFERENCE,
   WEALTH_AGE_GROUPS,
-  WEALTH_REFERENCE,
   WEALTH_TAIL_ALPHA,
   type Anchor,
-  type Reference,
   type SexNorm,
 } from "./reference";
 import {
@@ -48,14 +33,10 @@ import {
   US_WEALTH_AGE_SHARE,
 } from "./reference-data";
 
-// Calcul du niveau Ranked : fonctions pures, testées dans ranked.test.ts. Le
-// niveau d'un pilier (physique, financier) est le pourcentage de la population
-// du Canada et des États-Unis que la personne dépasse, dans sa tranche d'âge ;
-// le niveau total est la moyenne des deux. Le social et le mental ne sont pas
-// classés (ils restent privés).
-
-export const RANKED_PILLARS = ["physical", "financial"] as const;
-export type RankedPillar = (typeof RANKED_PILLARS)[number];
+// Courbes de percentiles des mesures (fonctions pures, testées dans
+// ranked.test.ts) : où se situe une valeur dans la population du Canada et des
+// États-Unis, dans la tranche d'âge (et le sexe pour le physique). Les niveaux,
+// leurs seuils et la zone élite sont dans src/features/levels/scale.ts.
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -182,14 +163,12 @@ export function pushUpPercentile(count: number, sex: SexNorm, age: number) {
   return percentileOf(count, pushUpCurve(PUSH_UP_BANDS[sex][index] ?? []));
 }
 
-/** Flexion assise : centimètres au-delà des orteils (ou qui manquent), sur la règle du YMCA. */
-export function reachPercentile(
-  side: RankedAnswers["reachSide"],
-  cm: number,
-  sex: SexNorm,
-  age: number,
-) {
-  const inches = REACH_TOES_INCHES + ((side === "beyond" ? 1 : -1) * cm) / 2.54;
+/**
+ * Flexion assise : centimètres au-delà des orteils (négatifs : ce qui manque
+ * pour les toucher), sur la règle du YMCA.
+ */
+export function reachPercentile(cm: number, sex: SexNorm, age: number) {
+  const inches = REACH_TOES_INCHES + cm / 2.54;
   const index = ageGroupIndex(age, REACH_AGE_GROUPS);
   return percentileOf(inches, REACH_NORMS[sex][index] ?? []);
 }
@@ -205,25 +184,15 @@ export function jumpPercentile(cm: number, sex: SexNorm, age: number) {
   return normalPercentile(cm, mean, mean * JUMP_SPREAD);
 }
 
-/** Indice de masse corporelle (kg/m²), au dixième. */
-export function bmiOf(heightCm: number, weightKg: number) {
-  const meters = heightCm / 100;
-  return Math.round((weightKg / (meters * meters)) * 10) / 10;
+/** Charge soulevée une fois (1RM) estimée d'après une série : formule d'Epley. */
+export function oneRepMax(loadKg: number, reps: number) {
+  return reps <= 1 ? loadKg : loadKg * (1 + reps / 30);
 }
 
-/**
- * IMC → la part des gens de son âge et de son sexe dont l'IMC est plus loin de
- * la plage santé (18,5 à 24,9) que le sien. Dans la plage, tout le monde est à
- * égalité : on y dépasse la moitié des autres personnes de la plage.
- */
-export function bmiPercentile(bmi: number, sex: SexNorm, age: number) {
-  const curve = BMI_NORMS[sex][ageGroupIndex(age, BMI_AGE_GROUPS)] ?? [];
-  const below = (value: number) => percentileOf(value, curve) / 100;
-  const [low, high] = HEALTHY_BMI;
-  const distance = Math.max(low - bmi, bmi - high, 0);
-  const farther = below(low - distance) + (1 - below(high + distance));
-  const tied = distance === 0 ? (below(high) - below(low)) / 2 : 0;
-  return clamp((farther + tied) * 100, 0.1, 99.9);
+/** Développé couché : 1RM divisé par le poids du corps. */
+export function benchPercentile(ratio: number, sex: SexNorm, age: number) {
+  const index = ageGroupIndex(age, BENCH_AGE_GROUPS);
+  return percentileOf(ratio, BENCH_NORMS[sex][index] ?? []);
 }
 
 // --- Financier ---------------------------------------------------------------
@@ -240,19 +209,16 @@ const mix = (pCa: number, pUs: number, canadians: number, americans: number) =>
   (pCa * canadians + pUs * americans) / (canadians + americans);
 
 /**
- * Revenu net par heure travaillée (dollars d'aujourd'hui) → percentile parmi les
- * gens de son âge qui travaillent. Sans heures de travail : un revenu sans
- * travail est tout en haut, aucun revenu tout en bas.
+ * Revenu net par heure travaillée (dollars d'aujourd'hui, devise du pays) →
+ * percentile parmi les gens de son âge qui travaillent.
  */
 export function hourlyPercentile(
-  netIncome: number,
-  weeklyHours: number,
+  hourlyNet: number,
   country: RankedCountry,
   age: number,
 ) {
-  if (weeklyHours === 0) return netIncome > 0 ? 99.9 : 0;
-  const { usd } = inBothCurrencies(netIncome, country);
-  const hourly = usd / US_INFLATION_2023_TO_2025 / (weeklyHours * 52);
+  const { usd } = inBothCurrencies(hourlyNet, country);
+  const hourly = usd / US_INFLATION_2023_TO_2025;
   const group = HOURLY_AGE_GROUPS[ageGroupIndex(age, [16, 25, 35, 45, 55, 65])];
   return percentileOf(hourly, US_NET_HOURLY_2023[group ?? "25-34"], {
     log: true,
@@ -297,184 +263,7 @@ export function savingsRate(netIncome: number, monthlyExpenses: number) {
   return clamp((netIncome - monthlyExpenses * 12) / netIncome, -1, 1);
 }
 
-export function savingsPercentile(netIncome: number, monthlyExpenses: number) {
-  return percentileOf(savingsRate(netIncome, monthlyExpenses), SAVINGS_RATE);
-}
-
-// --- Niveaux -----------------------------------------------------------------
-
-export const RANKED_FACTORS = [
-  "bmi",
-  "run",
-  "pushUps",
-  "reach",
-  "squats",
-  "jump",
-  "hourly",
-  "netWorth",
-  "savings",
-] as const;
-export type RankedFactorKey = (typeof RANKED_FACTORS)[number];
-
-export type RankedFactor = Reference & {
-  key: RankedFactorKey;
-  /** Percentile, arrondi au dixième. */
-  percentile: number;
-  /** Poids dans le pilier. */
-  weight: number;
-  /** Comparé aux gens du même âge (sinon, à tous les adultes). */
-  byAge: boolean;
-};
-
-export type RankedPillarResult = {
-  level: number;
-  percentile: number;
-  factors: RankedFactor[];
-};
-
-export type RankedResult = {
-  pillars: Record<RankedPillar, RankedPillarResult>;
-  total: { level: number; percentile: number };
-  /** VO2max estimé d'après la course de 12 minutes. */
-  vo2max: number;
-  /** Indice de masse corporelle d'après la taille et le poids. */
-  bmi: number;
-};
-
-const round1 = (value: number) => Math.round(value * 10) / 10;
-
-type FactorInput = {
-  key: RankedFactorKey;
-  percentile: number;
-  weight: number;
-  byAge: boolean;
-  reference: Reference;
-};
-
-function pillar(factors: FactorInput[]): RankedPillarResult {
-  const percentile = round1(
-    factors.reduce((sum, factor) => sum + factor.percentile * factor.weight, 0),
-  );
-  return {
-    level: levelFromPercentile(percentile),
-    percentile,
-    factors: factors.map(
-      ({ key, percentile: p, weight, byAge, reference }) => ({
-        key,
-        percentile: round1(p),
-        weight,
-        byAge,
-        ...reference,
-      }),
-    ),
-  };
-}
-
-/**
- * Niveaux physique et financier, et niveau total, à partir des réponses
- * validées et de l'âge, du sexe et du pays du compte.
- */
-export function evaluateRanked(
-  answers: RankedAnswers,
-  person: RankedPerson,
-): RankedResult {
-  const { age, sex, country } = person;
-  const vo2max = vo2FromCooper(answers.runMeters);
-  const bmi = bmiOf(answers.heightCm, answers.weightKg);
-  const pillars: Record<RankedPillar, RankedPillarResult> = {
-    // Les tests aux normes publiées comptent plus que les estimations
-    physical: pillar([
-      {
-        key: "run",
-        percentile: vo2Percentile(vo2max, sex, age),
-        weight: 0.25,
-        byAge: true,
-        reference: VO2MAX_REFERENCE,
-      },
-      {
-        key: "pushUps",
-        percentile: pushUpPercentile(answers.pushUps, sex, age),
-        weight: 0.2,
-        byAge: true,
-        reference: PUSH_UP_REFERENCE,
-      },
-      {
-        key: "reach",
-        percentile: reachPercentile(
-          answers.reachSide,
-          answers.reachCm,
-          sex,
-          age,
-        ),
-        weight: 0.15,
-        byAge: true,
-        reference: REACH_REFERENCE,
-      },
-      {
-        key: "squats",
-        percentile: squatPercentile(answers.squats, sex, age),
-        weight: 0.15,
-        byAge: true,
-        reference: SQUAT_REFERENCE,
-      },
-      {
-        key: "jump",
-        percentile: jumpPercentile(answers.jumpCm, sex, age),
-        weight: 0.15,
-        byAge: true,
-        reference: JUMP_REFERENCE,
-      },
-      {
-        key: "bmi",
-        percentile: bmiPercentile(bmi, sex, age),
-        weight: 0.1,
-        byAge: true,
-        reference: BMI_REFERENCE,
-      },
-    ]),
-    financial: pillar([
-      {
-        key: "hourly",
-        percentile: hourlyPercentile(
-          answers.netIncome,
-          answers.weeklyHours,
-          country,
-          age,
-        ),
-        weight: 1 / 3,
-        byAge: true,
-        reference: HOURLY_REFERENCE,
-      },
-      {
-        key: "netWorth",
-        percentile: wealthPercentile(
-          answers.assets - answers.debts,
-          country,
-          age,
-        ),
-        weight: 1 / 3,
-        byAge: true,
-        reference: WEALTH_REFERENCE,
-      },
-      {
-        key: "savings",
-        percentile: savingsPercentile(
-          answers.netIncome,
-          answers.monthlyExpenses,
-        ),
-        weight: 1 / 3,
-        byAge: false,
-        reference: SAVINGS_REFERENCE,
-      },
-    ]),
-  };
-  const percentile = round1(
-    (pillars.physical.percentile + pillars.financial.percentile) / 2,
-  );
-  return {
-    pillars,
-    total: { level: levelFromPercentile(percentile), percentile },
-    vo2max,
-    bmi,
-  };
+/** Taux d'épargne (part du revenu net, de -1 à 1) → percentile, tous âges confondus. */
+export function savingsPercentile(rate: number) {
+  return percentileOf(rate, SAVINGS_RATE);
 }

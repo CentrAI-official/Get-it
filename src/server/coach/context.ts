@@ -7,15 +7,16 @@ import {
   computePillarScores,
   scoreWindow,
 } from "@/features/today/pillar-scores";
-import { levelFromXp } from "@/features/xp/rules";
+import { dayStreak } from "@/features/streaks/rules";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { addDays, toCalendarDay } from "@/lib/dates";
 import { listCheckIns } from "@/server/check-ins/service";
 import { listActiveGoalPlans } from "@/server/goals/service";
 import { listHabits } from "@/server/habits/service";
 import { getLatestAssessments } from "@/server/profile/service";
+import { getMyLevels } from "@/server/levels/service";
+import { getActivity } from "@/server/streaks/service";
 import { listDayTasks, listGoalTasksDueBetween } from "@/server/tasks/service";
-import { getXpTotals } from "@/server/xp/service";
 
 type ContextProfile = {
   displayName: string | null;
@@ -27,7 +28,8 @@ type ContextProfile = {
 
 /**
  * Contexte de l'utilisateur pour Get iT AI (§15-16) : objectifs, quêtes du jour,
- * habitudes, scores, niveau et check-ins récents, résumés et bornés. Renvoie
+ * habitudes, scores, séries, niveaux mesurés et check-ins récents, résumés et
+ * bornés. Renvoie
  * aussi les objectifs avec leur référence courte (G1…), pour relier les
  * propositions du coach au bon objectif.
  */
@@ -37,16 +39,26 @@ export async function buildCoachContext(
 ): Promise<{ text: string; today: string; goals: GoalRef[] }> {
   const today = toCalendarDay(new Date(), profile.timeZone);
   const scoreDays = scoreWindow(today);
-  const [habits, tasks, recentTasks, assessments, xp, checkIns, goals] =
-    await Promise.all([
-      listHabits(userId, profile.timeZone),
-      listDayTasks(userId, today, profile.timeZone),
-      listGoalTasksDueBetween(userId, scoreDays.from, scoreDays.to),
-      getLatestAssessments(userId),
-      getXpTotals(userId),
-      listCheckIns(userId, addDays(today, -6), today),
-      listActiveGoalPlans(userId),
-    ]);
+  const [
+    habits,
+    tasks,
+    recentTasks,
+    assessments,
+    activity,
+    ranked,
+    checkIns,
+    goals,
+  ] = await Promise.all([
+    listHabits(userId, profile.timeZone),
+    listDayTasks(userId, today, profile.timeZone),
+    listGoalTasksDueBetween(userId, scoreDays.from, scoreDays.to),
+    getLatestAssessments(userId),
+    getActivity(userId, profile.timeZone),
+    getMyLevels(userId),
+    listCheckIns(userId, addDays(today, -6), today),
+    listActiveGoalPlans(userId),
+  ]);
+  const dayStreakCount = dayStreak(activity.days, today);
 
   const active = habits.filter((habit) => !habit.archived);
   const streaks = new Map(
@@ -68,15 +80,20 @@ export async function buildCoachContext(
     occupation: profile.occupation,
     focusPillars: profile.focusPillars,
     dailyMinutes: profile.dailyMinutes,
-    level: {
-      level: levelFromXp(xp.total).level,
-      xp: xp.total,
-      pillarLevels: Object.fromEntries(
+    streaks: {
+      current: dayStreakCount.current,
+      best: dayStreakCount.best,
+      pillars: Object.fromEntries(
         PILLARS.map((pillar) => [
           pillar,
-          levelFromXp(xp.pillars[pillar]).level,
+          dayStreak(activity.pillars[pillar], today).current,
         ]),
       ) as Record<Pillar, number>,
+    },
+    levels: {
+      total: ranked.total,
+      physical: ranked.physical,
+      financial: ranked.financial,
     },
     scores: computePillarScores({
       habits,

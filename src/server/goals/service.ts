@@ -1,17 +1,15 @@
 import "server-only";
 import type { Pillar } from "@/config/pillars";
+import type { LevelFactor } from "@/features/levels/factors";
 import {
   ACTIVE_GOALS_PER_PILLAR,
   type GoalStatus,
 } from "@/features/goals/schemas";
-import { XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
-import type { Prisma } from "@/generated/prisma/client";
+import type { GoalKind, Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { avatarUrl, avatarUrls } from "@/server/profile/avatar";
-import { getUserTimeZone } from "@/server/profile/service";
 import { removeFiles } from "@/server/storage/service";
-import { awardGoal, awardMilestone, revokeXp } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus : un utilisateur
 // ne lit et ne modifie que ses propres objectifs et jalons.
@@ -27,6 +25,11 @@ export type GoalSummary = {
   milestonesTotal: number;
   /** Photo choisie pour l'objectif (lien temporaire), sinon l'icône du pilier. */
   photoUrl: string | null;
+  /**
+   * Objectif de niveau (calculé d'après la population) : la mesure et le
+   * niveau qu'il fait atteindre ; null pour un objectif personnel.
+   */
+  levelGoal: { factor: LevelFactor; level: number } | null;
 };
 
 const summarySelect = {
@@ -36,6 +39,9 @@ const summarySelect = {
   status: true,
   targetDate: true,
   photoPath: true,
+  kind: true,
+  levelFactor: true,
+  level: true,
   milestones: { select: { completedAt: true } },
 } as const;
 
@@ -46,6 +52,9 @@ type SummaryRow = {
   status: GoalStatus;
   targetDate: Date | null;
   photoPath: string | null;
+  kind: GoalKind;
+  levelFactor: string | null;
+  level: number | null;
   milestones: { completedAt: Date | null }[];
 };
 
@@ -59,6 +68,10 @@ function toSummary(goal: SummaryRow, photos: Map<string, string>): GoalSummary {
     milestonesDone: goal.milestones.filter((m) => m.completedAt).length,
     milestonesTotal: goal.milestones.length,
     photoUrl: goal.photoPath ? (photos.get(goal.photoPath) ?? null) : null,
+    levelGoal:
+      goal.kind === "level" && goal.levelFactor && goal.level !== null
+        ? { factor: goal.levelFactor as LevelFactor, level: goal.level }
+        : null,
   };
 }
 
@@ -253,6 +266,8 @@ export async function hasActiveGoalRoom(
       userId,
       pillar,
       status: "active",
+      // Les objectifs de niveau ne prennent pas de place
+      kind: "personal",
       ...(exceptGoalId ? { id: { not: exceptGoalId } } : {}),
     },
   });
@@ -284,8 +299,9 @@ export async function updateGoal(
   input: GoalFields,
 ): Promise<boolean | "goalLimit"> {
   return db.$transaction(async (tx) => {
+    // Un objectif de niveau ne se modifie pas : sa valeur vient de la population
     const current = await tx.goal.findFirst({
-      where: { id: goalId, userId },
+      where: { id: goalId, userId, kind: "personal" },
       select: { status: true, pillar: true },
     });
     if (!current) return false;
@@ -297,25 +313,16 @@ export async function updateGoal(
       return "goalLimit";
     }
     const { count } = await tx.goal.updateMany({
-      where: { id: goalId, userId },
+      where: { id: goalId, userId, kind: "personal" },
       data: toGoalData(input),
     });
-    if (count === 0) return false;
-    // L'XP déjà gagnée (objectif, jalons, tâches) suit le pilier de l'objectif
-    await tx.xpEvent.updateMany({
-      where: {
-        userId,
-        OR: [{ goalId }, { milestone: { goalId } }, { task: { goalId } }],
-      },
-      data: { pillar: input.pillar },
-    });
-    return true;
+    return count > 0;
   });
 }
 
 /**
- * Atteint (+ XP), repris (XP retirée) ou archivé. Archiver garde la date
- * d'atteinte et l'XP.
+ * Atteint, repris ou archivé. Archiver garde la date d'atteinte. Un objectif
+ * de niveau ne change d'état que par une mesure (src/server/levels/service.ts).
  */
 export async function setGoalStatus(
   userId: string,
@@ -328,14 +335,12 @@ export async function setGoalStatus(
       : status === "active"
         ? { status, completedAt: null }
         : { status };
-  const timeZone =
-    status === "completed" ? await getUserTimeZone(userId) : null;
 
   return db.$transaction(async (tx): Promise<boolean | "goalLimit"> => {
     // Reprendre un objectif : seulement s'il reste de la place dans l'aspect
     if (status === "active") {
       const goal = await tx.goal.findFirst({
-        where: { id: goalId, userId },
+        where: { id: goalId, userId, kind: "personal" },
         select: { status: true, pillar: true },
       });
       if (!goal) return false;
@@ -347,36 +352,24 @@ export async function setGoalStatus(
       }
     }
     const { count } = await tx.goal.updateMany({
-      where: { id: goalId, userId },
+      where: { id: goalId, userId, kind: "personal" },
       data,
     });
-    if (count === 0) return false;
-    if (timeZone) {
-      const goal = await tx.goal.findUniqueOrThrow({
-        where: { id: goalId },
-        select: { pillar: true },
-      });
-      await awardGoal(tx, goalId, {
-        userId,
-        amount: XP_REWARDS.goal,
-        pillar: goal.pillar,
-        day: toCalendarDay(new Date(), timeZone),
-      });
-    } else if (status === "active") {
-      await revokeXp(tx, userId, { goalId });
-    }
-    return true;
+    return count > 0;
   });
 }
 
-/** Supprime un objectif, ses jalons et ses tâches (cascade). */
+/**
+ * Supprime un objectif personnel, ses jalons et ses tâches (cascade). Un
+ * objectif de niveau ne se supprime pas (il disparaît avec les mesures).
+ */
 export async function deleteGoal(userId: string, goalId: string) {
   const goal = await db.goal.findFirst({
-    where: { id: goalId, userId },
+    where: { id: goalId, userId, kind: "personal" },
     select: { photoPath: true },
   });
   if (!goal) return false;
-  await db.goal.deleteMany({ where: { id: goalId, userId } });
+  await db.goal.deleteMany({ where: { id: goalId, userId, kind: "personal" } });
   if (goal.photoPath) {
     await removeFiles([goal.photoPath]).catch(() => undefined);
   }
@@ -418,35 +411,12 @@ export async function setMilestoneDone(
   milestoneId: string,
   done: boolean,
 ) {
-  if (!done) {
-    await db.$transaction(async (tx) => {
-      await tx.goalMilestone.updateMany({
-        where: { id: milestoneId, goal: { userId } },
-        data: { completedAt: null },
-      });
-      await revokeXp(tx, userId, { milestoneId });
-    });
-    return;
-  }
-
-  const timeZone = await getUserTimeZone(userId);
-  await db.$transaction(async (tx) => {
-    // Déjà terminé : la date d'origine (et son XP) sont conservées
-    const { count } = await tx.goalMilestone.updateMany({
-      where: { id: milestoneId, goal: { userId }, completedAt: null },
-      data: { completedAt: new Date() },
-    });
-    if (count === 0) return;
-    const milestone = await tx.goalMilestone.findUniqueOrThrow({
-      where: { id: milestoneId },
-      select: { goal: { select: { pillar: true } } },
-    });
-    await awardMilestone(tx, milestoneId, {
-      userId,
-      amount: XP_REWARDS.milestone,
-      pillar: milestone.goal.pillar,
-      day: toCalendarDay(new Date(), timeZone),
-    });
+  // Déjà terminé : la date d'origine est conservée (elle compte pour la série)
+  await db.goalMilestone.updateMany({
+    where: done
+      ? { id: milestoneId, goal: { userId }, completedAt: null }
+      : { id: milestoneId, goal: { userId } },
+    data: { completedAt: done ? new Date() : null },
   });
 }
 

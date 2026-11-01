@@ -12,11 +12,9 @@ import {
   type JournalRecapStats,
 } from "@/features/journal/rules";
 import type { CheckInScores } from "@/features/today/schemas";
-import { XP_REWARDS } from "@/features/xp/rules";
 import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getCheckIn, listCheckIns } from "@/server/check-ins/service";
 import { db } from "@/server/db";
-import { awardJournal } from "@/server/xp/service";
 import { listJournalMedia, type JournalMediaItem } from "./media";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus. Le journal
@@ -85,11 +83,17 @@ export async function getJournalPage(
 }
 
 export type SaveJournalResult =
-  { ok: true; saved: boolean; xp: number } | { ok: false; error: "locked" };
+  | {
+      ok: true;
+      saved: boolean;
+      /** Première version de la page (elle compte pour la série du jour). */
+      created: boolean;
+    }
+  | { ok: false; error: "locked" };
 
 /**
- * Enregistre la page d'un jour encore modifiable. La première version d'une
- * page rapporte de l'XP ; une page vidée est supprimée, avec son XP.
+ * Enregistre la page d'un jour encore modifiable. Une page vidée est
+ * supprimée.
  */
 export async function saveJournalEntry(
   userId: string,
@@ -101,29 +105,22 @@ export async function saveJournalEntry(
   const day = toDbDate(input.day);
 
   if (input.body === "") {
-    // La cascade retire aussi l'XP de la page
     await db.journalEntry.deleteMany({ where: { userId, day } });
-    return { ok: true, saved: false, xp: 0 };
+    return { ok: true, saved: false, created: false };
   }
 
   const data = { body: input.body, words: countWords(input.body) };
-  const xp = await db.$transaction(async (tx) => {
-    const entry = await tx.journalEntry.upsert({
-      where: { userId_day: { userId, day } },
-      update: data,
-      create: { userId, day, ...data },
-      select: { id: true, xpEvent: { select: { id: true } } },
-    });
-    if (entry.xpEvent) return 0;
-    await awardJournal(tx, entry.id, {
-      userId,
-      amount: XP_REWARDS.journal,
-      pillar: null,
-      day: input.day,
-    });
-    return XP_REWARDS.journal;
+  const existing = await db.journalEntry.findUnique({
+    where: { userId_day: { userId, day } },
+    select: { id: true },
   });
-  return { ok: true, saved: true, xp };
+  await db.journalEntry.upsert({
+    where: { userId_day: { userId, day } },
+    update: data,
+    create: { userId, day, ...data },
+    select: { id: true },
+  });
+  return { ok: true, saved: true, created: existing === null };
 }
 
 export type JournalRecapEntry = {

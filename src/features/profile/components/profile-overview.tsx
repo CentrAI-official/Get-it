@@ -3,18 +3,15 @@ import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Avatar } from "@/components/avatar";
 import { ProgressRing } from "@/components/progress-ring";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { levelFromXp } from "@/features/xp/rules";
 import { Link } from "@/i18n/navigation";
 import { getCommunityMember } from "@/server/community/members";
 import { followCounts } from "@/server/follows/service";
 import { avatarUrl } from "@/server/profile/avatar";
 import { countContacts } from "@/server/profile/public";
 import { getCurrentProfile } from "@/server/profile/service";
-import { getRankedLevels } from "@/server/ranked/service";
+import { getMyLevels } from "@/server/levels/service";
 import { storageEnabled } from "@/server/storage/service";
-import { getXpTotals } from "@/server/xp/service";
 import { ProfileEditor } from "./profile-editor";
 
 /**
@@ -29,28 +26,27 @@ export async function ProfileOverview({
   progression: ReactNode;
 }) {
   const profile = await getCurrentProfile();
-  const [xp, ranked, photo, contacts, follows, member, t, tXp, tOnboarding] =
+  const [levels, photo, contacts, follows, member, t, tOnboarding] =
     await Promise.all([
-      getXpTotals(profile.id),
-      getRankedLevels(profile.id),
+      getMyLevels(profile.id),
       avatarUrl(profile.avatarPath),
       countContacts(profile.id),
       followCounts(profile.id, profile.id),
       getCommunityMember(profile.id),
       getTranslations("App.profile"),
-      getTranslations("Xp"),
       getTranslations("Onboarding"),
     ]);
-  const level = levelFromXp(xp.total);
   const name = profile.displayName ?? profile.email ?? "";
+  // Niveau classé : en Ranked, quand les deux piliers sont mesurés
+  const ranked = levels.ranked && levels.total !== null ? levels.total : null;
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-5 border-t border-foreground/8 pt-6">
         <div className="flex items-center gap-4 sm:gap-5">
-          {/* L'anneau autour de la photo (ou de l'initiale) avance avec le niveau */}
+          {/* L'anneau autour de la photo (ou de l'initiale) suit le niveau mesuré */}
           <ProgressRing
-            value={ranked ? ranked.total / 100 : level.progress}
+            value={(levels.total ?? 0) / 100}
             className="size-20 p-1 sm:size-24"
           >
             <Avatar
@@ -143,8 +139,9 @@ export async function ProfileOverview({
             </Link>
           ) : null}
         </div>
-        {ranked ? (
-          // Niveau classé (Canada et États-Unis) : il remplace celui de l'XP
+        {ranked !== null ? (
+          // Niveau classé (Canada et États-Unis) ; sans lui, « Ta progression »
+          // invite à s'évaluer
           <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
               <span className="flex items-center gap-1.5 font-heading text-xl font-bold">
@@ -152,13 +149,10 @@ export async function ProfileOverview({
                   aria-hidden="true"
                   className="size-5 self-center text-primary"
                 />
-                {tXp("level", { level: ranked.total })}
+                {t("ranked.level", { level: ranked })}
               </span>
               <span className="text-sm font-medium text-muted-foreground">
                 {t("ranked.badge")}
-              </span>
-              <span className="text-sm font-bold text-primary tabular-nums">
-                {tXp("xp", { xp: xp.total })}
               </span>
             </p>
             <span className="flex items-center gap-4">
@@ -177,26 +171,7 @@ export async function ProfileOverview({
               </Link>
             </span>
           </div>
-        ) : (
-          // Niveau de l'XP et l'option de passer en Ranked (le chemin vers le
-          // suivant est dans « Ta progression »)
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="flex items-baseline gap-3">
-              <span className="font-heading text-xl font-bold">
-                {tXp("level", { level: level.level })}
-              </span>
-              <span className="text-sm font-bold text-primary tabular-nums">
-                {tXp("xp", { xp: xp.total })}
-              </span>
-            </p>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/profile/ranked">
-                <Trophy aria-hidden="true" className="text-primary" />
-                {t("ranked.go")}
-              </Link>
-            </Button>
-          </div>
-        )}
+        ) : null}
         {day}
       </div>
 

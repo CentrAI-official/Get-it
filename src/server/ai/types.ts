@@ -2,7 +2,6 @@ import type { AiToolCall, AiToolSpec } from "@/features/coach/coach-tools";
 import type { AiItemEdit } from "@/features/development/item-ai";
 import type { DevelopmentPlan } from "@/features/development/plan";
 import type { GoalPlan, GoalQuestions } from "@/features/goals/plan";
-import type { RankedAnalysis } from "@/features/ranked/analysis";
 
 // Couche d'abstraction (§53) : le reste de l'application ne connaît que ces
 // types, jamais le SDK d'un fournisseur.
@@ -59,13 +58,6 @@ export type DevelopmentPlanResult = {
   usage: AiUsage;
 };
 
-export type RankedAnalysisResult = {
-  /** Null si refus ou réponse illisible. */
-  analysis: RankedAnalysis | null;
-  refused: boolean;
-  usage: AiUsage;
-};
-
 export type ItemEditResult = {
   /** Null si refus ou réponse illisible (normalisée ensuite avec l'élément actuel). */
   edit: AiItemEdit | null;
@@ -103,12 +95,6 @@ export interface AiProvider {
     system: string;
     prompt: string;
   }): Promise<DevelopmentPlanResult>;
-
-  /** Analyse d'un niveau Ranked (déjà calculé) en sortie structurée. */
-  generateRankedAnalysis(input: {
-    system: string;
-    prompt: string;
-  }): Promise<RankedAnalysisResult>;
 
   /** Nouveaux champs d'un élément du calendrier, d'après la demande de la personne. */
   suggestItemEdit(input: {

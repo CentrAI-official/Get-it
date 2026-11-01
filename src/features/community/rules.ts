@@ -81,6 +81,7 @@ export const progressShareSchema = z.object({
     z.object({ type: z.literal("milestone"), id: z.uuid() }),
     z.object({ type: z.literal("streak"), id: z.uuid() }),
     z.object({ type: z.literal("level") }),
+    z.object({ type: z.literal("dayStreak") }),
     z.object({ type: z.literal("pact"), id: z.uuid() }),
   ]),
   body: z
@@ -151,6 +152,8 @@ export const progressDataSchema = z.discriminatedUnion("type", [
     pillar: z.enum(PILLARS),
   }),
   z.object({ type: z.literal("level"), level: z.number().int().positive() }),
+  /** Série de jours actifs (au moins une action par jour). */
+  z.object({ type: z.literal("dayStreak"), days: z.number().int().positive() }),
   z.object({
     type: z.literal("pact"),
     title: z.string(),

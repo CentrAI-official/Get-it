@@ -12,7 +12,7 @@ import {
   getLeaderboard,
   type LeaderboardRow,
 } from "@/server/ranked/leaderboard";
-import { getRankedLevels } from "@/server/ranked/service";
+import { getMyLevels } from "@/server/levels/service";
 import {
   LEADERBOARD_PILLARS,
   LEADERBOARD_SCOPES,
@@ -46,9 +46,9 @@ export async function LeaderboardPanel({
     pillar: one(params.pillar),
     scope: one(params.scope),
   });
-  const [board, ranked, t] = await Promise.all([
+  const [board, levels, t] = await Promise.all([
     getLeaderboard(profile.id, filters.pillar, filters.scope),
-    getRankedLevels(profile.id),
+    getMyLevels(profile.id),
     getTranslations("Ranked.leaderboard"),
   ]);
   const href = (pillar: LeaderboardPillar, scope: LeaderboardScope) => {
@@ -87,7 +87,8 @@ export async function LeaderboardPanel({
         ))}
       </nav>
 
-      {ranked ? null : (
+      {/* Pas encore au classement : hors Ranked, ou un pilier pas encore mesuré */}
+      {levels.ranked && levels.total !== null ? null : (
         <div className="flex flex-col items-start gap-3 border-t border-foreground/8 pt-6">
           <p className="text-sm text-muted-foreground">{t("notRanked")}</p>
           <Button asChild>

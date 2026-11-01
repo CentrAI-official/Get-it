@@ -94,6 +94,13 @@ describe("progressShareSchema", () => {
       progressShareSchema.parse({ locale: "en", source: { type: "level" } })
         .source,
     ).toEqual({ type: "level" });
+    // La série du jour : le nombre de jours est recalculé par le serveur
+    expect(
+      progressShareSchema.parse({
+        locale: "fr",
+        source: { type: "dayStreak", days: 999 },
+      }).source,
+    ).toEqual({ type: "dayStreak" });
   });
 
   it("refuse une source inconnue ou sans identifiant", () => {

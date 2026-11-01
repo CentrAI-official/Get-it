@@ -1,7 +1,10 @@
 import { ChevronRight } from "lucide-react";
 import { getTranslations } from "next-intl/server";
+import { weekStreak } from "@/features/streaks/rules";
+import { toCalendarDay } from "@/lib/dates";
 import { listGoals } from "@/server/goals/service";
 import { getCurrentProfile } from "@/server/profile/service";
+import { getGoalActivity } from "@/server/streaks/service";
 import { GoalList } from "./goal-list";
 import { NoGoals } from "./no-goals";
 
@@ -15,6 +18,16 @@ export async function GoalsOverview() {
   if (goals.length === 0) return <NoGoals />;
 
   const active = goals.filter((goal) => goal.status === "active");
+  // L'heure courante est lue après la session : jamais pendant le prérendu
+  const today = toCalendarDay(new Date(), profile.timeZone);
+  const activity = await getGoalActivity(
+    profile.id,
+    profile.timeZone,
+    active.map((goal) => goal.id),
+  );
+  const streaks = new Map(
+    [...activity].map(([id, days]) => [id, weekStreak(days, today).current]),
+  );
   const completed = goals.filter((goal) => goal.status === "completed");
   const archived = goals.filter((goal) => goal.status === "archived");
 
@@ -25,7 +38,7 @@ export async function GoalsOverview() {
           {t("sections.active")}
         </h2>
         {active.length > 0 ? (
-          <GoalList goals={active} />
+          <GoalList goals={active} streaks={streaks} />
         ) : (
           <p className="text-sm text-muted-foreground">{t("noActive")}</p>
         )}

@@ -64,11 +64,12 @@ describe("formatCoachContext", () => {
     occupation: "entrepreneur",
     focusPillars: ["physical", "financial"],
     dailyMinutes: 30,
-    level: {
-      level: 2,
-      xp: 205,
-      pillarLevels: { physical: 1, mental: 1, social: 1, financial: 1 },
+    streaks: {
+      current: 4,
+      best: 9,
+      pillars: { physical: 1, mental: 4, social: 0, financial: 0 },
     },
+    levels: { total: null, physical: 34, financial: null },
     scores: { physical: 24, mental: 44, social: 40, financial: null },
     quests: [
       {
@@ -120,7 +121,10 @@ describe("formatCoachContext", () => {
     const context = formatCoachContext(data);
     expect(context).toContain("Today: 2026-10-14 (Wednesday)");
     expect(context).toContain("Focus pillars: Physical, Financial");
-    expect(context).toContain("Level 2 (205 XP)");
+    expect(context).toContain("Daily streak: 4 days (best 9)");
+    expect(context).toContain("Mental 4");
+    expect(context).toContain("Physical 34, Financial not measured yet");
+    expect(context).not.toContain("XP");
     expect(context).toContain("Financial no data");
     expect(context).toContain(
       '[done] "Méditer 10 minutes" (habit, Mental, streak 2 days)',

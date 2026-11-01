@@ -2,13 +2,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { GoalSummary } from "@/server/goals/service";
 import { GoalCard } from "./goal-card";
 
-/** Grille de cartes d'objectifs. */
-export function GoalList({ goals }: { goals: GoalSummary[] }) {
+/** Grille de cartes d'objectifs, avec la série de semaines de chacun (`streaks`). */
+export function GoalList({
+  goals,
+  streaks,
+}: {
+  goals: GoalSummary[];
+  streaks?: ReadonlyMap<string, number>;
+}) {
   return (
     <ul className="grid sm:grid-cols-2 sm:gap-x-8">
       {goals.map((goal) => (
         <li key={goal.id} className="border-b border-foreground/8">
-          <GoalCard goal={goal} />
+          <GoalCard goal={goal} weekStreak={streaks?.get(goal.id) ?? 0} />
         </li>
       ))}
     </ul>

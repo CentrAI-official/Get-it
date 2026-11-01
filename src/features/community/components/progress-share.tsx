@@ -8,6 +8,7 @@ const ICONS = {
   milestone: Flag,
   streak: Flame,
   level: Target,
+  dayStreak: Flame,
   pact: Handshake,
 } as const;
 
@@ -26,6 +27,8 @@ export function ProgressSentence({ progress }: { progress: ProgressData }) {
       return t("streak", { title: progress.title, days: progress.days });
     case "level":
       return t("level", { level: progress.level });
+    case "dayStreak":
+      return t("dayStreak", { days: progress.days });
     case "pact":
       return t("pact", {
         title: progress.title,
@@ -65,6 +68,7 @@ export function ProgressShare({
 function progressFigure(progress: ProgressData) {
   switch (progress.type) {
     case "streak":
+    case "dayStreak":
       return progress.days;
     case "level":
       return progress.level;

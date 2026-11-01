@@ -10,7 +10,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
 import { avatarUrls } from "@/server/profile/avatar";
-import { getDisplayLevels } from "@/server/ranked/service";
+import { getDisplayLevels } from "@/server/levels/service";
 import { notify } from "@/server/notifications/service";
 
 // Contacts (amis) entre membres du Centre. Chaque fonction reçoit l'userId de

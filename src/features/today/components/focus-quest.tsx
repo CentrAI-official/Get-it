@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ListChecks, SquareCheckBig } from "lucide-react";
+import { Check, Flame, ListChecks, SquareCheckBig } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,10 @@ type FocusQuestProps = {
   segments: FocusSegment[];
   /** Titre du popup (salutation), au-dessus du compteur. */
   heading: ReactNode;
-  /** Bannière « Niveau atteint », sous l'en-tête. */
+  /** Bannière « Série de 7 jours », sous l'en-tête. */
   banner?: ReactNode;
+  /** Série du jour affichée, et si aujourd'hui compte déjà. */
+  streak: { days: number; lit: boolean };
   /** Il reste une autre quête à faire après celle-ci. */
   hasNext: boolean;
   onDone: () => void;
@@ -45,6 +47,7 @@ export function FocusQuest({
   segments,
   heading,
   banner,
+  streak,
   hasNext,
   onDone,
   onLater,
@@ -54,11 +57,12 @@ export function FocusQuest({
   onShowList,
 }: FocusQuestProps) {
   const t = useTranslations("Today.focus");
-  const tQuests = useTranslations("Today.quests");
+  const tStreak = useTranslations("Streaks");
   const tPillars = useTranslations("Pillars");
   const questMeta = useQuestMeta();
-  // « +10 XP » qui s'envole au-dessus du bouton ; survit au changement de carte
-  const [burst, setBurst] = useState<{ id: number; xp: number } | null>(null);
+  // La flamme qui s'envole au-dessus du bouton quand la première action du
+  // jour allume la série ; survit au changement de carte
+  const [burst, setBurst] = useState<{ id: number; days: number } | null>(null);
 
   const index = segments.findIndex((segment) => segment.key === quest.key);
   const Icon = quest.pillar ? pillarIcons[quest.pillar] : SquareCheckBig;
@@ -66,8 +70,11 @@ export function FocusQuest({
   const days = quest.kind === "habit" ? quest.days : undefined;
 
   function done() {
-    if (quest.xp > 0) {
-      setBurst((current) => ({ id: (current?.id ?? 0) + 1, xp: quest.xp }));
+    if (!streak.lit) {
+      setBurst((current) => ({
+        id: (current?.id ?? 0) + 1,
+        days: streak.days + 1,
+      }));
     }
     onDone();
   }
@@ -116,8 +123,19 @@ export function FocusQuest({
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           {heading}
-          <p className="text-sm text-muted-foreground">
+          <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
             {t("counter", { n: index + 1, total: segments.length })}
+            {streak.days > 0 ? (
+              <span
+                className={cn(
+                  "flex items-center gap-1 font-semibold tabular-nums",
+                  streak.lit && "text-primary",
+                )}
+              >
+                <Flame aria-hidden="true" className="size-3.5" />
+                {tStreak("days", { count: streak.days })}
+              </span>
+            ) : null}
           </p>
         </div>
         <Button
@@ -196,14 +214,11 @@ export function FocusQuest({
               ))}
             </ol>
           ) : null}
-          <p className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <span>{days ? t("days", { count: FOCUS_DAYS }) : null}</span>
-            {quest.xp > 0 ? (
-              <span className="font-bold text-primary tabular-nums">
-                {tQuests("xpReward", { xp: quest.xp })}
-              </span>
-            ) : null}
-          </p>
+          {days ? (
+            <p className="text-xs text-muted-foreground">
+              {t("days", { count: FOCUS_DAYS })}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -214,9 +229,10 @@ export function FocusQuest({
             key={burst.id}
             aria-hidden="true"
             onAnimationEnd={() => setBurst(null)}
-            className="pointer-events-none absolute -top-9 left-1/2 hidden -translate-x-1/2 font-display text-lg text-primary opacity-0 motion-safe:block motion-safe:animate-xp-float"
+            className="pointer-events-none absolute -top-9 left-1/2 hidden -translate-x-1/2 items-center gap-1 font-display text-lg text-primary opacity-0 motion-safe:flex motion-safe:animate-xp-float"
           >
-            {tQuests("xpReward", { xp: burst.xp })}
+            <Flame className="size-5" />
+            {burst.days}
           </span>
         ) : null}
         {quest.done ? (

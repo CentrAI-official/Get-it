@@ -60,15 +60,14 @@
       "label": "App preview (example)",
       "example": "Example",
       "level": "Level {level, number}",
-      "xp": "{xp, number} XP",
-      "nextLevel": "{remaining, number} XP to level {level, number}",
       "streak": "{days, plural, one {# day streak} other {# day streak}}",
       "tasks": {
         "workout": "Workout — upper body",
         "meditation": "10-minute meditation",
         "budget": "Review this week’s budget",
         "friend": "Text a friend you’ve lost touch with"
-      }
+      },
+      "top": "Top {top, number}% for your age"
     },
     "pillars": {
       "title": "Four pillars. One life.",
@@ -92,7 +91,7 @@
         },
         "progress": {
           "title": "Level up",
-          "description": "XP, streaks and stats show your real progress, in every pillar of your life."
+          "description": "Your streaks and your real level, compared with people your age, show your progress in every pillar of your life."
         }
       }
     },
@@ -110,7 +109,7 @@
         },
         "progress": {
           "title": "Progress",
-          "description": "Earn XP, level up and keep your streaks, all based on your real actions."
+          "description": "Keep your streaks day after day and measure your real level, compared with people your age."
         },
         "community": {
           "title": "Get iT Center",
@@ -251,10 +250,10 @@
         "savedEmptyDescription": "Tap the save icon under a Hub post and it will show up here. No one else can see what you save."
       },
       "ranked": {
-        "go": "Go Ranked",
         "badge": "Ranked",
         "view": "My ranking",
-        "leaderboard": "Leaderboard"
+        "leaderboard": "Leaderboard",
+        "level": "Level {level, number}"
       },
       "counts": {
         "contacts": "{count, plural, one {contact} other {contacts}}",
@@ -764,9 +763,8 @@
       "next": "Next",
       "recap": "See the recap",
       "undo": "Undo",
-      "allDoneTitle": "Day complete.",
+      "allDoneTitle": "Perfect day!",
       "allDoneBody": "Everything planned for today is done. See you tomorrow!",
-      "xpToday": "+{xp, number} XP today",
       "restTitle": "The rest is waiting.",
       "restBody": "{left, plural, one {# quest left.} other {# quests left.}} Whatever you keep for later stays in your list, no penalty.",
       "resume": "Pick up again"
@@ -804,8 +802,6 @@
       "empty": "Nothing planned today. Add a task below, or a habit in Profile › Habits.",
       "emptyFiltered": "No {pillar} quests today.",
       "showAll": "Show all quests",
-      "xpReward": "+{xp, number} XP",
-      "xpEarned": "{xp, number} XP",
       "withStreak": "{meta} · {count, number}-day streak",
       "pact": "Pact with {name} · day {day, number}/{days, number}",
       "pactPartnerDone": "{name} already did their part",
@@ -846,36 +842,28 @@
       }
     }
   },
-  "Xp": {
-    "level": "Level {level, number}",
-    "xp": "{xp, number} XP",
-    "badgeLabel": "Level {level, number}, {xp, number} XP. See your progress",
-    "levelUp": {
-      "title": "Level {level, number} reached!",
-      "body": "Your actions are paying off. Keep it up.",
-      "close": "Close",
-      "share": "Share in the Hub"
-    }
-  },
   "Progress": {
     "title": "Your progress",
-    "description": "Your stats, like a character leveling up.",
-    "descriptionRanked": "Physical and financial: your ranked level, compared with people your age. Mental and social: your progress toward the next level, private.",
+    "description": "Your real level, compared with people your age, and each pillar’s streak.",
+    "descriptionRanked": "Your levels are public (Ranked): physical and financial, compared with people your age. Mental and social: your streak.",
     "sheet": {
       "levelLabel": "Lv.",
       "rankedLabel": "Ranked",
-      "toNext": "{xp, number} XP to go",
-      "toNextDetail": "{xp, number} / {needed, number} XP for level {level, number}",
-      "levelSummary": "Level {level, number}: {xp, number} XP out of {needed, number} for level {next, number}.",
       "rankedTop": "Top {top, number}%",
-      "rankedDetail": "Ranked level out of 100: the average of physical and financial",
-      "rankedSummary": "Ranked level {level, number} out of 100, top {top, number}%.",
+      "rankedDetail": "The average of your physical and financial levels, compared with people your age",
+      "rankedSummary": "Level {level, number} out of 100, top {top, number}%.",
       "pillarLevel": "Lv. {level, number}",
-      "bubble": "{pillar}: level {level, number}, {percent} of the way to level {next, number} ({xp, number} XP).",
-      "bubbleRanked": "{pillar}: ranked level {level, number} out of 100, top {top, number}%.",
+      "bubbleRanked": "{pillar}: level {level, number} out of 100 (your weakest measure), top {top, number}%.",
       "howTitle": "How it’s calculated",
-      "how": "Each card shows the pillar’s level and how far you are toward the next one. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. At the top, your overall level.",
-      "howRanked": "Physical and financial show your ranked level: the share of people your age in Canada and the United States you outrank. Mental and social show your XP progress toward their next level; they stay private. At the top, your total level, the average of the two ranked pillars."
+      "how": "Levels are measured in My levels: physical and financial are compared with people your age in Canada and the United States (1 to 100), and each pillar is at the level of its weakest measure. For mental and social, and until a pillar is measured, the card shows its streak: days in a row with at least one action in that pillar, and your last 10 days.",
+      "notEvaluated": "Not evaluated",
+      "notEvaluatedTitle": "Not evaluated yet",
+      "notEvaluatedBody": "Evaluate your physical and financial pillars to see your real level, compared with people your age.",
+      "evaluate": "Evaluate me",
+      "streakCorner": "Streak",
+      "streakUnit": "{count, plural, one {day} other {days}}",
+      "streakLabel": "{pillar}: {count, plural, one {#-day streak} other {#-day streak}}, {active, plural, one {# active day} other {# active days}} out of the last 10.",
+      "seeLevels": "See my levels"
     },
     "regularity": {
       "title": "Your consistency",
@@ -887,7 +875,7 @@
       "streak": "Current streak",
       "best": "Best",
       "days": "{count, plural, one {# day} other {# days}}",
-      "how": "An active day: at least one habit, task, milestone, check-in or journal page that day."
+      "how": "An active day: at least one habit, task, milestone, goal, check-in or journal page that day."
     },
     "goals": {
       "title": "Your goals in progress",
@@ -951,7 +939,7 @@
     "consent": {
       "title": "Before we start",
       "subtitle": "Get iT AI needs your permission to use your data.",
-      "data": "To help you, Get iT AI receives your messages and a summary of your data: your first name, pillars, goals and milestones, tasks, habits and streaks, level, scores and check-ins from the last 7 days.",
+      "data": "To help you, Get iT AI receives your messages and a summary of your data: your first name, pillars, goals and milestones, tasks, habits and streaks, your ranked level if you have one, scores and check-ins from the last 7 days.",
       "processor": "This data is processed by Anthropic, which provides the Claude AI model, on servers located outside Québec. Under its terms, Anthropic doesn’t use it to train its models.",
       "control": "You can withdraw your permission and delete your conversations at any time in Settings.",
       "disclaimer": "Get iT AI provides educational information: it doesn’t replace a doctor, a psychologist or a financial advisor.",
@@ -1184,7 +1172,8 @@
       "milestone": "Milestone reached: {title} ({goal})",
       "streak": "{days, number}-day streak: {title}",
       "level": "Reached level {level, number}",
-      "pact": "Pact completed: {title} · {together, number} days together out of {days, number}"
+      "pact": "Pact completed: {title} · {together, number} days together out of {days, number}",
+      "dayStreak": "{days, number}-day streak"
     },
     "post": {
       "level": "Lvl {level, number}",
@@ -2682,7 +2671,6 @@
     "editor": {
       "saving": "Saving…",
       "saved": "Saved",
-      "savedXp": "Saved · +{xp, number} XP",
       "cleared": "Page cleared: it was removed from your journal.",
       "unsaved": "Not saved yet",
       "errors": {
@@ -2753,175 +2741,10 @@
     }
   },
   "Ranked": {
-    "title": "Ranked mode",
-    "description": "Your real physical and financial level, compared with people your age in Canada and the United States.",
-    "back": "Profile",
-    "intro": {
-      "what": "Take 5 short fitness tests and answer 5 questions about your finances: each pillar gets a level from 1 to 100, and your total level becomes public.",
-      "how": "Level 87 means you do better than 87% of people your age in Canada and the United States, based on official data (Statistics Canada, Census Bureau, Federal Reserve…). Social and mental stay private. You can re-evaluate every 30 days."
-    },
-    "form": {
-      "sections": {
-        "body": "Your body",
-        "physical": "Physical",
-        "financial": "Financial"
-      },
-      "hints": {
-        "body": "Your height and weight give your BMI, which counts for 10% of the physical level. Body type doesn’t change your level.",
-        "physical": "Do the tests after a 5-minute warm-up, and stop if anything hurts. One test a day, or rest between tests, is fine.",
-        "financial": "In your country’s currency. These amounts are never shown to other members or sent to Get iT AI in dollars."
-      },
-      "perMonth": "{currency} per month",
-      "perWeek": "hours per week",
-      "fieldError": "Check this answer.",
-      "public": "Your physical level, financial level and total level become public: members see them on your profile and next to your name.",
-      "notice": "Your level is calculated automatically from your answers and public data, never by AI. You can correct your answers at your next re-evaluation, or leave Ranked mode at any time: your answers and levels are then deleted.",
-      "consent": "I agree that this information, including financial and health information, is used to calculate my levels, and that these levels are public. My answers are never shown to other members.",
-      "submit": "Calculate my level",
-      "submitting": "Calculating…"
-    },
-    "questions": {
-      "heightCm": {
-        "label": "Your height",
-        "hint": "In centimetres. Example: 5 ft 10 in = 178 cm."
-      },
-      "weightKg": {
-        "label": "Your weight",
-        "hint": "In kilograms. Example: 170 lb ≈ 77 kg."
-      },
-      "bodyType": {
-        "label": "Your body type",
-        "hint": "Pick the silhouette that looks most like you. It helps Get iT AI tailor its tips.",
-        "options": {
-          "ectomorph": {
-            "title": "Ectomorph",
-            "description": "Lean and long, has a hard time gaining weight"
-          },
-          "mesomorph": {
-            "title": "Mesomorph",
-            "description": "Athletic build, gains muscle easily"
-          },
-          "endomorph": {
-            "title": "Endomorph",
-            "description": "Rounder build, gains weight easily"
-          }
-        }
-      },
-      "reachSide": {
-        "label": "Flexibility: sitting with straight legs, how far do your fingers reach?",
-        "options": {
-          "beyond": "Past my toes",
-          "short": "Short of my toes"
-        }
-      },
-      "reachCm": {
-        "label": "By how many centimeters?",
-        "hint": "Sit on the floor, legs straight in front of you, soles against a wall. Without bending your knees, lean forward slowly with your arms straight and hold for 2 seconds. Measure the gap between your fingertips and your toes (0 if you just touch them)."
-      },
-      "runMeters": {
-        "label": "Cardio: how far do you go in 12 minutes?",
-        "hint": "Run (or alternate running and walking) as far as you can for 12 minutes, on a track or with a running app. Example: 2.4 km = 2,400 m."
-      },
-      "pushUps": {
-        "label": "Strength: how many push-ups can you do in a row?",
-        "hint": {
-          "full": "Full push-ups without stopping: body straight, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks.",
-          "knees": "Knee push-ups without stopping: body straight from knees to shoulders, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks."
-        }
-      },
-      "squats": {
-        "label": "Legs: how many squats can you do in 60 seconds?",
-        "hint": "Feet shoulder-width apart, go down until your thighs are parallel to the floor (as if sitting on a chair), then stand up with straight legs. Count only full squats."
-      },
-      "jumpCm": {
-        "label": "Power: how far can you jump from a standstill?",
-        "hint": "Standing with feet together behind a line, jump as far forward as you can with both feet, without a run-up. Measure from the line to the nearest heel. Keep the best of 3 tries."
-      },
-      "netIncome": {
-        "label": "Your net yearly income",
-        "hint": "What you actually receive after taxes and deductions over the last 12 months (wages, business, investments). Tip: add up your deposited paychecks for a year."
-      },
-      "assets": {
-        "label": "Your assets",
-        "hint": "The total value of what you own: money in the bank, investments (RRSP, TFSA, 401(k)…), home or other properties, business, vehicles."
-      },
-      "debts": {
-        "label": "Your debts",
-        "hint": "The total of what you owe: mortgage, student loans, car loan, credit cards, lines of credit."
-      },
-      "monthlyExpenses": {
-        "label": "Your monthly expenses",
-        "hint": "What you spend on average each month to live (housing, groceries, transportation, bills, going out), not counting your savings or investments."
-      },
-      "weeklyHours": {
-        "label": "Your work hours per week",
-        "hint": "How many hours you work on average to earn this income (job, business, side gigs), not counting commuting. For the same income, fewer hours means a better level."
-      }
-    },
-    "factors": {
-      "bmi": "BMI (height and weight)",
-      "run": "Cardio (12-minute run)",
-      "pushUps": "Strength (push-ups)",
-      "reach": "Flexibility (sit-and-reach)",
-      "squats": "Legs (squats in 60 seconds)",
-      "jump": "Power (standing long jump)",
-      "hourly": "Net income per hour worked",
-      "netWorth": "Net worth (assets minus debts)",
-      "savings": "Savings rate"
-    },
-    "results": {
-      "total": "Level {level, number}",
-      "totalDescription": "On average, you do better than {level, number}% of people your age in Canada and the United States.",
-      "evaluatedOn": "Evaluated on {date}",
-      "pillars": "Your ranked levels",
-      "top": "Top {top, number}%",
-      "public": "These levels are public. Social and mental stay private.",
-      "factorAge": "{factor}: better than {percent} of people your age",
-      "factorAdults": "{factor}: better than {percent} of adults",
-      "vo2max": "Estimated VO2max: {value, number} mL/kg/min",
-      "bmi": "BMI: {value, number}",
-      "estimate": "Estimate",
-      "reevaluate": "Re-evaluate my level",
-      "nextOn": "Next re-evaluation possible on {date}."
-    },
-    "method": {
-      "title": "How it’s calculated",
-      "how": "Each result is compared with people your age (and sex, for the fitness tests). Physical: 12-minute run converted to VO2max (FRIEND registry), push-ups (Canadian Society for Exercise Physiology), flexibility (YMCA), squats and standing long jump (estimates). Financial: net income per hour (Census Bureau), net worth (Federal Reserve and Statistics Canada, Canadian amounts at purchasing power parity) and savings rate (Federal Reserve). A pillar’s level is the weighted average of its factors; the total, the average of the two pillars.",
-      "limits": "Limits: squats and the standing long jump have no published adult norms for Canada and the United States (approximate references, marked “Estimate”); the savings rate partly relies on an estimate; Canada’s hourly income uses the US curve; your answers are self-reported, not verified."
-    },
-    "analysis": {
-      "title": "Get iT AI analysis",
-      "description": "Get iT AI explains your level and suggests how to climb. Your income and net worth are sent as percentiles only, never in dollars.",
-      "request": "Analyze my level",
-      "loading": "Analyzing…",
-      "tips": "To climb",
-      "unavailable": "Get iT AI is coming soon.",
-      "consent": "Turn on Get iT AI to get an analysis of your level.",
-      "consentLink": "Turn on Get iT AI"
-    },
-    "leave": {
-      "open": "Leave Ranked mode",
-      "title": "Leave Ranked mode?",
-      "description": "Your answers and ranked levels will be deleted. Your level will go back to your XP level.",
-      "cancel": "Cancel",
-      "confirm": "Leave and delete"
-    },
-    "errors": {
-      "invalid": "Some answers are missing or out of range.",
-      "detailsMissing": "First fill in your date of birth, sex and region in Settings.",
-      "consentRequired": "Check the consent box to calculate your level.",
-      "tooSoon": "You can re-evaluate 30 days after your last evaluation.",
-      "notRanked": "You’re not in Ranked mode yet.",
-      "notConfigured": "Get iT AI isn’t available right now.",
-      "aiConsentRequired": "Turn on Get iT AI first.",
-      "limitReached": "You’ve reached the limit of 20 Get iT AI requests today.",
-      "refused": "Get iT AI couldn’t analyze your level.",
-      "unexpected": "Something went wrong. Try again in a moment."
-    },
     "leaderboard": {
       "title": "Leaderboard",
-      "description": "People in Ranked mode who are Centre members, ranked by level.",
-      "back": "Back to Ranked mode",
+      "description": "People in Ranked mode, Hub members, ranked by measured level.",
+      "back": "My levels",
       "pillarsLabel": "Level",
       "scopesLabel": "Who",
       "pillars": {
@@ -2936,8 +2759,8 @@
       "count": "{count, plural, =0 {Nobody ranked} one {# person ranked} other {# people ranked}}",
       "empty": "Nobody is ranked yet. Be the first!",
       "emptyContacts": "None of your contacts is in Ranked mode yet.",
-      "notRanked": "Switch to Ranked to appear on the leaderboard and see your place.",
-      "notRankedCta": "Switch to Ranked",
+      "notRanked": "Go Ranked and measure both pillars to appear on the leaderboard and see your rank.",
+      "notRankedCta": "My levels",
       "you": "(you)",
       "rankLabel": "Rank {rank, number}",
       "levelLabel": "Level {level, number}",
@@ -3434,7 +3257,7 @@
         "goalPlans": "Goal plans",
         "developmentPlans": "My development plans",
         "itemEdits": "Edit with Get iT AI",
-        "ranked": "Ranked evaluations",
+        "ranked": "Level measures",
         "favorites": "Marketplace favorites",
         "listings": "Listings submitted"
       },
@@ -3753,5 +3576,190 @@
       "thanksDetail": "Your answer helps the Get iT team choose what to improve.",
       "error": "Your answer couldn’t be sent. Try again."
     }
+  },
+  "Streaks": {
+    "caption": "Streak",
+    "days": "{count, plural, one {# day} other {# days}}",
+    "current": "{count, plural, one {#-day streak} other {#-day streak}}",
+    "badgeLabel": "{count, plural, one {#-day streak} other {#-day streak}}. See your profile",
+    "badgeLabelLit": "{count, plural, one {#-day streak} other {#-day streak}}, today already counts. See your profile",
+    "weekStreak": "{count, plural, one {#-week streak} other {#-week streak}}",
+    "milestone": {
+      "title": "{count, number}-day streak!",
+      "body": "At least one action every day, {count, number} days in a row. Keep it up.",
+      "share": "Share in the Hub",
+      "close": "Close"
+    }
+  },
+  "Levels": {
+    "title": "My levels",
+    "description": "Your real physical and financial level, compared with people your age in Canada and the United States.",
+    "back": "Profile",
+    "total": {
+      "level": "Level {level, number}",
+      "none": "No total level yet",
+      "description": "The average of your physical and financial levels. Each pillar is at the level of its weakest measure.",
+      "noneDescription": "Measure your physical and financial pillars: each gets a level from 1 to 100, and your total level is their average."
+    },
+    "ranked": {
+      "on": "Ranked mode: your levels are public (on your profile, next to your name and on the leaderboard). Your measures stay private.",
+      "off": "Your levels are private. Go Ranked to make them public and join the leaderboard; your measures stay private.",
+      "join": "Go Ranked",
+      "joinTitle": "Make your levels public?",
+      "joinDescription": "Your physical, financial and total levels will be visible to Hub members: on your profile, next to your name and on the leaderboard. Your measures (tests, income, wealth) are never shown. You can go back to private at any time.",
+      "confirm": "Go Ranked",
+      "cancel": "Cancel",
+      "leave": "Make my levels private"
+    },
+    "notEvaluated": "Not evaluated",
+    "pillarLevel": "Lv. {level, number}",
+    "intro": {
+      "physical": "Six tests, at home or at the gym: 12-minute run, push-ups, sit-and-reach, squats, standing long jump and bench press. Each is compared with people your age and sex; your physical level is your weakest test.",
+      "financial": "Three measures: your net income per hour worked, your net worth and your savings rate. Each is compared with people your age; your financial level is your weakest measure."
+    },
+    "next": {
+      "title": "To reach level {level, number}",
+      "goals": "See my level goals",
+      "missing": "One measure is missing before you get a level.",
+      "top": "Level 100: you’re at the top for your age."
+    },
+    "toMeasure": "To measure",
+    "measuredOn": "on {date}",
+    "availableOn": "Available on {date}",
+    "estimate": "Estimate",
+    "measure": "Measure",
+    "update": {
+      "description": "Redo this test (or update this number): your level is recalculated right away.",
+      "saved": "Measure saved.",
+      "level": "Pillar level: {level, number}",
+      "levelChanged": "Pillar level: {from, number} → {to, number}",
+      "close": "Close"
+    },
+    "goalBadge": "Level goal · level {level, number}",
+    "goalHint": "Calculated from people your age; it completes itself when your measure reaches it.",
+    "goalUpdate": "Update my measure",
+    "factors": {
+      "run": "Cardio (12-minute run)",
+      "pushUps": "Strength (push-ups)",
+      "reach": "Flexibility (sit-and-reach)",
+      "squats": "Legs (squats in 60 seconds)",
+      "jump": "Power (standing long jump)",
+      "bench": "Strength for your weight (bench press)",
+      "hourly": "Net income per hour worked",
+      "netWorth": "Net worth (assets minus debts)",
+      "savings": "Savings rate"
+    },
+    "form": {
+      "physicalHint": "Do the tests after a 5-minute warm-up, and stop if you feel pain or dizziness. If you have a health condition (heart, joints, pregnancy…), talk to a health professional first.",
+      "financialHint": "In your country’s currency. These amounts are never shown to other members or sent in dollars to Get iT AI.",
+      "perMonth": "{currency} per month",
+      "perWeek": "hours per week",
+      "fieldError": "Check this answer.",
+      "notice": "Your level is calculated automatically from your answers and public data, never by AI. You can redo a measure to correct it, or erase everything.",
+      "consent": "I agree that this information, including financial and health information, is used to calculate my levels. It stays private: only my levels are shown, and only if I go Ranked.",
+      "submit": "Calculate my level",
+      "submitting": "Calculating…"
+    },
+    "errors": {
+      "invalid": "Some answers are missing or out of range.",
+      "detailsMissing": "First fill in your date of birth, sex and region in Settings.",
+      "consentRequired": "Check the consent box to calculate your level.",
+      "tooSoon": "You took this measure recently: a physical test can be redone after 7 days, a financial measure after a month.",
+      "unexpected": "Something went wrong. Try again in a moment."
+    },
+    "erase": {
+      "open": "Erase my measures",
+      "title": "Erase all your measures?",
+      "description": "Your tests, financial numbers and levels will be erased, along with your current level goals. Your levels will no longer be public.",
+      "cancel": "Cancel",
+      "confirm": "Erase everything"
+    },
+    "method": {
+      "title": "How it’s calculated",
+      "how": "Each measure is compared with people your age (and sex for physical tests) in Canada and the United States: 12-minute run converted to VO2max (FRIEND registry), push-ups (Canadian Society for Exercise Physiology), sit-and-reach (YMCA), bench press relative to body weight (Cooper Institute), squats and standing long jump; net income per hour (Census Bureau), net worth (Federal Reserve and Statistics Canada) and savings rate (Federal Reserve). A measure is at level 25 when it beats 25% of people your age. A pillar is at the level of its weakest measure: to level up, each measure must reach the next threshold, and those are your level goals.",
+      "elite": "From 90 to 100, the elite zone goes from the 90th percentile up to the human peak for your age: world-class athletes for physical tests, the richest 0.1% of your age group for finances.",
+      "limits": "Limits: squats, the jump, the bench press and the elite zone rely on estimates (marked “Estimate”); your answers are self-reported, not verified; hourly income for Canada uses the US curve.",
+      "notice": "Automated decision (Québec Law 25): your level is calculated by the app from your measures, never by AI. You can redo a measure to correct it, or erase everything."
+    },
+    "goals": {
+      "run": "Run {meters} m in 12 minutes",
+      "pushUps": "Do {count} push-ups in a row",
+      "pushUpsKnees": "Do {count} knee push-ups in a row",
+      "reachBeyond": "Reach {cm} cm past your toes in the sit-and-reach",
+      "reachToes": "Touch your toes in the sit-and-reach",
+      "reachShort": "Get within {cm} cm of your toes in the sit-and-reach",
+      "squats": "Do {count} squats in 60 seconds",
+      "jump": "Jump {cm} cm from standing",
+      "bench": "Bench press {kg} kg ({ratio} × your weight)",
+      "benchRatio": "Bench press {ratio} times your weight",
+      "hourly": "Earn {amount} net per hour",
+      "netWorth": "Reach a net worth of {amount}",
+      "savings": "Save {percent} of your net income"
+    },
+    "fields": {
+      "runMeters": {
+        "label": "Cardio: how far do you go in 12 minutes?",
+        "hint": "Run (or alternate running and walking) as far as you can for 12 minutes, on a track or with a running app. Example: 2.4 km = 2,400 m."
+      },
+      "pushUps": {
+        "label": "Strength: how many push-ups can you do in a row?",
+        "hint": {
+          "full": "Full push-ups without stopping: body straight, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks.",
+          "knees": "Knee push-ups without stopping: body straight from knees to shoulders, chest down to about a fist from the floor, arms fully extended on the way up. Stop at the first rest or when your form breaks."
+        }
+      },
+      "reachSide": {
+        "label": "Flexibility: sitting with straight legs, how far do your fingers reach?",
+        "options": {
+          "beyond": "Past my toes",
+          "short": "Short of my toes"
+        }
+      },
+      "reachCm": {
+        "label": "By how many centimeters?",
+        "hint": "Sit on the floor, legs straight in front of you, soles against a wall. Without bending your knees, lean forward slowly with your arms straight and hold for 2 seconds. Measure the gap between your fingertips and your toes (0 if you just touch them)."
+      },
+      "squats": {
+        "label": "Legs: how many squats can you do in 60 seconds?",
+        "hint": "Feet shoulder-width apart, go down until your thighs are parallel to the floor (as if sitting on a chair), then stand up with straight legs. Count only full squats."
+      },
+      "jumpCm": {
+        "label": "Power: how far can you jump from a standstill?",
+        "hint": "Standing with feet together behind a line, jump as far forward as you can with both feet, without a run-up. Measure from the line to the nearest heel. Keep the best of 3 tries."
+      },
+      "weightKg": {
+        "label": "Your weight",
+        "hint": "In kilograms. Example: 170 lb ≈ 77 kg. It puts your strength relative to your weight."
+      },
+      "benchKg": {
+        "label": "Bench press: what weight do you lift?",
+        "hint": "The total weight (bar included) you lift 1 to 10 times in a row with good form, with a spotter or on a machine. Don’t test your max alone."
+      },
+      "benchReps": {
+        "label": "How many times in a row?",
+        "hint": "From 1 to 10. Your one-rep max is estimated from your set."
+      },
+      "netIncome": {
+        "label": "Your net yearly income",
+        "hint": "What you actually receive after taxes and deductions over the last 12 months (wages, business, investments). Tip: add up your deposited paychecks for a year."
+      },
+      "weeklyHours": {
+        "label": "Your work hours per week",
+        "hint": "How many hours you work on average to earn this income (job, business, side gigs), not counting commuting. For the same income, fewer hours means a better level. With no paid work, enter 0: your income is counted over 40 hours a week."
+      },
+      "assets": {
+        "label": "Your assets",
+        "hint": "The total value of what you own: money in the bank, investments (RRSP, TFSA, 401(k)…), home or other properties, business, vehicles."
+      },
+      "debts": {
+        "label": "Your debts",
+        "hint": "The total of what you owe: mortgage, student loans, car loan, credit cards, lines of credit."
+      },
+      "monthlyExpenses": {
+        "label": "Your monthly expenses",
+        "hint": "What you spend on average each month to live (housing, groceries, transportation, bills, going out), not counting your savings or investments."
+      }
+    },
+    "remeasure": "Update"
   }
 }

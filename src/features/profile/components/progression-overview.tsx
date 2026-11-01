@@ -1,12 +1,18 @@
 import { getTranslations } from "next-intl/server";
-import { toCalendarDay } from "@/lib/dates";
+import { PILLARS, type Pillar } from "@/config/pillars";
+import { dayStreak } from "@/features/streaks/rules";
+import { lastDays, toCalendarDay } from "@/lib/dates";
 import { listGoalsInProgress } from "@/server/goals/service";
 import { getCurrentProfile } from "@/server/profile/service";
-import { getRankedLevels } from "@/server/ranked/service";
-import { getActiveDays, getXpTotals } from "@/server/xp/service";
+import { getMyLevels } from "@/server/levels/service";
+import { getActivity } from "@/server/streaks/service";
 import { goalPace, regularity } from "../progression";
 import { GoalsInProgress } from "./goals-in-progress";
-import { ProgressionSheet } from "./progression-sheet";
+import {
+  ProgressionSheet,
+  SHEET_SEGMENTS,
+  type PillarStreak,
+} from "./progression-sheet";
 import { RegularitySection } from "./regularity-section";
 
 /**
@@ -17,13 +23,26 @@ export async function ProgressionOverview() {
   const profile = await getCurrentProfile();
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const today = toCalendarDay(new Date(), profile.timeZone);
-  const [xp, ranked, activeDays, goals, t] = await Promise.all([
-    getXpTotals(profile.id),
-    getRankedLevels(profile.id),
-    getActiveDays(profile.id),
+  const [levels, activity, goals, t] = await Promise.all([
+    getMyLevels(profile.id),
+    getActivity(profile.id, profile.timeZone),
     listGoalsInProgress(profile.id, profile.timeZone),
     getTranslations("Progress"),
   ]);
+  const recentDays = lastDays(today, SHEET_SEGMENTS);
+  const streaks = Object.fromEntries(
+    PILLARS.map((pillar): [Pillar, PillarStreak] => {
+      const days = activity.pillars[pillar];
+      const active = new Set(days);
+      return [
+        pillar,
+        {
+          days: dayStreak(days, today).current,
+          recent: recentDays.map((day) => active.has(day)),
+        },
+      ];
+    }),
+  ) as Record<Pillar, PillarStreak>;
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,20 +58,16 @@ export async function ProgressionOverview() {
             {t("title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {ranked ? t("descriptionRanked") : t("description")}
+            {levels.ranked ? t("descriptionRanked") : t("description")}
           </p>
         </div>
-        <ProgressionSheet
-          total={xp.total}
-          pillars={xp.pillars}
-          ranked={ranked}
-        />
+        <ProgressionSheet levels={levels} streaks={streaks} />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2 lg:gap-10">
         <RegularitySection
           regularity={regularity(
-            activeDays,
+            activity.days,
             today,
             toCalendarDay(profile.createdAt, profile.timeZone),
           )}

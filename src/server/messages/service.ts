@@ -45,7 +45,7 @@ import {
 import { avatarUrls } from "@/server/profile/avatar";
 import { signedUrls } from "@/server/storage/service";
 import { visibleStory } from "@/server/stories/access";
-import { getDisplayLevels } from "@/server/ranked/service";
+import { getDisplayLevels } from "@/server/levels/service";
 import { notify } from "@/server/notifications/service";
 import { onlineContactIds } from "@/server/presence/service";
 import {

@@ -1,9 +1,7 @@
 import "server-only";
 import type { CheckInScores } from "@/features/today/schemas";
-import { XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
-import { awardCheckIn } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus.
 
@@ -41,7 +39,6 @@ export async function listCheckIns(
 
 /**
  * Enregistre le check-in du jour ; le refaire dans la journée le remplace.
- * Le premier du jour rapporte de l'XP, pas les modifications.
  */
 export async function saveCheckIn(
   userId: string,
@@ -54,18 +51,10 @@ export async function saveCheckIn(
     stress: scores.stress,
     sleep: scores.sleep,
   };
-  await db.$transaction(async (tx) => {
-    const checkIn = await tx.dailyCheckIn.upsert({
-      where: { userId_day: { userId, day: toDbDate(day) } },
-      update: data,
-      create: { userId, day: toDbDate(day), ...data },
-      select: { id: true },
-    });
-    await awardCheckIn(tx, checkIn.id, {
-      userId,
-      amount: XP_REWARDS.checkIn,
-      pillar: null,
-      day,
-    });
+  await db.dailyCheckIn.upsert({
+    where: { userId_day: { userId, day: toDbDate(day) } },
+    update: data,
+    create: { userId, day: toDbDate(day), ...data },
+    select: { id: true },
   });
 }

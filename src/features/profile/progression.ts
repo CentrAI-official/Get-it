@@ -1,4 +1,5 @@
-import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
+import { dayStreak, mondayOf } from "@/features/streaks/rules";
+import { addDays, daysBetween } from "@/lib/dates";
 
 // Aperçu du Profil : la régularité (jours actifs) et le rythme des objectifs en
 // cours. Fonctions pures, partagées par le serveur et les tests.
@@ -27,9 +28,9 @@ export type Regularity = {
 
 /**
  * Jours actifs par semaine (lundi à dimanche), série en cours et record.
- * `activeDays` : les jours où la personne a gagné de l'XP ; `firstDay` : son
- * inscription. Un compte récent montre ses semaines depuis l'inscription
- * (4 au moins, 12 au plus).
+ * `activeDays` : les jours où la personne a fait au moins une action ;
+ * `firstDay` : son inscription. Un compte récent montre ses semaines depuis
+ * l'inscription (4 au moins, 12 au plus).
  */
 export function regularity(
   activeDays: readonly string[],
@@ -37,9 +38,10 @@ export function regularity(
   firstDay: string,
 ): Regularity {
   const active = new Set(activeDays.filter((day) => day <= today));
-  const monday = (day: string) => addDays(day, 1 - isoWeekday(day));
-  const currentStart = monday(today);
-  const since = Math.floor(daysBetween(monday(firstDay), currentStart) / 7 + 1);
+  const currentStart = mondayOf(today);
+  const since = Math.floor(
+    daysBetween(mondayOf(firstDay), currentStart) / 7 + 1,
+  );
   const count = Math.min(
     REGULARITY_WEEKS,
     Math.max(REGULARITY_MIN_WEEKS, since),
@@ -54,23 +56,8 @@ export function regularity(
     return { start, count: days, current: index === count - 1 };
   });
 
-  let streak = 0;
-  let day = active.has(today) ? today : addDays(today, -1);
-  while (active.has(day)) {
-    streak++;
-    day = addDays(day, -1);
-  }
-
-  let best = 0;
-  let run = 0;
-  let previous: string | null = null;
-  for (const current of [...active].sort()) {
-    run = previous && addDays(previous, 1) === current ? run + 1 : 1;
-    best = Math.max(best, run);
-    previous = current;
-  }
-
-  return { weeks, thisWeek: weeks.at(-1)?.count ?? 0, streak, best };
+  const { current, best } = dayStreak([...active], today);
+  return { weeks, thisWeek: weeks.at(-1)?.count ?? 0, streak: current, best };
 }
 
 export const GOAL_PACES = ["onTrack", "slightlyLate", "late"] as const;

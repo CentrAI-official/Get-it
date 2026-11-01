@@ -4,7 +4,6 @@ import { redirect } from "@/i18n/navigation";
 import { getDayPeriod } from "@/lib/day-period";
 import { getDayPlan, isDayPanelDue } from "@/server/day/service";
 import { avatarUrl } from "@/server/profile/avatar";
-import { getRankedLevels } from "@/server/ranked/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { formatDayStamp } from "../day-stamp";
 import { DayPanelDialog } from "./day-panel-dialog";
@@ -26,10 +25,9 @@ export async function DayPanel() {
   }
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const now = new Date();
-  const [plan, photo, ranked, locale, t] = await Promise.all([
+  const [plan, photo, locale, t] = await Promise.all([
     getDayPlan(profile.id, profile.timeZone, now),
     avatarUrl(profile.avatarPath),
-    getRankedLevels(profile.id),
     getLocale(),
     getTranslations("App.today"),
   ]);
@@ -46,7 +44,6 @@ export async function DayPanel() {
       })}
       name={profile.displayName ?? profile.email ?? ""}
       avatarUrl={photo}
-      rankedLevel={ranked?.total ?? null}
     />
   );
 }

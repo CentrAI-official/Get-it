@@ -10,7 +10,14 @@ export type CoachContextData = {
   occupation: string | null;
   focusPillars: Pillar[];
   dailyMinutes: number | null;
-  level: { level: number; xp: number; pillarLevels: Record<Pillar, number> };
+  /** Séries de jours actifs : la série du jour, son record et celle de chaque pilier. */
+  streaks: { current: number; best: number; pillars: Record<Pillar, number> };
+  /** Niveaux mesurés (1 à 100, d'après la population de son âge) ; null : pas encore mesuré. */
+  levels: {
+    total: number | null;
+    physical: number | null;
+    financial: number | null;
+  };
   /** 0 à 100, null sans données. */
   scores: Record<Pillar, number | null>;
   quests: {
@@ -96,9 +103,17 @@ export function formatCoachContext(data: CoachContextData): string {
     "<user_context>",
     `Today: ${data.today} (${weekday})`,
     profile.join(" · "),
-    `Level ${data.level.level} (${data.level.xp} XP). Pillar levels: ${PILLARS.map(
-      (p) => `${PILLAR_NAMES[p]} ${data.level.pillarLevels[p]}`,
+    `Daily streak: ${data.streaks.current} days (best ${data.streaks.best}). Pillar streaks: ${PILLARS.map(
+      (p) => `${PILLAR_NAMES[p]} ${data.streaks.pillars[p]}`,
     ).join(", ")}.`,
+    `Measured levels (1-100, vs. people their age in Canada and the US; a pillar's level is its weakest measure): ${(
+      ["physical", "financial"] as const
+    )
+      .map(
+        (pillar) =>
+          `${PILLAR_NAMES[pillar]} ${data.levels[pillar] ?? "not measured yet"}`,
+      )
+      .join(", ")}.`,
     `Pillar scores /100 (40% self-assessment + 60% consistency over the last 7 days): ${PILLARS.map(
       (p) =>
         `${PILLAR_NAMES[p]} ${data.scores[p] === null ? "no data" : data.scores[p]}`,

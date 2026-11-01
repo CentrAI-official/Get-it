@@ -1,11 +1,8 @@
 import "server-only";
 import type { DayMoment } from "@/config/moments";
 import type { Pillar } from "@/config/pillars";
-import { XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
-import { getUserTimeZone } from "@/server/profile/service";
-import { awardTask, revokeXp } from "@/server/xp/service";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus.
 
@@ -135,43 +132,19 @@ export async function addTask(
 }
 
 /**
- * Termine une tâche (avec son XP, dans la limite quotidienne) ou la rouvre
- * (son XP est retirée).
+ * Termine une tâche ou la rouvre. Déjà terminée : la date d'origine est
+ * conservée (elle compte pour la série de ce jour-là).
  */
 export async function setTaskDone(
   userId: string,
   taskId: string,
   done: boolean,
 ) {
-  if (!done) {
-    await db.$transaction(async (tx) => {
-      await tx.task.updateMany({
-        where: { id: taskId, userId },
-        data: { completedAt: null },
-      });
-      await revokeXp(tx, userId, { taskId });
-    });
-    return;
-  }
-
-  const timeZone = await getUserTimeZone(userId);
-  await db.$transaction(async (tx) => {
-    // Déjà terminée : la date d'origine (et son XP) sont conservées
-    const { count } = await tx.task.updateMany({
-      where: { id: taskId, userId, completedAt: null },
-      data: { completedAt: new Date() },
-    });
-    if (count === 0) return;
-    const task = await tx.task.findUniqueOrThrow({
-      where: { id: taskId },
-      select: { goal: { select: { pillar: true } } },
-    });
-    await awardTask(tx, taskId, {
-      userId,
-      amount: XP_REWARDS.task,
-      pillar: task.goal?.pillar ?? null,
-      day: toCalendarDay(new Date(), timeZone),
-    });
+  await db.task.updateMany({
+    where: done
+      ? { id: taskId, userId, completedAt: null }
+      : { id: taskId, userId },
+    data: { completedAt: done ? new Date() : null },
   });
 }
 

@@ -7,14 +7,29 @@ import { Link } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import type { GoalSummary } from "@/server/goals/service";
 
-/** Carte d'objectif cliquable : anneau d'avancement des jalons (avec la photo choisie), pilier et date cible. */
-export function GoalCard({ goal }: { goal: GoalSummary }) {
+/**
+ * Carte d'objectif cliquable : anneau d'avancement des jalons (avec la photo
+ * choisie), pilier, date cible et série de semaines.
+ */
+export function GoalCard({
+  goal,
+  weekStreak = 0,
+}: {
+  goal: GoalSummary;
+  /** Semaines d'affilée où l'objectif a avancé. */
+  weekStreak?: number;
+}) {
   const t = useTranslations("Goals");
+  const tStreaks = useTranslations("Streaks");
+  const tLevels = useTranslations("Levels");
   const tPillars = useTranslations("Pillars");
   const format = useFormatter();
   const Icon = pillarIcons[goal.pillar];
   const { milestonesDone: done, milestonesTotal: total } = goal;
   const details = [
+    goal.levelGoal
+      ? tLevels("goalBadge", { level: goal.levelGoal.level })
+      : null,
     tPillars(`${goal.pillar}.name`),
     goal.targetDate
       ? t("targetDate", {
@@ -25,6 +40,7 @@ export function GoalCard({ goal }: { goal: GoalSummary }) {
           }),
         })
       : null,
+    weekStreak > 0 ? tStreaks("weekStreak", { count: weekStreak }) : null,
   ].filter(Boolean);
 
   return (

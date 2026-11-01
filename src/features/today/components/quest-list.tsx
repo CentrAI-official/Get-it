@@ -2,7 +2,6 @@
 
 import { Check, Handshake, LoaderCircle, Sparkles, Trash2 } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Pillar } from "@/config/pillars";
 import { AddItemForm } from "@/features/goals/components/checklist";
@@ -17,8 +16,6 @@ type QuestBase = {
   id: string;
   title: string;
   done: boolean;
-  /** XP rapportée (ou déjà gagnée) ; 0 au-delà du plafond quotidien de tâches. */
-  xp: number;
   /** Heure prévue (minutes depuis minuit) ; null : pas d’heure. */
   time: number | null;
 };
@@ -250,16 +247,7 @@ export function QuestRow({
   onDelete,
   deleteLabel,
 }: QuestRowProps) {
-  const t = useTranslations("Today.quests");
   const questMeta = useQuestMeta();
-  // Chaque coche qui rapporte de l'XP relance la petite animation « +10 XP »
-  const [burst, setBurst] = useState(0);
-
-  function toggle() {
-    if (!quest.done && quest.xp > 0) setBurst((count) => count + 1);
-    onToggle();
-  }
-
   const meta = questMeta(quest);
   const pact = quest.kind === "habit" ? quest.pact : undefined;
 
@@ -273,7 +261,7 @@ export function QuestRow({
       <button
         type="button"
         aria-pressed={quest.done}
-        onClick={toggle}
+        onClick={onToggle}
         className="flex min-h-11 min-w-0 flex-1 items-center gap-3 rounded-xl text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <span
@@ -312,37 +300,6 @@ export function QuestRow({
         </span>
       </button>
 
-      {quest.xp > 0 ? (
-        <span
-          className={cn(
-            "flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold tabular-nums transition-colors",
-            quest.kind === "habit" && "mr-1",
-            quest.done
-              ? "bg-primary text-primary-foreground"
-              : "bg-primary/12 text-primary",
-          )}
-        >
-          {quest.done ? (
-            <>
-              <Check aria-hidden="true" className="size-3" strokeWidth={3} />
-              {t("xpEarned", { xp: quest.xp })}
-            </>
-          ) : (
-            t("xpReward", { xp: quest.xp })
-          )}
-        </span>
-      ) : null}
-      {burst > 0 ? (
-        // Retiré à la fin de l'animation ; jamais affiché si les animations sont réduites
-        <span
-          key={burst}
-          aria-hidden="true"
-          onAnimationEnd={() => setBurst(0)}
-          className="pointer-events-none absolute -top-2 right-12 hidden text-sm font-bold text-primary tabular-nums opacity-0 motion-safe:block motion-safe:animate-xp-float"
-        >
-          {t("xpReward", { xp: quest.xp })}
-        </span>
-      ) : null}
       {quest.kind === "task" && onDelete ? (
         <Button
           type="button"

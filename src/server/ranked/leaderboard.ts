@@ -8,11 +8,13 @@ import {
 import { getBlockedIds } from "@/server/community/members";
 import { contactIds } from "@/server/contacts/service";
 import { db } from "@/server/db";
+import { levelsOf } from "@/server/levels/service";
 import { avatarUrls } from "@/server/profile/avatar";
 
-// Classement Ranked : les niveaux classés sont publics (case d'accord), mais
+// Classement Ranked : les niveaux des personnes en Ranked sont publics, mais
 // seules les personnes membres du Centre (nom d'utilisateur) y figurent, sans
-// les personnes bloquées dans un sens ou dans l'autre.
+// les personnes bloquées dans un sens ou dans l'autre. À niveau égal, la
+// première passée en Ranked est montrée avant.
 
 export type LeaderboardRow = {
   rank: number;
@@ -40,36 +42,37 @@ export async function getLeaderboard(
     scope === "contacts" ? contactIds(viewerId) : null,
   ]);
   const allowed = contacts ? [viewerId, ...contacts] : null;
-  // La plus récente évaluation de chaque personne fait foi
-  const latest = await db.rankedEvaluation.findMany({
+  // Personnes en Ranked et membres du Centre ; leurs niveaux viennent de leurs mesures
+  const members = await db.profile.findMany({
     where: {
-      ...(allowed ? { userId: { in: allowed } } : {}),
-      profile: {
-        username: { not: null },
-        settings: { communityRulesAt: { not: null } },
-      },
+      ...(allowed ? { id: { in: allowed } } : {}),
+      rankedAt: { not: null },
+      username: { not: null },
+      settings: { communityRulesAt: { not: null } },
     },
-    distinct: ["userId"],
-    orderBy: [{ userId: "asc" }, { createdAt: "desc" }],
-    select: {
-      userId: true,
-      total: true,
-      physical: true,
-      financial: true,
-      createdAt: true,
-      profile: {
-        select: { displayName: true, username: true, avatarPath: true },
-      },
-    },
+    select: { id: true, displayName: true, username: true, avatarPath: true },
   });
-  const visible = latest.filter((row) => !blocked.includes(row.userId));
+  const visible = members.filter((member) => !blocked.includes(member.id));
+  const levels = await levelsOf(
+    visible.map((member) => member.id),
+    { rankedOnly: true },
+  );
   const ranked = rankEntries(
-    visible.map((row) => ({
-      id: row.userId,
-      level: row[pillar],
-      evaluatedAt: row.createdAt.toISOString(),
-      row,
-    })),
+    visible.flatMap((member) => {
+      const level = levels.get(member.id);
+      const value = level?.[pillar] ?? null;
+      // Un pilier pas encore mesuré n'est pas classé
+      return level && value !== null
+        ? [
+            {
+              id: member.id,
+              level: value,
+              evaluatedAt: (level.rankedAt ?? new Date(0)).toISOString(),
+              row: { profile: member },
+            },
+          ]
+        : [];
+    }),
   );
   const mineIndex = ranked.findIndex((entry) => entry.id === viewerId);
   const shown = ranked.slice(0, LEADERBOARD_SIZE);

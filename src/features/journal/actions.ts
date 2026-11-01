@@ -40,8 +40,8 @@ export async function saveJournalAction(
     const timeZone = await getUserTimeZone(user.id);
     const result = await saveJournalEntry(user.id, timeZone, parsed.data);
     // Enregistrement automatique : la page n'est rafraîchie que si la série
-    // ou l'XP changent (première version de la page, ou page vidée)
-    if (result.ok && (result.xp > 0 || !result.saved)) refresh();
+    // change (première version de la page, ou page vidée)
+    if (result.ok && (result.created || !result.saved)) refresh();
     return result;
   } catch (error) {
     console.error("Page du journal impossible à enregistrer", error);

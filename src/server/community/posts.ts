@@ -9,12 +9,14 @@ import {
 } from "@/features/community/rules";
 import type { PostMediaInput } from "@/features/community/media";
 import { computeStreaks } from "@/features/habits/streak";
+import { dayStreak, MIN_SHARED_DAY_STREAK } from "@/features/streaks/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import { db } from "@/server/db";
 import { getUserTimeZone } from "@/server/profile/service";
 import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
 import { removeFiles } from "@/server/storage/service";
-import { getDisplayLevels } from "@/server/ranked/service";
+import { getDisplayLevels } from "@/server/levels/service";
+import { getActivity } from "@/server/streaks/service";
 import { notify } from "@/server/notifications/service";
 import { postMediaPaths, verifyMedia } from "./media";
 import { getBlockedIds, getCommunityMember } from "./members";
@@ -113,7 +115,8 @@ export async function createPost(
 
 export type ProgressSource =
   | { type: "goal" | "milestone" | "streak" | "pact"; id: string }
-  | { type: "level" };
+  | { type: "level" }
+  | { type: "dayStreak" };
 
 /**
  * Le progrès réel derrière une source, figé pour la publication, ou null si
@@ -128,6 +131,10 @@ export async function freezeProgress(
     // Seul un niveau classé (mode Ranked) se partage : sinon il reste privé
     const level = (await getDisplayLevels([userId])).get(userId);
     return level === undefined ? null : { type: "level", level };
+  }
+  if (source.type === "dayStreak") {
+    const days = await currentDayStreak(userId);
+    return days >= MIN_SHARED_DAY_STREAK ? { type: "dayStreak", days } : null;
   }
   if (source.type === "goal") {
     const goal = await db.goal.findFirst({
@@ -162,6 +169,13 @@ export async function freezeProgress(
         pillar: habit.pillar,
       }
     : null;
+}
+
+/** Série de jours actifs en cours (au moins une action par jour). */
+async function currentDayStreak(userId: string) {
+  const timeZone = await getUserTimeZone(userId);
+  const activity = await getActivity(userId, timeZone);
+  return dayStreak(activity.days, toCalendarDay(new Date(), timeZone)).current;
 }
 
 /** Séries en cours des habitudes actives (une seule si `habitId`). */
@@ -208,7 +222,7 @@ export async function shareProgress(
       userId,
       kind: "progress",
       body,
-      pillar: progress.type === "level" ? null : progress.pillar,
+      pillar: "pillar" in progress ? progress.pillar : null,
       progress,
     },
   });
@@ -225,7 +239,7 @@ export async function listShareableProgress(
   userId: string,
 ): Promise<ShareableProgress[]> {
   const recent = new Date(Date.now() - 60 * DAY_MS);
-  const [goals, milestones, streaks, levels, pacts] = await Promise.all([
+  const [goals, milestones, streaks, levels, pacts, days] = await Promise.all([
     db.goal.findMany({
       where: { userId, completedAt: { gte: recent } },
       orderBy: { completedAt: "desc" },
@@ -245,6 +259,7 @@ export async function listShareableProgress(
     currentStreaks(userId),
     getDisplayLevels([userId]),
     listSuccessfulPacts(userId),
+    currentDayStreak(userId),
   ]);
   const rankedLevel = levels.get(userId);
   const pactProgress = (
@@ -266,6 +281,14 @@ export async function listShareableProgress(
             progress: { type: "level" as const, level: rankedLevel },
           },
         ]),
+    ...(days >= MIN_SHARED_DAY_STREAK
+      ? [
+          {
+            source: { type: "dayStreak" as const },
+            progress: { type: "dayStreak" as const, days },
+          },
+        ]
+      : []),
     ...pactProgress,
     ...goals.map((goal): ShareableProgress => ({
       source: { type: "goal", id: goal.id },

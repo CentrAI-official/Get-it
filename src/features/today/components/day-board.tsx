@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Flame } from "lucide-react";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,10 @@ import { Progress } from "@/components/ui/progress";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { setHabitDayAction } from "@/features/habits/actions";
 import { computeStreaks } from "@/features/habits/streak";
+import { StreakBadge } from "@/features/streaks/components/streak-badge";
+import { StreakBanner } from "@/features/streaks/components/streak-banner";
+import { streakMilestone } from "@/features/streaks/rules";
 import { deleteTaskAction, setTaskDoneAction } from "@/features/tasks/actions";
-import { LevelBadge } from "@/features/xp/components/level-badge";
-import { LevelUpBanner } from "@/features/xp/components/level-up-banner";
-import { levelFromXp } from "@/features/xp/rules";
 import { Link } from "@/i18n/navigation";
 import type { DayPlan } from "@/server/day/service";
 import { ratio, summarizeDay } from "../day-plan";
@@ -36,11 +36,9 @@ type DayBoardProps = {
   stamp: string;
   /** « Bonsoir, Max. » */
   greeting: string;
-  /** Initiale de l'utilisateur, dans l'anneau de niveau. */
+  /** Initiale de l'utilisateur, dans l'anneau de la série. */
   name: string;
   avatarUrl: string | null;
-  /** Niveau Ranked : affiché à la place de celui de l'XP, sans bannière de montée. */
-  rankedLevel: number | null;
 };
 
 const NO_KEYS: ReadonlySet<string> = new Set();
@@ -51,7 +49,8 @@ const pillarRank = (pillar: Pillar | null) =>
 
 /**
  * Le contenu de « Ma journée ». Un seul état optimiste pour les habitudes et
- * les tâches : un clic met à jour la case, l'avancement du jour et l'XP d'un coup.
+ * les tâches : un clic met à jour la case, l'avancement du jour et la série
+ * d'un coup.
  *
  * Mode Focus d'abord : une quête à la fois, puis le récap (liste complète,
  * nouvelle tâche) quand il ne reste rien à montrer.
@@ -62,15 +61,15 @@ export function DayBoard({
   greeting,
   name,
   avatarUrl,
-  rankedLevel,
 }: DayBoardProps) {
   const t = useTranslations("Today.panel");
   const tFocus = useTranslations("Today.focus");
+  const tStreak = useTranslations("Streaks");
   const format = useFormatter();
-  const { today, habits, tasks, xp } = plan;
-  // Dernier niveau fêté : une coche qui le dépasse affiche la bannière
+  const { today, habits, tasks, streak } = plan;
+  // Dernière série fêtée : une coche qui franchit un palier affiche la bannière
   const [celebrated, setCelebrated] = useState(
-    () => levelFromXp(xp.total).level,
+    () => streak.before + (streak.activeToday ? 1 : 0),
   );
   const [pending, startTransition] = useTransition();
 
@@ -114,7 +113,6 @@ export function DayBoard({
         title: habit.title,
         pillar: habit.pillar,
         done: isDone,
-        xp: xp.items[key] ?? 0,
         time: habit.time,
         late: false,
         streak: current,
@@ -133,7 +131,6 @@ export function DayBoard({
           title: task.title,
           pillar: task.goal?.pillar ?? null,
           done: done[key] ?? false,
-          xp: xp.items[key] ?? 0,
           time: task.time,
           late: task.dueDate !== null && task.dueDate < today,
           dueDate: task.dueDate,
@@ -164,13 +161,10 @@ export function DayBoard({
     : quests.find((quest) => quest.key === current);
 
   const { day } = summarizeDay(quests);
-  // XP affichée : l'enregistrée, plus ou moins les coches en cours
-  const xpNow = Object.entries(xp.items).reduce(
-    (sum, [key, amount]) =>
-      sum + (Number(done[key] ?? false) - Number(saved[key] ?? false)) * amount,
-    xp.total,
-  );
-  const level = levelFromXp(xpNow);
+  // Série affichée : aujourd'hui compte dès la première coche (ou une autre
+  // action déjà faite aujourd'hui, comme le journal)
+  const lit = streak.activeToday || quests.some((quest) => quest.done);
+  const streakDays = streak.before + (lit ? 1 : 0);
 
   function toggle(quest: Quest) {
     const next = !quest.done;
@@ -225,12 +219,10 @@ export function DayBoard({
     );
   }
 
-  const levelUp = (
-    <LevelUpBanner
-      level={
-        rankedLevel === null && level.level > celebrated ? level.level : null
-      }
-      onClose={() => setCelebrated(level.level)}
+  const milestone = (
+    <StreakBanner
+      milestone={streakMilestone(celebrated, streakDays)}
+      onClose={() => setCelebrated(streakDays)}
     />
   );
 
@@ -254,7 +246,8 @@ export function DayBoard({
               </DialogDescription>
             </>
           }
-          banner={levelUp}
+          banner={milestone}
+          streak={{ days: streakDays, lit }}
           hasNext={nextFocus(order, done, later, focused.key) !== null}
           onDone={() => completeFocused(focused)}
           onLater={() => keepForLater(focused)}
@@ -268,10 +261,6 @@ export function DayBoard({
   }
 
   const left = quests.filter((quest) => !quest.done).length;
-  const xpToday = quests.reduce(
-    (sum, quest) => sum + (quest.done ? quest.xp : 0),
-    0,
-  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -285,24 +274,16 @@ export function DayBoard({
           </DialogTitle>
           <DialogDescription>{t("description")}</DialogDescription>
         </div>
-        <LevelBadge
-          level={
-            rankedLevel === null
-              ? level
-              : {
-                  level: rankedLevel,
-                  current: rankedLevel,
-                  needed: 100,
-                  progress: rankedLevel / 100,
-                }
-          }
-          xp={xpNow}
+        <StreakBadge
+          days={streakDays}
+          lit={lit}
           name={name}
           avatarUrl={avatarUrl}
         />
       </div>
 
       {quests.length > 0 && left === 0 ? (
+        // Journée parfaite : tout ce qui était prévu est fait
         <div className="flex items-center gap-4 border-b border-foreground/8 pb-5 motion-safe:animate-level-up">
           <span className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground glow-primary">
             <Check aria-hidden="true" className="size-8" strokeWidth={3} />
@@ -314,11 +295,10 @@ export function DayBoard({
             <p className="text-sm text-muted-foreground">
               {tFocus("allDoneBody")}
             </p>
-            {xpToday > 0 ? (
-              <p className="text-sm font-bold text-primary tabular-nums">
-                {tFocus("xpToday", { xp: xpToday })}
-              </p>
-            ) : null}
+            <p className="flex items-center gap-1 text-sm font-bold text-primary tabular-nums">
+              <Flame aria-hidden="true" className="size-4" />
+              {tStreak("current", { count: streakDays })}
+            </p>
           </div>
         </div>
       ) : left > 0 ? (
@@ -352,7 +332,7 @@ export function DayBoard({
         </div>
       ) : null}
 
-      {levelUp}
+      {milestone}
 
       <QuestList
         quests={quests}

@@ -11,10 +11,6 @@ import {
   normalizeGoalPlan,
   normalizeGoalQuestions,
 } from "@/features/goals/plan";
-import {
-  aiRankedAnalysisSchema,
-  normalizeRankedAnalysis,
-} from "@/features/ranked/analysis";
 import { aiItemEditSchema } from "@/features/development/item-ai";
 import type { AiProvider, AiUsage } from "./types";
 
@@ -210,33 +206,6 @@ export function createClaudeProvider(apiKey: string): AiProvider {
       return {
         plan: parsed ? normalizeDevelopmentPlan(parsed) : null,
         crisis: parsed?.crisis ?? false,
-        refused,
-        usage: toUsage(message.model, message.usage),
-      };
-    },
-
-    async generateRankedAnalysis({ system, prompt }) {
-      // Expliquer un niveau déjà calculé : réponse courte, peu de réflexion
-      const message = await client.beta.messages.parse({
-        model: CLAUDE_MODEL,
-        max_tokens: 4000,
-        output_config: {
-          effort: "low",
-          format: betaZodOutputFormat(aiRankedAnalysisSchema),
-        },
-        system,
-        messages: [{ role: "user", content: prompt }],
-        betas: [FALLBACK_BETA],
-        fallbacks: "default",
-      });
-
-      const refused = message.stop_reason === "refusal";
-      const parsed =
-        refused || message.stop_reason === "max_tokens"
-          ? null
-          : message.parsed_output;
-      return {
-        analysis: parsed ? normalizeRankedAnalysis(parsed) : null,
         refused,
         usage: toUsage(message.model, message.usage),
       };

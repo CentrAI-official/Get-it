@@ -48,6 +48,13 @@ enum GoalStatus {
   archived
 }
 
+/// Objectif personnel (fixé par la personne) ou objectif de niveau (calculé
+/// d'après la population, le seul qui fait monter un niveau).
+enum GoalKind {
+  personal
+  level
+}
+
 /// Profil d'un utilisateur. L'id est celui du compte Supabase Auth (auth.users.id).
 /// Rôle dans la plateforme (§43) ; les permissions sont vérifiées côté serveur.
 enum UserRole {
@@ -86,6 +93,8 @@ model Profile {
   lastSeenAt        DateTime?   @map("last_seen_at") @db.Timestamptz(3)
   /// Compte de l'équipe ou de test : exclu des statistiques du dashboard (les admins le sont toujours).
   analyticsExcluded Boolean     @default(false) @map("analytics_excluded")
+  /// Mode Ranked : niveaux rendus publics et présents au classement depuis ce moment.
+  rankedAt          DateTime?   @map("ranked_at") @db.Timestamptz(3)
   /// Prénom ou nom affiché, demandé à l'onboarding.
   displayName       String?     @map("display_name")
   /// Courte présentation, visible des membres du Centre (160 caractères au plus).
@@ -161,6 +170,7 @@ model Profile {
   listingFavorites     ListingFavorite[]
   developmentPlans     DevelopmentPlan[]
   rankedEvaluations    RankedEvaluation[]
+  measurements         Measurement[]
   analyticsEvents      AnalyticsEvent[]
   feedback             Feedback[]
   appErrors            AppError[]
@@ -209,6 +219,12 @@ model Goal {
   description       String?
   pillar            Pillar
   status            GoalStatus @default(active)
+  kind              GoalKind   @default(personal)
+  /// Objectif de niveau : la mesure (LEVEL_FACTORS), la valeur fixe à atteindre
+  /// (unité de la mesure) et le niveau qu'elle permet d'atteindre.
+  levelFactor       String?    @map("level_factor")
+  levelTarget       Float?     @map("level_target")
+  level             Int?       @db.SmallInt
   /// Jour visé : une date du calendrier, sans heure ni fuseau.
   targetDate        DateTime?  @map("target_date") @db.Date
   completedAt       DateTime?  @map("completed_at") @db.Timestamptz(3)
@@ -229,6 +245,7 @@ model Goal {
 
   @@index([userId, status])
   @@index([developmentPlanId])
+  // Un seul objectif de niveau en cours par mesure : index unique partiel dans la migration
   @@map("goals")
 }
 
@@ -506,9 +523,9 @@ enum AiRequestKind {
   item_edit
 }
 
-/// Évaluation du mode Ranked : une par passage, la plus récente fait foi.
-/// Niveaux physique et financier de 1 à 100 (pourcentage du Canada et des
-/// États-Unis dépassé, par âge) ; le total est leur moyenne. Tous publics.
+/// Ancienne évaluation du mode Ranked (avant les mesures, 2026-11-01) : ses réponses
+/// ont été converties en mesures (migration 20261111120000_levels). Plus lue ni
+/// écrite ; à supprimer quand plus aucune version en ligne ne la lit.
 model RankedEvaluation {
   id        String   @id @default(uuid(7)) @db.Uuid
   userId    String   @map("user_id") @db.Uuid
@@ -1534,4 +1551,24 @@ model AppError {
   @@index([env, createdAt])
   @@index([userId, createdAt])
   @@map("app_errors")
+}
+
+/// Mesure d'un niveau (src/features/levels/factors.ts) : une ligne par test ou
+/// par déclaration, gardée avec son historique ; la plus récente de chaque
+/// mesure fait foi. Privée : seuls les niveaux se montrent (en Ranked).
+model Measurement {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  /// Une des LEVEL_FACTORS (contrainte dans la migration).
+  factor     String
+  /// Valeur dans l'unité de la mesure (factorValue).
+  value      Float
+  /// Réponses du formulaire (charge et répétitions, revenu et heures…).
+  details    Json?
+  measuredAt DateTime @default(now()) @map("measured_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, factor, measuredAt(sort: Desc)])
+  @@map("measurements")
 }

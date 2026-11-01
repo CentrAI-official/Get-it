@@ -45,9 +45,9 @@ type FormProps = {
 };
 
 const keyOf = (item: ShareableProgress) =>
-  item.source.type === "level"
-    ? "level"
-    : `${item.source.type}:${item.source.id}`;
+  "id" in item.source
+    ? `${item.source.type}:${item.source.id}`
+    : item.source.type;
 
 const chip =
   "rounded-full border px-3 py-1.5 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50";

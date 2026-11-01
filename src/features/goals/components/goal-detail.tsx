@@ -2,7 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { PercentValue } from "@/components/percent-value";
 import { ProgressRing } from "@/components/progress-ring";
-import { Share2 } from "lucide-react";
+import { Flame, Share2, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -12,9 +12,11 @@ import { TaskList } from "@/features/tasks/components/task-list";
 import { toCalendarDay, toDbDate } from "@/lib/dates";
 import { isAiConfigured } from "@/server/ai/provider";
 import { getAiProfile } from "@/server/ai/usage";
+import { weekStreak } from "@/features/streaks/rules";
 import { getGoal } from "@/server/goals/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { storageEnabled } from "@/server/storage/service";
+import { getGoalActivity } from "@/server/streaks/service";
 import { recordIdSchema } from "../schemas";
 import { GoalActions } from "./goal-actions";
 import { GoalPhotoEditor } from "./goal-photo-editor";
@@ -28,20 +30,25 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
   const goal = await getGoal(profile.id, goalId);
   if (!goal) notFound();
 
-  const [t, tPillars, format, ai] = await Promise.all([
-    getTranslations("Goals"),
-    getTranslations("Pillars"),
-    getFormatter(),
-    // Le plan par l'IA : seulement pour un objectif en cours, quand l'IA est activée
-    goal.status === "active" && isAiConfigured()
-      ? getAiProfile(profile.id)
-      : null,
-  ]);
+  const [t, tPillars, tStreaks, tLevels, format, activity, ai] =
+    await Promise.all([
+      getTranslations("Goals"),
+      getTranslations("Pillars"),
+      getTranslations("Streaks"),
+      getTranslations("Levels"),
+      getFormatter(),
+      getGoalActivity(profile.id, profile.timeZone, [goal.id]),
+      // Le plan par l'IA : seulement pour un objectif en cours, quand l'IA est activée
+      goal.status === "active" && isAiConfigured()
+        ? getAiProfile(profile.id)
+        : null,
+    ]);
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const today = toCalendarDay(new Date(), profile.timeZone);
   const Icon = pillarIcons[goal.pillar];
   const { milestonesDone: done, milestonesTotal: total } = goal;
   const part = total > 0 ? done / total : 0;
+  const weeks = weekStreak(activity.get(goal.id) ?? [], today).current;
 
   return (
     <article className="flex flex-col gap-6 lg:gap-8">
@@ -99,9 +106,18 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
               <Badge variant="outline">{t(`status.${goal.status}`)}</Badge>
             ) : null}
           </div>
-          {total > 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {t("progressLabel", { done, total })}
+          {total > 0 || weeks > 0 ? (
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+              {total > 0 ? (
+                <span>{t("progressLabel", { done, total })}</span>
+              ) : null}
+              {weeks > 0 ? (
+                // Semaines d'affilée où l'objectif a avancé
+                <span className="flex items-center gap-1 font-semibold text-primary">
+                  <Flame aria-hidden="true" className="size-4" />
+                  {tStreaks("weekStreak", { count: weeks })}
+                </span>
+              ) : null}
             </p>
           ) : null}
           {goal.status === "completed" && goal.completedAt ? (
@@ -119,7 +135,32 @@ export async function GoalDetail({ goalId }: { goalId: string }) {
               {goal.description}
             </p>
           ) : null}
-          <GoalActions goalId={goal.id} status={goal.status} />
+          {goal.levelGoal ? (
+            // Objectif de niveau : sa valeur vient de la population ; il se
+            // termine tout seul quand la mesure l'atteint
+            <div className="flex flex-col gap-2">
+              <p className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="flex items-center gap-1.5 rounded-full bg-primary/12 px-2.5 py-1 font-semibold text-primary">
+                  <Target aria-hidden="true" className="size-3.5" />
+                  {tLevels("goalBadge", { level: goal.levelGoal.level })}
+                </span>
+                <span className="text-muted-foreground">
+                  {tLevels("goalHint")}
+                </span>
+              </p>
+              {goal.status === "active" ? (
+                <Button asChild size="sm" className="w-fit">
+                  <Link
+                    href={`/profile/ranked?mesure=${goal.levelGoal.factor}`}
+                  >
+                    {tLevels("goalUpdate")}
+                  </Link>
+                </Button>
+              ) : null}
+            </div>
+          ) : (
+            <GoalActions goalId={goal.id} status={goal.status} />
+          )}
           {goal.completedAt ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link href={`/community?partager=goal:${goal.id}`}>

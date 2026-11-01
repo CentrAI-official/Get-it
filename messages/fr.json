@@ -60,15 +60,14 @@
       "label": "Aperçu de l’application (exemple)",
       "example": "Exemple",
       "level": "Niveau {level, number}",
-      "xp": "{xp, number} XP",
-      "nextLevel": "{remaining, number} XP avant le niveau {level, number}",
       "streak": "{days, plural, one {Série de # jour} other {Série de # jours}}",
       "tasks": {
         "workout": "Entraînement — haut du corps",
         "meditation": "10 minutes de méditation",
         "budget": "Revoir mon budget de la semaine",
         "friend": "Écrire à un ami perdu de vue"
-      }
+      },
+      "top": "Top {top, number} % de ton âge"
     },
     "pillars": {
       "title": "Quatre piliers. Une seule vie.",
@@ -92,7 +91,7 @@
         },
         "progress": {
           "title": "Monte de niveau",
-          "description": "XP, séries et statistiques te montrent tes vrais progrès, dans chaque pilier de ta vie."
+          "description": "Tes séries et ton vrai niveau, comparé aux gens de ton âge, te montrent tes progrès dans chaque pilier de ta vie."
         }
       }
     },
@@ -110,7 +109,7 @@
         },
         "progress": {
           "title": "Progression",
-          "description": "Gagne de l’XP, monte de niveau et garde tes séries, grâce à tes vraies actions."
+          "description": "Garde tes séries jour après jour et mesure ton vrai niveau, comparé aux gens de ton âge."
         },
         "community": {
           "title": "Centre Get iT",
@@ -251,10 +250,10 @@
         "savedEmptyDescription": "Touche l’icône d’enregistrement sous une publication du Centre : elle apparaîtra ici. Personne d’autre ne voit tes enregistrements."
       },
       "ranked": {
-        "go": "Passer en Ranked",
         "badge": "Classé",
         "view": "Mon classement",
-        "leaderboard": "Classement"
+        "leaderboard": "Classement",
+        "level": "Niveau {level, number}"
       },
       "counts": {
         "contacts": "{count, plural, one {contact} other {contacts}}",
@@ -764,9 +763,8 @@
       "next": "Suivante",
       "recap": "Voir le récap",
       "undo": "Annuler la coche",
-      "allDoneTitle": "Journée bouclée.",
+      "allDoneTitle": "Journée parfaite!",
       "allDoneBody": "Tout ce qui était prévu aujourd’hui est fait. On se voit demain!",
-      "xpToday": "+{xp, number} XP aujourd’hui",
       "restTitle": "Le reste t’attend.",
       "restBody": "{left, plural, one {Il te reste # quête.} other {Il te reste # quêtes.}} Ce que tu gardes pour plus tard reste dans ta liste, sans pénalité.",
       "resume": "Reprendre"
@@ -804,8 +802,6 @@
       "empty": "Rien de prévu aujourd’hui. Ajoute une tâche ci-dessous, ou une habitude dans Profil › Habitudes.",
       "emptyFiltered": "Aucune quête du pilier {pillar} aujourd’hui.",
       "showAll": "Voir toutes les quêtes",
-      "xpReward": "+{xp, number} XP",
-      "xpEarned": "{xp, number} XP",
       "withStreak": "{meta} · série de {count, number} j",
       "pact": "Pacte avec {name} · jour {day, number}/{days, number}",
       "pactPartnerDone": "{name} a déjà fait sa part",
@@ -846,36 +842,28 @@
       }
     }
   },
-  "Xp": {
-    "level": "Niveau {level, number}",
-    "xp": "{xp, number} XP",
-    "badgeLabel": "Niveau {level, number}, {xp, number} XP. Voir ta progression",
-    "levelUp": {
-      "title": "Niveau {level, number} atteint!",
-      "body": "Tes actions portent fruit. Continue comme ça.",
-      "close": "Fermer",
-      "share": "Partager dans le Centre"
-    }
-  },
   "Progress": {
     "title": "Ta progression",
-    "description": "Tes statistiques, comme celles d’un personnage qui monte de niveau.",
-    "descriptionRanked": "Physique et financier : ton niveau classé, comparé aux gens de ton âge. Mental et social : ta progression vers le prochain niveau, privée.",
+    "description": "Ton vrai niveau, comparé aux gens de ton âge, et la série de chaque pilier.",
+    "descriptionRanked": "Tes niveaux sont publics (Ranked) : physique et financier, comparés aux gens de ton âge. Mental et social : ta série.",
     "sheet": {
       "levelLabel": "Niv.",
       "rankedLabel": "Classé",
-      "toNext": "Encore {xp, number} XP",
-      "toNextDetail": "{xp, number} / {needed, number} XP pour le niveau {level, number}",
-      "levelSummary": "Niveau {level, number} : {xp, number} XP sur {needed, number} pour le niveau {next, number}.",
       "rankedTop": "Top {top, number} %",
-      "rankedDetail": "Niveau classé sur 100 : la moyenne du physique et du financier",
-      "rankedSummary": "Niveau classé {level, number} sur 100, top {top, number} %.",
+      "rankedDetail": "La moyenne de ton physique et de tes finances, comparés aux gens de ton âge",
+      "rankedSummary": "Niveau {level, number} sur 100, top {top, number} %.",
       "pillarLevel": "Niv. {level, number}",
-      "bubble": "{pillar} : niveau {level, number}, {percent} fait vers le niveau {next, number} ({xp, number} XP).",
-      "bubbleRanked": "{pillar} : niveau classé {level, number} sur 100, top {top, number} %.",
+      "bubbleRanked": "{pillar} : niveau {level, number} sur 100 (ta mesure la plus faible), top {top, number} %.",
       "howTitle": "Comment c’est calculé",
-      "how": "Chaque carte montre le niveau du pilier et le pourcentage fait vers le suivant. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. En haut, ton niveau global.",
-      "howRanked": "Physique et financier montrent ton niveau classé : le pourcentage des gens de ton âge, au Canada et aux États-Unis, que tu dépasses. Mental et social montrent ta progression d’XP vers leur prochain niveau ; ils restent privés. En haut, ton niveau total, la moyenne des deux piliers classés."
+      "how": "Le niveau se mesure dans Mes niveaux : physique et financier sont comparés aux gens de ton âge au Canada et aux États-Unis (1 à 100), et chaque pilier est au niveau de sa mesure la plus faible. Pour le mental et le social, et tant qu’un pilier n’est pas mesuré, la carte montre sa série : les jours d’affilée avec au moins une action du pilier, et tes 10 derniers jours.",
+      "notEvaluated": "Non évalué",
+      "notEvaluatedTitle": "Pas encore évalué",
+      "notEvaluatedBody": "Évalue ton physique et tes finances pour connaître ton vrai niveau, comparé aux gens de ton âge.",
+      "evaluate": "M’évaluer",
+      "streakCorner": "Série",
+      "streakUnit": "{count, plural, one {jour} other {jours}}",
+      "streakLabel": "{pillar} : série de {count, plural, one {# jour} other {# jours}}, {active, plural, one {# jour actif} other {# jours actifs}} sur les 10 derniers.",
+      "seeLevels": "Voir mes niveaux"
     },
     "regularity": {
       "title": "Ta régularité",
@@ -887,7 +875,7 @@
       "streak": "Série en cours",
       "best": "Record",
       "days": "{count, plural, one {# jour} other {# jours}}",
-      "how": "Un jour actif : au moins une habitude, une tâche, un jalon, un check-in ou une page de journal ce jour-là."
+      "how": "Un jour actif : au moins une habitude, une tâche, un jalon, un objectif, un check-in ou une page de journal ce jour-là."
     },
     "goals": {
       "title": "Tes objectifs en cours",
@@ -951,7 +939,7 @@
     "consent": {
       "title": "Avant de commencer",
       "subtitle": "Get iT AI a besoin de ton accord pour utiliser tes données.",
-      "data": "Pour t’aider, Get iT AI reçoit tes messages et un résumé de tes données : ton prénom, tes piliers, tes objectifs et jalons, tes tâches, tes habitudes et séries, ton niveau, tes scores et tes check-ins des 7 derniers jours.",
+      "data": "Pour t’aider, Get iT AI reçoit tes messages et un résumé de tes données : ton prénom, tes piliers, tes objectifs et jalons, tes tâches, tes habitudes et séries, ton niveau classé s’il y en a un, tes scores et tes check-ins des 7 derniers jours.",
       "processor": "Ces données sont traitées par Anthropic, qui fournit le modèle d’IA Claude, sur des serveurs situés hors du Québec. Selon ses conditions, Anthropic ne les utilise pas pour entraîner ses modèles.",
       "control": "Tu peux retirer ton accord et effacer tes conversations à tout moment dans Réglages.",
       "disclaimer": "Get iT AI donne de l’information éducative : il ne remplace pas un médecin, un psychologue ni un conseiller financier.",
@@ -1184,7 +1172,8 @@
       "milestone": "Jalon atteint : {title} ({goal})",
       "streak": "Série de {days, number} jours : {title}",
       "level": "Niveau {level, number} atteint",
-      "pact": "Pacte réussi : {title} · {together, number} jours ensemble sur {days, number}"
+      "pact": "Pacte réussi : {title} · {together, number} jours ensemble sur {days, number}",
+      "dayStreak": "Série de {days, number} jours d’affilée"
     },
     "post": {
       "level": "Niv. {level, number}",
@@ -2682,7 +2671,6 @@
     "editor": {
       "saving": "Enregistrement…",
       "saved": "Enregistré",
-      "savedXp": "Enregistré · +{xp, number} XP",
       "cleared": "Page vidée : elle a été retirée de ton journal.",
       "unsaved": "Pas encore enregistré",
       "errors": {
@@ -2753,175 +2741,10 @@
     }
   },
   "Ranked": {
-    "title": "Mode Ranked",
-    "description": "Ton vrai niveau physique et financier, comparé aux gens de ton âge au Canada et aux États-Unis.",
-    "back": "Profil",
-    "intro": {
-      "what": "Fais 5 petits tests physiques et réponds à 5 questions sur tes finances : chaque pilier reçoit un niveau de 1 à 100, et ton niveau total devient public.",
-      "how": "Niveau 87 veut dire que tu fais mieux que 87 % des gens de ton âge au Canada et aux États-Unis, d’après des données officielles (Statistique Canada, Census Bureau, Réserve fédérale…). Le social et le mental restent privés. Tu peux te réévaluer tous les 30 jours."
-    },
-    "form": {
-      "sections": {
-        "body": "Ton corps",
-        "physical": "Physique",
-        "financial": "Financier"
-      },
-      "hints": {
-        "body": "Ta taille et ton poids donnent ton IMC, qui compte pour 10 % du niveau physique. La morphologie ne change pas ton niveau.",
-        "physical": "Fais les tests après 5 minutes d’échauffement, et arrête-toi en cas de douleur. Un test par jour ou avec du repos entre chacun, c’est correct.",
-        "financial": "Dans la devise de ton pays. Ces montants ne sont jamais montrés aux autres membres ni envoyés en dollars à Get iT AI."
-      },
-      "perMonth": "{currency} par mois",
-      "perWeek": "heures par semaine",
-      "fieldError": "Vérifie cette réponse.",
-      "public": "Ton niveau physique, ton niveau financier et ton niveau total deviennent publics : les membres les voient sur ton profil et à côté de ton nom.",
-      "notice": "Ton niveau est calculé automatiquement à partir de tes réponses et de données publiques, jamais par l’IA. Tu peux corriger tes réponses à la prochaine réévaluation, ou quitter le mode Ranked à tout moment : tes réponses et tes niveaux sont alors effacés.",
-      "consent": "J’accepte que ces renseignements, dont des renseignements financiers et de santé, servent à calculer mes niveaux, et que ces niveaux soient publics. Mes réponses ne sont jamais montrées aux autres membres.",
-      "submit": "Calculer mon niveau",
-      "submitting": "Calcul en cours…"
-    },
-    "questions": {
-      "heightCm": {
-        "label": "Ta taille",
-        "hint": "En centimètres. Exemple : 5 pi 10 po = 178 cm."
-      },
-      "weightKg": {
-        "label": "Ton poids",
-        "hint": "En kilogrammes. Exemple : 170 lb ≈ 77 kg."
-      },
-      "bodyType": {
-        "label": "Ta morphologie",
-        "hint": "Choisis la silhouette qui te ressemble le plus. Elle aide Get iT AI à adapter ses conseils.",
-        "options": {
-          "ectomorph": {
-            "title": "Ectomorphe",
-            "description": "Silhouette mince et élancée, prend difficilement du poids"
-          },
-          "mesomorph": {
-            "title": "Mésomorphe",
-            "description": "Silhouette athlétique, prend du muscle facilement"
-          },
-          "endomorph": {
-            "title": "Endomorphe",
-            "description": "Silhouette plus ronde, prend du poids facilement"
-          }
-        }
-      },
-      "reachSide": {
-        "label": "Souplesse : assis, jambes tendues, jusqu’où vont tes doigts?",
-        "options": {
-          "beyond": "Je dépasse mes orteils",
-          "short": "Je n’atteins pas mes orteils"
-        }
-      },
-      "reachCm": {
-        "label": "De combien de centimètres?",
-        "hint": "Assieds-toi par terre, jambes tendues devant toi, plantes des pieds contre un mur. Sans plier les genoux, penche-toi lentement vers l’avant, bras tendus, et tiens 2 secondes. Mesure l’écart entre le bout de tes doigts et tes orteils (0 si tu les touches tout juste)."
-      },
-      "runMeters": {
-        "label": "Cardio : quelle distance parcours-tu en 12 minutes?",
-        "hint": "Cours (ou alterne course et marche) le plus loin possible pendant 12 minutes, sur une piste ou avec une app de course. Exemple : 2,4 km = 2 400 m."
-      },
-      "pushUps": {
-        "label": "Force : combien de pompes fais-tu d’affilée?",
-        "hint": {
-          "full": "Pompes complètes, sans t’arrêter : le corps reste droit, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche.",
-          "knees": "Pompes sur les genoux, sans t’arrêter : le corps reste droit des genoux aux épaules, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche."
-        }
-      },
-      "squats": {
-        "label": "Jambes : combien de squats fais-tu en 60 secondes?",
-        "hint": "Pieds à la largeur des épaules, descends jusqu’à avoir les cuisses parallèles au sol (comme pour t’asseoir sur une chaise), puis remonte jambes tendues. Compte seulement les squats complets."
-      },
-      "jumpCm": {
-        "label": "Puissance : jusqu’où sautes-tu sans élan?",
-        "hint": "Debout, pieds joints derrière une ligne, saute le plus loin possible vers l’avant avec les deux pieds, sans courir avant. Mesure de la ligne jusqu’au talon le plus proche. Garde le meilleur de 3 essais."
-      },
-      "netIncome": {
-        "label": "Ton revenu net par année",
-        "hint": "Ce que tu reçois vraiment après impôts et retenues, sur les 12 derniers mois (salaire, entreprise, placements). Astuce : additionne tes paies déposées sur un an."
-      },
-      "assets": {
-        "label": "Tes actifs",
-        "hint": "La valeur totale de ce que tu possèdes : argent en banque, placements (REER, CELI, 401(k)…), maison ou autres propriétés, entreprise, véhicules."
-      },
-      "debts": {
-        "label": "Tes dettes",
-        "hint": "Le total de ce que tu dois : hypothèque, prêts étudiants, prêt auto, cartes de crédit, marges de crédit."
-      },
-      "monthlyExpenses": {
-        "label": "Tes dépenses par mois",
-        "hint": "Ce que tu dépenses en moyenne chaque mois pour vivre (logement, épicerie, transport, factures, sorties), sans compter ton épargne ni tes placements."
-      },
-      "weeklyHours": {
-        "label": "Tes heures de travail par semaine",
-        "hint": "Combien d’heures tu travailles en moyenne pour gagner ce revenu (emploi, entreprise, à-côtés), sans les trajets. Pour un même revenu, moins d’heures donne un meilleur niveau."
-      }
-    },
-    "factors": {
-      "bmi": "IMC (taille et poids)",
-      "run": "Cardio (course de 12 minutes)",
-      "pushUps": "Force (pompes)",
-      "reach": "Souplesse (flexion assise)",
-      "squats": "Jambes (squats en 60 secondes)",
-      "jump": "Puissance (saut sans élan)",
-      "hourly": "Revenu net par heure travaillée",
-      "netWorth": "Valeur nette (actifs moins dettes)",
-      "savings": "Taux d’épargne"
-    },
-    "results": {
-      "total": "Niveau {level, number}",
-      "totalDescription": "En moyenne, tu fais mieux que {level, number} % des gens de ton âge au Canada et aux États-Unis.",
-      "evaluatedOn": "Évalué le {date}",
-      "pillars": "Tes niveaux classés",
-      "top": "Top {top, number} %",
-      "public": "Ces niveaux sont publics. Le social et le mental restent privés.",
-      "factorAge": "{factor} : mieux que {percent} des gens de ton âge",
-      "factorAdults": "{factor} : mieux que {percent} des adultes",
-      "vo2max": "VO2max estimé : {value, number} mL/kg/min",
-      "bmi": "IMC : {value, number}",
-      "estimate": "Estimation",
-      "reevaluate": "Réévaluer mon niveau",
-      "nextOn": "Prochaine réévaluation possible le {date}."
-    },
-    "method": {
-      "title": "Comment c’est calculé",
-      "how": "Chaque résultat est comparé aux gens de ton âge (et de ton sexe pour les tests physiques). Physique : course de 12 minutes convertie en VO2max (registre FRIEND), pompes (Société canadienne de physiologie de l’exercice), souplesse (YMCA), squats et saut sans élan (estimations). Financier : revenu net par heure (Census Bureau), valeur nette (Réserve fédérale et Statistique Canada, montants canadiens à parité de pouvoir d’achat) et taux d’épargne (Réserve fédérale). Le niveau d’un pilier est la moyenne pondérée de ses facteurs ; le total, la moyenne des deux piliers.",
-      "limits": "Limites : les squats et le saut sans élan n’ont pas de normes adultes publiées pour le Canada et les États-Unis (références approximatives, marquées « Estimation ») ; le taux d’épargne repose en partie sur une estimation ; le revenu par heure du Canada utilise la courbe américaine ; tes réponses sont déclarées, pas vérifiées."
-    },
-    "analysis": {
-      "title": "Analyse de Get iT AI",
-      "description": "Get iT AI explique ton niveau et propose comment monter. Ton revenu et ton patrimoine lui sont envoyés en pourcentages seulement, jamais en dollars.",
-      "request": "Analyser mon niveau",
-      "loading": "Analyse en cours…",
-      "tips": "Pour monter",
-      "unavailable": "Get iT AI arrive bientôt.",
-      "consent": "Active Get iT AI pour obtenir une analyse de ton niveau.",
-      "consentLink": "Activer Get iT AI"
-    },
-    "leave": {
-      "open": "Quitter le mode Ranked",
-      "title": "Quitter le mode Ranked?",
-      "description": "Tes réponses et tes niveaux classés seront effacés. Ton niveau redeviendra celui de ton XP.",
-      "cancel": "Annuler",
-      "confirm": "Quitter et effacer"
-    },
-    "errors": {
-      "invalid": "Certaines réponses manquent ou sont hors limites.",
-      "detailsMissing": "Remplis d’abord ta date de naissance, ton sexe et ta région dans Réglages.",
-      "consentRequired": "Coche la case d’accord pour calculer ton niveau.",
-      "tooSoon": "Tu pourras te réévaluer 30 jours après ta dernière évaluation.",
-      "notRanked": "Tu n’es pas encore en mode Ranked.",
-      "notConfigured": "Get iT AI n’est pas disponible pour l’instant.",
-      "aiConsentRequired": "Active d’abord Get iT AI.",
-      "limitReached": "Tu as atteint la limite de 20 demandes à Get iT AI aujourd’hui.",
-      "refused": "Get iT AI n’a pas pu analyser ton niveau.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
-    },
     "leaderboard": {
       "title": "Classement",
-      "description": "Les personnes en Ranked, membres du Centre, classées par niveau.",
-      "back": "Retour au mode Ranked",
+      "description": "Les personnes en Ranked, membres du Centre, classées par niveau mesuré.",
+      "back": "Mes niveaux",
       "pillarsLabel": "Niveau",
       "scopesLabel": "Qui",
       "pillars": {
@@ -2936,8 +2759,8 @@
       "count": "{count, plural, =0 {Personne de classé} one {# personne classée} other {# personnes classées}}",
       "empty": "Personne n’est encore classé. Sois le premier!",
       "emptyContacts": "Aucun de tes contacts n’est en Ranked pour l’instant.",
-      "notRanked": "Passe en Ranked pour apparaître dans le classement et voir ta place.",
-      "notRankedCta": "Passer en Ranked",
+      "notRanked": "Passe en Ranked et mesure tes deux piliers pour apparaître au classement et voir ta place.",
+      "notRankedCta": "Mes niveaux",
       "you": "(toi)",
       "rankLabel": "Rang {rank, number}",
       "levelLabel": "Niveau {level, number}",
@@ -3434,7 +3257,7 @@
         "goalPlans": "Plans d’objectif",
         "developmentPlans": "Plans de Mon développement",
         "itemEdits": "Modifier avec Get iT AI",
-        "ranked": "Évaluations Ranked",
+        "ranked": "Mesures de niveau",
         "favorites": "Favoris de la Marketplace",
         "listings": "Annonces soumises"
       },
@@ -3753,5 +3576,190 @@
       "thanksDetail": "Ta réponse aide l’équipe Get iT à choisir quoi améliorer.",
       "error": "Ta réponse n’a pas pu être envoyée. Réessaie."
     }
+  },
+  "Streaks": {
+    "caption": "Série",
+    "days": "{count, plural, one {# jour} other {# jours}}",
+    "current": "Série de {count, plural, one {# jour} other {# jours}}",
+    "badgeLabel": "Série de {count, plural, one {# jour} other {# jours}}. Voir ton profil",
+    "badgeLabelLit": "Série de {count, plural, one {# jour} other {# jours}}, aujourd’hui compte déjà. Voir ton profil",
+    "weekStreak": "Série de {count, plural, one {# semaine} other {# semaines}}",
+    "milestone": {
+      "title": "Série de {count, number} jours!",
+      "body": "Au moins une action chaque jour, {count, number} jours d’affilée. Continue comme ça.",
+      "share": "Partager dans le Centre",
+      "close": "Fermer"
+    }
+  },
+  "Levels": {
+    "title": "Mes niveaux",
+    "description": "Ton vrai niveau physique et financier, comparé aux gens de ton âge au Canada et aux États-Unis.",
+    "back": "Profil",
+    "total": {
+      "level": "Niveau {level, number}",
+      "none": "Pas encore de niveau total",
+      "description": "La moyenne de ton physique et de tes finances. Chaque pilier est au niveau de sa mesure la plus faible.",
+      "noneDescription": "Mesure ton physique et tes finances : chaque pilier reçoit un niveau de 1 à 100, et ton niveau total est leur moyenne."
+    },
+    "ranked": {
+      "on": "Mode Ranked : tes niveaux sont publics (sur ton profil, à côté de ton nom et au classement). Tes mesures restent privées.",
+      "off": "Tes niveaux sont privés. Passe en Ranked pour les rendre publics et entrer au classement ; tes mesures restent privées.",
+      "join": "Passer en Ranked",
+      "joinTitle": "Rendre tes niveaux publics?",
+      "joinDescription": "Ton niveau physique, ton niveau financier et ton niveau total seront visibles par les membres du Centre : sur ton profil, à côté de ton nom et au classement. Tes mesures (tests, revenu, patrimoine) ne sont jamais montrées. Tu peux revenir en privé à tout moment.",
+      "confirm": "Passer en Ranked",
+      "cancel": "Annuler",
+      "leave": "Rendre mes niveaux privés"
+    },
+    "notEvaluated": "Non évalué",
+    "pillarLevel": "Niv. {level, number}",
+    "intro": {
+      "physical": "Six tests, chez toi ou au gym : course de 12 minutes, pompes, flexion, squats, saut sans élan et développé couché. Chacun est comparé aux gens de ton âge et de ton sexe ; ton niveau physique est celui de ton test le plus faible.",
+      "financial": "Trois mesures : ton revenu net par heure travaillée, ta valeur nette et ton taux d’épargne. Chacune est comparée aux gens de ton âge ; ton niveau financier est celui de ta mesure la plus faible."
+    },
+    "next": {
+      "title": "Pour passer au niveau {level, number}",
+      "goals": "Voir mes objectifs de niveau",
+      "missing": "Il te manque une mesure pour avoir un niveau.",
+      "top": "Niveau 100 : tu es au sommet pour ton âge."
+    },
+    "toMeasure": "À mesurer",
+    "measuredOn": "le {date}",
+    "availableOn": "Possible le {date}",
+    "estimate": "Estimation",
+    "measure": "Mesurer",
+    "update": {
+      "description": "Refais ce test (ou mets ce chiffre à jour) : ton niveau est recalculé tout de suite.",
+      "saved": "Mesure enregistrée.",
+      "level": "Niveau du pilier : {level, number}",
+      "levelChanged": "Niveau du pilier : {from, number} → {to, number}",
+      "close": "Fermer"
+    },
+    "goalBadge": "Objectif de niveau · niveau {level, number}",
+    "goalHint": "Calculé d’après les gens de ton âge ; il se termine tout seul quand ta mesure l’atteint.",
+    "goalUpdate": "Mettre à jour ma mesure",
+    "factors": {
+      "run": "Cardio (course de 12 minutes)",
+      "pushUps": "Force (pompes)",
+      "reach": "Souplesse (flexion assise)",
+      "squats": "Jambes (squats en 60 secondes)",
+      "jump": "Puissance (saut sans élan)",
+      "bench": "Force rapportée au poids (développé couché)",
+      "hourly": "Revenu net par heure travaillée",
+      "netWorth": "Valeur nette (actifs moins dettes)",
+      "savings": "Taux d’épargne"
+    },
+    "form": {
+      "physicalHint": "Fais les tests après 5 minutes d’échauffement, et arrête-toi en cas de douleur ou d’étourdissement. Si tu as un problème de santé (cœur, articulations, grossesse…), parles-en d’abord à un professionnel de la santé.",
+      "financialHint": "Dans la devise de ton pays. Ces montants ne sont jamais montrés aux autres membres ni envoyés en dollars à Get iT AI.",
+      "perMonth": "{currency} par mois",
+      "perWeek": "heures par semaine",
+      "fieldError": "Vérifie cette réponse.",
+      "notice": "Ton niveau est calculé automatiquement à partir de tes réponses et de données publiques, jamais par l’IA. Tu peux refaire une mesure pour la corriger, ou tout effacer.",
+      "consent": "J’accepte que ces renseignements, dont des renseignements financiers et de santé, servent à calculer mes niveaux. Ils restent privés : seuls mes niveaux se montrent, et seulement si je passe en Ranked.",
+      "submit": "Calculer mon niveau",
+      "submitting": "Calcul en cours…"
+    },
+    "errors": {
+      "invalid": "Certaines réponses manquent ou sont hors limites.",
+      "detailsMissing": "Remplis d’abord ta date de naissance, ton sexe et ta région dans Réglages.",
+      "consentRequired": "Coche la case d’accord pour calculer ton niveau.",
+      "tooSoon": "Tu as fait cette mesure récemment : un test physique se refait après 7 jours, une mesure financière après un mois.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+    },
+    "erase": {
+      "open": "Effacer mes mesures",
+      "title": "Effacer toutes tes mesures?",
+      "description": "Tes tests, tes chiffres financiers et tes niveaux seront effacés, ainsi que tes objectifs de niveau en cours. Tes niveaux ne seront plus publics.",
+      "cancel": "Annuler",
+      "confirm": "Tout effacer"
+    },
+    "method": {
+      "title": "Comment c’est calculé",
+      "how": "Chaque mesure est comparée aux gens de ton âge (et de ton sexe pour les tests physiques) au Canada et aux États-Unis : course de 12 minutes convertie en VO2max (registre FRIEND), pompes (Société canadienne de physiologie de l’exercice), souplesse (YMCA), développé couché rapporté au poids (Cooper Institute), squats et saut sans élan ; revenu net par heure (Census Bureau), valeur nette (Réserve fédérale et Statistique Canada) et taux d’épargne (Réserve fédérale). Une mesure est au niveau 25 quand elle dépasse 25 % des gens de ton âge. Un pilier est au niveau de sa mesure la plus faible : pour monter, chaque mesure doit atteindre le seuil suivant, et ce sont tes objectifs de niveau.",
+      "elite": "De 90 à 100, la zone élite va du 90e percentile jusqu’au sommet humain pour ton âge : athlètes de classe mondiale pour les tests physiques, le 1 ‰ le plus riche de ta tranche d’âge pour les finances.",
+      "limits": "Limites : les squats, le saut, le développé couché et la zone élite reposent sur des estimations (marquées « Estimation ») ; tes réponses sont déclarées, pas vérifiées ; le revenu par heure du Canada utilise la courbe américaine.",
+      "notice": "Décision automatisée (Loi 25) : ton niveau est calculé par l’application à partir de tes mesures, jamais par l’IA. Tu peux refaire une mesure pour le corriger, ou tout effacer."
+    },
+    "goals": {
+      "run": "Courir {meters} m en 12 minutes",
+      "pushUps": "Faire {count} pompes d’affilée",
+      "pushUpsKnees": "Faire {count} pompes d’affilée sur les genoux",
+      "reachBeyond": "Dépasser tes orteils de {cm} cm en flexion assise",
+      "reachToes": "Toucher tes orteils en flexion assise",
+      "reachShort": "Arriver à {cm} cm de tes orteils en flexion assise",
+      "squats": "Faire {count} squats en 60 secondes",
+      "jump": "Sauter {cm} cm sans élan",
+      "bench": "Soulever {kg} kg au développé couché ({ratio} × ton poids)",
+      "benchRatio": "Soulever {ratio} fois ton poids au développé couché",
+      "hourly": "Gagner {amount} nets de l’heure",
+      "netWorth": "Atteindre une valeur nette de {amount}",
+      "savings": "Épargner {percent} de ton revenu net"
+    },
+    "fields": {
+      "runMeters": {
+        "label": "Cardio : quelle distance parcours-tu en 12 minutes?",
+        "hint": "Cours (ou alterne course et marche) le plus loin possible pendant 12 minutes, sur une piste ou avec une app de course. Exemple : 2,4 km = 2 400 m."
+      },
+      "pushUps": {
+        "label": "Force : combien de pompes fais-tu d’affilée?",
+        "hint": {
+          "full": "Pompes complètes, sans t’arrêter : le corps reste droit, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche.",
+          "knees": "Pompes sur les genoux, sans t’arrêter : le corps reste droit des genoux aux épaules, la poitrine descend à environ un poing du sol, les bras se tendent complètement en remontant. Arrête au premier repos ou quand la technique lâche."
+        }
+      },
+      "reachSide": {
+        "label": "Souplesse : assis, jambes tendues, jusqu’où vont tes doigts?",
+        "options": {
+          "beyond": "Je dépasse mes orteils",
+          "short": "Je n’atteins pas mes orteils"
+        }
+      },
+      "reachCm": {
+        "label": "De combien de centimètres?",
+        "hint": "Assieds-toi par terre, jambes tendues devant toi, plantes des pieds contre un mur. Sans plier les genoux, penche-toi lentement vers l’avant, bras tendus, et tiens 2 secondes. Mesure l’écart entre le bout de tes doigts et tes orteils (0 si tu les touches tout juste)."
+      },
+      "squats": {
+        "label": "Jambes : combien de squats fais-tu en 60 secondes?",
+        "hint": "Pieds à la largeur des épaules, descends jusqu’à avoir les cuisses parallèles au sol (comme pour t’asseoir sur une chaise), puis remonte jambes tendues. Compte seulement les squats complets."
+      },
+      "jumpCm": {
+        "label": "Puissance : jusqu’où sautes-tu sans élan?",
+        "hint": "Debout, pieds joints derrière une ligne, saute le plus loin possible vers l’avant avec les deux pieds, sans courir avant. Mesure de la ligne jusqu’au talon le plus proche. Garde le meilleur de 3 essais."
+      },
+      "weightKg": {
+        "label": "Ton poids",
+        "hint": "En kilogrammes. Exemple : 170 lb ≈ 77 kg. Il sert à rapporter ta force à ton poids."
+      },
+      "benchKg": {
+        "label": "Développé couché : quelle charge soulèves-tu?",
+        "hint": "La charge totale (barre comprise) que tu soulèves de 1 à 10 fois d’affilée avec une bonne technique, avec un partenaire qui assure ou sur un appareil. Ne cherche pas ton maximum seul."
+      },
+      "benchReps": {
+        "label": "Combien de fois d’affilée?",
+        "hint": "De 1 à 10. Ton maximum sur une répétition est estimé d’après ta série."
+      },
+      "netIncome": {
+        "label": "Ton revenu net par année",
+        "hint": "Ce que tu reçois vraiment après impôts et retenues, sur les 12 derniers mois (salaire, entreprise, placements). Astuce : additionne tes paies déposées sur un an."
+      },
+      "weeklyHours": {
+        "label": "Tes heures de travail par semaine",
+        "hint": "Combien d’heures tu travailles en moyenne pour gagner ce revenu (emploi, entreprise, à-côtés), sans les trajets. Pour un même revenu, moins d’heures donne un meilleur niveau. Sans travail rémunéré, inscris 0 : ton revenu est ramené à 40 h par semaine."
+      },
+      "assets": {
+        "label": "Tes actifs",
+        "hint": "La valeur totale de ce que tu possèdes : argent en banque, placements (REER, CELI, 401(k)…), maison ou autres propriétés, entreprise, véhicules."
+      },
+      "debts": {
+        "label": "Tes dettes",
+        "hint": "Le total de ce que tu dois : hypothèque, prêts étudiants, prêt auto, cartes de crédit, marges de crédit."
+      },
+      "monthlyExpenses": {
+        "label": "Tes dépenses par mois",
+        "hint": "Ce que tu dépenses en moyenne chaque mois pour vivre (logement, épicerie, transport, factures, sorties), sans compter ton épargne ni tes placements."
+      }
+    },
+    "remeasure": "Mettre à jour"
   }
 }

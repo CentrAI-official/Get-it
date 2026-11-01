@@ -3,7 +3,6 @@
 import { Flame } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { Progress } from "@/components/ui/progress";
 import type { Pillar } from "@/config/pillars";
 import {
   QuestRow,
@@ -11,14 +10,11 @@ import {
 } from "@/features/today/components/quest-list";
 import { SystemOrbit } from "@/features/today/components/system-orbit";
 import { summarizeDay } from "@/features/today/day-plan";
-import { XP_REWARDS } from "@/features/xp/rules";
 
 // Valeurs d'illustration pour la page d'accueil : ce ne sont pas des données utilisateur.
 const EXAMPLE = {
-  level: 12,
-  xp: 2450,
-  xpToNextLevel: 550,
-  levelProgress: 68,
+  /** Niveau mesuré : mieux que 62 % des gens du même âge. */
+  level: 62,
   streakDays: 18,
   scores: {
     physical: 72,
@@ -65,7 +61,6 @@ export function HeroPreview() {
       title: t(`tasks.${quest.key}`),
       pillar: quest.pillar,
       done: isDone,
-      xp: XP_REWARDS.habitScheduled,
       time: null,
       late: false,
       streak: quest.streak + (isDone ? 1 : 0),
@@ -75,10 +70,6 @@ export function HeroPreview() {
   const shown = filter
     ? quests.filter((quest) => quest.pillar === filter)
     : quests;
-  const nextLevel = t("nextLevel", {
-    remaining: EXAMPLE.xpToNextLevel,
-    level: EXAMPLE.level + 1,
-  });
 
   return (
     <figure
@@ -96,19 +87,13 @@ export function HeroPreview() {
               {t("level", { level: EXAMPLE.level })}
             </span>
             <span className="text-sm font-bold text-primary tabular-nums">
-              {t("xp", { xp: EXAMPLE.xp })}
+              {t("top", { top: 100 - EXAMPLE.level })}
             </span>
           </div>
           <span className="flex items-center gap-1.5 rounded-full bg-foreground/5 px-3 py-1.5 text-xs font-medium">
             <Flame aria-hidden="true" className="size-3.5 text-primary" />
             {t("streak", { days: EXAMPLE.streakDays })}
           </span>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Progress value={EXAMPLE.levelProgress} aria-label={nextLevel} />
-          <p className="text-xs text-muted-foreground tabular-nums">
-            {nextLevel}
-          </p>
         </div>
 
         <SystemOrbit

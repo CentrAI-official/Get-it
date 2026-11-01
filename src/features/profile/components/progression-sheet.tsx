@@ -1,106 +1,74 @@
 import { ChevronRight } from "lucide-react";
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
+import { Button } from "@/components/ui/button";
 import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
-import { levelFromXp, totalXpForLevel } from "@/features/xp/rules";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import type { RankedLevels } from "@/server/ranked/service";
+import type { Levels } from "@/server/levels/service";
 
-/** Segments de la barre de chaque pilier. */
-const SEGMENTS = 10;
-
-/** Part vers le prochain niveau, arrondie vers le bas : jamais « 100 % » avant de monter. */
-const shown = (progress: number) => Math.floor(progress * 100) / 100;
+/** Segments de la barre de chaque pilier (10 jours, ou dizaines de niveau). */
+export const SHEET_SEGMENTS = 10;
 
 /** Rang affiché d'un niveau classé : « top 27 % » pour le niveau 73. */
 const topOf = (level: number) => Math.max(1, 100 - level);
 
+/** Série d'un pilier : jours d'affilée et les 10 derniers jours (actif ou non). */
+export type PillarStreak = { days: number; recent: boolean[] };
+
 type PillarCard = {
-  /** Coin en haut à droite : pourcentage fait, ou « Top 27 % » en Ranked. */
+  /** Coin en haut à droite : « Top 27 % », « Non évalué » ou « Série ». */
   corner: string;
-  level: number;
-  /** Segments remplis, de 0 à SEGMENTS. */
-  filled: number;
+  /** Niveau classé, ou null : la série s'affiche à sa place. */
+  level: number | null;
+  /** Segments allumés : dizaines du niveau, ou jours actifs récents. */
+  segments: boolean[];
   label: string;
 };
 
 /**
- * « Ta progression » en fiche de personnage : le niveau global en carte, puis
- * une carte par pilier (niveau et segments vers le suivant). En Ranked, le
- * niveau classé remplace celui de l'XP en haut, et pour le physique et le
- * financier.
+ * « Ta progression » en fiche de personnage. Le niveau est mesuré (Ranked :
+ * le physique et le financier, comparés aux gens de ton âge) ; tant qu'il ne
+ * l'est pas, et pour le mental et le social, la carte montre la série du
+ * pilier.
  */
 export async function ProgressionSheet({
-  total,
-  pillars,
-  ranked,
+  levels,
+  streaks,
 }: {
-  /** XP totale et XP de chaque pilier. */
-  total: number;
-  pillars: Record<Pillar, number>;
-  ranked: RankedLevels | null;
+  /** Niveaux mesurés (Mes niveaux), et si la personne est en Ranked. */
+  levels: Levels;
+  streaks: Record<Pillar, PillarStreak>;
 }) {
-  const [t, tPillars, format] = await Promise.all([
+  const [t, tPillars] = await Promise.all([
     getTranslations("Progress.sheet"),
     getTranslations("Pillars"),
-    getFormatter(),
   ]);
-  const percent = (part: number) =>
-    format.number(shown(part), { style: "percent" });
-
-  const overall = levelFromXp(total);
-  const head = ranked
-    ? {
-        label: t("rankedLabel"),
-        level: ranked.total,
-        progress: ranked.total / 100,
-        headline: t("rankedTop", { top: topOf(ranked.total) }),
-        detail: t("rankedDetail"),
-        summary: t("rankedSummary", {
-          level: ranked.total,
-          top: topOf(ranked.total),
-        }),
-      }
-    : {
-        label: t("levelLabel"),
-        level: overall.level,
-        progress: overall.progress,
-        headline: t("toNext", { xp: overall.needed - overall.current }),
-        detail: t("toNextDetail", {
-          xp: total,
-          needed: totalXpForLevel(overall.level + 1),
-          level: overall.level + 1,
-        }),
-        summary: t("levelSummary", {
-          level: overall.level,
-          xp: total,
-          needed: totalXpForLevel(overall.level + 1),
-          next: overall.level + 1,
-        }),
-      };
+  const { total } = levels;
 
   const card = (pillar: Pillar): PillarCard => {
     const name = tPillars(`${pillar}.name`);
-    // Seuls le physique et le financier sont classés ; le reste suit l'XP
-    if (ranked && (pillar === "physical" || pillar === "financial")) {
-      const level = ranked[pillar];
+    const measured = pillar === "physical" || pillar === "financial";
+    const level = measured ? levels[pillar] : null;
+    if (level !== null) {
       return {
         corner: t("rankedTop", { top: topOf(level) }),
         level,
-        filled: Math.floor((level / 100) * SEGMENTS),
+        segments: Array.from(
+          { length: SHEET_SEGMENTS },
+          (_, index) => index < Math.floor((level / 100) * SHEET_SEGMENTS),
+        ),
         label: t("bubbleRanked", { pillar: name, level, top: topOf(level) }),
       };
     }
-    const level = levelFromXp(pillars[pillar]);
+    const streak = streaks[pillar];
     return {
-      corner: percent(level.progress),
-      level: level.level,
-      filled: Math.floor(shown(level.progress) * SEGMENTS),
-      label: t("bubble", {
+      corner: measured ? t("notEvaluated") : t("streakCorner"),
+      level: null,
+      segments: streak.recent,
+      label: t("streakLabel", {
         pillar: name,
-        level: level.level,
-        next: level.level + 1,
-        percent: percent(level.progress),
-        xp: pillars[pillar],
+        count: streak.days,
+        active: streak.recent.filter(Boolean).length,
       }),
     };
   };
@@ -108,30 +76,60 @@ export async function ProgressionSheet({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-4 rounded-3xl border border-foreground/6 bg-raised p-5">
-        <p className="flex size-21 shrink-0 flex-col items-center justify-center rounded-[22px] bg-primary text-primary-foreground">
+        <p
+          className={cn(
+            "flex size-21 shrink-0 flex-col items-center justify-center rounded-[22px]",
+            total !== null
+              ? "bg-primary text-primary-foreground"
+              : "bg-foreground/8 text-muted-foreground",
+          )}
+        >
           <span className="text-[10px] font-bold tracking-[0.14em] uppercase">
-            {head.label}
+            {levels.ranked && total !== null
+              ? t("rankedLabel")
+              : t("levelLabel")}
           </span>
           <span className="font-display text-[44px] leading-none">
-            {head.level}
+            {total ?? "—"}
           </span>
         </p>
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <p className="font-semibold tabular-nums">{head.headline}</p>
-          <div
-            role="img"
-            aria-label={head.summary}
-            className="h-2 overflow-hidden rounded-full bg-foreground/8"
-          >
+        {total !== null ? (
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <p className="font-semibold tabular-nums">
+              {t("rankedTop", { top: topOf(total) })}
+            </p>
             <div
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${Math.round(shown(head.progress) * 100)}%` }}
-            />
+              role="img"
+              aria-label={t("rankedSummary", {
+                level: total,
+                top: topOf(total),
+              })}
+              className="h-2 overflow-hidden rounded-full bg-foreground/8"
+            >
+              <div
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${total}%` }}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">{t("rankedDetail")}</p>
+            <Link
+              href="/profile/ranked"
+              className="w-fit rounded-md text-xs font-semibold text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("seeLevels")}
+            </Link>
           </div>
-          <p className="text-xs text-muted-foreground tabular-nums">
-            {head.detail}
-          </p>
-        </div>
+        ) : (
+          <div className="flex min-w-0 flex-1 flex-col items-start gap-2">
+            <p className="font-semibold">{t("notEvaluatedTitle")}</p>
+            <p className="text-xs text-pretty text-muted-foreground">
+              {t("notEvaluatedBody")}
+            </p>
+            <Button asChild size="sm">
+              <Link href="/profile/ranked">{t("evaluate")}</Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -146,11 +144,11 @@ export async function ProgressionSheet({
               <div className="flex items-center justify-between gap-2">
                 <span
                   aria-hidden="true"
-                  className="flex size-9 items-center justify-center rounded-xl bg-primary/14 text-primary"
+                  className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/14 text-primary"
                 >
                   <Icon className="size-[18px]" />
                 </span>
-                <span className="text-[13px] font-semibold text-muted-foreground tabular-nums">
+                <span className="text-right text-[13px] leading-tight font-semibold text-muted-foreground tabular-nums">
                   {data.corner}
                 </span>
               </div>
@@ -158,21 +156,32 @@ export async function ProgressionSheet({
                 <span className="text-[13px] text-muted-foreground">
                   {tPillars(`${pillar}.name`)}
                 </span>
-                <span className="font-display text-4xl leading-none">
-                  {t("pillarLevel", { level: data.level })}
-                </span>
+                {data.level !== null ? (
+                  <span className="font-display text-4xl leading-none">
+                    {t("pillarLevel", { level: data.level })}
+                  </span>
+                ) : (
+                  <span className="flex items-baseline gap-1.5">
+                    <span className="font-display text-4xl leading-none tabular-nums">
+                      {streaks[pillar].days}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("streakUnit", { count: streaks[pillar].days })}
+                    </span>
+                  </span>
+                )}
               </p>
               <div
                 role="img"
                 aria-label={data.label}
                 className="grid grid-cols-10 gap-[3px]"
               >
-                {Array.from({ length: SEGMENTS }, (_, index) => (
+                {data.segments.map((on, index) => (
                   <span
                     key={index}
                     className={cn(
                       "h-2 rounded-[3px]",
-                      index < data.filled ? "bg-primary" : "bg-foreground/8",
+                      on ? "bg-primary" : "bg-foreground/8",
                     )}
                   />
                 ))}
@@ -190,9 +199,7 @@ export async function ProgressionSheet({
           />
           {t("howTitle")}
         </summary>
-        <p className="mt-2 max-w-prose text-pretty">
-          {ranked ? t("howRanked") : t("how")}
-        </p>
+        <p className="mt-2 max-w-prose text-pretty">{t("how")}</p>
       </details>
     </div>
   );

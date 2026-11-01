@@ -275,60 +275,42 @@ export const SQUAT_REFERENCE: Reference = {
   estimate: true,
 };
 
-/** Tranches d'âge de l'IMC : 16-19, 20-29 … 80 ans et plus. */
-export const BMI_AGE_GROUPS = [16, 20, 30, 40, 50, 60, 70, 80] as const;
+/** Tranches d'âge du développé couché : 20-29 à 60 ans et plus (16-19 ans : 20-29). */
+export const BENCH_AGE_GROUPS = [20, 30, 40, 50, 60] as const;
 
 /**
- * Indice de masse corporelle mesuré (kg/m²) : percentiles 5, 10, 15, 25, 50, 75,
- * 85, 90 et 95 par sexe et tranche d'âge. Source : CDC, NHANES 2015-2018,
- * « Anthropometric Reference Data for Children and Adults », tableaux 14 et 15
- * (20 ans et plus) ; 16-19 ans : moyenne des âges 16 à 19 du tableau 13. Les
- * bornes [12, 0] et [70, 100] ferment la courbe. Pas de tableau équivalent pour
- * le Canada : la courbe américaine sert aussi aux Canadiens.
+ * Force rapportée au poids (décision du fondateur, 2026-11-01 : elle remplace
+ * l'IMC) : charge maximale du développé couché soulevée une fois (1RM)
+ * divisée par le poids du corps, percentiles 5, 25, 50, 75 et 95 par sexe et
+ * décennie. Source : Cooper Institute, « Physical Fitness Assessments and
+ * Norms for Adults and Law Enforcement » (2013), patients de la Cooper Clinic,
+ * sur appareil (Universal DVR). Le 1RM de la personne est estimé d'après sa
+ * charge et ses répétitions (formule d'Epley), souvent à la barre libre :
+ * estimation.
  */
-const BMI_PERCENTILES = [5, 10, 15, 25, 50, 75, 85, 90, 95] as const;
-const bmi = (values: readonly number[]): readonly Anchor[] => [
-  [12, 0],
-  ...values.map(
-    (value, index) => [value, BMI_PERCENTILES[index] ?? 0] as const,
-  ),
-  [70, 100],
-];
+const BENCH_PERCENTILES = [5, 25, 50, 75, 95] as const;
+const bench = (values: readonly number[]): readonly Anchor[] =>
+  values.map((value, index) => [value, BENCH_PERCENTILES[index] ?? 0] as const);
 
-export const BMI_NORMS: Record<SexNorm, readonly (readonly Anchor[])[]> = {
+export const BENCH_NORMS: Record<SexNorm, readonly (readonly Anchor[])[]> = {
   male: [
-    bmi([17.8, 18.9, 19.7, 20.6, 23.3, 27.4, 30.3, 32.4, 37.4]),
-    bmi([18.7, 20.0, 21.0, 22.6, 26.5, 31.6, 34.4, 36.8, 39.5]),
-    bmi([21.6, 23.0, 23.8, 25.4, 28.9, 33.7, 36.4, 38.3, 43.4]),
-    bmi([22.1, 23.5, 24.7, 26.2, 29.1, 32.8, 35.5, 38.1, 41.8]),
-    bmi([21.8, 22.6, 24.0, 25.2, 29.1, 32.8, 35.5, 37.4, 41.7]),
-    bmi([22.2, 23.2, 23.9, 25.8, 28.9, 33.3, 35.3, 37.1, 40.3]),
-    bmi([20.9, 22.9, 24.1, 25.9, 28.2, 32.8, 34.5, 35.6, 37.2]),
-    bmi([21.1, 22.3, 22.9, 24.3, 27.2, 30.2, 32.3, 34.0, 35.5]),
+    bench([0.72, 0.9, 1.06, 1.26, 1.63]),
+    bench([0.65, 0.81, 0.93, 1.08, 1.35]),
+    bench([0.59, 0.74, 0.84, 0.96, 1.2]),
+    bench([0.53, 0.66, 0.75, 0.87, 1.05]),
+    bench([0.49, 0.6, 0.68, 0.79, 0.94]),
   ],
   female: [
-    bmi([18.2, 19.4, 19.8, 21.2, 24.1, 29.0, 32.6, 34.9, 38.6]),
-    bmi([18.6, 19.6, 20.4, 21.9, 26.2, 32.9, 37.4, 39.6, 43.3]),
-    bmi([19.8, 21.2, 22.0, 23.6, 28.3, 34.2, 38.2, 41.1, 46.1]),
-    bmi([20.6, 22.0, 22.8, 24.4, 28.6, 34.8, 39.3, 43.1, 46.6]),
-    bmi([19.6, 21.5, 22.5, 24.3, 29.1, 34.2, 37.7, 41.5, 45.7]),
-    bmi([20.4, 22.2, 23.2, 24.9, 29.2, 34.7, 37.2, 39.5, 42.9]),
-    bmi([20.8, 22.0, 23.3, 25.3, 28.8, 33.3, 35.7, 37.9, 42.1]),
-    bmi([19.9, 20.8, 22.2, 23.8, 27.5, 30.8, 33.5, 35.5, 39.3]),
+    bench([0.44, 0.53, 0.65, 0.77, 1.01]),
+    bench([0.39, 0.49, 0.57, 0.65, 0.82]),
+    bench([0.35, 0.45, 0.52, 0.6, 0.77]),
+    bench([0.31, 0.41, 0.46, 0.53, 0.68]),
+    bench([0.26, 0.39, 0.45, 0.53, 0.72]),
   ],
 };
-
-/** Poids santé chez l'adulte (OMS) : un IMC de 18,5 à 24,9. */
-export const HEALTHY_BMI = [18.5, 24.9] as const;
-
-/**
- * La règle de classement (plus l'IMC est proche de la plage santé, mieux c'est)
- * est la nôtre, et l'IMC ne distingue pas les muscles de la graisse :
- * estimation (décision du fondateur, 2026-10-26).
- */
-export const BMI_REFERENCE: Reference = {
+export const BENCH_REFERENCE: Reference = {
   source:
-    "CDC, NHANES 2015-2018 (IMC mesuré ; courbe américaine aussi pour le Canada)",
+    "Cooper Institute (2013), développé couché sur appareil, patients de la Cooper Clinic",
   estimate: true,
 };
 
@@ -349,5 +331,39 @@ export const JUMP_NORMS: Record<SexNorm, readonly number[]> = {
 export const JUMP_SPREAD = 0.18;
 export const JUMP_REFERENCE: Reference = {
   source: "Estimation à partir de moyennes d'adultes espagnols (18 à 64 ans)",
+  estimate: true,
+};
+
+// --- Zone élite --------------------------------------------------------------
+
+/**
+ * Zone élite (décision du fondateur, 2026-11-01) : les niveaux 90 à 100 vont du
+ * 90e percentile de la tranche d'âge au sommet humain pour cet âge. Tests
+ * physiques : la valeur de classe mondiale chez les 20-29 ans, dans l'unité de
+ * la mesure, ramenée aux autres âges en proportion de leur 95e percentile.
+ * Course : VO2max de 85 (hommes) et 75 (femmes) des coureurs et skieurs de fond
+ * d'élite, en mètres parcourus en 12 minutes ; développé couché : 2 et 1,4 fois
+ * le poids du corps (haltérophiles d'élite, sans équipement) ; saut sans élan :
+ * 330 et 280 cm (sauteurs d'élite) ; les autres tests : repères d'athlètes très
+ * entraînés. Estimations.
+ */
+export const ELITE_PHYSICAL = {
+  run: { male: 85 * 44.73 + 504.9, female: 75 * 44.73 + 504.9 },
+  pushUps: { male: 100, female: 80 },
+  /** Centimètres au-delà des orteils. */
+  reach: { male: 28, female: 33 },
+  squats: { male: 75, female: 70 },
+  jump: { male: 330, female: 280 },
+  bench: { male: 2, female: 1.4 },
+} as const satisfies Record<string, Record<SexNorm, number>>;
+
+/** Revenus et patrimoine : le sommet est le 1 ‰ le plus haut de la tranche d'âge (queue de Pareto). */
+export const ELITE_PERCENTILE = 99.9;
+/** Taux d'épargne du sommet : 80 % du revenu net. */
+export const ELITE_SAVINGS_RATE = 0.8;
+
+export const ELITE_REFERENCE: Reference = {
+  source:
+    "Repères de classe mondiale (endurance, force, saut), 1 ‰ le plus riche de la tranche d'âge",
   estimate: true,
 };

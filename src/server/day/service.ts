@@ -1,13 +1,13 @@
 import "server-only";
+import { dayStreak, streakBefore } from "@/features/streaks/rules";
 import { selectHabitsToday } from "@/features/today/day-plan";
-import { habitDayXp, XP_REWARDS } from "@/features/xp/rules";
 import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
 import { listHabits, type HabitSummary } from "@/server/habits/service";
 import { getUserTimeZone } from "@/server/profile/service";
 import { pactTagsForHabits, type PactTag } from "@/server/messages/pacts";
+import { getActivity } from "@/server/streaks/service";
 import { listDayTasks, type DayTask } from "@/server/tasks/service";
-import { getTaskXp, getTaskXpLeft, getXpTotals } from "@/server/xp/service";
 
 // « Ma journée » : ce qui est prévu aujourd'hui, à cocher depuis n'importe
 // quelle page. Chaque fonction reçoit l'userId de la session.
@@ -22,10 +22,10 @@ export type DayPlan = {
   /** Pactes en cours des habitudes du jour (« habitId » → étiquette). */
   pacts: Record<string, PactTag>;
   /**
-   * XP totale enregistrée, et XP de chaque élément (« habit:<id> », « task:<id> ») :
-   * gagnée s'il est fait, à gagner sinon.
+   * Série du jour : jours actifs d'affilée jusqu'à hier, si aujourd'hui est
+   * déjà actif (une action, même hors de cette liste) et le record.
    */
-  xp: { total: number; items: Record<string, number> };
+  streak: { before: number; activeToday: boolean; best: number };
 };
 
 export async function getDayPlan(
@@ -34,16 +34,11 @@ export async function getDayPlan(
   now: Date,
 ): Promise<DayPlan> {
   const today = toCalendarDay(now, timeZone);
-  const [habits, tasks, xpTotals, taskXpLeft] = await Promise.all([
+  const [habits, tasks, activity] = await Promise.all([
     listHabits(userId, timeZone),
     listDayTasks(userId, today, timeZone),
-    getXpTotals(userId),
-    getTaskXpLeft(userId, today),
+    getActivity(userId, timeZone),
   ]);
-  const taskXp = await getTaskXp(
-    userId,
-    tasks.filter((task) => task.done).map((task) => task.id),
-  );
 
   const habitsToday = selectHabitsToday(habits, today);
   const pacts = await pactTagsForHabits(
@@ -51,25 +46,17 @@ export async function getDayPlan(
     habitsToday.map((habit) => habit.id),
     today,
   );
-  const items: Record<string, number> = {};
-  for (const habit of habitsToday) {
-    items[`habit:${habit.id}`] = habitDayXp(habit.weekdays, today);
-  }
-  for (const task of tasks) {
-    // Au-delà du plafond quotidien, une tâche ne rapporte plus d'XP
-    items[`task:${task.id}`] = task.done
-      ? (taskXp.get(task.id) ?? 0)
-      : taskXpLeft > 0
-        ? XP_REWARDS.task
-        : 0;
-  }
 
   return {
     today,
     habits: habitsToday,
     tasks,
     pacts,
-    xp: { total: xpTotals.total, items },
+    streak: {
+      before: streakBefore(activity.days, today),
+      activeToday: activity.days.includes(today),
+      best: dayStreak(activity.days, today).best,
+    },
   };
 }
 

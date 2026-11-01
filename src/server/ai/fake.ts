@@ -4,7 +4,6 @@ import {
   normalizeGoalPlan,
   normalizeGoalQuestions,
 } from "@/features/goals/plan";
-import { normalizeRankedAnalysis } from "@/features/ranked/analysis";
 import type { AiProvider, AiUsage } from "./types";
 
 // Fournisseur factice (AI_PROVIDER=fake) : réponses fixes, sans appel payant,
@@ -169,29 +168,6 @@ export function createFakeProvider(): AiProvider {
           caution: "Consulte un professionnel au besoin.",
         }),
         crisis: false,
-        refused: false,
-        usage,
-      };
-    },
-
-    async generateRankedAnalysis() {
-      await pause(300);
-      return {
-        analysis: normalizeRankedAnalysis({
-          summary: "Analyse de test, générée sans appel à Get iT AI.",
-          pillars: {
-            physical: "Ton cardio est au cœur de ton niveau physique.",
-            financial:
-              "Ton revenu par heure et ton patrimoine, comparés à ton âge.",
-          },
-          tips: [
-            {
-              pillar: "physical",
-              title: "Conseil de test",
-              detail: "Trois séances de cardio par semaine.",
-            },
-          ],
-        }),
         refused: false,
         usage,
       };

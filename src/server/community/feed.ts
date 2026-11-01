@@ -9,7 +9,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { followingIds } from "@/server/follows/service";
 import { avatarUrls } from "@/server/profile/avatar";
-import { getDisplayLevels } from "@/server/ranked/service";
+import { getDisplayLevels } from "@/server/levels/service";
 import { mediaForPosts, type FeedMedia } from "./media";
 import { getBlockedIds } from "./members";
 

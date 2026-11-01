@@ -40,7 +40,7 @@ import {
 
 // Lectures du dashboard de l'équipe. Chaque fonction revérifie l'accès (règles
 // communes dans sql.ts). Une personne est « active » un jour où elle a ouvert
-// l'application ou agi (publication, message, XP, Get iT AI…) : les tables
+// l'application ou agi (publication, message, habitude, Get iT AI…) : les tables
 // existantes donnent l'historique.
 
 /**
@@ -80,9 +80,23 @@ const featureActions = (since: Date) => Prisma.sql`
           FROM ai_requests
           WHERE created_at >= ${since}
             AND kind IN ('coach', 'goal_plan', 'item_edit', 'development_plan', 'development_revision')
-        UNION ALL SELECT 'ranked', user_id, created_at FROM ranked_evaluations WHERE created_at >= ${since}
+        UNION ALL SELECT 'ranked', user_id, measured_at FROM measurements WHERE measured_at >= ${since}
         UNION ALL SELECT 'favorites', user_id, created_at FROM listing_favorites WHERE created_at >= ${since}
         UNION ALL SELECT 'listings', seller_id, created_at FROM listings WHERE created_at >= ${since}`;
+
+/**
+ * Actions de progrès depuis `since` (celles qui font avancer la série du jour) :
+ * habitude cochée, tâche, jalon ou objectif terminé, check-in, page de journal.
+ */
+const progressActions = (since: Date) => Prisma.sql`
+        SELECT h.user_id, c.created_at AS at FROM habit_completions c
+          JOIN habits h ON h.id = c.habit_id WHERE c.created_at >= ${since}
+        UNION ALL SELECT user_id, completed_at FROM tasks WHERE completed_at >= ${since}
+        UNION ALL SELECT g.user_id, m.completed_at FROM goal_milestones m
+          JOIN goals g ON g.id = m.goal_id WHERE m.completed_at >= ${since}
+        UNION ALL SELECT user_id, completed_at FROM goals WHERE completed_at >= ${since}
+        UNION ALL SELECT user_id, created_at FROM daily_check_ins WHERE created_at >= ${since}
+        UNION ALL SELECT user_id, created_at FROM journal_entries WHERE created_at >= ${since}`;
 
 /** Jours d'activité de chaque personne depuis `since`. */
 async function activityDays(since: Date): Promise<ActivityDay[]> {
@@ -91,20 +105,19 @@ async function activityDays(since: Date): Promise<ActivityDay[]> {
     activity AS (
       SELECT user_id, occurred_at AS at FROM analytics_events
         WHERE env = ${env()} AND occurred_at >= ${since}
-      UNION ALL SELECT user_id, created_at FROM xp_events WHERE created_at >= ${since}
+      UNION ALL SELECT user_id, at FROM (${progressActions(since)}) progress
       UNION ALL SELECT user_id, at FROM (${featureActions(since)}) actions
     )
     SELECT DISTINCT a.user_id::text AS "userId", ${dayOf(Prisma.sql`a.at`)} AS day
     FROM activity a JOIN people p ON p.id = a.user_id`;
 }
 
-/** Jours où chaque personne a gagné de l'XP (habitude, tâche, jalon, journal…). */
+/** Jours où chaque personne a fait une action de progrès (habitude, tâche, jalon, journal…). */
 async function progressDays(since: Date): Promise<ActivityDay[]> {
   return db.$queryRaw<ActivityDay[]>`
     WITH people AS (${PEOPLE})
-    SELECT DISTINCT x.user_id::text AS "userId", ${dayOf(Prisma.sql`x.created_at`)} AS day
-    FROM xp_events x JOIN people p ON p.id = x.user_id
-    WHERE x.created_at >= ${since}`;
+    SELECT DISTINCT a.user_id::text AS "userId", ${dayOf(Prisma.sql`a.at`)} AS day
+    FROM (${progressActions(since)}) a JOIN people p ON p.id = a.user_id`;
 }
 
 /** Chiffre de la période et le même chiffre sur la période précédente (même durée). */

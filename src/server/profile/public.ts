@@ -3,7 +3,7 @@ import type { Pillar } from "@/config/pillars";
 import type { ContactState } from "@/features/contacts/rules";
 import { getBlockedIds } from "@/server/community/members";
 import { getContactState } from "@/server/contacts/service";
-import { getPublicRanked } from "@/server/ranked/service";
+import { getPublicLevels } from "@/server/levels/service";
 import { db } from "@/server/db";
 import { avatarUrl } from "./avatar";
 
@@ -69,7 +69,7 @@ export async function getPublicProfile(
     countContacts(profile.id),
     avatarUrl(profile.avatarPath),
     mine ? ("none" as const) : getContactState(viewerId, profile.id),
-    getPublicRanked(profile.id),
+    getPublicLevels(profile.id),
   ]);
   return {
     id: profile.id,

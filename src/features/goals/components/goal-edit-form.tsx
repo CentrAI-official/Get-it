@@ -11,7 +11,8 @@ export async function GoalEditForm({ goalId }: { goalId: string }) {
   if (!recordIdSchema.safeParse(goalId).success) notFound();
   const profile = await getCurrentProfile();
   const goal = await getGoal(profile.id, goalId);
-  if (!goal) notFound();
+  // Un objectif de niveau ne se modifie pas : sa valeur vient de la population
+  if (!goal || goal.levelGoal) notFound();
   const t = await getTranslations("Goals.form");
 
   return (
