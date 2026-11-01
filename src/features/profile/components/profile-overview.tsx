@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { Avatar } from "@/components/avatar";
 import { ProgressRing } from "@/components/progress-ring";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { levelFromXp } from "@/features/xp/rules";
 import { Link } from "@/i18n/navigation";
@@ -43,7 +42,6 @@ export async function ProfileOverview({
       getTranslations("Onboarding"),
     ]);
   const level = levelFromXp(xp.total);
-  const left = level.needed - level.current;
   const name = profile.displayName ?? profile.email ?? "";
 
   return (
@@ -180,34 +178,23 @@ export async function ProfileOverview({
             </span>
           </div>
         ) : (
-          // Niveau de l'XP, chemin vers le suivant, et l'option de passer en Ranked
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <p className="flex items-baseline gap-3">
-                <span className="font-heading text-xl font-bold">
-                  {tXp("level", { level: level.level })}
-                </span>
-                <span className="text-sm font-bold text-primary tabular-nums">
-                  {tXp("xp", { xp: xp.total })}
-                </span>
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/profile/ranked">
-                  <Trophy aria-hidden="true" className="text-primary" />
-                  {t("ranked.go")}
-                </Link>
-              </Button>
-            </div>
-            <Progress
-              value={Math.round(level.progress * 100)}
-              aria-label={tXp("toLevelLabel", {
-                xp: left,
-                level: level.level + 1,
-              })}
-            />
-            <p className="text-sm text-muted-foreground">
-              {tXp("toLevelLabel", { xp: left, level: level.level + 1 })}
+          // Niveau de l'XP et l'option de passer en Ranked (le chemin vers le
+          // suivant est dans « Ta progression »)
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="flex items-baseline gap-3">
+              <span className="font-heading text-xl font-bold">
+                {tXp("level", { level: level.level })}
+              </span>
+              <span className="text-sm font-bold text-primary tabular-nums">
+                {tXp("xp", { xp: xp.total })}
+              </span>
             </p>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/profile/ranked">
+                <Trophy aria-hidden="true" className="text-primary" />
+                {t("ranked.go")}
+              </Link>
+            </Button>
           </div>
         )}
         {day}
@@ -222,7 +209,13 @@ export function ProfileOverviewSkeleton() {
   return (
     <div className="flex flex-col gap-6">
       <Skeleton className="h-[188px] rounded-3xl" />
-      <Skeleton className="aspect-[322/300] w-full max-w-[380px] self-center rounded-full" />
+      {/* Fiche de « Ta progression » : le niveau, puis les quatre piliers */}
+      <Skeleton className="h-[124px] rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <Skeleton key={index} className="h-[150px] rounded-[20px]" />
+        ))}
+      </div>
     </div>
   );
 }

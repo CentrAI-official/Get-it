@@ -850,8 +850,6 @@
     "level": "Niveau {level, number}",
     "xp": "{xp, number} XP",
     "badgeLabel": "Niveau {level, number}, {xp, number} XP. Voir ta progression",
-    "toLevel": "Vers le niveau {level, number}",
-    "toLevelLabel": "Encore {xp, number} XP avant le niveau {level, number}",
     "levelUp": {
       "title": "Niveau {level, number} atteint!",
       "body": "Tes actions portent fruit. Continue comme ça.",
@@ -861,31 +859,55 @@
   },
   "Progress": {
     "title": "Ta progression",
-    "description": "Où en est chaque pilier avant son prochain niveau.",
-    "orbit": {
-      "levelLabel": "Niveau",
-      "levelShort": "Niv. {level, number}",
-      "centerSummary": "Niveau global {level, number} : {percent} fait vers le niveau {next, number}.",
-      "bubble": "{pillar} : niveau {level, number}, {percent} fait vers le niveau {next, number} ({xp, number} XP).",
-      "howTitle": "Comment c’est calculé",
-      "how": "Chaque bulle montre le pourcentage fait vers le prochain niveau du pilier. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. Au centre, ton niveau global.",
+    "description": "Tes statistiques, comme celles d’un personnage qui monte de niveau.",
+    "descriptionRanked": "Physique et financier : ton niveau classé, comparé aux gens de ton âge. Mental et social : ta progression vers le prochain niveau, privée.",
+    "sheet": {
+      "levelLabel": "Niv.",
       "rankedLabel": "Classé",
-      "centerRanked": "Niveau classé {level, number} sur 100.",
-      "top": "Top {top, number} %",
+      "toNext": "Encore {xp, number} XP",
+      "toNextDetail": "{xp, number} / {needed, number} XP pour le niveau {level, number}",
+      "levelSummary": "Niveau {level, number} : {xp, number} XP sur {needed, number} pour le niveau {next, number}.",
+      "rankedTop": "Top {top, number} %",
+      "rankedDetail": "Niveau classé sur 100 : la moyenne du physique et du financier",
+      "rankedSummary": "Niveau classé {level, number} sur 100, top {top, number} %.",
+      "pillarLevel": "Niv. {level, number}",
+      "bubble": "{pillar} : niveau {level, number}, {percent} fait vers le niveau {next, number} ({xp, number} XP).",
       "bubbleRanked": "{pillar} : niveau classé {level, number} sur 100, top {top, number} %.",
-      "howRanked": "Physique et financier montrent ton niveau classé : le pourcentage des gens de ton âge, au Canada et aux États-Unis, que tu dépasses. Mental et social montrent ta progression d’XP vers leur prochain niveau ; ils restent privés. Au centre, ton niveau total, la moyenne des deux piliers classés."
+      "howTitle": "Comment c’est calculé",
+      "how": "Chaque carte montre le niveau du pilier et le pourcentage fait vers le suivant. Les habitudes, tâches, jalons et objectifs liés à un pilier lui donnent de l’XP ; passer du niveau n au suivant demande 100 × n XP. En haut, ton niveau global.",
+      "howRanked": "Physique et financier montrent ton niveau classé : le pourcentage des gens de ton âge, au Canada et aux États-Unis, que tu dépasses. Mental et social montrent ta progression d’XP vers leur prochain niveau ; ils restent privés. En haut, ton niveau total, la moyenne des deux piliers classés."
     },
-    "xpChart": {
-      "title": "XP des 14 derniers jours",
-      "chartLabel": "XP gagnée chaque jour, sur 14 jours. Flèches gauche et droite pour parcourir.",
-      "dayValue": "{date} : {xp, number} XP",
-      "today": "Aujourd’hui",
-      "empty": "Coche tes premières quêtes : ton XP apparaîtra ici.",
-      "table": "Voir les données",
-      "colDay": "Jour",
-      "colXp": "XP"
+    "regularity": {
+      "title": "Ta régularité",
+      "thisWeek": "{count, plural, one {jour actif} other {jours actifs}} cette semaine",
+      "summary": "{count, plural, one {# jour actif} other {# jours actifs}} sur 7 cette semaine.",
+      "chartLabel": "Jours actifs par semaine, sur {weeks, number} semaines ; cette semaine : {count, number} sur 7.",
+      "firstWeek": "Semaine du {date}",
+      "currentWeek": "Cette semaine",
+      "streak": "Série en cours",
+      "best": "Record",
+      "days": "{count, plural, one {# jour} other {# jours}}",
+      "how": "Un jour actif : au moins une habitude, une tâche, un jalon, un check-in ou une page de journal ce jour-là."
     },
-    "descriptionRanked": "Physique et financier : ton niveau classé, comparé aux gens de ton âge. Mental et social : ta progression vers le prochain niveau, privée."
+    "goals": {
+      "title": "Tes objectifs en cours",
+      "all": "Tout voir",
+      "hint": "Le trait montre où tu devrais en être aujourd’hui.",
+      "status": {
+        "onTrack": "Dans les temps",
+        "slightlyLate": "Un peu en retard",
+        "late": "En retard"
+      },
+      "done": "<strong>{percent}</strong> fait",
+      "daysLeft": "{count, plural, =0 {C’est aujourd’hui} one {# jour avant le {date}} other {# jours avant le {date}}}",
+      "overdue": "Date visée dépassée",
+      "noDate": "Sans date visée",
+      "noMilestones": "Ajoute des jalons pour suivre ton avancement",
+      "barLabel": "{title} : {percent} fait, {elapsed} du temps écoulé.",
+      "barLabelNoDate": "{title} : {percent} fait.",
+      "empty": "Aucun objectif en cours.",
+      "create": "Créer un objectif"
+    }
   },
   "Coach": {
     "title": "Get iT AI",

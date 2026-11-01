@@ -850,8 +850,6 @@
     "level": "Level {level, number}",
     "xp": "{xp, number} XP",
     "badgeLabel": "Level {level, number}, {xp, number} XP. See your progress",
-    "toLevel": "To level {level, number}",
-    "toLevelLabel": "{xp, number} XP to go before level {level, number}",
     "levelUp": {
       "title": "Level {level, number} reached!",
       "body": "Your actions are paying off. Keep it up.",
@@ -861,31 +859,55 @@
   },
   "Progress": {
     "title": "Your progress",
-    "description": "How close each pillar is to its next level.",
-    "orbit": {
-      "levelLabel": "Level",
-      "levelShort": "Lv. {level, number}",
-      "centerSummary": "Overall level {level, number}: {percent} of the way to level {next, number}.",
-      "bubble": "{pillar}: level {level, number}, {percent} of the way to level {next, number} ({xp, number} XP).",
-      "howTitle": "How it’s calculated",
-      "how": "Each bubble shows how far you are toward the pillar’s next level. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. In the center, your overall level.",
+    "description": "Your stats, like a character leveling up.",
+    "descriptionRanked": "Physical and financial: your ranked level, compared with people your age. Mental and social: your progress toward the next level, private.",
+    "sheet": {
+      "levelLabel": "Lv.",
       "rankedLabel": "Ranked",
-      "centerRanked": "Ranked level {level, number} out of 100.",
-      "top": "Top {top, number}%",
+      "toNext": "{xp, number} XP to go",
+      "toNextDetail": "{xp, number} / {needed, number} XP for level {level, number}",
+      "levelSummary": "Level {level, number}: {xp, number} XP out of {needed, number} for level {next, number}.",
+      "rankedTop": "Top {top, number}%",
+      "rankedDetail": "Ranked level out of 100: the average of physical and financial",
+      "rankedSummary": "Ranked level {level, number} out of 100, top {top, number}%.",
+      "pillarLevel": "Lv. {level, number}",
+      "bubble": "{pillar}: level {level, number}, {percent} of the way to level {next, number} ({xp, number} XP).",
       "bubbleRanked": "{pillar}: ranked level {level, number} out of 100, top {top, number}%.",
-      "howRanked": "Physical and financial show your ranked level: the share of people your age in Canada and the United States you outrank. Mental and social show your XP progress toward their next level; they stay private. In the center, your total level, the average of the two ranked pillars."
+      "howTitle": "How it’s calculated",
+      "how": "Each card shows the pillar’s level and how far you are toward the next one. Habits, tasks, milestones and goals linked to a pillar give it XP; going from level n to the next takes 100 × n XP. At the top, your overall level.",
+      "howRanked": "Physical and financial show your ranked level: the share of people your age in Canada and the United States you outrank. Mental and social show your XP progress toward their next level; they stay private. At the top, your total level, the average of the two ranked pillars."
     },
-    "xpChart": {
-      "title": "XP over the last 14 days",
-      "chartLabel": "XP earned each day over 14 days. Use the left and right arrows to browse.",
-      "dayValue": "{date}: {xp, number} XP",
-      "today": "Today",
-      "empty": "Check off your first quests: your XP will show up here.",
-      "table": "Show the data",
-      "colDay": "Day",
-      "colXp": "XP"
+    "regularity": {
+      "title": "Your consistency",
+      "thisWeek": "{count, plural, one {active day} other {active days}} this week",
+      "summary": "{count, plural, one {# active day} other {# active days}} out of 7 this week.",
+      "chartLabel": "Active days per week over {weeks, number} weeks; this week: {count, number} out of 7.",
+      "firstWeek": "Week of {date}",
+      "currentWeek": "This week",
+      "streak": "Current streak",
+      "best": "Best",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "how": "An active day: at least one habit, task, milestone, check-in or journal page that day."
     },
-    "descriptionRanked": "Physical and financial: your ranked level, compared with people your age. Mental and social: your progress toward the next level, private."
+    "goals": {
+      "title": "Your goals in progress",
+      "all": "See all",
+      "hint": "The line shows where you should be today.",
+      "status": {
+        "onTrack": "On track",
+        "slightlyLate": "A bit behind",
+        "late": "Behind"
+      },
+      "done": "<strong>{percent}</strong> done",
+      "daysLeft": "{count, plural, =0 {It’s today} one {# day before {date}} other {# days before {date}}}",
+      "overdue": "Target date passed",
+      "noDate": "No target date",
+      "noMilestones": "Add milestones to track your progress",
+      "barLabel": "{title}: {percent} done, {elapsed} of the time elapsed.",
+      "barLabelNoDate": "{title}: {percent} done.",
+      "empty": "No goals in progress.",
+      "create": "Create a goal"
+    }
   },
   "Coach": {
     "title": "Get iT AI",

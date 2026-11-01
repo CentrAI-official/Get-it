@@ -88,6 +88,41 @@ export async function listActiveGoals(userId: string): Promise<GoalSummary[]> {
   return toSummaries(goals);
 }
 
+/**
+ * Objectifs en cours pour l'Aperçu du Profil : la date visée la plus proche
+ * d'abord (sans date à la fin), avec le jour de création dans le fuseau de la
+ * personne (point de départ du rythme, `goalPace`).
+ */
+export async function listGoalsInProgress(
+  userId: string,
+  timeZone: string,
+  limit = 3,
+) {
+  const goals = await db.goal.findMany({
+    where: { userId, status: "active" },
+    orderBy: [
+      { targetDate: { sort: "asc", nulls: "last" } },
+      { createdAt: "asc" },
+    ],
+    take: limit,
+    select: {
+      id: true,
+      title: true,
+      targetDate: true,
+      createdAt: true,
+      milestones: { select: { completedAt: true } },
+    },
+  });
+  return goals.map((goal) => ({
+    id: goal.id,
+    title: goal.title,
+    targetDate: goal.targetDate ? fromDbDate(goal.targetDate) : null,
+    startedOn: toCalendarDay(goal.createdAt, timeZone),
+    milestonesDone: goal.milestones.filter((m) => m.completedAt).length,
+    milestonesTotal: goal.milestones.length,
+  }));
+}
+
 /** Objectifs en cours avec leurs jalons et leurs tâches ouvertes (contexte de Get iT AI). */
 export async function listActiveGoalPlans(userId: string, limit = 6) {
   const goals = await db.goal.findMany({

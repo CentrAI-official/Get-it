@@ -60,6 +60,17 @@ export async function getXpByDay(userId: string, from: string, to: string) {
   );
 }
 
+/** Jours actifs (au moins une action qui a rapporté de l'XP), du plus ancien au plus récent. */
+export async function getActiveDays(userId: string) {
+  const rows = await db.xpEvent.findMany({
+    where: { userId, amount: { gt: 0 } },
+    distinct: ["day"],
+    select: { day: true },
+    orderBy: { day: "asc" },
+  });
+  return rows.map((row) => fromDbDate(row.day));
+}
+
 /** Tâches qui peuvent encore rapporter de l'XP aujourd'hui (plafond quotidien). */
 export async function getTaskXpLeft(userId: string, day: string) {
   const used = await db.xpEvent.count({
