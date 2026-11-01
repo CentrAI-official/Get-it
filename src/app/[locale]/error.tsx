@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { reportClientError } from "@/features/analytics/error-reporter";
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -13,8 +14,9 @@ export default function ErrorPage({ error, retry }: ErrorPageProps) {
   const t = useTranslations("Error");
 
   useEffect(() => {
-    // À brancher sur un service de suivi d'erreurs lors du déploiement
     console.error(error);
+    // Dashboard de l'équipe (message nettoyé par le serveur, sans l'adresse complète)
+    reportClientError(error);
   }, [error]);
 
   return (

@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  Bug,
   ChartNoAxesColumn,
   LayoutDashboard,
   LayoutGrid,
+  MessageSquareText,
+  Newspaper,
   RotateCcw,
   ShieldCheck,
   Sparkles,
+  Target,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -18,8 +22,12 @@ const PAGES = [
   { key: "overview", href: "/admin", icon: LayoutDashboard },
   { key: "sections", href: "/admin/sections", icon: LayoutGrid },
   { key: "features", href: "/admin/features", icon: ChartNoAxesColumn },
+  { key: "results", href: "/admin/results", icon: Target },
   { key: "retention", href: "/admin/retention", icon: RotateCcw },
+  { key: "content", href: "/admin/content", icon: Newspaper },
   { key: "ai", href: "/admin/ai", icon: Sparkles },
+  { key: "feedback", href: "/admin/feedback", icon: MessageSquareText },
+  { key: "errors", href: "/admin/errors", icon: Bug },
   { key: "audit", href: "/admin/audit", icon: ShieldCheck },
 ] as const satisfies readonly {
   key: string;

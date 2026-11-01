@@ -1,10 +1,12 @@
 import {
   Activity,
   ArrowDown,
+  Bug,
   Clock,
   Download,
   Eye,
   LogIn,
+  MessageSquareText,
   Sparkles,
   Upload,
   UserRoundPlus,
@@ -30,12 +32,14 @@ import {
   type Compared,
 } from "@/server/admin/analytics";
 import { listAuditEntries, openAdminPage } from "@/server/admin/audit";
+import { getAlerts } from "@/server/admin/insights";
 import { CATEGORY_ICONS, FEATURE_ICONS } from "../icons";
 import { DailyChart } from "./daily-chart";
 import {
   EmptyNote,
   IconChip,
   KpiTile,
+  Meter,
   Panel,
   RankList,
   type RankRow,
@@ -46,11 +50,11 @@ import { PeriodTabs } from "./period-tabs";
 // Contenu des pages du dashboard : chaque panneau revérifie l'accès (et
 // l'inscrit au journal) avant de lire les données. À placer dans un <Suspense>.
 
-type PanelProps = {
+export type PanelProps = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-async function formatters() {
+export async function formatters() {
   const format = await getFormatter();
   const percent = (value: number | null) =>
     value === null
@@ -87,7 +91,7 @@ async function formatters() {
 }
 
 /** En-tête d'une page : la période à droite. */
-function PanelTop({
+export function PanelTop({
   href,
   period,
   children,
@@ -107,12 +111,13 @@ function PanelTop({
 export async function OverviewPanel({ searchParams }: PanelProps) {
   const period = parsePeriod((await searchParams).p);
   await openAdminPage("overview");
-  const [t, tCommon, tFeatures, data, features, f] = await Promise.all([
+  const [t, tCommon, tFeatures, data, features, alerts, f] = await Promise.all([
     getTranslations("Admin.overview"),
     getTranslations("Admin.common"),
     getTranslations("Admin.features"),
     getOverview(period),
     getFeatures(period),
+    getAlerts(),
     formatters(),
   ]);
   const vsPeriod = tCommon("vsPeriod", { days: period });
@@ -138,7 +143,33 @@ export async function OverviewPanel({ searchParams }: PanelProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <PanelTop href="/admin" period={period} />
+      <PanelTop href="/admin" period={period}>
+        {alerts.feedback > 0 || alerts.errors > 0 ? (
+          <span className="flex flex-wrap gap-2">
+            {alerts.feedback > 0 ? (
+              <Link
+                href="/admin/feedback?p=7"
+                className="flex items-center gap-1.5 rounded-full bg-primary/12 px-3 py-1.5 text-sm font-medium text-foreground outline-none hover:bg-primary/20 focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <MessageSquareText
+                  aria-hidden="true"
+                  className="size-4 text-primary"
+                />
+                {t("alerts.feedback", { count: alerts.feedback })}
+              </Link>
+            ) : null}
+            {alerts.errors > 0 ? (
+              <Link
+                href="/admin/errors?p=7"
+                className="flex items-center gap-1.5 rounded-full bg-foreground/[0.06] px-3 py-1.5 text-sm font-medium text-foreground outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+              >
+                <Bug aria-hidden="true" className="size-4" />
+                {t("alerts.errors", { count: alerts.errors })}
+              </Link>
+            ) : null}
+          </span>
+        ) : null}
+      </PanelTop>
       <NorthStarHero
         title={t("hero.title")}
         caption={
@@ -272,38 +303,6 @@ export async function OverviewPanel({ searchParams }: PanelProps) {
         </div>
       </Panel>
       <p className="text-xs text-muted-foreground">{tCommon("excluded")}</p>
-    </div>
-  );
-}
-
-/** Une part d'un total (ex. membres qui ont activé un réglage). */
-function Meter({
-  label,
-  value,
-  ratio,
-  detail,
-}: {
-  label: string;
-  value: string;
-  ratio: number;
-  detail: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-medium">{label}</span>
-        <span className="text-2xl font-semibold">{value}</span>
-      </div>
-      <div
-        aria-hidden="true"
-        className="h-2.5 overflow-hidden rounded-full bg-primary/12"
-      >
-        <div
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${Math.max(0, Math.min(1, ratio)) * 100}%` }}
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">{detail}</p>
     </div>
   );
 }

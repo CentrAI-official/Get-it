@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { PullToRefresh } from "@/components/layout/pull-to-refresh";
 import { ActivityTracker } from "@/features/analytics/components/activity-tracker";
+import { WeekQuestion } from "@/features/feedback/components/week-question";
 import { UnreadPoller } from "@/features/messages/components/unread-poller";
 import { NotificationPoller } from "@/features/notifications/components/notification-bell";
 import { AccountThemeSync } from "@/features/settings/components/account-theme";
@@ -54,6 +55,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       </Suspense>
       <UnreadPoller />
       <NotificationPoller />
+      {/* Question d'une semaine : une seule fois, après « Ma journée » */}
+      <Suspense fallback={null}>
+        <WeekQuestion />
+      </Suspense>
       {/* Temps actif par page (dashboard de l'équipe) ; usePathname suspend */}
       <Suspense fallback={null}>
         <ActivityTracker />

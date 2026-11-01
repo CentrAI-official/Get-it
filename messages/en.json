@@ -3271,7 +3271,11 @@
       "features": "Features",
       "retention": "Retention",
       "ai": "Get iT AI",
-      "audit": "Access"
+      "audit": "Access",
+      "results": "Results",
+      "content": "Content",
+      "feedback": "Feedback",
+      "errors": "Errors"
     },
     "signOut": "Sign out",
     "period": {
@@ -3363,7 +3367,11 @@
       "watch": "To watch",
       "watchNote": "The least used: improve them, explain them better or remove them.",
       "allFeatures": "See all features",
-      "consents": "What have members agreed to?"
+      "consents": "What have members agreed to?",
+      "alerts": {
+        "feedback": "{count, plural, one {# piece of feedback this week} other {# pieces of feedback this week}}",
+        "errors": "{count, plural, one {# error since yesterday} other {# errors since yesterday}}"
+      }
     },
     "sections": {
       "title": "Sections",
@@ -3475,7 +3483,11 @@
         "features": "Features",
         "retention": "Retention",
         "ai": "Get iT AI",
-        "audit": "Access"
+        "audit": "Access",
+        "results": "Results",
+        "content": "Content",
+        "feedback": "Feedback",
+        "errors": "Errors"
       },
       "empty": "No access yet.",
       "listTitle": "Who opened what, and when",
@@ -3549,6 +3561,175 @@
         "flow": "Onboarding"
       },
       "other": "Other page"
+    },
+    "results": {
+      "title": "Results",
+      "description": "Does Get iT really help members move forward?",
+      "days": "{count, plural, one {# day} other {# days}}",
+      "tiles": {
+        "goals": "Goals reached",
+        "goalsHint": "{count, plural, =0 {None set aside} one {# set aside} other {# set aside}}",
+        "habits": "Habits kept",
+        "habitsHint": "{kept, number} of {eligible, number} after 30 days",
+        "tasks": "Tasks done",
+        "tasksHint": "{count, plural, =0 {None overdue} one {# overdue} other {# overdue}}",
+        "pacts": "Pacts succeeded",
+        "pactsHint": "{count, plural, =0 {None ongoing} one {# ongoing} other {# ongoing}}"
+      },
+      "goals": {
+        "title": "Are goals reached?",
+        "note": "Goals reached or set aside during the period.",
+        "rate": "Success",
+        "detail": "{completed, number} reached, {archived, number} set aside",
+        "created": "Created",
+        "active": "Ongoing",
+        "median": "Median time"
+      },
+      "habits": {
+        "title": "Do habits stick?",
+        "note": "Habits at least 30 days old still checked in the last 7 days.",
+        "rate": "Still kept",
+        "detail": "{kept, number} of {eligible, number}",
+        "active": "Active",
+        "archived": "Stopped",
+        "checks": "Checks"
+      },
+      "tasks": {
+        "title": "Do tasks get done?",
+        "note": "Tasks created during the period and already done.",
+        "rate": "Done",
+        "detail": "{done, number} of {created, number}",
+        "overdue": "Overdue"
+      },
+      "pacts": {
+        "title": "Do pacts succeed?",
+        "note": "Pacts that ended during the period.",
+        "rate": "Succeeded",
+        "detail": "{succeeded, number} of {ended, number}",
+        "active": "Ongoing"
+      }
+    },
+    "content": {
+      "title": "Content",
+      "description": "What gets reactions in the Get iT Center.",
+      "posts": "{count, plural, =0 {No posts} one {# post} other {# posts}}",
+      "top": "Which posts get reactions?",
+      "topNote": "Ranked by reactions: likes, then comments and saves (×2), shares (×3).",
+      "empty": "No posts during the period.",
+      "noText": "Post without text",
+      "by": "{author}, {date}",
+      "byInGroup": "{author} in {group}, {date}",
+      "stats": {
+        "likes": "{count, plural, one {# like} other {# likes}}",
+        "comments": "{count, plural, one {# comment} other {# comments}}",
+        "saves": "{count, plural, one {# save} other {# saves}}",
+        "shares": "{count, plural, one {# share} other {# shares}}",
+        "views": "{count, plural, one {# view} other {# views}}"
+      },
+      "formats": "Which format works best?",
+      "formatsNote": "Average reactions per post.",
+      "formatNames": {
+        "progress": "Shared progress",
+        "question": "Questions",
+        "video": "Videos",
+        "photo": "Photos",
+        "text": "Text only"
+      },
+      "authors": "Who gets the most reactions?",
+      "authorsNote": "Members whose posts get the most reactions.",
+      "noReaction": "No reactions yet"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "description": "What members say about Get iT.",
+      "kinds": {
+        "idea": "Ideas",
+        "problem": "Problems",
+        "praise": "Likes",
+        "week": "One-week answers"
+      },
+      "topics": "What helps most?",
+      "topicsNote": "{count, plural, =0 {No answers yet} one {# answer since the start} other {# answers since the start}}, to the question asked after one week.",
+      "topicsEmpty": "Answers arrive one week after members sign up.",
+      "answers": "{count, plural, one {# answer} other {# answers}}",
+      "entries": "What members say",
+      "entriesNote": "Newest first.",
+      "empty": "No feedback during the period.",
+      "meta": "{kind}, {author}, {date}",
+      "helpsMost": "What helps most: {topic}"
+    },
+    "errors": {
+      "title": "Errors",
+      "description": "What breaks, where, and for how many people.",
+      "tiles": {
+        "total": "Errors",
+        "people": "People affected",
+        "routes": "Pages affected"
+      },
+      "chart": "How many errors per day?",
+      "groups": "Which errors come back?",
+      "groupsNote": "Cleaned messages: never an email, an id or a full address.",
+      "empty": "No errors during the period.",
+      "sources": {
+        "client": "Browser",
+        "server": "Server"
+      },
+      "unknownRoute": "Unknown page",
+      "people": "{count, plural, =0 {No one identified} one {# person} other {# people}}",
+      "lastSeen": "Last seen {date}"
+    }
+  },
+  "Feedback": {
+    "title": "Give feedback",
+    "description": "An idea, a problem or something you like: the Get iT team reads everything.",
+    "back": "Settings",
+    "open": "Give feedback",
+    "kindLabel": "It’s…",
+    "kinds": {
+      "idea": "An idea",
+      "problem": "A problem",
+      "praise": "Something I like"
+    },
+    "bodyLabel": {
+      "idea": "Your idea",
+      "problem": "What isn’t working?",
+      "praise": "What do you like?"
+    },
+    "placeholder": {
+      "idea": "It would be great if…",
+      "problem": "Where it happened, and what you were trying to do",
+      "praise": "What helps you most in Get iT"
+    },
+    "privacy": "The Get iT team will see your username so they can reply. Your feedback is deleted with your account.",
+    "submit": "Send",
+    "sent": "Thanks, it’s sent.",
+    "sentDetail": "The Get iT team reads every message. You can send another one anytime.",
+    "errors": {
+      "invalid": "Write at least a few words.",
+      "limitReached": "You’ve sent a lot of feedback today. Try again tomorrow.",
+      "unexpected": "Your feedback couldn’t be sent. Try again."
+    },
+    "week": {
+      "title": "What helps you most?",
+      "description": "You’ve been using Get iT for a week. Just one question, to know what to improve.",
+      "topics": {
+        "community": "The Community",
+        "messages": "Messages and pacts",
+        "development": "My development",
+        "goals": "Goals and habits",
+        "journal": "The Journal",
+        "coach": "Get iT AI",
+        "marketplace": "The Marketplace",
+        "ranked": "Ranked mode"
+      },
+      "bodyLabel": "Anything else? (optional)",
+      "bodyPlaceholder": "What helps, or what’s missing",
+      "submit": "Send",
+      "decline": "No thanks",
+      "close": "Close",
+      "thanks": "Thank you!",
+      "thanksDetail": "Your answer helps the Get iT team choose what to improve.",
+      "error": "Your answer couldn’t be sent. Try again."
     }
   }
 }

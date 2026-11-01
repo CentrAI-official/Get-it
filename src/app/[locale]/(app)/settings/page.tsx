@@ -37,6 +37,7 @@ import {
 import { PushSettingsCard } from "@/features/notifications/components/push-settings-card";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 import { MusicCatalogLink } from "@/features/stories/components/music-panels";
+import { FeedbackCard } from "@/features/feedback/components/feedback-card";
 import {
   PersonalizationSettings,
   PersonalizationSettingsSkeleton,
@@ -109,6 +110,7 @@ export default function SettingsPage() {
       <Suspense fallback={<PersonalizationSettingsSkeleton />}>
         <PersonalizationSettings />
       </Suspense>
+      <FeedbackCard />
       {/* Équipe Get iT seulement : rien ne s'affiche pour les autres */}
       <Suspense fallback={null}>
         <MusicCatalogLink />

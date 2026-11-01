@@ -162,6 +162,8 @@ model Profile {
   developmentPlans     DevelopmentPlan[]
   rankedEvaluations    RankedEvaluation[]
   analyticsEvents      AnalyticsEvent[]
+  feedback             Feedback[]
+  appErrors            AppError[]
   adminAuditEntries    AdminAuditEntry[]    @relation("AuditAdmin")
   adminAuditTargets    AdminAuditEntry[]    @relation("AuditTarget")
 
@@ -187,6 +189,8 @@ model UserSettings {
   showPresence             Boolean         @default(true) @map("show_presence")
   /// Accord pour l'analyse de mes intérêts (profilage, Loi 25 art. 8.1) ; null : désactivé (par défaut).
   personalizationConsentAt DateTime?       @map("personalization_consent_at") @db.Timestamptz(3)
+  /// Question « Qu’est-ce qui t’aide le plus? » après une semaine : répondue ou refusée ; null : pas encore posée.
+  feedbackPromptAt         DateTime?       @map("feedback_prompt_at") @db.Timestamptz(3)
   /// Dernier jour (fuseau de l'utilisateur) où « Ma journée » s'est ouvert tout seul.
   dayPanelSeenOn           DateTime?       @map("day_panel_seen_on") @db.Date
   createdAt                DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -1488,4 +1492,46 @@ model AdminAuditEntry {
   @@index([createdAt])
   @@index([targetUserId])
   @@map("admin_audit_log")
+}
+
+/// Avis d'un membre envoyé à l'équipe (Réglages › Donner mon avis), ou sa réponse
+/// à la question posée après une semaine. Effacé avec le compte.
+model Feedback {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  /// idea, problem, praise, ou week (la question d'une semaine).
+  kind      String
+  /// Question d'une semaine : ce qui aide le plus (src/features/feedback/rules.ts).
+  topic     String?
+  body      String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("feedback")
+}
+
+/// Erreur rencontrée dans l'application (navigateur ou serveur), sans données
+/// personnelles : message nettoyé, modèle de route plutôt que l'adresse.
+model AppError {
+  id        BigInt   @id @default(autoincrement())
+  /// Personne connectée quand l'erreur vient du navigateur ; null côté serveur.
+  userId    String?  @map("user_id") @db.Uuid
+  /// client ou server.
+  source    String
+  message   String
+  /// Identifiant que Next donne à une erreur serveur (le même pour une même erreur).
+  digest    String?
+  /// Modèle de route (« /community/posts/[id] »), jamais l'adresse complète.
+  route     String?
+  env       String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile Profile? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([env, createdAt])
+  @@index([userId, createdAt])
+  @@map("app_errors")
 }

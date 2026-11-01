@@ -259,3 +259,35 @@ export function AdminPanelSkeleton() {
     </div>
   );
 }
+
+/** Une part d'un total (ex. membres qui ont activé un réglage). */
+export function Meter({
+  label,
+  value,
+  ratio,
+  detail,
+}: {
+  label: string;
+  value: string;
+  ratio: number;
+  detail: string;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-sm font-medium">{label}</span>
+        <span className="text-2xl font-semibold">{value}</span>
+      </div>
+      <div
+        aria-hidden="true"
+        className="h-2.5 overflow-hidden rounded-full bg-primary/12"
+      >
+        <div
+          className="h-full rounded-full bg-primary"
+          style={{ width: `${Math.max(0, Math.min(1, ratio)) * 100}%` }}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">{detail}</p>
+    </div>
+  );
+}

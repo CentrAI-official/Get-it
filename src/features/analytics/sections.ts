@@ -98,6 +98,7 @@ export const ROUTE_RULES = [
   { pattern: "/habits/[id]/edit", section: "profile.habits" },
   { pattern: "/settings", section: "profile.settings" },
   { pattern: "/settings/music", section: "profile.settings" },
+  { pattern: "/settings/feedback", section: "profile.settings" },
   { pattern: "/coach", section: "coach.chat" },
   { pattern: "/notifications", section: "notifications.list" },
   { pattern: "/onboarding", section: "onboarding.flow" },

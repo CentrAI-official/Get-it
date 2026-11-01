@@ -3271,7 +3271,11 @@
       "features": "Fonctions",
       "retention": "Rétention",
       "ai": "Get iT AI",
-      "audit": "Accès"
+      "audit": "Accès",
+      "results": "Résultats",
+      "content": "Contenu",
+      "feedback": "Avis",
+      "errors": "Erreurs"
     },
     "signOut": "Se déconnecter",
     "period": {
@@ -3363,7 +3367,11 @@
       "watch": "À surveiller",
       "watchNote": "Les moins utilisées : à améliorer, à mieux expliquer ou à retirer.",
       "allFeatures": "Voir toutes les fonctions",
-      "consents": "Qu’est-ce que les membres ont accepté?"
+      "consents": "Qu’est-ce que les membres ont accepté?",
+      "alerts": {
+        "feedback": "{count, plural, one {# avis cette semaine} other {# avis cette semaine}}",
+        "errors": "{count, plural, one {# erreur depuis hier} other {# erreurs depuis hier}}"
+      }
     },
     "sections": {
       "title": "Sections",
@@ -3475,7 +3483,11 @@
         "features": "Fonctions",
         "retention": "Rétention",
         "ai": "Get iT AI",
-        "audit": "Accès"
+        "audit": "Accès",
+        "results": "Résultats",
+        "content": "Contenu",
+        "feedback": "Avis",
+        "errors": "Erreurs"
       },
       "empty": "Aucun accès pour l’instant.",
       "listTitle": "Qui a ouvert quoi, et quand",
@@ -3549,6 +3561,175 @@
         "flow": "Onboarding"
       },
       "other": "Autre page"
+    },
+    "results": {
+      "title": "Résultats",
+      "description": "Est-ce que Get iT aide vraiment les membres à avancer?",
+      "days": "{count, plural, one {# jour} other {# jours}}",
+      "tiles": {
+        "goals": "Objectifs atteints",
+        "goalsHint": "{count, plural, =0 {Aucun mis de côté} one {# mis de côté} other {# mis de côté}}",
+        "habits": "Habitudes tenues",
+        "habitsHint": "{kept, number} sur {eligible, number} après 30 jours",
+        "tasks": "Tâches faites",
+        "tasksHint": "{count, plural, =0 {Aucune en retard} one {# en retard} other {# en retard}}",
+        "pacts": "Pactes réussis",
+        "pactsHint": "{count, plural, =0 {Aucun en cours} one {# en cours} other {# en cours}}"
+      },
+      "goals": {
+        "title": "Les objectifs sont-ils atteints?",
+        "note": "Objectifs atteints ou mis de côté pendant la période.",
+        "rate": "Réussite",
+        "detail": "{completed, number} atteints, {archived, number} mis de côté",
+        "created": "Créés",
+        "active": "En cours",
+        "median": "Temps médian"
+      },
+      "habits": {
+        "title": "Les habitudes tiennent-elles?",
+        "note": "Habitudes d’au moins 30 jours encore cochées ces 7 derniers jours.",
+        "rate": "Encore tenues",
+        "detail": "{kept, number} sur {eligible, number}",
+        "active": "Actives",
+        "archived": "Arrêtées",
+        "checks": "Coches"
+      },
+      "tasks": {
+        "title": "Les tâches sont-elles faites?",
+        "note": "Tâches créées pendant la période et déjà faites.",
+        "rate": "Faites",
+        "detail": "{done, number} sur {created, number}",
+        "overdue": "En retard"
+      },
+      "pacts": {
+        "title": "Les pactes réussissent-ils?",
+        "note": "Pactes terminés pendant la période.",
+        "rate": "Réussis",
+        "detail": "{succeeded, number} sur {ended, number}",
+        "active": "En cours"
+      }
+    },
+    "content": {
+      "title": "Contenu",
+      "description": "Ce qui fait réagir dans le Centre Get iT.",
+      "posts": "{count, plural, =0 {Aucune publication} one {# publication} other {# publications}}",
+      "top": "Quelles publications font réagir?",
+      "topNote": "Classées par réactions : J’aime, puis commentaires et enregistrements (×2), partages (×3).",
+      "empty": "Aucune publication sur la période.",
+      "noText": "Publication sans texte",
+      "by": "{author}, le {date}",
+      "byInGroup": "{author} dans {group}, le {date}",
+      "stats": {
+        "likes": "{count, plural, one {# J’aime} other {# J’aime}}",
+        "comments": "{count, plural, one {# commentaire} other {# commentaires}}",
+        "saves": "{count, plural, one {# enregistrement} other {# enregistrements}}",
+        "shares": "{count, plural, one {# partage} other {# partages}}",
+        "views": "{count, plural, one {# vue} other {# vues}}"
+      },
+      "formats": "Quel format marche le mieux?",
+      "formatsNote": "Réactions moyennes par publication.",
+      "formatNames": {
+        "progress": "Progrès partagés",
+        "question": "Questions",
+        "video": "Vidéos",
+        "photo": "Photos",
+        "text": "Texte seul"
+      },
+      "authors": "Qui fait le plus réagir?",
+      "authorsNote": "Les membres dont les publications font le plus réagir.",
+      "noReaction": "Aucune réaction pour l’instant"
+    },
+    "feedback": {
+      "title": "Avis",
+      "description": "Ce que les membres disent de Get iT.",
+      "kinds": {
+        "idea": "Idées",
+        "problem": "Problèmes",
+        "praise": "J’aime",
+        "week": "Réponses d’une semaine"
+      },
+      "topics": "Qu’est-ce qui aide le plus?",
+      "topicsNote": "{count, plural, =0 {Aucune réponse pour l’instant} one {# réponse depuis le début} other {# réponses depuis le début}}, à la question posée après une semaine.",
+      "topicsEmpty": "Les réponses arrivent une semaine après l’inscription des membres.",
+      "answers": "{count, plural, one {# réponse} other {# réponses}}",
+      "entries": "Ce que les membres disent",
+      "entriesNote": "Du plus récent au plus ancien.",
+      "empty": "Aucun avis sur la période.",
+      "meta": "{kind}, {author}, le {date}",
+      "helpsMost": "Ce qui aide le plus : {topic}"
+    },
+    "errors": {
+      "title": "Erreurs",
+      "description": "Ce qui plante, où, et pour combien de personnes.",
+      "tiles": {
+        "total": "Erreurs",
+        "people": "Personnes touchées",
+        "routes": "Pages touchées"
+      },
+      "chart": "Combien d’erreurs par jour?",
+      "groups": "Quelles erreurs reviennent?",
+      "groupsNote": "Messages nettoyés : jamais de courriel, d’identifiant ni d’adresse complète.",
+      "empty": "Aucune erreur sur la période.",
+      "sources": {
+        "client": "Navigateur",
+        "server": "Serveur"
+      },
+      "unknownRoute": "Page inconnue",
+      "people": "{count, plural, =0 {Personne identifiée} one {# personne} other {# personnes}}",
+      "lastSeen": "Dernière fois le {date}"
+    }
+  },
+  "Feedback": {
+    "title": "Donner mon avis",
+    "description": "Une idée, un problème ou ce que tu aimes : l’équipe Get iT lit tout.",
+    "back": "Réglages",
+    "open": "Donner mon avis",
+    "kindLabel": "C’est…",
+    "kinds": {
+      "idea": "Une idée",
+      "problem": "Un problème",
+      "praise": "Ce que j’aime"
+    },
+    "bodyLabel": {
+      "idea": "Ton idée",
+      "problem": "Qu’est-ce qui ne fonctionne pas?",
+      "praise": "Qu’est-ce que tu aimes?"
+    },
+    "placeholder": {
+      "idea": "Ce serait bien si…",
+      "problem": "Où ça s’est passé, et ce que tu essayais de faire",
+      "praise": "Ce qui t’aide le plus dans Get iT"
+    },
+    "privacy": "L’équipe Get iT verra ton nom d’utilisateur pour pouvoir te répondre. Ton avis est effacé avec ton compte.",
+    "submit": "Envoyer",
+    "sent": "Merci, c’est envoyé.",
+    "sentDetail": "L’équipe Get iT lit chaque avis. Tu peux en envoyer un autre quand tu veux.",
+    "errors": {
+      "invalid": "Écris au moins quelques mots.",
+      "limitReached": "Tu as envoyé beaucoup d’avis aujourd’hui. Réessaie demain.",
+      "unexpected": "Ton avis n’a pas pu être envoyé. Réessaie."
+    },
+    "week": {
+      "title": "Qu’est-ce qui t’aide le plus?",
+      "description": "Tu utilises Get iT depuis une semaine. Une seule question, pour savoir quoi améliorer.",
+      "topics": {
+        "community": "La Communauté",
+        "messages": "La Messagerie et les pactes",
+        "development": "Mon développement",
+        "goals": "Objectifs et habitudes",
+        "journal": "Le Journal",
+        "coach": "Get iT AI",
+        "marketplace": "La Marketplace",
+        "ranked": "Le mode Ranked"
+      },
+      "bodyLabel": "Un mot de plus? (facultatif)",
+      "bodyPlaceholder": "Ce qui t’aide, ou ce qui manque",
+      "submit": "Envoyer",
+      "decline": "Non merci",
+      "close": "Fermer",
+      "thanks": "Merci!",
+      "thanksDetail": "Ta réponse aide l’équipe Get iT à choisir quoi améliorer.",
+      "error": "Ta réponse n’a pas pu être envoyée. Réessaie."
     }
   }
 }

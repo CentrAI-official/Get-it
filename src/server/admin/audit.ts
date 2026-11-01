@@ -25,8 +25,12 @@ export const ADMIN_PAGES = [
   "overview",
   "sections",
   "features",
+  "results",
   "retention",
+  "content",
   "ai",
+  "feedback",
+  "errors",
   "audit",
 ] as const;
 export type AdminPage = (typeof ADMIN_PAGES)[number];
