@@ -46,17 +46,30 @@ La version de test est hébergée sur [Vercel](https://vercel.com) (plan Pro : l
 
 Changer une variable sur Vercel demande un nouveau déploiement (**Deployments → Redeploy**).
 
+### Application admin (dashboard de l’équipe)
+
+Le dashboard de l’équipe est le même code, déployé une deuxième fois sur sa propre adresse. Avec `APP_SURFACE=admin`, ce déploiement ne sert que `/admin` (tout le reste mène au dashboard) ; l’application des membres, elle, répond « introuvable » sous `/admin`. Trois verrous protègent l’accès : Vercel Authentication devant tout le site, le rôle `admin` relu en base, et la double authentification (code d’une application d’authentification) ; chaque connexion et chaque page consultée sont inscrites au journal des accès.
+
+1. Sur Vercel : **Add New → Project**, importer **le même dépôt** une deuxième fois (par exemple `get-it-admin`), région `yul1` (lue dans `vercel.json`).
+2. **Settings → Environment Variables** : `APP_SURFACE=admin`, plus `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` et `DATABASE_URL` (les mêmes que l’application). Rien d’autre : ni clé Anthropic, ni clé secrète Supabase, ni code d’invitation.
+3. **Settings → Deployment Protection** : **Vercel Authentication**, portée **All Deployments** (gratuit sur tous les plans). Seuls les membres de l’équipe Vercel peuvent alors ouvrir l’adresse, y compris l’adresse de production `…vercel.app`. Inviter les autres fondateurs dans l’équipe Vercel.
+4. Donner le rôle d’équipe aux fondateurs, dans le **SQL Editor** de Supabase : `UPDATE profiles SET role = 'admin' WHERE id = (SELECT id FROM auth.users WHERE email = '…');`. Les comptes `admin` ne comptent jamais dans les statistiques ; un compte de test se marque avec `analytics_excluded = true`.
+5. Ouvrir `https://<projet-admin>.vercel.app/fr/admin` : courriel et mot de passe du compte Get iT, puis, la première fois, relier une application d’authentification (Google Authenticator, 1Password, Authy…) en scannant le code QR. Supabase Auth active les codes TOTP par défaut (**Authentication → Multi-Factor**).
+
+En local : `npm run dev:admin` (port 3001, dossier de build `.next-admin`), à côté de `npm run dev` pour l’application.
+
 ## Scripts
 
-| Commande                      | Rôle                                  |
-| ----------------------------- | ------------------------------------- |
-| `npm run dev`                 | Serveur de développement              |
-| `npm run build` / `npm start` | Build et serveur de production        |
-| `npm run check`               | Lint, vérification des types et tests |
-| `npm run format`              | Formate le code avec Prettier         |
-| `npm run db:migrate`          | Crée et applique une migration Prisma |
-| `npm run db:deploy`           | Applique les migrations existantes    |
-| `npm run db:studio`           | Explore la base de données            |
+| Commande                      | Rôle                                                 |
+| ----------------------------- | ---------------------------------------------------- |
+| `npm run dev`                 | Serveur de développement                             |
+| `npm run dev:admin`           | Application admin (dashboard de l’équipe), port 3001 |
+| `npm run build` / `npm start` | Build et serveur de production                       |
+| `npm run check`               | Lint, vérification des types et tests                |
+| `npm run format`              | Formate le code avec Prettier                        |
+| `npm run db:migrate`          | Crée et applique une migration Prisma                |
+| `npm run db:deploy`           | Applique les migrations existantes                   |
+| `npm run db:studio`           | Explore la base de données                           |
 
 ## Structure
 

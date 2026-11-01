@@ -1,7 +1,9 @@
 import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
+import { adminSurfaceRedirect } from "./features/admin/surface";
 import { getAuthRedirect } from "./features/auth/access";
 import { routing } from "./i18n/routing";
+import { getServerEnv } from "./server/env";
 import { refreshSession } from "./server/supabase/proxy";
 
 // Détecte la langue (cookie, puis navigateur) et redirige vers /fr ou /en
@@ -13,11 +15,16 @@ export default async function proxy(request: NextRequest) {
   // Rafraîchit la session : les nouveaux cookies partent avec la réponse de next-intl
   const userId = await refreshSession(request, response);
 
-  const target = getAuthRedirect({
-    pathname: request.nextUrl.pathname,
-    search: request.nextUrl.search,
-    isAuthenticated: userId !== null,
-  });
+  // Application admin : seul /admin existe, et ses pages vérifient elles-mêmes
+  // la session, le rôle et la double authentification
+  const target =
+    getServerEnv().APP_SURFACE === "admin"
+      ? adminSurfaceRedirect(request.nextUrl.pathname)
+      : getAuthRedirect({
+          pathname: request.nextUrl.pathname,
+          search: request.nextUrl.search,
+          isAuthenticated: userId !== null,
+        });
   if (!target) return response;
 
   // Redirection selon la session, en conservant les cookies et en-têtes déjà posés

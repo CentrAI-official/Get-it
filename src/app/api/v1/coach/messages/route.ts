@@ -5,6 +5,7 @@ import {
 } from "@/features/coach/limits";
 import { getSessionUser } from "@/server/auth/session";
 import { startCoachMessage } from "@/server/coach/service";
+import { getServerEnv } from "@/server/env";
 
 const STATUS: Record<CoachError, number> = {
   notConfigured: 503,
@@ -20,6 +21,10 @@ const STATUS: Record<CoachError, number> = {
  * (une ligne JSON par événement). Utilisé par le web et la future app mobile.
  */
 export async function POST(request: Request) {
+  // Réservé à l'application des membres, jamais à l'application admin
+  if (getServerEnv().APP_SURFACE !== "app") {
+    return Response.json({ error: "notFound" }, { status: 404 });
+  }
   const user = await getSessionUser();
   if (!user) {
     return Response.json({ error: "unauthorized" }, { status: 401 });

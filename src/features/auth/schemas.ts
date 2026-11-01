@@ -9,7 +9,8 @@ export const PASSWORD_MAX_LENGTH = 72;
 /** Message d'erreur Zod = clé de traduction de `Auth.errors`. */
 const error = (key: AuthErrorKey) => ({ error: key });
 
-const email = z
+/** Courriel nettoyé (espaces autour, majuscules), comme Supabase l'enregistre. */
+export const emailSchema = z
   .string(error("emailInvalid"))
   .trim()
   .toLowerCase()
@@ -24,7 +25,7 @@ const locale = z.enum(routing.locales);
 
 export const signInSchema = z.object({
   locale,
-  email,
+  email: emailSchema,
   password: z
     .string(error("passwordRequired"))
     .min(1, error("passwordRequired")),
@@ -34,7 +35,7 @@ export const signInSchema = z.object({
 export const signUpSchema = z
   .object({
     locale,
-    email,
+    email: emailSchema,
     password: newPassword,
     // Retapé pour éviter une faute de frappe dans un mot de passe masqué
     confirmPassword: z.string(error("passwordMismatch")),
@@ -51,7 +52,7 @@ export const signUpSchema = z
     path: ["confirmPassword"],
   });
 
-export const forgotPasswordSchema = z.object({ locale, email });
+export const forgotPasswordSchema = z.object({ locale, email: emailSchema });
 
 export const resetPasswordSchema = z
   .object({

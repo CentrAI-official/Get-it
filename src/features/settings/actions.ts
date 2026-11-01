@@ -6,6 +6,7 @@ import type { ConfirmState } from "@/components/confirm-dialog";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { deleteAccount } from "@/server/account/service";
+import { setPersonalization } from "@/server/analytics/personalization";
 import { signOut } from "@/server/auth/service";
 import { getSessionUser, requireUser } from "@/server/auth/session";
 import { setShowPresence } from "@/server/presence/service";
@@ -49,6 +50,19 @@ export async function deleteAccountAction(
     href: { pathname: "/login", query: { accountDeleted: "1" } },
     locale,
   });
+}
+
+/** « Personnaliser mon expérience » : accord pour l'analyse de mes intérêts (désactivé par défaut). */
+export async function setPersonalizationAction(enabled: unknown) {
+  if (typeof enabled !== "boolean") return false;
+  const user = await requireUser();
+  try {
+    await setPersonalization(user.id, enabled);
+    return true;
+  } catch (error) {
+    console.error("Réglage de personnalisation impossible", error);
+    return false;
+  }
 }
 
 /** « Montrer quand je suis en ligne » (réciproque : sinon je ne vois pas celle des autres). */

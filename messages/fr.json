@@ -319,6 +319,14 @@
         "label": "Montrer quand je suis en ligne",
         "hint": "Si tu la caches, tu ne vois pas non plus quand tes contacts sont en ligne.",
         "error": "Le réglage n’a pas pu être enregistré. Réessaie."
+      },
+      "personalization": {
+        "title": "Données et personnalisation",
+        "description": "Pour améliorer Get iT, l’équipe mesure le temps passé dans chaque section et les fonctions utilisées par l’ensemble des membres.",
+        "never": "Jamais tes messages, ton journal, tes réponses aux questionnaires ni ce que tu écris. Ces mesures sont gardées 13 mois au plus et effacées avec ton compte.",
+        "label": "Personnaliser mon expérience",
+        "hint": "Get iT pourra analyser tes intérêts (les sections et les contenus que tu regardes) pour te proposer ce qui t’aide le plus. Désactivé par défaut ; tu peux l’arrêter en tout temps.",
+        "error": "Le réglage n’a pas pu être enregistré. Réessaie."
       }
     },
     "refresh": {
@@ -3250,5 +3258,297 @@
     "followersEmptyOther": "Personne ne suit encore {name}.",
     "followingEmptyMine": "Suis des membres du Centre pour voir leurs publications dans le fil « Abonnements ».",
     "followingEmptyOther": "{name} ne suit encore personne."
+  },
+  "Admin": {
+    "metadata": {
+      "title": "Dashboard de l’équipe"
+    },
+    "badge": "Équipe",
+    "nav": {
+      "label": "Sections du dashboard",
+      "overview": "Vue d’ensemble",
+      "sections": "Sections",
+      "features": "Fonctions",
+      "retention": "Rétention",
+      "ai": "Get iT AI",
+      "audit": "Accès"
+    },
+    "signOut": "Se déconnecter",
+    "period": {
+      "label": "Période",
+      "option": "{days, number} jours"
+    },
+    "access": {
+      "notice": "Réservé aux fondateurs de Get iT. Chaque connexion et chaque page consultée sont inscrites au journal des accès.",
+      "signIn": {
+        "title": "Accès de l’équipe",
+        "email": "Courriel",
+        "password": "Mot de passe",
+        "submit": "Continuer",
+        "pending": "Vérification…"
+      },
+      "verify": {
+        "title": "Code de vérification",
+        "description": "Entre le code à 6 chiffres affiché par ton application d’authentification.",
+        "code": "Code à 6 chiffres",
+        "submit": "Ouvrir le dashboard",
+        "pending": "Vérification…"
+      },
+      "enroll": {
+        "title": "Double authentification",
+        "description": "Première connexion : relie une application d’authentification (Google Authenticator, 1Password, Authy…). Elle te donnera un nouveau code à chaque connexion.",
+        "scan": "Scanne ce code avec ton application, puis entre le code qu’elle affiche.",
+        "qrAlt": "Code QR à scanner avec l’application d’authentification",
+        "secret": "Ou entre cette clé à la main :",
+        "loading": "Préparation du code…",
+        "failed": "Le code n’a pas pu être préparé.",
+        "retry": "Réessayer"
+      },
+      "errors": {
+        "invalid": "Vérifie le courriel et le mot de passe.",
+        "denied": "Courriel ou mot de passe invalide, ou compte sans accès au dashboard.",
+        "code": "Ce code n’est pas valide. Entre le code affiché maintenant.",
+        "unexpected": "Une erreur est survenue. Réessaie.",
+        "rateLimited": "Trop d’essais de connexion. Attends quelques minutes, puis réessaie.",
+        "unavailable": "Connexion impossible pour l’instant (Supabase ne répond pas). Ce n’est pas ton mot de passe : réessaie dans un instant."
+      }
+    },
+    "common": {
+      "reach": "{reach} des actifs",
+      "share": "{share} du temps",
+      "minutes": "{minutes} min",
+      "perUser": "{minutes} min par personne",
+      "none": "—",
+      "chartLabel": "{title}, du {from} au {to}. Maximum : {max, number}.",
+      "excluded": "Les comptes de l’équipe et les comptes de test ne comptent pas.",
+      "vsPeriod": "vs les {days, number} jours d’avant",
+      "vsWeek": "vs la semaine d’avant",
+      "users": "{count, plural, =0 {Personne} one {# personne} other {# personnes}}",
+      "actions": "{count, plural, =0 {Aucune action} one {# action} other {# actions}}"
+    },
+    "overview": {
+      "title": "Vue d’ensemble",
+      "description": "Qui utilise Get iT, et est-ce que les gens progressent?",
+      "stats": {
+        "members": "Membres",
+        "membersHint": "{count, plural, =0 {Aucun n’a terminé l’onboarding} one {# a terminé l’onboarding} other {# ont terminé l’onboarding}}",
+        "newMembers": "Nouveaux",
+        "newMembersHint": "Inscrits sur la période",
+        "dau": "Actifs aujourd’hui",
+        "wau": "Actifs, 7 jours",
+        "mau": "Actifs, 30 jours",
+        "stickiness": "Fidélité",
+        "minutes": "Minutes par jour",
+        "minutesHint": "Temps actif moyen d’une personne un jour où elle vient",
+        "personalized": "Personnalisation",
+        "personalizedHint": "{count, plural, =0 {Aucun membre ne l’a activée} one {# membre l’a activée} other {# membres l’ont activée}}",
+        "aiConsent": "Get iT AI",
+        "aiConsentHint": "{count, plural, =0 {Aucun membre ne l’a activé} one {# membre l’a activé} other {# membres l’ont activé}}",
+        "active": "Membres actifs",
+        "activeHint": "Au moins un jour sur la période"
+      },
+      "charts": {
+        "active": "Combien de membres viennent chaque jour?",
+        "signups": "Combien de nouveaux membres?",
+        "minutes": "Combien de temps restent-ils?"
+      },
+      "activeNote": "Actif : a ouvert l’application ou agi (publication, message, XP, Get iT AI…) ce jour-là.",
+      "hero": {
+        "title": "Est-ce que les membres progressent?",
+        "caption": "{share} des membres actifs ces 7 derniers jours ont fait une action de progrès (habitude, tâche, journal…) au moins 3 jours.",
+        "empty": "Pas encore de membres actifs ces 7 derniers jours."
+      },
+      "works": "Ce qui marche",
+      "worksNote": "Les fonctions qui touchent le plus de membres actifs.",
+      "watch": "À surveiller",
+      "watchNote": "Les moins utilisées : à améliorer, à mieux expliquer ou à retirer.",
+      "allFeatures": "Voir toutes les fonctions",
+      "consents": "Qu’est-ce que les membres ont accepté?"
+    },
+    "sections": {
+      "title": "Sections",
+      "description": "Où les membres passent leur temps, de la catégorie la plus utilisée à la moins utilisée.",
+      "categories": "Où passent-ils leur temps?",
+      "sections": "Quelles pages retiennent le plus?",
+      "overlays": "Quelles fenêtres s’ouvrent?",
+      "users": "{users, plural, one {# personne mesurée} other {# personnes mesurées}} sur la période",
+      "empty": "Pas encore de temps mesuré. Les données arrivent dès que des membres utilisent l’application.",
+      "note": "Temps actif : l’onglet est visible et la personne a touché, tapé ou défilé dans la dernière minute (ou une vidéo joue).",
+      "opensCount": "{count, plural, one {# ouverture} other {# ouvertures}}"
+    },
+    "features": {
+      "title": "Fonctions",
+      "description": "Ce qui est le plus utilisé, et ce qui l’est le moins.",
+      "activeUsers": "{count, plural, one {# membre actif} other {# membres actifs}} sur la période",
+      "unused": "Jamais utilisée sur la période",
+      "names": {
+        "posts": "Publications",
+        "shares": "Partages",
+        "comments": "Commentaires",
+        "likes": "J’aime",
+        "saves": "Enregistrements",
+        "stories": "Stories publiées",
+        "storyViews": "Stories regardées",
+        "messages": "Messages",
+        "contacts": "Demandes de contact",
+        "follows": "Abonnements",
+        "groups": "Groupes rejoints",
+        "pacts": "Pactes",
+        "goals": "Objectifs créés",
+        "tasks": "Tâches faites",
+        "habits": "Habitudes cochées",
+        "journal": "Pages de journal",
+        "checkIns": "Check-ins",
+        "calendarEvents": "Événements du calendrier",
+        "coach": "Coach Get iT AI",
+        "goalPlans": "Plans d’objectif",
+        "developmentPlans": "Plans de Mon développement",
+        "itemEdits": "Modifier avec Get iT AI",
+        "ranked": "Évaluations Ranked",
+        "favorites": "Favoris de la Marketplace",
+        "listings": "Annonces soumises"
+      },
+      "top": "Les plus utilisées",
+      "topNote": "La part des membres actifs qui s’en servent.",
+      "bottom": "Les moins utilisées",
+      "bottomNote": "À améliorer, à mieux expliquer ou à retirer.",
+      "all": "Toutes les fonctions"
+    },
+    "retention": {
+      "title": "Rétention",
+      "description": "Est-ce que les gens reviennent?",
+      "cohorts": "Est-ce que les nouveaux reviennent?",
+      "cohortsNote": "Part des inscrits de la semaine revenus le lendemain, puis actifs pendant chacune des 4 semaines suivantes. « — » : la période n’est pas encore passée.",
+      "week": "Semaine du {day}",
+      "size": "{count, plural, =0 {Aucun inscrit} one {# inscrit} other {# inscrits}}",
+      "day1": "Lendemain",
+      "weekN": "Semaine {n, number}",
+      "funnel": "Où les nouveaux décrochent-ils?",
+      "funnelNote": "Personnes inscrites pendant la période, depuis au moins 7 jours.",
+      "steps": {
+        "signedUp": "Inscrites",
+        "onboarded": "Onboarding terminé",
+        "firstGoal": "Premier objectif",
+        "firstHabit": "Première habitude cochée",
+        "returned": "Revenues après 7 jours"
+      },
+      "empty": "Aucune inscription sur ces semaines.",
+      "weekHeader": "Semaine d’inscription",
+      "next": "{share} passent à l’étape suivante"
+    },
+    "ai": {
+      "title": "Get iT AI",
+      "description": "Combien Get iT AI sert, à quoi, et si ses propositions sont gardées.",
+      "stats": {
+        "requests": "Demandes",
+        "users": "Personnes",
+        "input": "Jetons envoyés",
+        "output": "Jetons reçus",
+        "cacheReadHint": "{count} lus du cache"
+      },
+      "chart": "Combien de demandes par jour?",
+      "kinds": "À quoi sert Get iT AI?",
+      "kindNames": {
+        "coach": "Coach",
+        "goal_plan": "Plan d’objectif",
+        "development_plan": "Plan de Mon développement",
+        "development_revision": "Modification d’un plan",
+        "ranked_analysis": "Analyse Ranked",
+        "item_edit": "Modifier avec Get iT AI"
+      },
+      "proposals": "Ses propositions sont-elles gardées?",
+      "proposalStatus": {
+        "applied": "Ajoutées",
+        "dismissed": "Écartées",
+        "pending": "En attente"
+      },
+      "empty": "Aucune demande à Get iT AI sur la période.",
+      "proposalsNote": "Ce que les membres font des ajouts proposés par le coach.",
+      "proposalsSummary": "Ajoutées : {applied, number}, écartées : {dismissed, number}, en attente : {pending, number}."
+    },
+    "audit": {
+      "title": "Journal des accès",
+      "description": "Chaque connexion de l’équipe et chaque page du dashboard consultée.",
+      "pages": {
+        "overview": "Vue d’ensemble",
+        "sections": "Sections",
+        "features": "Fonctions",
+        "retention": "Rétention",
+        "ai": "Get iT AI",
+        "audit": "Accès"
+      },
+      "empty": "Aucun accès pour l’instant.",
+      "listTitle": "Qui a ouvert quoi, et quand",
+      "signedIn": "s’est connecté",
+      "viewed": "a consulté {page}"
+    },
+    "categories": {
+      "community": "Communauté",
+      "messages": "Messagerie",
+      "services": "Mon développement",
+      "marketplace": "Marketplace",
+      "profile": "Profil",
+      "today": "Ma journée",
+      "coach": "Get iT AI",
+      "notifications": "Notifications",
+      "onboarding": "Onboarding",
+      "other": "Autre"
+    },
+    "sectionNames": {
+      "community": {
+        "feed": "Fil",
+        "post": "Publication",
+        "member": "Profil d’un membre",
+        "follows": "Abonnés et abonnements",
+        "groups": "Groupes",
+        "group": "Un groupe",
+        "events": "Événements",
+        "moderation": "Modération",
+        "storyViewer": "Visionneuse des stories",
+        "storyStudio": "Studio des stories"
+      },
+      "messages": {
+        "inbox": "Boîte",
+        "conversation": "Conversation",
+        "contacts": "Contacts",
+        "new": "Nouveau message"
+      },
+      "services": {
+        "calendar": "Calendrier",
+        "plan": "Un plan",
+        "event": "Événement du calendrier"
+      },
+      "marketplace": {
+        "vitrine": "Vitrine",
+        "gear": "Gear",
+        "favorites": "Mes favoris",
+        "sell": "Vendre",
+        "mine": "Mes annonces",
+        "approvals": "Approbations",
+        "listing": "Une annonce"
+      },
+      "profile": {
+        "overview": "Aperçu",
+        "posts": "Publications",
+        "journal": "Journal",
+        "ranked": "Ranked",
+        "goals": "Objectifs",
+        "habits": "Habitudes",
+        "settings": "Réglages"
+      },
+      "today": {
+        "dayPanel": "Ma journée"
+      },
+      "coach": {
+        "chat": "Conversation"
+      },
+      "notifications": {
+        "list": "Notifications"
+      },
+      "onboarding": {
+        "flow": "Onboarding"
+      },
+      "other": "Autre page"
+    }
   }
 }

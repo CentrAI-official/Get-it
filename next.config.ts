@@ -19,6 +19,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // `npm run dev:admin` : l'application admin a son propre dossier de build
+  // (scripts/dev-admin.mjs) ; partout ailleurs, .next
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,

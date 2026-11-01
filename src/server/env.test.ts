@@ -6,10 +6,16 @@ const validEnv = {
   NEXT_PUBLIC_SUPABASE_URL: "https://abcdefgh.supabase.co",
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_abc123",
 };
+/** Valeurs par défaut ajoutées par la validation. */
+const parsedEnv = {
+  ...validEnv,
+  APP_SURFACE: "app",
+  VERCEL_ENV: "development",
+};
 
 describe("parseServerEnv", () => {
   it("accepte une configuration complète", () => {
-    expect(parseServerEnv(validEnv)).toEqual(validEnv);
+    expect(parseServerEnv(validEnv)).toEqual(parsedEnv);
   });
 
   it("signale clairement une variable manquante", () => {
@@ -33,7 +39,7 @@ describe("parseServerEnv", () => {
 
   it("accepte un code d'invitation facultatif d'au moins 4 caractères", () => {
     expect(parseServerEnv({ ...validEnv, SIGNUP_INVITE_CODE: "" })).toEqual(
-      validEnv,
+      parsedEnv,
     );
     expect(
       parseServerEnv({ ...validEnv, SIGNUP_INVITE_CODE: " GETIT-2026 " })
@@ -46,7 +52,7 @@ describe("parseServerEnv", () => {
 
   it("accepte la clé secrète Supabase côté serveur, facultative", () => {
     expect(parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "" })).toEqual(
-      validEnv,
+      parsedEnv,
     );
     expect(
       parseServerEnv({ ...validEnv, SUPABASE_SECRET_KEY: "sb_secret_abc123" })
@@ -59,7 +65,7 @@ describe("parseServerEnv", () => {
 
   it("accepte la clé de l'API Anthropic, facultative", () => {
     expect(parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "" })).toEqual(
-      validEnv,
+      parsedEnv,
     );
     expect(
       parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "sk-ant-api03-abc" })
@@ -68,6 +74,21 @@ describe("parseServerEnv", () => {
     expect(() =>
       parseServerEnv({ ...validEnv, ANTHROPIC_API_KEY: "abc" }),
     ).toThrow(/ANTHROPIC_API_KEY/);
+  });
+
+  it("distingue l'application des membres de l'application admin", () => {
+    expect(parseServerEnv({ ...validEnv, APP_SURFACE: "" }).APP_SURFACE).toBe(
+      "app",
+    );
+    expect(
+      parseServerEnv({ ...validEnv, APP_SURFACE: "admin" }).APP_SURFACE,
+    ).toBe("admin");
+    expect(() =>
+      parseServerEnv({ ...validEnv, APP_SURFACE: "public" }),
+    ).toThrow(/APP_SURFACE/);
+    expect(
+      parseServerEnv({ ...validEnv, VERCEL_ENV: "production" }).VERCEL_ENV,
+    ).toBe("production");
   });
 
   it("refuse une clé Anthropic dans une variable publique", () => {

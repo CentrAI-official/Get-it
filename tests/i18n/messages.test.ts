@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { IntlMessageFormat } from "intl-messageformat";
 import { describe, expect, it } from "vitest";
 import { routing } from "@/i18n/routing";
 import en from "../../messages/en.json";
@@ -39,6 +40,25 @@ describe("traductions", () => {
         .filter(([, value]) => value.trim() === "")
         .map(([key]) => key);
       expect(empty).toEqual([]);
+    },
+  );
+
+  it.each(Object.entries(catalogs))(
+    "ont une syntaxe ICU valide (%s)",
+    (locale, messages) => {
+      // Même analyseur que next-intl : une erreur ici casse la page qui affiche
+      // le texte (ex. « {n, number, plural, …} » au lieu de « {n, plural, …} »)
+      const invalid = Object.entries(messages)
+        .filter(([, value]) => {
+          try {
+            new IntlMessageFormat(value, locale);
+            return false;
+          } catch {
+            return true;
+          }
+        })
+        .map(([key]) => key);
+      expect(invalid).toEqual([]);
     },
   );
 

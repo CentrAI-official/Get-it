@@ -4,6 +4,7 @@ import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { PullToRefresh } from "@/components/layout/pull-to-refresh";
+import { ActivityTracker } from "@/features/analytics/components/activity-tracker";
 import { UnreadPoller } from "@/features/messages/components/unread-poller";
 import { NotificationPoller } from "@/features/notifications/components/notification-bell";
 import { AccountThemeSync } from "@/features/settings/components/account-theme";
@@ -53,6 +54,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       </Suspense>
       <UnreadPoller />
       <NotificationPoller />
+      {/* Temps actif par page (dashboard de l'équipe) ; usePathname suspend */}
+      <Suspense fallback={null}>
+        <ActivityTracker />
+      </Suspense>
       {/* Thème choisi sur un autre appareil */}
       <Suspense fallback={null}>
         <AccountThemeSync />

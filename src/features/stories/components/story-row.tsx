@@ -41,6 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useTrackedOverlay } from "@/features/analytics/tracker";
 import { ReportDialog } from "@/features/community/components/report-dialog";
 import type { CommunityError } from "@/features/community/rules";
 import { MESSAGE_MAX_LENGTH } from "@/features/messages/rules";
@@ -284,6 +285,7 @@ function StoryViewer({
   const seen = useSeenStories();
   const ring = opened ? rings[opened.ring] : undefined;
   const story = opened && ring ? ring.stories[opened.story] : undefined;
+  useTrackedOverlay("community.storyViewer", opened !== null);
   const [report, setReport] = useState<string | null>(null);
   // Son coupé ou non, gardé d'une story à l'autre
   const [muted, setMuted] = useState(false);

@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useTrackedOverlay } from "@/features/analytics/tracker";
 import type { DayPlan } from "@/server/day/service";
 import { markDayPanelSeenAction } from "../actions";
 import { summarizePlannedDay } from "../day-plan";
@@ -38,6 +39,7 @@ export function DayPanelDialog({
 }: DayPanelDialogProps) {
   const t = useTranslations("Today.panel");
   const { open } = useDayPanel();
+  useTrackedOverlay("today.dayPanel", open);
 
   // Avancement enregistré, affiché sur le bouton d'ouverture du Profil
   const progress = useMemo(() => summarizePlannedDay(plan).day, [plan]);

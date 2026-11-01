@@ -319,6 +319,14 @@
         "label": "Show when I’m online",
         "hint": "If you hide it, you won’t see when your contacts are online either.",
         "error": "The setting couldn’t be saved. Try again."
+      },
+      "personalization": {
+        "title": "Data and personalization",
+        "description": "To improve Get iT, the team measures the time spent in each section and the features used across all members.",
+        "never": "Never your messages, your journal, your questionnaire answers or anything you write. These measurements are kept 13 months at most and deleted with your account.",
+        "label": "Personalize my experience",
+        "hint": "Get iT may analyze your interests (the sections and content you look at) to suggest what helps you most. Off by default; you can turn it off at any time.",
+        "error": "The setting couldn’t be saved. Try again."
       }
     },
     "refresh": {
@@ -3250,5 +3258,297 @@
     "followersEmptyOther": "Nobody follows {name} yet.",
     "followingEmptyMine": "Follow Hub members to see their posts in the “Following” feed.",
     "followingEmptyOther": "{name} isn’t following anyone yet."
+  },
+  "Admin": {
+    "metadata": {
+      "title": "Team dashboard"
+    },
+    "badge": "Team",
+    "nav": {
+      "label": "Dashboard sections",
+      "overview": "Overview",
+      "sections": "Sections",
+      "features": "Features",
+      "retention": "Retention",
+      "ai": "Get iT AI",
+      "audit": "Access"
+    },
+    "signOut": "Sign out",
+    "period": {
+      "label": "Period",
+      "option": "{days, number} days"
+    },
+    "access": {
+      "notice": "For Get iT founders only. Every sign-in and every page viewed is recorded in the access log.",
+      "signIn": {
+        "title": "Team access",
+        "email": "Email",
+        "password": "Password",
+        "submit": "Continue",
+        "pending": "Checking…"
+      },
+      "verify": {
+        "title": "Verification code",
+        "description": "Enter the 6-digit code shown by your authenticator app.",
+        "code": "6-digit code",
+        "submit": "Open the dashboard",
+        "pending": "Checking…"
+      },
+      "enroll": {
+        "title": "Two-factor authentication",
+        "description": "First sign-in: link an authenticator app (Google Authenticator, 1Password, Authy…). It will give you a new code at every sign-in.",
+        "scan": "Scan this code with your app, then enter the code it shows.",
+        "qrAlt": "QR code to scan with your authenticator app",
+        "secret": "Or enter this key manually:",
+        "loading": "Preparing the code…",
+        "failed": "The code couldn’t be prepared.",
+        "retry": "Try again"
+      },
+      "errors": {
+        "invalid": "Check the email and password.",
+        "denied": "Invalid email or password, or an account without dashboard access.",
+        "code": "This code isn’t valid. Enter the code shown now.",
+        "unexpected": "Something went wrong. Try again.",
+        "rateLimited": "Too many sign-in attempts. Wait a few minutes, then try again.",
+        "unavailable": "Can’t sign in right now (Supabase isn’t answering). It isn’t your password: try again in a moment."
+      }
+    },
+    "common": {
+      "reach": "{reach} of active members",
+      "share": "{share} of time",
+      "minutes": "{minutes} min",
+      "perUser": "{minutes} min per person",
+      "none": "—",
+      "chartLabel": "{title}, from {from} to {to}. Maximum: {max, number}.",
+      "excluded": "Team and test accounts aren’t counted.",
+      "vsPeriod": "vs the previous {days, number} days",
+      "vsWeek": "vs the week before",
+      "users": "{count, plural, =0 {No one} one {# person} other {# people}}",
+      "actions": "{count, plural, =0 {No actions} one {# action} other {# actions}}"
+    },
+    "overview": {
+      "title": "Overview",
+      "description": "Who uses Get iT, and are people making progress?",
+      "stats": {
+        "members": "Members",
+        "membersHint": "{count, plural, =0 {None finished onboarding} one {# finished onboarding} other {# finished onboarding}}",
+        "newMembers": "New",
+        "newMembersHint": "Signed up during the period",
+        "dau": "Active today",
+        "wau": "Active, 7 days",
+        "mau": "Active, 30 days",
+        "stickiness": "Stickiness",
+        "minutes": "Minutes per day",
+        "minutesHint": "Average active time of a person on a day they come",
+        "personalized": "Personalization",
+        "personalizedHint": "{count, plural, =0 {No member turned it on} one {# member turned it on} other {# members turned it on}}",
+        "aiConsent": "Get iT AI",
+        "aiConsentHint": "{count, plural, =0 {No member turned it on} one {# member turned it on} other {# members turned it on}}",
+        "active": "Active members",
+        "activeHint": "At least one day during the period"
+      },
+      "charts": {
+        "active": "How many members come each day?",
+        "signups": "How many new members?",
+        "minutes": "How long do they stay?"
+      },
+      "activeNote": "Active: opened the app or did something (post, message, XP, Get iT AI…) that day.",
+      "hero": {
+        "title": "Are members making progress?",
+        "caption": "{share} of members active in the last 7 days did a progress action (habit, task, journal…) on at least 3 days.",
+        "empty": "No active members in the last 7 days yet."
+      },
+      "works": "What works",
+      "worksNote": "The features that reach the most active members.",
+      "watch": "To watch",
+      "watchNote": "The least used: improve them, explain them better or remove them.",
+      "allFeatures": "See all features",
+      "consents": "What have members agreed to?"
+    },
+    "sections": {
+      "title": "Sections",
+      "description": "Where members spend their time, from the most used category to the least.",
+      "categories": "Where do they spend their time?",
+      "sections": "Which pages hold attention the most?",
+      "overlays": "Which windows get opened?",
+      "users": "{users, plural, one {# person measured} other {# people measured}} during the period",
+      "empty": "No time measured yet. Data arrives as soon as members use the app.",
+      "note": "Active time: the tab is visible and the person tapped, typed or scrolled within the last minute (or a video is playing).",
+      "opensCount": "{count, plural, one {# open} other {# opens}}"
+    },
+    "features": {
+      "title": "Features",
+      "description": "What is used the most, and the least.",
+      "activeUsers": "{count, plural, one {# active member} other {# active members}} during the period",
+      "unused": "Not used during the period",
+      "names": {
+        "posts": "Posts",
+        "shares": "Shares",
+        "comments": "Comments",
+        "likes": "Likes",
+        "saves": "Saves",
+        "stories": "Stories posted",
+        "storyViews": "Stories watched",
+        "messages": "Messages",
+        "contacts": "Contact requests",
+        "follows": "Follows",
+        "groups": "Groups joined",
+        "pacts": "Pacts",
+        "goals": "Goals created",
+        "tasks": "Tasks done",
+        "habits": "Habits checked",
+        "journal": "Journal pages",
+        "checkIns": "Check-ins",
+        "calendarEvents": "Calendar events",
+        "coach": "Get iT AI coach",
+        "goalPlans": "Goal plans",
+        "developmentPlans": "My development plans",
+        "itemEdits": "Edit with Get iT AI",
+        "ranked": "Ranked evaluations",
+        "favorites": "Marketplace favorites",
+        "listings": "Listings submitted"
+      },
+      "top": "Most used",
+      "topNote": "The share of active members who use them.",
+      "bottom": "Least used",
+      "bottomNote": "Improve them, explain them better or remove them.",
+      "all": "All features"
+    },
+    "retention": {
+      "title": "Retention",
+      "description": "Do people come back?",
+      "cohorts": "Do new members come back?",
+      "cohortsNote": "Share of the week’s sign-ups who came back the next day, then were active during each of the following 4 weeks. “—”: the period hasn’t passed yet.",
+      "week": "Week of {day}",
+      "size": "{count, plural, =0 {No sign-ups} one {# sign-up} other {# sign-ups}}",
+      "day1": "Next day",
+      "weekN": "Week {n, number}",
+      "funnel": "Where do new members drop off?",
+      "funnelNote": "People who signed up during the period, at least 7 days ago.",
+      "steps": {
+        "signedUp": "Signed up",
+        "onboarded": "Onboarding done",
+        "firstGoal": "First goal",
+        "firstHabit": "First habit checked",
+        "returned": "Came back after 7 days"
+      },
+      "empty": "No sign-ups during these weeks.",
+      "weekHeader": "Sign-up week",
+      "next": "{share} move on to the next step"
+    },
+    "ai": {
+      "title": "Get iT AI",
+      "description": "How much Get iT AI is used, for what, and whether its suggestions are kept.",
+      "stats": {
+        "requests": "Requests",
+        "users": "People",
+        "input": "Tokens sent",
+        "output": "Tokens received",
+        "cacheReadHint": "{count} read from cache"
+      },
+      "chart": "How many requests per day?",
+      "kinds": "What is Get iT AI used for?",
+      "kindNames": {
+        "coach": "Coach",
+        "goal_plan": "Goal plan",
+        "development_plan": "My development plan",
+        "development_revision": "Plan change",
+        "ranked_analysis": "Ranked analysis",
+        "item_edit": "Edit with Get iT AI"
+      },
+      "proposals": "Are its suggestions kept?",
+      "proposalStatus": {
+        "applied": "Added",
+        "dismissed": "Dismissed",
+        "pending": "Pending"
+      },
+      "empty": "No Get iT AI requests during the period.",
+      "proposalsNote": "What members do with the additions the coach suggests.",
+      "proposalsSummary": "Added: {applied, number}, dismissed: {dismissed, number}, pending: {pending, number}."
+    },
+    "audit": {
+      "title": "Access log",
+      "description": "Every team sign-in and every dashboard page viewed.",
+      "pages": {
+        "overview": "Overview",
+        "sections": "Sections",
+        "features": "Features",
+        "retention": "Retention",
+        "ai": "Get iT AI",
+        "audit": "Access"
+      },
+      "empty": "No access yet.",
+      "listTitle": "Who opened what, and when",
+      "signedIn": "signed in",
+      "viewed": "viewed {page}"
+    },
+    "categories": {
+      "community": "Community",
+      "messages": "Messages",
+      "services": "My development",
+      "marketplace": "Marketplace",
+      "profile": "Profile",
+      "today": "My day",
+      "coach": "Get iT AI",
+      "notifications": "Notifications",
+      "onboarding": "Onboarding",
+      "other": "Other"
+    },
+    "sectionNames": {
+      "community": {
+        "feed": "Feed",
+        "post": "Post",
+        "member": "Member profile",
+        "follows": "Followers and following",
+        "groups": "Groups",
+        "group": "A group",
+        "events": "Events",
+        "moderation": "Moderation",
+        "storyViewer": "Story viewer",
+        "storyStudio": "Story studio"
+      },
+      "messages": {
+        "inbox": "Inbox",
+        "conversation": "Conversation",
+        "contacts": "Contacts",
+        "new": "New message"
+      },
+      "services": {
+        "calendar": "Calendar",
+        "plan": "A plan",
+        "event": "Calendar event"
+      },
+      "marketplace": {
+        "vitrine": "Showcase",
+        "gear": "Gear",
+        "favorites": "My favorites",
+        "sell": "Sell",
+        "mine": "My listings",
+        "approvals": "Approvals",
+        "listing": "A listing"
+      },
+      "profile": {
+        "overview": "Overview",
+        "posts": "Posts",
+        "journal": "Journal",
+        "ranked": "Ranked",
+        "goals": "Goals",
+        "habits": "Habits",
+        "settings": "Settings"
+      },
+      "today": {
+        "dayPanel": "My day"
+      },
+      "coach": {
+        "chat": "Conversation"
+      },
+      "notifications": {
+        "list": "Notifications"
+      },
+      "onboarding": {
+        "flow": "Onboarding"
+      },
+      "other": "Other page"
+    }
   }
 }

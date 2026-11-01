@@ -1,5 +1,7 @@
 import "server-only";
 import { z } from "zod";
+import { APP_SURFACES } from "@/features/admin/surface";
+import { ANALYTICS_ENVS } from "@/features/analytics/rules";
 
 const serverEnvSchema = z.object({
   DATABASE_URL: z.url({
@@ -66,6 +68,17 @@ const serverEnvSchema = z.object({
   AI_PROVIDER: z.preprocess(
     (value) => (value === "" ? undefined : value),
     z.enum(["claude", "fake"]).optional(),
+  ),
+  // Déploiement : l'application des membres (« app », par défaut) ou
+  // l'application admin de l'équipe (« admin », projet Vercel à part)
+  APP_SURFACE: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.enum(APP_SURFACES).default("app"),
+  ),
+  // Fourni par Vercel ; absent en local (development)
+  VERCEL_ENV: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.enum(ANALYTICS_ENVS).default("development"),
   ),
 });
 

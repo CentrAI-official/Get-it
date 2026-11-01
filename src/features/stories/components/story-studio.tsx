@@ -45,6 +45,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PILLARS, pillarIcons, type Pillar } from "@/config/pillars";
+import { useTrackedOverlay } from "@/features/analytics/tracker";
 import type { CommunityError } from "@/features/community/rules";
 import { CameraInputs } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
@@ -129,6 +130,7 @@ export function StoryStudio({
   const tStudio = useTranslations("Community.stories.studio");
   const tErrors = useTranslations("Community.errors");
   const tCamera = useTranslations("Community.camera");
+  useTrackedOverlay("community.storyStudio", open);
   const inputRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);

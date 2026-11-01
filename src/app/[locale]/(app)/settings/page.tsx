@@ -38,6 +38,10 @@ import { PushSettingsCard } from "@/features/notifications/components/push-setti
 import { LanguageSettings } from "@/features/settings/components/language-settings";
 import { MusicCatalogLink } from "@/features/stories/components/music-panels";
 import {
+  PersonalizationSettings,
+  PersonalizationSettingsSkeleton,
+} from "@/features/settings/components/personalization-settings";
+import {
   PresenceSettings,
   PresenceSettingsSkeleton,
 } from "@/features/settings/components/presence-settings";
@@ -101,6 +105,9 @@ export default function SettingsPage() {
       </Suspense>
       <Suspense fallback={<PresenceSettingsSkeleton />}>
         <PresenceSettings />
+      </Suspense>
+      <Suspense fallback={<PersonalizationSettingsSkeleton />}>
+        <PersonalizationSettings />
       </Suspense>
       {/* Équipe Get iT seulement : rien ne s'affiche pour les autres */}
       <Suspense fallback={null}>
