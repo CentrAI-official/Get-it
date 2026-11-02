@@ -28,6 +28,7 @@ import {
 import type { DayMoment } from "@/config/moments";
 import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getUserTimeZone } from "@/server/profile/service";
+import { refsToCodes, resolvePlanRefs } from "@/features/development/catalogue";
 import { getAiProvider } from "@/server/ai/provider";
 import {
   getAiProfile,
@@ -36,6 +37,7 @@ import {
   reserveAiRequest,
 } from "@/server/ai/usage";
 import { db } from "@/server/db";
+import { planCatalogue } from "@/server/development/catalogue";
 import { listEventsBetween } from "@/server/events/service";
 import { hasActiveGoalRoom } from "@/server/goals/service";
 
@@ -65,7 +67,8 @@ export type StoredDevelopmentPlan = {
 /** Plans existants (accueil de « Mon développement »). */
 export async function listPlans(userId: string) {
   const rows = await db.developmentPlan.findMany({
-    where: { userId },
+    // Le plan d'entreprise est caché pour l'instant (gardé en base)
+    where: { userId, kind: { not: "business" } },
     select: { kind: true, plan: true, updatedAt: true },
   });
   return rows.flatMap((row) => {
@@ -146,6 +149,8 @@ export async function generatePlan(
   );
   if (!reservation) return { ok: false, error: "limitReached" };
 
+  // Le catalogue qui convient : Get iT AI y choisit exercices, recettes ou outils
+  const catalogue = await planCatalogue(kind, parsed.answers);
   const result = await provider
     .generateDevelopmentPlan({
       system: developmentInstructions(kind, profile.locale),
@@ -155,6 +160,7 @@ export async function generatePlan(
         answers: parsed.answers,
         occupation: profile.occupation,
         dailyMinutes: profile.dailyMinutes,
+        catalogue: catalogue.text,
       }),
     })
     .catch(async (error: unknown) => {
@@ -167,6 +173,8 @@ export async function generatePlan(
   if (result.refused) return { ok: false, error: "refused" };
   if (result.crisis) return { ok: false, error: "crisis" };
   if (!result.plan) return { ok: false, error: "unexpected" };
+  // Codes du catalogue → identifiants (un code inconnu reste écrit à la main)
+  const plan = resolvePlanRefs(result.plan, catalogue.codes);
 
   // La semaine type se répète d'aujourd'hui jusqu'à la date visée
   const period = planPeriod(
@@ -184,10 +192,10 @@ export async function generatePlan(
       userId,
       kind,
       answers: parsed.answers,
-      plan: result.plan,
+      plan,
       ...dates,
     },
-    update: { answers: parsed.answers, plan: result.plan, ...dates },
+    update: { answers: parsed.answers, plan, ...dates },
   });
   return { ok: true };
 }
@@ -339,7 +347,11 @@ export async function getCalendar(
   const range = { gte: toDbDate(first), lte: toDbDate(last) };
 
   const planRows = await db.developmentPlan.findMany({
-    where: { userId, kind: scope === "all" ? undefined : scope },
+    where: {
+      userId,
+      // Le plan d'entreprise est caché pour l'instant (gardé en base)
+      kind: scope === "all" ? { not: "business" } : scope,
+    },
     select: { id: true, kind: true, plan: true, startsOn: true, endsOn: true },
   });
   const plans = planRows.flatMap((row) => {
@@ -588,6 +600,8 @@ export async function revisePlan(
     habits: row.habits.map((habit) => habit.title),
     tasks: row.tasks.map((task) => task.title),
   };
+  // Le plan actuel est envoyé avec les codes du catalogue, puis retraduit
+  const catalogue = await planCatalogue(kind, row.answers as Answers);
   const result = await provider
     .generateDevelopmentPlan({
       system: revisionInstructions(kind, profile.locale),
@@ -597,7 +611,8 @@ export async function revisePlan(
         answers: row.answers as Answers,
         occupation: profile.occupation,
         dailyMinutes: profile.dailyMinutes,
-        plan: current.data,
+        catalogue: catalogue.text,
+        plan: refsToCodes(current.data, catalogue.codes),
         added,
         changes,
       }),
@@ -614,7 +629,9 @@ export async function revisePlan(
   // Jamais de doublon : ce qui est déjà ajouté ne se propose plus
   await db.developmentPlan.update({
     where: { id: row.id },
-    data: { plan: withoutAdded(result.plan, added) },
+    data: {
+      plan: withoutAdded(resolvePlanRefs(result.plan, catalogue.codes), added),
+    },
   });
   return { ok: true };
 }

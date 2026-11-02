@@ -51,7 +51,14 @@ export const aiDevelopmentPlanSchema = z.object({
       weekday: z.number().int(),
       moment: z.enum(DAY_MOMENTS).nullable(),
       title: z.string(),
-      items: z.array(z.object({ name: z.string(), detail: z.string() })),
+      items: z.array(
+        z.object({
+          name: z.string(),
+          detail: z.string(),
+          /** Code d'un élément du catalogue donné dans la demande (« E3 »), ou null. */
+          ref: z.string().nullable(),
+        }),
+      ),
     }),
   ),
   sections: z.array(z.object({ title: z.string(), items: z.array(item) })),
@@ -71,6 +78,14 @@ export const aiDevelopmentPlanSchema = z.object({
 
 export type AiDevelopmentPlan = z.infer<typeof aiDevelopmentPlanSchema>;
 
+/**
+ * Élément d'une séance (exercice, repas, outil). `ref` : l'élément du
+ * catalogue Get iT qu'il désigne (identifiant), ou null s'il est écrit à la
+ * main. À la sortie du modèle, c'est d'abord un code court (« E3 »), remplacé
+ * par l'identifiant (`resolvePlanRefs`).
+ */
+export type PlanItem = { name: string; detail: string; ref: string | null };
+
 export type DevelopmentPlan = {
   title: string;
   summary: string;
@@ -82,7 +97,7 @@ export type DevelopmentPlan = {
     /** Heure choisie par l'utilisateur (minutes depuis minuit) ; null : pas d'heure. */
     time: number | null;
     title: string;
-    items: { name: string; detail: string }[];
+    items: PlanItem[];
   }[];
   sections: { title: string; items: { title: string; detail: string }[] }[];
   goal: { title: string; targetInDays: number } | null;
@@ -153,6 +168,7 @@ export function normalizeDevelopmentPlan(
           .map((entry) => ({
             name: clean(entry.name, 100),
             detail: clean(entry.detail, 200),
+            ref: entry.ref ? clean(entry.ref, 12) || null : null,
           }))
           .filter((entry) => entry.name)
           .slice(0, L.itemsPerDay),
@@ -208,7 +224,7 @@ export function normalizeDevelopmentPlan(
 
 /** Titre comparé sans casse ni espaces superflus. */
 const titleKey = (title: string) =>
-  title.replace(/s+/g, " ").trim().toLocaleLowerCase();
+  title.replace(/\s+/g, " ").trim().toLocaleLowerCase();
 
 /**
  * Plan modifié : retire ce qui est déjà dans l'application (objectif,
@@ -257,7 +273,18 @@ export const storedPlanSchema: z.ZodType<DevelopmentPlan> = z.object({
       moment: storedMoment,
       time: storedTime,
       title: z.string(),
-      items: z.array(z.object({ name: z.string(), detail: z.string() })),
+      items: z.array(
+        z.object({
+          name: z.string(),
+          detail: z.string(),
+          // Absente des plans créés avant le catalogue
+          ref: z
+            .string()
+            .nullable()
+            .optional()
+            .transform((ref) => ref ?? null),
+        }),
+      ),
     }),
   ),
   sections: z.array(z.object({ title: z.string(), items: z.array(item) })),

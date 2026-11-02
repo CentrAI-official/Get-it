@@ -1,15 +1,8 @@
-import {
-  Briefcase,
-  ChevronRight,
-  Handshake,
-  Sparkles,
-  Store,
-} from "lucide-react";
+import { Handshake, Sparkles, Store } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { EmptyState } from "@/components/empty-state";
-import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
@@ -23,8 +16,8 @@ import {
 } from "@/server/development/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import {
-  DEVELOPMENT_KINDS,
-  KIND_PILLAR,
+  planHref,
+  VISIBLE_KINDS,
   type DevelopmentKind,
 } from "../questionnaires";
 import { monthOf, planWeek } from "../calendar";
@@ -34,10 +27,14 @@ import { DevelopmentFlow } from "./development-flow";
 
 // Pages de « Mon développement ». Chacune lit la session : à placer dans un <Suspense>.
 
+/** Les quatre sections de l'accueil. */
+const SECTION_PILLARS = ["physical", "mental", "social", "financial"] as const;
+
 /**
- * Accueil : le calendrier principal, puis un plan par pilier (le plan
- * d'entreprise sous le financier). `day` : le jour à montrer (retour d'un
- * événement ajouté), aujourd'hui sinon.
+ * Accueil : le calendrier principal, puis les quatre sections (Physique,
+ * Mental, Social, Financier) : chacune a son plan et sa bibliothèque ou son
+ * outil. `day` : le jour à montrer (retour d'un événement ajouté),
+ * aujourd'hui sinon.
  */
 export async function DevelopmentHub({ day }: { day?: string }) {
   const profile = await getCurrentProfile();
@@ -94,7 +91,7 @@ export async function DevelopmentHub({ day }: { day?: string }) {
               return (
                 <Link
                   key={plan.id}
-                  href={`/services/${plan.kind}`}
+                  href={planHref(plan.kind)}
                   aria-label={
                     progress
                       ? t("calendar.planWeekLabel", {
@@ -129,59 +126,52 @@ export async function DevelopmentHub({ day }: { day?: string }) {
         ) : null}
       </section>
       <section
-        aria-labelledby="development-plans"
-        className="flex flex-col gap-2 border-t border-foreground/8 pt-6"
+        aria-labelledby="development-sections"
+        className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
       >
-        <h2 id="development-plans" className="caps-label text-muted-foreground">
-          {t("hub.plansTitle")}
+        <h2
+          id="development-sections"
+          className="caps-label text-muted-foreground"
+        >
+          {t("hub.sectionsTitle")}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          {t("hub.plansDescription")}
-        </p>
-        <ul className="mt-2 flex flex-col">
-          {DEVELOPMENT_KINDS.map((kind) => {
-            const Icon =
-              kind === "business" ? Briefcase : pillarIcons[KIND_PILLAR[kind]];
+        <ul className="grid grid-cols-2 gap-3">
+          {/* Physique regroupe l'entraînement et la nutrition */}
+          {SECTION_PILLARS.map((kind) => {
+            const Icon = pillarIcons[kind];
             const plan = byKind.get(kind);
             return (
-              <li
-                key={kind}
-                className="border-b border-foreground/8 last:border-b-0"
-              >
+              <li key={kind}>
                 <Link
                   href={`/services/${kind}`}
-                  className="-mx-3 flex items-center gap-4 rounded-2xl px-3 py-4 transition-colors outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className="flex h-full flex-col gap-3 rounded-3xl bg-foreground/[0.05] p-4 transition-colors outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50"
                 >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-full orb">
-                    <Icon aria-hidden="true" className="size-5 text-silver" />
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-primary/14 text-primary">
+                    <Icon aria-hidden="true" className="size-5" />
                   </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="font-semibold">
-                      {t(`kinds.${kind}.title`)}
+                  <span className="flex flex-col gap-0.5">
+                    <span className="font-heading text-lg font-bold">
+                      {t(`hub.sections.${kind}.title`)}
                     </span>
-                    <span className="text-sm text-muted-foreground">
-                      {plan
-                        ? t("hub.updated", {
-                            date: format.dateTime(new Date(plan.updatedAt), {
-                              dateStyle: "medium",
-                            }),
-                          })
-                        : t(`kinds.${kind}.description`)}
+                    <span className="text-sm text-pretty text-muted-foreground">
+                      {t(`hub.sections.${kind}.description`)}
                     </span>
                   </span>
                   <span
                     className={
                       plan
-                        ? "text-sm font-medium text-muted-foreground"
-                        : "text-sm font-medium text-primary"
+                        ? "mt-auto text-xs font-medium text-muted-foreground"
+                        : "mt-auto text-xs font-semibold text-primary"
                     }
                   >
-                    {plan ? t("hub.open") : t("hub.create")}
+                    {plan
+                      ? t("hub.updated", {
+                          date: format.dateTime(new Date(plan.updatedAt), {
+                            dateStyle: "medium",
+                          }),
+                        })
+                      : t("hub.noPlan")}
                   </span>
-                  <ChevronRight
-                    aria-hidden="true"
-                    className="size-4 shrink-0 text-muted-foreground"
-                  />
                 </Link>
               </li>
             );
@@ -232,9 +222,12 @@ export function DevelopmentHubSkeleton() {
 }
 
 const isKind = (value: string): value is DevelopmentKind =>
-  DEVELOPMENT_KINDS.some((kind) => kind === value);
+  VISIBLE_KINDS.some((kind) => kind === value);
 
-/** Page d'un plan : questionnaire, ou plan déjà créé. */
+/**
+ * Onglet « Mon plan » d'une section : questionnaire, ou plan déjà créé. Le
+ * titre est celui de la section ; ici, seulement sa description.
+ */
 export async function DevelopmentLoader({ kind }: { kind: string }) {
   if (!isKind(kind)) notFound();
   const profile = await getCurrentProfile();
@@ -244,14 +237,11 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
     getTranslations("Development"),
   ]);
   const header = (
-    <PageHeader
-      title={t(`kinds.${kind}.title`)}
-      description={
-        page.stored
-          ? t(`kinds.${kind}.description`)
-          : t(`kinds.${kind}.formDescription`)
-      }
-    />
+    <p className="text-sm text-pretty text-muted-foreground">
+      {page.stored
+        ? t(`kinds.${kind}.description`)
+        : t(`kinds.${kind}.formDescription`)}
+    </p>
   );
 
   if (!page.configured && !page.stored) {
@@ -274,8 +264,6 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
       </>
     );
   }
-  const business = page.stored?.answers.business;
-
   return (
     <>
       {header}
@@ -286,10 +274,6 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
         updatedAt={page.stored?.updatedAt ?? null}
         calendar={calendar}
         minDate={page.minDate}
-        suggestBusiness={
-          kind === "financial" &&
-          (business === "has_business" || business === "wants_business")
-        }
       />
     </>
   );

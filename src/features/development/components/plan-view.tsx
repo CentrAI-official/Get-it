@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Briefcase,
   CircleCheck,
   LoaderCircle,
   Plus,
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Link } from "@/i18n/navigation";
 import { applyPlanAction, deletePlanAction } from "../actions";
 import type { CalendarData } from "../calendar";
 import type { DevelopmentPlan } from "../plan";
@@ -36,8 +34,6 @@ type PlanViewProps = {
   updatedAt: string;
   /** Calendrier de ce plan (mois en cours). */
   calendar: CalendarData;
-  /** Plan financier d'une personne qui a ou veut une entreprise. */
-  suggestBusiness: boolean;
   onRedo: () => void;
   /** Détresse signalée pendant une modification : ressources d'aide. */
   onCrisis: () => void;
@@ -49,7 +45,6 @@ export function PlanView({
   plan,
   updatedAt,
   calendar,
-  suggestBusiness,
   onRedo,
   onCrisis,
 }: PlanViewProps) {
@@ -126,19 +121,6 @@ export function PlanView({
 
       {/* Remis à zéro seulement quand le plan est refait (pas après un ajout) */}
       <AddToGetIt key={plan.summary} kind={kind} plan={plan} format={format} />
-
-      {suggestBusiness ? (
-        <Link
-          href="/services/business"
-          className="flex items-center gap-3 rounded-2xl border border-primary/30 bg-primary/10 p-4 text-sm font-medium outline-none hover:bg-primary/15 focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <Briefcase
-            aria-hidden="true"
-            className="size-5 shrink-0 text-primary"
-          />
-          {t("businessCta")}
-        </Link>
-      ) : null}
 
       <RevisePlan kind={kind} onCrisis={onCrisis} />
 

@@ -70,6 +70,8 @@ const featureActions = (since: Date) => Prisma.sql`
         UNION ALL SELECT 'journal', user_id, created_at FROM journal_entries WHERE created_at >= ${since}
         UNION ALL SELECT 'checkIns', user_id, created_at FROM daily_check_ins WHERE created_at >= ${since}
         UNION ALL SELECT 'calendarEvents', user_id, created_at FROM calendar_events WHERE created_at >= ${since}
+        UNION ALL SELECT 'budget', user_id, created_at FROM budget_entries WHERE created_at >= ${since}
+        UNION ALL SELECT 'budget', user_id, created_at FROM budget_recurring WHERE created_at >= ${since}
         UNION ALL SELECT
           CASE kind
             WHEN 'coach' THEN 'coach'

@@ -15,11 +15,16 @@ const LANGUAGE: Record<AiLocale, string> = {
 };
 
 const KIND_GUIDANCE: Record<DevelopmentKind, string> = {
-  physical: `This is a complete training plan (with nutrition guidance).
-- schedule: one entry per training day of a typical week, matching the sessions per week wanted, the session length and the available equipment; omit rest days. Each item is one exercise or block: name, then detail with sets × reps (or duration), rest and a short cue (for example "4 × 8-10, rest 90 s, controlled descent"). Include a warm-up item.
-- sections: 3 to 5, including nutrition (concrete swaps and additions based on what they eat now, protein at each meal, hydration; give ranges, never a crash diet), progression week by week until the target date (increase volume or load by about 10% per week at most, plan a lighter week every 4 to 6 weeks), and recovery (sleep, mobility).
-- highlights: sessions per week, session length, main focus, and an estimated daily energy and protein range when useful.
-- If they are a beginner or getting back into it, start easy. If they mention injuries, pain or a medical condition, adapt the exercises and recommend seeing a doctor or physiotherapist before starting in caution. If they are under 18, no calorie targets or deficits: focus on healthy habits.`,
+  physical: `This is a training plan. Nutrition has its own separate plan: do not include nutrition advice.
+- schedule: one entry per training day of a typical week, matching the sessions per week wanted, the session length and the available equipment; omit rest days. Each item is one exercise or block: name, then detail with sets × reps (or duration), rest and a short cue (for example "4 × 8-10, rest 90 s, controlled descent"). Include a warm-up item. Prefer exercises from the catalogue when one fits (same movement, available equipment).
+- sections: 3 to 5, including progression week by week until the target date (increase volume or load by about 10% per week at most, plan a lighter week every 4 to 6 weeks), technique priorities, and recovery (sleep, mobility).
+- highlights: sessions per week, session length, main focus.
+- If they are a beginner or getting back into it, start easy. If they mention injuries, pain or a medical condition, adapt the exercises and recommend seeing a doctor or physiotherapist before starting in caution.`,
+  nutrition: `This is a nutrition plan: practical, balanced eating, never a crash diet.
+- schedule: a typical week of meals, one entry per day (weekday 1 to 7, moment null), title like "Monday menu" in their language. Each item is one meal: name "Meal — dish" (for example "Breakfast — Creamy berry oatmeal"), detail with the portion and one tip; as many items as their meals per day. Prefer recipes from the catalogue: they already respect the user's allergies and diet. You may repeat a recipe during the week to keep groceries simple, and fit their cooking time.
+- sections: 3 to 5 (for example portions and protein at each meal, easy swaps based on what they eat now, hydration, a simple grocery and meal-prep routine).
+- highlights: meals per day, an estimated daily energy range and protein range from their height, weight, activity and goal (ranges, never exact numbers), main focus.
+- Never include a food they listed as an allergy, intolerance or dislike, even in a tip. Respect their diet. If they are under 18, no calorie targets or deficits: focus on healthy habits. If their answers suggest disordered eating, do not give calorie targets and recommend talking to a doctor or a registered dietitian (nutritionniste) in caution. In caution, say this is general information, not medical advice.`,
   mental: `This is a mental fitness plan: practical, evidence-based self-help (breathing, journaling prompts, planning and focus methods, sleep hygiene, basic cognitive reframing, gratitude, movement). It is educational, not therapy or a diagnosis.
 - schedule: the short practices of a typical week, on the days they happen (each item: name, then how to do it and how long, within the minutes per day they chose).
 - sections: 3 to 5 (for example the approach for their main goal, tools for their challenges, an evening routine, what to do on hard days).
@@ -55,7 +60,7 @@ Fill every field of the requested format:
 - title: a short, motivating plan name.
 - summary: 2 to 4 sentences addressed to the user, explaining the approach and why it fits them.
 - highlights: 3 to 6 key figures (short label, short value).
-- schedule: as described above; weekday from 1 (Monday) to 7 (Sunday); moment: when in the day it fits best from their answers ("morning", "noon" or "evening"), or null if it doesn't matter.
+- schedule: as described above; weekday from 1 (Monday) to 7 (Sunday); moment: when in the day it fits best from their answers ("morning", "noon" or "evening"), or null if it doesn't matter. For each item, ref is the code of the catalogue item it uses (for example "E3"), only when the request lists a catalogue and the item is exactly that catalogue item; otherwise null.
 - sections: as described above; each item has a short title and a detail of one to three sentences.
 - goal: the main goal to add to the app (title, and targetInDays from today, matching their target date when they gave one), or null.
 - habits: 0 to 3 small recurring actions from the plan (title, weekdays from 1 to 7, moment as for schedule).
@@ -82,6 +87,8 @@ export type DevelopmentRequest = {
   answers: Answers;
   occupation: string | null;
   dailyMinutes: number | null;
+  /** Catalogue Get iT qui convient (une ligne par élément, avec son code), ou vide. */
+  catalogue?: string;
 };
 
 /** La demande : les réponses au questionnaire et quelques repères du profil. */
@@ -101,7 +108,14 @@ Plan type: ${request.kind}
 ${request.occupation ? `Occupation: ${request.occupation}\n` : ""}Time they want to invest per day in Get iT: ${request.dailyMinutes ? `${request.dailyMinutes} min` : "not specified"}
 
 Questionnaire answers:
-${lines.join("\n")}`;
+${lines.join("\n")}${
+    request.catalogue
+      ? `
+
+Get iT catalogue (code: title [tags]); use these items whenever they fit and put their code in ref:
+${request.catalogue}`
+      : ""
+  }`;
 }
 
 /** Longueur d'une demande de modification. */

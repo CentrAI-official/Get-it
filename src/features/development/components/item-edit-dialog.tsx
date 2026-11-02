@@ -31,6 +31,7 @@ import { saveItemAction, suggestItemEditAction } from "../actions";
 import type { CalendarHabit, CalendarPlan, CalendarTask } from "../calendar";
 import { ITEM_AI_REQUEST_MAX } from "../item-ai";
 import { SESSION_TITLE_MAX_LENGTH } from "../plan";
+import { planHref } from "../questionnaires";
 
 /** Ce que « Modifier » peut changer : une tâche, une habitude ou une séance de plan. */
 export type EditTarget =
@@ -322,7 +323,7 @@ export function ItemEditDialog({
             </Link>
           ) : target.type === "session" ? (
             <Link
-              href={`/services/${target.plan.kind}`}
+              href={planHref(target.plan.kind)}
               className="w-fit text-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               {t("planLink")}

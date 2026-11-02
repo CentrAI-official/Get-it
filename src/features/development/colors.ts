@@ -12,6 +12,7 @@ export const KIND_COLORS: Record<
   mental: { dot: "bg-chart-2", tint: "bg-chart-2/12", text: "text-chart-2" },
   financial: { dot: "bg-chart-3", tint: "bg-chart-3/10", text: "text-chart-3" },
   social: { dot: "bg-chart-4", tint: "bg-chart-4/14", text: "text-chart-4" },
+  nutrition: { dot: "bg-chart-5", tint: "bg-chart-5/20", text: "text-silver" },
   business: {
     dot: "bg-foreground",
     tint: "bg-foreground/8",

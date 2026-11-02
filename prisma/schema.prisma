@@ -124,6 +124,8 @@ model Profile {
   tasks                Task[]
   habits               Habit[]
   calendarEvents       CalendarEvent[]
+  budgetRecurring      BudgetRecurring[]
+  budgetEntries        BudgetEntry[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -171,6 +173,7 @@ model Profile {
   developmentPlans     DevelopmentPlan[]
   rankedEvaluations    RankedEvaluation[]
   measurements         Measurement[]
+  libraryItems         LibraryItem[]
   analyticsEvents      AnalyticsEvent[]
   feedback             Feedback[]
   appErrors            AppError[]
@@ -399,6 +402,49 @@ model CalendarEvent {
 
   @@index([userId, startsOn])
   @@map("calendar_events")
+}
+
+/// Budget : revenu ou dépense fixe, avec sa fréquence (Financier › Budget).
+/// Privé, jamais montré aux autres membres ni envoyé à Get iT AI.
+model BudgetRecurring {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  /// income ou expense (src/features/budget/rules.ts).
+  kind        String
+  label       String
+  /// Catégorie d'une dépense ; null pour un revenu.
+  category    String?
+  amountCents Int       @map("amount_cents")
+  /// daily, weekly, biweekly, monthly ou yearly.
+  frequency   String
+  startsOn    DateTime  @map("starts_on") @db.Date
+  endsOn      DateTime? @map("ends_on") @db.Date
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("budget_recurring")
+}
+
+/// Budget : dépense ou revenu au jour le jour.
+model BudgetEntry {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  kind        String
+  category    String?
+  amountCents Int      @map("amount_cents")
+  note        String?
+  occurredOn  DateTime @map("occurred_on") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredOn])
+  @@index([userId, createdAt])
+  @@map("budget_entries")
 }
 
 /// Check-in quotidien : comment l'utilisateur se sent, une fois par jour (§29).
@@ -1240,6 +1286,8 @@ enum DevelopmentKind {
   social
   financial
   business
+  /// Plan de nutrition (Physique › Nutrition), à côté du plan d'entraînement (physical).
+  nutrition
 }
 
 /// Plan personnalisé par Get iT AI à partir d'un questionnaire. Les réponses
@@ -1571,4 +1619,42 @@ model Measurement {
 
   @@index([userId, factor, measuredAt(sort: Desc)])
   @@map("measurements")
+}
+
+/// Catalogue Get iT de Mon développement (src/features/library/rules.ts) :
+/// exercices, recettes et outils, ajoutés par l'équipe (rôle admin). Seuls les
+/// éléments publiés se montrent aux membres.
+model LibraryItem {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  /// exercise | recipe | tool (contrainte dans la migration)
+  kind        String
+  /// physical (exercices, recettes) | mental | social (outils)
+  pillar      String
+  /// draft | published
+  status      String   @default("draft")
+  /// Titre français (recherche) ; le contenu complet est dans `content`.
+  title       String
+  /// Titre anglais, s'il y en a un.
+  titleEn     String?  @map("title_en")
+  /// Contenu par langue, revalidé par localizedContentSchema.
+  content     Json
+  /// Étiquettes de filtre « famille:valeur » (muscle:chest, allergen:peanuts…).
+  tags        String[]
+  /// Durée ou temps de préparation, en minutes.
+  minutes     Int?     @db.SmallInt
+  /// Recette : portions.
+  servings    Int?     @db.SmallInt
+  /// Vidéo (exercice) et image (aperçu ou photo), compartiment privé « media », dossier library/.
+  videoPath   String?  @map("video_path")
+  imagePath   String?  @map("image_path")
+  /// Contenu de départ : clé stable, pour ne jamais l'importer deux fois.
+  seedKey     String?  @unique @map("seed_key")
+  createdById String?  @map("created_by_id") @db.Uuid
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  createdBy Profile? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([kind, pillar, status])
+  @@map("library_items")
 }

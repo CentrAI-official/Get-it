@@ -31,6 +31,7 @@ import {
   UserRound,
   Users,
   UsersRound,
+  Wallet,
   WandSparkles,
   type LucideIcon,
 } from "lucide-react";
@@ -72,6 +73,7 @@ export const FEATURE_ICONS: Record<AnalyticsFeature, LucideIcon> = {
   journal: NotebookPen,
   checkIns: SmilePlus,
   calendarEvents: CalendarDays,
+  budget: Wallet,
   coach: Sparkles,
   goalPlans: Route,
   developmentPlans: Map,

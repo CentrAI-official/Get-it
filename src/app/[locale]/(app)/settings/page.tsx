@@ -36,6 +36,7 @@ import {
 } from "@/features/settings/components/details-settings";
 import { PushSettingsCard } from "@/features/notifications/components/push-settings-card";
 import { LanguageSettings } from "@/features/settings/components/language-settings";
+import { LibraryAdminLink } from "@/features/library/components/library-admin";
 import { MusicCatalogLink } from "@/features/stories/components/music-panels";
 import { FeedbackCard } from "@/features/feedback/components/feedback-card";
 import {
@@ -114,6 +115,7 @@ export default function SettingsPage() {
       {/* Équipe Get iT seulement : rien ne s'affiche pour les autres */}
       <Suspense fallback={null}>
         <MusicCatalogLink />
+        <LibraryAdminLink />
       </Suspense>
       <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>

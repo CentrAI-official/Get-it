@@ -1,4 +1,5 @@
 import type { Pillar } from "@/config/pillars";
+import { ALLERGENS } from "@/features/library/rules";
 
 // « Mon développement » : un questionnaire par type de plan. Les mêmes
 // définitions servent au formulaire (libellés dans messages/*.json, espace
@@ -10,8 +11,30 @@ export const DEVELOPMENT_KINDS = [
   "social",
   "financial",
   "business",
+  "nutrition",
 ] as const;
 export type DevelopmentKind = (typeof DEVELOPMENT_KINDS)[number];
+
+/**
+ * Plans montrés dans Mon développement (décision du fondateur, 2026-11-01) : le
+ * plan d'entreprise est retiré pour l'instant ; ceux déjà créés restent en
+ * base, cachés.
+ */
+export const VISIBLE_KINDS = [
+  "physical",
+  "nutrition",
+  "mental",
+  "social",
+  "financial",
+] as const satisfies readonly DevelopmentKind[];
+
+/** Adresse du plan d'un type : le plan physique est dans Physique › Entraînement. */
+export function planHref(kind: DevelopmentKind): `/${string}` {
+  if (kind === "physical") return "/services/physical/training";
+  if (kind === "nutrition") return "/services/physical/nutrition";
+  if (kind === "business") return "/services";
+  return `/services/${kind}`;
+}
 
 /** Pilier de chaque plan (le plan d'entreprise relève du pilier financier). */
 export const KIND_PILLAR: Record<DevelopmentKind, Pillar> = {
@@ -20,6 +43,7 @@ export const KIND_PILLAR: Record<DevelopmentKind, Pillar> = {
   social: "social",
   financial: "financial",
   business: "financial",
+  nutrition: "physical",
 };
 
 /** Un champ n'est montré (et validé) que si un autre a l'une de ces valeurs. */
@@ -120,15 +144,6 @@ export const QUESTIONNAIRES: Record<DevelopmentKind, readonly Section[]> = {
           required: true,
           options: ["gym", "free_weights", "bodyweight"],
         },
-      ],
-    },
-    {
-      id: "food",
-      fields: [
-        { id: "breakfast", type: "text", maxLength: 300, multiline: true },
-        { id: "snacks", type: "text", maxLength: 300, multiline: true },
-        { id: "lunch", type: "text", maxLength: 300, multiline: true },
-        { id: "dinner", type: "text", maxLength: 300, multiline: true },
       ],
     },
   ],
@@ -440,6 +455,73 @@ export const QUESTIONNAIRES: Record<DevelopmentKind, readonly Section[]> = {
         { id: "hoursPerWeek", type: "number", min: 1, max: 80, required: true },
         { id: "budget", type: "money", max: 10_000_000 },
         { id: "location", type: "text", maxLength: 100, required: true },
+      ],
+    },
+  ],
+  // Plan de nutrition (2026-11-01) : les questions de repas viennent de l'ancien
+  // questionnaire physique ; les allergies écartent les recettes du catalogue
+  nutrition: [
+    {
+      id: "goal",
+      fields: [
+        {
+          id: "mainGoal",
+          type: "choice",
+          required: true,
+          other: true,
+          options: [
+            "lose_fat",
+            "build_muscle",
+            "maintain",
+            "eat_better",
+            "energy",
+            "performance",
+          ],
+        },
+        { id: "targetDate", type: "date" },
+      ],
+    },
+    {
+      id: "body",
+      fields: [
+        { id: "height", type: "height", required: true },
+        { id: "weight", type: "weight", required: true },
+        {
+          id: "activity",
+          type: "choice",
+          required: true,
+          options: ["sedentary", "light", "active", "very_active"],
+        },
+      ],
+    },
+    {
+      id: "needs",
+      fields: [
+        { id: "allergies", type: "multi", options: ALLERGENS, other: true },
+        {
+          id: "diet",
+          type: "choice",
+          required: true,
+          other: true,
+          options: ["omnivore", "pescatarian", "vegetarian", "vegan"],
+        },
+        { id: "mealsPerDay", type: "number", min: 2, max: 6, required: true },
+        {
+          id: "cookingTime",
+          type: "choice",
+          required: true,
+          options: ["m15", "m30", "m45", "m60"],
+        },
+      ],
+    },
+    {
+      id: "food",
+      fields: [
+        { id: "breakfast", type: "text", maxLength: 300, multiline: true },
+        { id: "snacks", type: "text", maxLength: 300, multiline: true },
+        { id: "lunch", type: "text", maxLength: 300, multiline: true },
+        { id: "dinner", type: "text", maxLength: 300, multiline: true },
+        { id: "dislikes", type: "text", maxLength: 300, multiline: true },
       ],
     },
   ],

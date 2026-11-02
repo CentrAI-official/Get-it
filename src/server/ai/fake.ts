@@ -123,6 +123,8 @@ export function createFakeProvider(): AiProvider {
       const kind = /Plan type: (\w+)/.exec(prompt)?.[1] ?? "physical";
       // Demande de modification : un titre différent, pour la reconnaître
       const revised = prompt.includes("Changes the user wants");
+      // Le premier élément du catalogue envoyé, s'il y en a un (« E1 »)
+      const firstCode = /^([ERT]1):/m.exec(prompt)?.[1] ?? null;
       return {
         plan: normalizeDevelopmentPlan({
           crisis: false,
@@ -138,15 +140,21 @@ export function createFakeProvider(): AiProvider {
               moment: "morning",
               title: "Haut du corps",
               items: [
-                { name: "Échauffement", detail: "5 min de vélo" },
-                { name: "Pompes", detail: "3 × 10, repos 60 s" },
+                { name: "Échauffement", detail: "5 min de vélo", ref: null },
+                {
+                  name: "Pompes",
+                  detail: "3 × 10, repos 60 s",
+                  ref: firstCode,
+                },
               ],
             },
             {
               weekday: 4,
               moment: null,
               title: "Bas du corps",
-              items: [{ name: "Squats", detail: "3 × 12, repos 60 s" }],
+              items: [
+                { name: "Squats", detail: "3 × 12, repos 60 s", ref: null },
+              ],
             },
           ],
           sections: [

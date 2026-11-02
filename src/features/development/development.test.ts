@@ -42,8 +42,34 @@ describe("parseAnswers", () => {
     const result = parseAnswers("physical", physical, TODAY);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.answers.breakfast).toBe("Céréales et café");
+    // Les repas sont passés au plan de nutrition (2026-11-01)
+    expect(result.answers.breakfast).toBeUndefined();
     expect(result.answers.weight).toEqual({ value: 82.5, unit: "kg" });
+  });
+
+  it("plan de nutrition : allergies, régime et repas", () => {
+    const result = parseAnswers(
+      "nutrition",
+      {
+        mainGoal: "build_muscle",
+        height: { unit: "cm", cm: 170 },
+        weight: { value: 70, unit: "kg" },
+        activity: "active",
+        allergies: ["peanuts", "milk"],
+        diet: "vegetarian",
+        mealsPerDay: 4,
+        cookingTime: "m30",
+        breakfast: "  Céréales et café  ",
+      },
+      TODAY,
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.answers.allergies).toEqual(["peanuts", "milk"]);
+    expect(result.answers.breakfast).toBe("Céréales et café");
+    expect(
+      parseAnswers("nutrition", { mainGoal: "build_muscle" }, TODAY).ok,
+    ).toBe(false);
   });
 
   it("signale les réponses obligatoires manquantes", () => {
@@ -162,13 +188,13 @@ const rawPlan = (
       weekday: 3,
       moment: "evening",
       title: "Jambes",
-      items: [{ name: "Squats", detail: "4 × 8" }],
+      items: [{ name: "Squats", detail: "4 × 8", ref: null }],
     },
     {
       weekday: 1,
       moment: null,
       title: "Haut",
-      items: [{ name: "Pompes", detail: "3 × 10" }],
+      items: [{ name: "Pompes", detail: "3 × 10", ref: null }],
     },
     { weekday: 1, moment: null, title: "Doublon", items: [] },
     { weekday: 9, moment: null, title: "Jour invalide", items: [] },
@@ -254,7 +280,7 @@ describe("withoutAdded", () => {
 describe("prompts", () => {
   it("la demande contient les réponses, citées, et la précision « Autre »", () => {
     const prompt = developmentPrompt({
-      kind: "physical",
+      kind: "nutrition",
       today: TODAY,
       answers: {
         mainGoal: "other",
@@ -263,10 +289,14 @@ describe("prompts", () => {
       },
       occupation: null,
       dailyMinutes: 30,
+      catalogue: 'R1: "Gruau" [meal:breakfast]',
     });
     expect(prompt).toContain('- mainGoal: "other" (other: "Courir 10 km")');
     expect(prompt).toContain('- breakfast: "Œufs"');
-    expect(prompt).toContain("Plan type: physical");
+    expect(prompt).toContain("Plan type: nutrition");
+    // Le catalogue qui convient, avec ses codes
+    expect(prompt).toContain("Get iT catalogue");
+    expect(prompt).toContain('R1: "Gruau" [meal:breakfast]');
   });
 
   it("la modification cite le plan actuel, ce qui est déjà ajouté et les changements", () => {

@@ -2149,18 +2149,33 @@
       }
     },
     "hub": {
-      "plansTitle": "Your personalized plans",
-      "plansDescription": "Get iT AI creates a complete plan from your answers. Then you choose what to add to your goals and habits.",
       "updated": "Updated on {date}",
-      "open": "View",
-      "create": "Create",
       "prosTitle": "My professionals",
       "prosDescription": "Coming soon: your coach, nutritionist or advisor, your appointments and your session notes, in one place.",
-      "prosAction": "Shop for services"
+      "prosAction": "Shop for services",
+      "sectionsTitle": "Your sections",
+      "noPlan": "Plan to create",
+      "sections": {
+        "physical": {
+          "title": "Physical",
+          "description": "Training and nutrition"
+        },
+        "mental": {
+          "title": "Mental",
+          "description": "Plan and tools"
+        },
+        "social": {
+          "title": "Social",
+          "description": "Plan and tools"
+        },
+        "financial": {
+          "title": "Financial",
+          "description": "Plan and budget"
+        }
+      }
     },
     "plan": {
       "updated": "Plan created on {date, date, long}",
-      "businessCta": "Have or want a business? Create your business plan too.",
       "redo": "Redo my plan",
       "addTitle": "Add to my Get iT",
       "addDescription": "Choose what you want to track in your goals, habits and tasks.",
@@ -2187,7 +2202,8 @@
         "mental": "E.g. I prefer exercises in the morning, 10 minutes at most.",
         "social": "E.g. add ideas to meet people at the gym.",
         "financial": "E.g. I want to pay off my credit card first.",
-        "business": "E.g. add a step to find my first 10 customers online."
+        "business": "E.g. add a step to find my first 10 customers online.",
+        "nutrition": "E.g. replace the salmon with chicken, and add an afternoon snack."
       },
       "submit": "Edit with Get iT AI",
       "loading": "Get iT AI is editing your plan… This can take a minute or two.",
@@ -2207,8 +2223,8 @@
     "kinds": {
       "physical": {
         "title": "Training plan",
-        "description": "Your program and nutrition tips.",
-        "formDescription": "Answer a few questions: Get iT AI creates your training program and nutrition tips."
+        "description": "Your training program, week after week.",
+        "formDescription": "Answer a few questions: Get iT AI creates your training program with the catalogue’s exercises."
       },
       "mental": {
         "title": "Mental plan",
@@ -2229,14 +2245,18 @@
         "title": "Business plan",
         "description": "Start or grow your business.",
         "formDescription": "A few questions about your project: Get iT AI creates the steps to launch or grow."
+      },
+      "nutrition": {
+        "title": "Nutrition plan",
+        "description": "Your weekly menus and guidelines.",
+        "formDescription": "Answer a few questions: Get iT AI creates your menus with the catalogue’s recipes, without your allergens."
       }
     },
     "sections": {
       "physical": {
         "goal": "Your goal",
         "body": "You",
-        "activity": "Your training",
-        "food": "What you usually eat"
+        "activity": "Your training"
       },
       "mental": {
         "goal": "Your goal",
@@ -2257,6 +2277,12 @@
       "business": {
         "project": "Your project",
         "means": "Your means"
+      },
+      "nutrition": {
+        "goal": "Your goal",
+        "body": "You",
+        "needs": "Your needs",
+        "food": "What you eat now"
       }
     },
     "questions": {
@@ -2329,19 +2355,6 @@
             "free_weights": "With free weights",
             "bodyweight": "Bodyweight"
           }
-        },
-        "breakfast": {
-          "label": "Your breakfast",
-          "hint": "What you usually eat."
-        },
-        "snacks": {
-          "label": "Your snacks"
-        },
-        "lunch": {
-          "label": "Your lunch"
-        },
-        "dinner": {
-          "label": "Your dinner"
         }
       },
       "mental": {
@@ -2600,6 +2613,135 @@
           "label": "In which country or region?",
           "hint": "E.g. Montréal, Québec."
         }
+      },
+      "nutrition": {
+        "mainGoal": {
+          "label": "Your main goal",
+          "options": {
+            "lose_fat": "Lose fat",
+            "build_muscle": "Build muscle",
+            "maintain": "Maintain my weight",
+            "eat_better": "Eat better",
+            "energy": "Have more energy",
+            "performance": "Perform in my sport"
+          }
+        },
+        "targetDate": {
+          "label": "By when?",
+          "hint": "Optional: the date you’d like to reach your goal."
+        },
+        "height": {
+          "label": "Your height"
+        },
+        "weight": {
+          "label": "Your weight"
+        },
+        "activity": {
+          "label": "Your activity level",
+          "options": {
+            "sedentary": "Mostly sitting (desk, little walking)",
+            "light": "Lightly active (walking, 1 to 2 workouts a week)",
+            "active": "Active (3 to 5 workouts a week)",
+            "very_active": "Very active (physical job or training every day)"
+          }
+        },
+        "allergies": {
+          "label": "Your allergies and intolerances",
+          "hint": "No recipe containing them will be suggested. Always check labels.",
+          "options": {
+            "peanuts": "Peanuts",
+            "treeNuts": "Tree nuts",
+            "milk": "Milk",
+            "eggs": "Eggs",
+            "wheat": "Wheat and gluten",
+            "soy": "Soy",
+            "sesame": "Sesame",
+            "fish": "Fish",
+            "shellfish": "Shellfish",
+            "mustard": "Mustard",
+            "sulphites": "Sulphites"
+          }
+        },
+        "diet": {
+          "label": "Your diet",
+          "options": {
+            "omnivore": "I eat everything",
+            "pescatarian": "Pescatarian (fish, no meat)",
+            "vegetarian": "Vegetarian",
+            "vegan": "Vegan"
+          }
+        },
+        "mealsPerDay": {
+          "label": "How many meals and snacks a day?"
+        },
+        "cookingTime": {
+          "label": "How much time to cook, per day?",
+          "options": {
+            "m15": "15 min",
+            "m30": "30 min",
+            "m45": "45 min",
+            "m60": "1 h or more"
+          }
+        },
+        "breakfast": {
+          "label": "Your breakfast",
+          "hint": "What you usually eat."
+        },
+        "snacks": {
+          "label": "Your snacks"
+        },
+        "lunch": {
+          "label": "Your lunch"
+        },
+        "dinner": {
+          "label": "Your dinner"
+        },
+        "dislikes": {
+          "label": "What you don’t like",
+          "hint": "Optional: foods to avoid in your menus."
+        }
+      }
+    },
+    "section": {
+      "back": "My development",
+      "tabsLabel": "{section} tabs",
+      "tabs": {
+        "plan": "My plan",
+        "exercises": "Exercises",
+        "recipes": "Recipes",
+        "tools": "Tools",
+        "budget": "Budget"
+      },
+      "physical": {
+        "title": "Physical",
+        "description": "Your training and your nutrition."
+      },
+      "training": {
+        "title": "Training",
+        "description": "Your training plan and exercises, with good form.",
+        "card": "Your plan and exercises, on video."
+      },
+      "nutrition": {
+        "title": "Nutrition",
+        "description": "Your nutrition plan and recipes for your goals.",
+        "card": "Your plan and recipes for your goals and allergies."
+      },
+      "mental": {
+        "title": "Mental",
+        "description": "Your plan and tools for stress, discipline and more."
+      },
+      "social": {
+        "title": "Social",
+        "description": "Your plan and tools to meet people, communicate and keep your bonds."
+      },
+      "financial": {
+        "title": "Financial",
+        "description": "Your financial plan and your budget."
+      },
+      "nutritionSoon": {
+        "title": "Your nutrition plan is coming soon",
+        "description": "It will be built from the catalogue’s recipes, for your goals and allergies. Meanwhile, explore the recipes.",
+        "action": "See the recipes"
       }
     }
   },
@@ -3253,6 +3395,7 @@
         "journal": "Journal pages",
         "checkIns": "Check-ins",
         "calendarEvents": "Calendar events",
+        "budget": "Budget",
         "coach": "Get iT AI coach",
         "goalPlans": "Goal plans",
         "developmentPlans": "My development plans",
@@ -3373,7 +3516,11 @@
       "services": {
         "calendar": "Calendar",
         "plan": "A plan",
-        "event": "Calendar event"
+        "event": "Calendar event",
+        "section": "A section",
+        "library": "Library (exercises, recipes, tools)",
+        "libraryItem": "Catalogue entry",
+        "budget": "Budget"
       },
       "marketplace": {
         "vitrine": "Showcase",
@@ -3761,5 +3908,440 @@
       }
     },
     "remeasure": "Update"
+  },
+  "Library": {
+    "search": {
+      "exercise": "Search exercises",
+      "recipe": "Search recipes",
+      "tool": "Search tools",
+      "submit": "Search"
+    },
+    "filters": {
+      "muscle": "Muscles",
+      "place": "Place",
+      "equipment": "Equipment",
+      "level": "Level",
+      "meal": "Meal",
+      "goal": "Goal",
+      "diet": "Diet",
+      "sans": "Allergen-free",
+      "theme": "Theme",
+      "without": "No {allergen}",
+      "clear": "Clear filters"
+    },
+    "count": "{count, plural, =0 {No results} one {# result} other {# results}}",
+    "empty": {
+      "title": "The catalogue is filling up",
+      "description": "The Get iT team is adding the first entries. Check back soon!",
+      "filtered": "Nothing matches these filters",
+      "filteredDescription": "Remove a filter or search for another word."
+    },
+    "draft": "Draft",
+    "video": "Video",
+    "minutes": "{count, number} min",
+    "back": {
+      "exercise": "Exercises",
+      "recipe": "Recipes",
+      "tool": "Tools"
+    },
+    "detail": {
+      "draftNotice": "Draft: only the Get iT team sees this entry. Review it before publishing.",
+      "edit": "Edit entry",
+      "videoLabel": "Demonstration: {title}",
+      "videoSoon": "Video coming soon",
+      "prep": "Prep: {count, number} min",
+      "duration": "{count, number} min",
+      "servings": "{count, plural, one {# serving} other {# servings}}",
+      "contains": "Contains: {list}",
+      "noAllergen": "No priority allergen in the ingredients.",
+      "labelWarning": "Always check labels: a product may contain traces of allergens.",
+      "ingredients": "Ingredients",
+      "steps": {
+        "exercise": "How to do it",
+        "recipe": "Method",
+        "tool": "Steps"
+      },
+      "cues": "Good form",
+      "mistakes": "Common mistakes",
+      "crisis": "These tools don’t replace help from a professional. If you’re in distress, call or text 9-8-8 (24/7).",
+      "safety": "Warm up first, use a load you control and stop if you feel pain. If you have a health condition, talk to a health professional first."
+    },
+    "values": {
+      "muscle": {
+        "chest": "Chest",
+        "back": "Back",
+        "shoulders": "Shoulders",
+        "biceps": "Biceps",
+        "triceps": "Triceps",
+        "quads": "Quads",
+        "hamstrings": "Hamstrings",
+        "glutes": "Glutes",
+        "calves": "Calves",
+        "core": "Core",
+        "fullBody": "Full body"
+      },
+      "place": {
+        "gym": "Gym",
+        "home": "Home"
+      },
+      "equipment": {
+        "bodyweight": "Bodyweight",
+        "dumbbells": "Dumbbells",
+        "barbell": "Barbell",
+        "cables": "Cables",
+        "machine": "Machine",
+        "kettlebell": "Kettlebell",
+        "bands": "Bands"
+      },
+      "level": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      },
+      "meal": {
+        "breakfast": "Breakfast",
+        "lunch": "Lunch",
+        "dinner": "Dinner",
+        "snack": "Snack"
+      },
+      "goal": {
+        "weightLoss": "Weight loss",
+        "muscleGain": "Muscle gain",
+        "maintenance": "Maintenance"
+      },
+      "diet": {
+        "vegetarian": "Vegetarian",
+        "vegan": "Vegan"
+      },
+      "allergen": {
+        "peanuts": "Peanuts",
+        "treeNuts": "Tree nuts",
+        "milk": "Milk",
+        "eggs": "Eggs",
+        "wheat": "Wheat and gluten",
+        "soy": "Soy",
+        "sesame": "Sesame",
+        "fish": "Fish",
+        "shellfish": "Shellfish",
+        "mustard": "Mustard",
+        "sulphites": "Sulphites"
+      },
+      "theme": {
+        "stress": "Stress",
+        "discipline": "Discipline",
+        "focus": "Focus",
+        "confidence": "Confidence",
+        "sleep": "Sleep",
+        "emotions": "Emotions",
+        "meetPeople": "Meeting people",
+        "communication": "Communication",
+        "networking": "Networking",
+        "relationships": "Relationships",
+        "publicSpeaking": "Public speaking"
+      }
+    },
+    "plan": {
+      "add": "Add to my plan",
+      "replace": "Replace…",
+      "addTitle": "Add to my plan",
+      "addDescription": {
+        "exercise": "Choose the day of the session to add it to.",
+        "recipe": "Choose the day and the meal.",
+        "tool": "Choose the day to practise it."
+      },
+      "day": "Day",
+      "meal": "Meal",
+      "addToSession": "Added to the “{title}” session.",
+      "newSession": "A new session will be created that day.",
+      "confirmAdd": "Add",
+      "replaceTitle": "Replace an item in your plan",
+      "replaceDescription": "Choose what this entry replaces. Sets, reps and the meal are kept.",
+      "confirmReplace": "Replace",
+      "done": "It’s in your plan.",
+      "seePlan": "See my plan",
+      "createPlan": "Create my plan",
+      "noPlan": {
+        "physical": "First create your training plan to add exercises to it.",
+        "nutrition": "First create your nutrition plan to add recipes to it.",
+        "mental": "First create your mental plan to add tools to it.",
+        "social": "First create your social plan to add tools to it.",
+        "financial": "First create your plan.",
+        "business": "First create your plan."
+      },
+      "allergyWarning": "Careful: this recipe contains {list}, listed in your allergies.",
+      "errors": {
+        "dayFull": "This day is full (10 items at most).",
+        "itemMissing": "This item is no longer in your plan.",
+        "invalidDay": "Choose a day.",
+        "notFound": "This entry is no longer available.",
+        "noPlan": "First create your plan.",
+        "invalid": "Choose a day (and a meal for a recipe)."
+      }
+    },
+    "planDefaults": {
+      "exercise": "3 × 10 to 12, rest 60 s",
+      "recipe": "1 serving",
+      "tool": "{minutes, number} min",
+      "session": {
+        "exercise": "Session",
+        "recipe": "Menu",
+        "tool": "Routine"
+      }
+    }
+  },
+  "LibraryAdmin": {
+    "title": "My development catalogue",
+    "description": "The exercises, recipes and tools shown to members. Only published entries are shown.",
+    "back": "Settings",
+    "newTitle": "New entry",
+    "editTitle": "Edit entry",
+    "summary": "{count, plural, =0 {No entries} one {# entry} other {# entries}}, including {drafts, plural, =0 {no drafts} one {# draft} other {# drafts}}.",
+    "import": {
+      "button": "Import the starter content",
+      "hint": "40 exercises, 30 recipes and 20 tools written with Get iT AI, imported as drafts to review (exercise form, recipe allergens) before publishing.",
+      "done": "{count, plural, one {# entry imported} other {# entries imported}} as drafts.",
+      "none": "All the starter content is already imported."
+    },
+    "kinds": {
+      "exercise": "Exercises ({count, number})",
+      "recipe": "Recipes ({count, number})",
+      "tool": "Tools ({count, number})"
+    },
+    "new": {
+      "exercise": "New exercise",
+      "recipe": "New recipe",
+      "tool": "New tool"
+    },
+    "pillars": {
+      "mental": "Mental",
+      "social": "Social",
+      "physical": "Physical"
+    },
+    "status": {
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "seeded": "Starter content",
+    "hasImage": "With photo",
+    "hasVideo": "With video",
+    "empty": "No entries yet.",
+    "settingsTitle": "My development catalogue",
+    "settingsDescription": "Get iT team: add, review and publish exercises, recipes and tools.",
+    "settingsLink": "Manage the catalogue",
+    "form": {
+      "pillar": "Pillar",
+      "pillars": {
+        "mental": "Mental",
+        "social": "Social"
+      },
+      "french": "French",
+      "english": "English",
+      "withEnglish": "Add the English version (otherwise French is shown)",
+      "title": "Title",
+      "summary": "Summary (one sentence)",
+      "description": "Description",
+      "ingredients": "Ingredients",
+      "steps": {
+        "exercise": "How to do it",
+        "recipe": "Method",
+        "tool": "Steps"
+      },
+      "cues": "Form cues",
+      "mistakes": "Common mistakes",
+      "oneLine": "One item per line.",
+      "details": "Details and filters",
+      "minutes": "Duration (minutes)",
+      "prep": "Prep (minutes)",
+      "servings": "Servings",
+      "contains": "Allergens the recipe contains",
+      "media": "Photo and video",
+      "image": "Photo",
+      "video": "Demonstration video",
+      "choose": "Choose",
+      "remove": "Remove",
+      "mediaHint": "A photo of 10 MB at most.",
+      "mediaHintExercise": "A preview photo, and a video of 60 seconds and 50 MB at most showing good form.",
+      "publish": "Published",
+      "publishHint": "Members see it. Review exercise form and recipe allergens first.",
+      "save": "Save",
+      "saved": "Entry saved.",
+      "errors": {
+        "invalid": "Check the title, summary and steps (at least one), and the field limits.",
+        "fileInvalid": "The uploaded file isn’t valid (type or size).",
+        "uploadFailed": "The upload failed. Try again.",
+        "unexpected": "Something went wrong. Try again in a moment."
+      },
+      "delete": {
+        "open": "Delete",
+        "title": "Delete this entry?",
+        "description": "The entry, its photo and its video will be deleted for everyone.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "Budget": {
+    "privacy": "Your budget is private: no one else sees it, and it’s never sent to Get iT AI.",
+    "empty": {
+      "title": "Start your budget",
+      "description": "Add your fixed income and expenses (pay, rent, subscriptions), then your day-to-day spending. Get iT works out what you have left, at all times."
+    },
+    "addFixed": {
+      "income": "Add fixed income",
+      "expense": "Add a fixed expense"
+    },
+    "addFixedShort": {
+      "income": "Fixed income",
+      "expense": "Fixed expense"
+    },
+    "addExpense": "Add an expense",
+    "addIncome": "Add income",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "previous": {
+      "day": "Previous day",
+      "week": "Previous week",
+      "month": "Previous month"
+    },
+    "following": {
+      "day": "Next day",
+      "week": "Next week",
+      "month": "Next month"
+    },
+    "viewLabel": "Period",
+    "views": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "remaining": {
+      "day": "Left today",
+      "week": "Left this week",
+      "month": "Left this month",
+      "other": "Left for this period"
+    },
+    "over": "You’re {amount} over your income.",
+    "usedLabel": "Share of your income already used",
+    "used": "{percent, number}% of your income used",
+    "noIncome": "No income in this period.",
+    "totals": {
+      "income": "Income",
+      "fixed": "Fixed expenses",
+      "spent": "Spending"
+    },
+    "upcoming": "{amount} still to come",
+    "perDay": "You can still spend {amount} a day, for {days, plural, one {the last day} other {the # days left}}.",
+    "byCategory": "Spending by category",
+    "share": "{percent, number}%",
+    "entries": "Transactions",
+    "noEntries": "No spending or income for this period.",
+    "fixed": "Fixed income and expenses",
+    "noFixed": "No fixed income or expenses yet. Add your pay, your rent or your subscriptions: they count in every period, automatically.",
+    "every": {
+      "daily": "{amount} every day",
+      "weekly": "{amount} every week",
+      "biweekly": "{amount} every two weeks",
+      "monthly": "{amount} every month",
+      "yearly": "{amount} every year"
+    },
+    "next": "next: {date}",
+    "ended": "ended",
+    "perMonth": "a month",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "editLabel": "Edit “{title}”",
+    "deleteLabel": "Delete “{title}”",
+    "deleteFixedTitle": "Delete “{title}”?",
+    "deleteFixedDescription": "It disappears from every period, past ones included. To stop it without changing the past, edit it and choose an end date.",
+    "kinds": {
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "categories": {
+      "housing": "Housing",
+      "groceries": "Groceries",
+      "transport": "Transportation",
+      "restaurants": "Restaurants",
+      "leisure": "Leisure",
+      "subscriptions": "Subscriptions",
+      "health": "Health",
+      "debt": "Debt",
+      "savings": "Savings",
+      "other": "Other"
+    },
+    "frequencies": {
+      "daily": "Every day",
+      "weekly": "Every week",
+      "biweekly": "Every two weeks",
+      "monthly": "Every month",
+      "yearly": "Every year"
+    },
+    "form": {
+      "kind": "Type",
+      "amount": "Amount",
+      "amountPlaceholder": "0.00",
+      "category": "Category",
+      "date": "Date",
+      "note": "Note",
+      "optional": "(optional)",
+      "notePlaceholder": {
+        "expense": "E.g. weekly groceries",
+        "income": "E.g. tax refund"
+      },
+      "label": "Name",
+      "labelPlaceholder": {
+        "income": "E.g. pay",
+        "expense": "E.g. rent"
+      },
+      "frequency": "Frequency",
+      "startsOn": {
+        "income": "Date of a payday",
+        "expense": "Date of a payment"
+      },
+      "endsOn": "Until",
+      "startsOnHint": "The next ones follow the frequency. A past date also makes it count in past periods.",
+      "add": "Add",
+      "save": "Save",
+      "delete": "Delete",
+      "addTitle": {
+        "expense": "Add an expense",
+        "income": "Add income"
+      },
+      "editTitle": {
+        "expense": "Edit the expense",
+        "income": "Edit the income"
+      },
+      "entryDescription": "A one-time expense or income, on its date.",
+      "addFixedTitle": {
+        "income": "Add fixed income",
+        "expense": "Add a fixed expense"
+      },
+      "editFixedTitle": {
+        "income": "Edit the fixed income",
+        "expense": "Edit the fixed expense"
+      },
+      "fixedDescription": "It comes back on its own, following its frequency (pay, rent, subscription…)."
+    },
+    "errors": {
+      "amountInvalid": "Enter a valid amount (e.g. 12.50).",
+      "categoryRequired": "Choose a category.",
+      "labelRequired": "Give it a name.",
+      "labelTooLong": "60 characters at most.",
+      "noteTooLong": "80 characters at most.",
+      "dateInvalid": "Choose a valid date.",
+      "endBeforeStart": "The end must come after the start.",
+      "recurringLimit": "You’ve reached 100 fixed income and expenses.",
+      "entryLimit": "You’ve added a lot of transactions today. Try again tomorrow.",
+      "notFound": "This amount no longer exists.",
+      "unexpected": "Something went wrong. Try again."
+    },
+    "erase": {
+      "button": "Erase my budget",
+      "title": "Erase your budget?",
+      "description": "All your transactions and fixed income and expenses will be deleted. This can’t be undone.",
+      "cancel": "Cancel",
+      "confirm": "Erase everything"
+    }
   }
 }

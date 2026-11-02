@@ -34,14 +34,14 @@ const plan: CalendarPlan = {
       moment: "morning",
       time: null,
       title: "Haut du corps",
-      items: [{ name: "Pompes", detail: "3 × 10" }],
+      items: [{ name: "Pompes", detail: "3 × 10", ref: null }],
     },
     {
       weekday: 4,
       moment: null,
       time: null,
       title: "Bas du corps",
-      items: [{ name: "Squats", detail: "3 × 12" }],
+      items: [{ name: "Squats", detail: "3 × 12", ref: null }],
     },
   ],
 };

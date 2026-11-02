@@ -16,7 +16,6 @@ type DevelopmentFlowProps = {
   /** Calendrier du plan (mois en cours). */
   calendar: CalendarData;
   minDate: string;
-  suggestBusiness: boolean;
 };
 
 /** Questionnaire, plan ou ressources d'aide, selon où en est la personne. */
@@ -27,7 +26,6 @@ export function DevelopmentFlow({
   updatedAt,
   calendar,
   minDate,
-  suggestBusiness,
 }: DevelopmentFlowProps) {
   const [mode, setMode] = useState<"plan" | "form" | "crisis">(
     plan ? "plan" : "form",
@@ -43,7 +41,6 @@ export function DevelopmentFlow({
         plan={plan}
         updatedAt={updatedAt}
         calendar={calendar}
-        suggestBusiness={suggestBusiness}
         onRedo={() => {
           setMode("form");
           window.scrollTo({ top: 0 });

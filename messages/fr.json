@@ -2149,18 +2149,33 @@
       }
     },
     "hub": {
-      "plansTitle": "Tes plans personnalisés",
-      "plansDescription": "Get iT AI crée un plan complet à partir de tes réponses. Tu choisis ensuite ce que tu ajoutes à tes objectifs et habitudes.",
       "updated": "Mis à jour le {date}",
-      "open": "Voir",
-      "create": "Créer",
       "prosTitle": "Mes professionnels",
       "prosDescription": "Bientôt : ton coach, ton nutritionniste ou ton conseiller, tes rendez-vous et les notes de tes séances, au même endroit.",
-      "prosAction": "Magasiner des services"
+      "prosAction": "Magasiner des services",
+      "sectionsTitle": "Tes sections",
+      "noPlan": "Plan à créer",
+      "sections": {
+        "physical": {
+          "title": "Physique",
+          "description": "Entraînement et nutrition"
+        },
+        "mental": {
+          "title": "Mental",
+          "description": "Plan et outils"
+        },
+        "social": {
+          "title": "Social",
+          "description": "Plan et outils"
+        },
+        "financial": {
+          "title": "Financier",
+          "description": "Plan et budget"
+        }
+      }
     },
     "plan": {
       "updated": "Plan créé le {date, date, long}",
-      "businessCta": "Tu as ou tu veux une entreprise? Crée aussi ton plan d’entreprise.",
       "redo": "Refaire mon plan",
       "addTitle": "Ajouter à mon Get iT",
       "addDescription": "Choisis ce que tu veux suivre dans tes objectifs, tes habitudes et tes tâches.",
@@ -2187,7 +2202,8 @@
         "mental": "Ex. je préfère des exercices le matin, 10 minutes au plus.",
         "social": "Ex. ajoute des idées pour rencontrer du monde au gym.",
         "financial": "Ex. je veux rembourser ma carte de crédit en premier.",
-        "business": "Ex. ajoute une étape pour trouver mes 10 premiers clients en ligne."
+        "business": "Ex. ajoute une étape pour trouver mes 10 premiers clients en ligne.",
+        "nutrition": "Ex. remplace le saumon par du poulet, et ajoute une collation l’après-midi."
       },
       "submit": "Modifier avec Get iT AI",
       "loading": "Get iT AI modifie ton plan… Ça peut prendre une minute ou deux.",
@@ -2207,8 +2223,8 @@
     "kinds": {
       "physical": {
         "title": "Plan d’entraînement",
-        "description": "Ton programme et tes conseils d’alimentation.",
-        "formDescription": "Réponds à quelques questions : Get iT AI crée ton programme d’entraînement et tes conseils d’alimentation."
+        "description": "Ton programme d’entraînement, semaine après semaine.",
+        "formDescription": "Réponds à quelques questions : Get iT AI crée ton programme d’entraînement avec les exercices du catalogue."
       },
       "mental": {
         "title": "Plan mental",
@@ -2229,14 +2245,18 @@
         "title": "Plan d’entreprise",
         "description": "Lancer ou faire grandir ton entreprise.",
         "formDescription": "Quelques questions sur ton projet : Get iT AI crée les étapes pour te lancer ou grandir."
+      },
+      "nutrition": {
+        "title": "Plan de nutrition",
+        "description": "Tes menus de la semaine et tes repères.",
+        "formDescription": "Réponds à quelques questions : Get iT AI crée tes menus avec les recettes du catalogue, sans tes allergènes."
       }
     },
     "sections": {
       "physical": {
         "goal": "Ton objectif",
         "body": "Toi",
-        "activity": "Ton entraînement",
-        "food": "Ton alimentation, en général"
+        "activity": "Ton entraînement"
       },
       "mental": {
         "goal": "Ton objectif",
@@ -2257,6 +2277,12 @@
       "business": {
         "project": "Ton projet",
         "means": "Tes moyens"
+      },
+      "nutrition": {
+        "goal": "Ton objectif",
+        "body": "Toi",
+        "needs": "Tes besoins",
+        "food": "Ce que tu manges maintenant"
       }
     },
     "questions": {
@@ -2329,19 +2355,6 @@
             "free_weights": "Avec des poids libres",
             "bodyweight": "Au poids du corps"
           }
-        },
-        "breakfast": {
-          "label": "Ton déjeuner",
-          "hint": "Ce que tu manges d’habitude."
-        },
-        "snacks": {
-          "label": "Tes collations"
-        },
-        "lunch": {
-          "label": "Ton dîner"
-        },
-        "dinner": {
-          "label": "Ton souper"
         }
       },
       "mental": {
@@ -2600,6 +2613,135 @@
           "label": "Dans quel pays ou quelle région?",
           "hint": "Ex. Montréal, Québec."
         }
+      },
+      "nutrition": {
+        "mainGoal": {
+          "label": "Ton objectif principal",
+          "options": {
+            "lose_fat": "Perdre du gras",
+            "build_muscle": "Prendre du muscle",
+            "maintain": "Garder mon poids",
+            "eat_better": "Mieux manger",
+            "energy": "Avoir plus d’énergie",
+            "performance": "Performer dans mon sport"
+          }
+        },
+        "targetDate": {
+          "label": "Pour quand?",
+          "hint": "Facultatif : la date à laquelle tu aimerais atteindre ton objectif."
+        },
+        "height": {
+          "label": "Ta taille"
+        },
+        "weight": {
+          "label": "Ton poids"
+        },
+        "activity": {
+          "label": "Ton niveau d’activité",
+          "options": {
+            "sedentary": "Plutôt assis (bureau, peu de marche)",
+            "light": "Un peu actif (marche, 1 à 2 entraînements par semaine)",
+            "active": "Actif (3 à 5 entraînements par semaine)",
+            "very_active": "Très actif (travail physique ou entraînement chaque jour)"
+          }
+        },
+        "allergies": {
+          "label": "Tes allergies et intolérances",
+          "hint": "Aucune recette qui en contient ne te sera proposée. Vérifie toujours les étiquettes.",
+          "options": {
+            "peanuts": "Arachides",
+            "treeNuts": "Noix",
+            "milk": "Lait",
+            "eggs": "Œufs",
+            "wheat": "Blé et gluten",
+            "soy": "Soya",
+            "sesame": "Sésame",
+            "fish": "Poisson",
+            "shellfish": "Crustacés et mollusques",
+            "mustard": "Moutarde",
+            "sulphites": "Sulfites"
+          }
+        },
+        "diet": {
+          "label": "Ton alimentation",
+          "options": {
+            "omnivore": "Je mange de tout",
+            "pescatarian": "Pescétarienne (poisson, pas de viande)",
+            "vegetarian": "Végétarienne",
+            "vegan": "Végane"
+          }
+        },
+        "mealsPerDay": {
+          "label": "Combien de repas et collations par jour?"
+        },
+        "cookingTime": {
+          "label": "Combien de temps pour cuisiner, par jour?",
+          "options": {
+            "m15": "15 min",
+            "m30": "30 min",
+            "m45": "45 min",
+            "m60": "1 h ou plus"
+          }
+        },
+        "breakfast": {
+          "label": "Ton déjeuner",
+          "hint": "Ce que tu manges d’habitude."
+        },
+        "snacks": {
+          "label": "Tes collations"
+        },
+        "lunch": {
+          "label": "Ton dîner"
+        },
+        "dinner": {
+          "label": "Ton souper"
+        },
+        "dislikes": {
+          "label": "Ce que tu n’aimes pas",
+          "hint": "Facultatif : des aliments à éviter dans tes menus."
+        }
+      }
+    },
+    "section": {
+      "back": "Mon développement",
+      "tabsLabel": "Onglets de {section}",
+      "tabs": {
+        "plan": "Mon plan",
+        "exercises": "Exercices",
+        "recipes": "Recettes",
+        "tools": "Outils",
+        "budget": "Budget"
+      },
+      "physical": {
+        "title": "Physique",
+        "description": "Ton entraînement et ta nutrition."
+      },
+      "training": {
+        "title": "Entraînement",
+        "description": "Ton plan d’entraînement et les exercices, avec la bonne forme.",
+        "card": "Ton plan et les exercices, en vidéo."
+      },
+      "nutrition": {
+        "title": "Nutrition",
+        "description": "Ton plan de nutrition et des recettes pour tes objectifs.",
+        "card": "Ton plan et des recettes selon tes objectifs et tes allergies."
+      },
+      "mental": {
+        "title": "Mental",
+        "description": "Ton plan et des outils pour le stress, la discipline et plus."
+      },
+      "social": {
+        "title": "Social",
+        "description": "Ton plan et des outils pour rencontrer, communiquer et garder tes liens."
+      },
+      "financial": {
+        "title": "Financier",
+        "description": "Ton plan financier et ton budget."
+      },
+      "nutritionSoon": {
+        "title": "Ton plan de nutrition arrive bientôt",
+        "description": "Il sera construit avec les recettes du catalogue, selon tes objectifs et tes allergies. En attendant, découvre les recettes.",
+        "action": "Voir les recettes"
       }
     }
   },
@@ -3253,6 +3395,7 @@
         "journal": "Pages de journal",
         "checkIns": "Check-ins",
         "calendarEvents": "Événements du calendrier",
+        "budget": "Budget",
         "coach": "Coach Get iT AI",
         "goalPlans": "Plans d’objectif",
         "developmentPlans": "Plans de Mon développement",
@@ -3373,7 +3516,11 @@
       "services": {
         "calendar": "Calendrier",
         "plan": "Un plan",
-        "event": "Événement du calendrier"
+        "event": "Événement du calendrier",
+        "section": "Une section",
+        "library": "Bibliothèque (exercices, recettes, outils)",
+        "libraryItem": "Fiche du catalogue",
+        "budget": "Budget"
       },
       "marketplace": {
         "vitrine": "Vitrine",
@@ -3761,5 +3908,440 @@
       }
     },
     "remeasure": "Mettre à jour"
+  },
+  "Library": {
+    "search": {
+      "exercise": "Rechercher un exercice",
+      "recipe": "Rechercher une recette",
+      "tool": "Rechercher un outil",
+      "submit": "Rechercher"
+    },
+    "filters": {
+      "muscle": "Muscles",
+      "place": "Lieu",
+      "equipment": "Équipement",
+      "level": "Niveau",
+      "meal": "Repas",
+      "goal": "Objectif",
+      "diet": "Régime",
+      "sans": "Sans allergène",
+      "theme": "Thème",
+      "without": "Sans {allergen}",
+      "clear": "Effacer les filtres"
+    },
+    "count": "{count, plural, =0 {Aucun résultat} one {# résultat} other {# résultats}}",
+    "empty": {
+      "title": "Le catalogue se remplit",
+      "description": "L’équipe Get iT ajoute les premières fiches. Reviens bientôt!",
+      "filtered": "Rien ne correspond à ces filtres",
+      "filteredDescription": "Retire un filtre ou cherche un autre mot."
+    },
+    "draft": "Brouillon",
+    "video": "Vidéo",
+    "minutes": "{count, number} min",
+    "back": {
+      "exercise": "Exercices",
+      "recipe": "Recettes",
+      "tool": "Outils"
+    },
+    "detail": {
+      "draftNotice": "Brouillon : seule l’équipe Get iT voit cette fiche. Relis-la avant de la publier.",
+      "edit": "Modifier la fiche",
+      "videoLabel": "Démonstration : {title}",
+      "videoSoon": "Vidéo à venir",
+      "prep": "Préparation : {count, number} min",
+      "duration": "{count, number} min",
+      "servings": "{count, plural, one {# portion} other {# portions}}",
+      "contains": "Contient : {list}",
+      "noAllergen": "Aucun allergène prioritaire dans les ingrédients.",
+      "labelWarning": "Vérifie toujours les étiquettes : un produit peut contenir des traces d’allergènes.",
+      "ingredients": "Ingrédients",
+      "steps": {
+        "exercise": "Comment faire",
+        "recipe": "Préparation",
+        "tool": "Étapes"
+      },
+      "cues": "Bonne forme",
+      "mistakes": "Erreurs fréquentes",
+      "crisis": "Ces outils ne remplacent pas l’aide d’un professionnel. En cas de détresse, appelle ou texte le 9-8-8 (24 h sur 24, 7 jours sur 7).",
+      "safety": "Échauffe-toi avant, garde une charge que tu contrôles et arrête en cas de douleur. Si tu as un problème de santé, parles-en d’abord à un professionnel de la santé."
+    },
+    "values": {
+      "muscle": {
+        "chest": "Pectoraux",
+        "back": "Dos",
+        "shoulders": "Épaules",
+        "biceps": "Biceps",
+        "triceps": "Triceps",
+        "quads": "Quadriceps",
+        "hamstrings": "Ischios",
+        "glutes": "Fessiers",
+        "calves": "Mollets",
+        "core": "Abdos et tronc",
+        "fullBody": "Corps entier"
+      },
+      "place": {
+        "gym": "Gym",
+        "home": "Maison"
+      },
+      "equipment": {
+        "bodyweight": "Poids du corps",
+        "dumbbells": "Haltères",
+        "barbell": "Barre",
+        "cables": "Poulies",
+        "machine": "Machine",
+        "kettlebell": "Kettlebell",
+        "bands": "Élastiques"
+      },
+      "level": {
+        "beginner": "Débutant",
+        "intermediate": "Intermédiaire",
+        "advanced": "Avancé"
+      },
+      "meal": {
+        "breakfast": "Déjeuner",
+        "lunch": "Dîner",
+        "dinner": "Souper",
+        "snack": "Collation"
+      },
+      "goal": {
+        "weightLoss": "Perte de poids",
+        "muscleGain": "Prise de masse",
+        "maintenance": "Maintien"
+      },
+      "diet": {
+        "vegetarian": "Végétarien",
+        "vegan": "Végane"
+      },
+      "allergen": {
+        "peanuts": "Arachides",
+        "treeNuts": "Noix",
+        "milk": "Lait",
+        "eggs": "Œufs",
+        "wheat": "Blé et gluten",
+        "soy": "Soya",
+        "sesame": "Sésame",
+        "fish": "Poisson",
+        "shellfish": "Crustacés et mollusques",
+        "mustard": "Moutarde",
+        "sulphites": "Sulfites"
+      },
+      "theme": {
+        "stress": "Stress",
+        "discipline": "Discipline",
+        "focus": "Concentration",
+        "confidence": "Confiance",
+        "sleep": "Sommeil",
+        "emotions": "Émotions",
+        "meetPeople": "Rencontrer des gens",
+        "communication": "Communication",
+        "networking": "Réseautage",
+        "relationships": "Relations",
+        "publicSpeaking": "Prise de parole"
+      }
+    },
+    "plan": {
+      "add": "Ajouter à mon plan",
+      "replace": "Remplacer…",
+      "addTitle": "Ajouter à mon plan",
+      "addDescription": {
+        "exercise": "Choisis le jour de la séance où l’ajouter.",
+        "recipe": "Choisis le jour et le repas.",
+        "tool": "Choisis le jour où le pratiquer."
+      },
+      "day": "Jour",
+      "meal": "Repas",
+      "addToSession": "Ajouté à la séance « {title} ».",
+      "newSession": "Une nouvelle séance sera créée ce jour-là.",
+      "confirmAdd": "Ajouter",
+      "replaceTitle": "Remplacer un élément de ton plan",
+      "replaceDescription": "Choisis ce que cette fiche remplace. Les séries, les répétitions et le repas sont gardés.",
+      "confirmReplace": "Remplacer",
+      "done": "C’est dans ton plan.",
+      "seePlan": "Voir mon plan",
+      "createPlan": "Créer mon plan",
+      "noPlan": {
+        "physical": "Crée d’abord ton plan d’entraînement pour y ajouter des exercices.",
+        "nutrition": "Crée d’abord ton plan de nutrition pour y ajouter des recettes.",
+        "mental": "Crée d’abord ton plan mental pour y ajouter des outils.",
+        "social": "Crée d’abord ton plan social pour y ajouter des outils.",
+        "financial": "Crée d’abord ton plan.",
+        "business": "Crée d’abord ton plan."
+      },
+      "allergyWarning": "Attention : cette recette contient {list}, indiqué dans tes allergies.",
+      "errors": {
+        "dayFull": "Cette journée est pleine (10 éléments au plus).",
+        "itemMissing": "Cet élément n’est plus dans ton plan.",
+        "invalidDay": "Choisis un jour.",
+        "notFound": "Cette fiche n’est plus disponible.",
+        "noPlan": "Crée d’abord ton plan.",
+        "invalid": "Choisis un jour (et un repas pour une recette)."
+      }
+    },
+    "planDefaults": {
+      "exercise": "3 × 10 à 12, repos 60 s",
+      "recipe": "1 portion",
+      "tool": "{minutes, number} min",
+      "session": {
+        "exercise": "Séance",
+        "recipe": "Menu",
+        "tool": "Routine"
+      }
+    }
+  },
+  "LibraryAdmin": {
+    "title": "Catalogue de Mon développement",
+    "description": "Les exercices, recettes et outils montrés aux membres. Seules les fiches publiées se montrent.",
+    "back": "Réglages",
+    "newTitle": "Nouvelle fiche",
+    "editTitle": "Modifier la fiche",
+    "summary": "{count, plural, =0 {Aucune fiche} one {# fiche} other {# fiches}}, dont {drafts, plural, =0 {aucun brouillon} one {# brouillon} other {# brouillons}}.",
+    "import": {
+      "button": "Importer le contenu de départ",
+      "hint": "40 exercices, 30 recettes et 20 outils rédigés avec Get iT AI, importés en brouillons à relire (forme des exercices, allergènes des recettes) avant de publier.",
+      "done": "{count, plural, one {# fiche importée} other {# fiches importées}} en brouillon.",
+      "none": "Tout le contenu de départ est déjà importé."
+    },
+    "kinds": {
+      "exercise": "Exercices ({count, number})",
+      "recipe": "Recettes ({count, number})",
+      "tool": "Outils ({count, number})"
+    },
+    "new": {
+      "exercise": "Nouvel exercice",
+      "recipe": "Nouvelle recette",
+      "tool": "Nouvel outil"
+    },
+    "pillars": {
+      "mental": "Mental",
+      "social": "Social",
+      "physical": "Physique"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "published": "Publiée"
+    },
+    "seeded": "Contenu de départ",
+    "hasImage": "Avec photo",
+    "hasVideo": "Avec vidéo",
+    "empty": "Aucune fiche pour l’instant.",
+    "settingsTitle": "Catalogue de Mon développement",
+    "settingsDescription": "Équipe Get iT : ajoute, relis et publie les exercices, recettes et outils.",
+    "settingsLink": "Gérer le catalogue",
+    "form": {
+      "pillar": "Pilier",
+      "pillars": {
+        "mental": "Mental",
+        "social": "Social"
+      },
+      "french": "Français",
+      "english": "Anglais",
+      "withEnglish": "Ajouter la version anglaise (sinon, le français s’affiche)",
+      "title": "Titre",
+      "summary": "Résumé (une phrase)",
+      "description": "Description",
+      "ingredients": "Ingrédients",
+      "steps": {
+        "exercise": "Comment faire",
+        "recipe": "Préparation",
+        "tool": "Étapes"
+      },
+      "cues": "Consignes de forme",
+      "mistakes": "Erreurs fréquentes",
+      "oneLine": "Un élément par ligne.",
+      "details": "Détails et filtres",
+      "minutes": "Durée (minutes)",
+      "prep": "Préparation (minutes)",
+      "servings": "Portions",
+      "contains": "Allergènes que la recette contient",
+      "media": "Photo et vidéo",
+      "image": "Photo",
+      "video": "Vidéo de démonstration",
+      "choose": "Choisir",
+      "remove": "Retirer",
+      "mediaHint": "Une photo de 10 Mo au plus.",
+      "mediaHintExercise": "Une photo d’aperçu, et une vidéo de 60 secondes et 50 Mo au plus qui montre la bonne forme.",
+      "publish": "Publiée",
+      "publishHint": "Les membres la voient. Relis d’abord la forme des exercices et les allergènes des recettes.",
+      "save": "Enregistrer",
+      "saved": "Fiche enregistrée.",
+      "errors": {
+        "invalid": "Vérifie le titre, le résumé et les étapes (au moins une), et les limites des champs.",
+        "fileInvalid": "Le fichier envoyé ne convient pas (type ou taille).",
+        "uploadFailed": "L’envoi du fichier a échoué. Réessaie.",
+        "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      },
+      "delete": {
+        "open": "Supprimer",
+        "title": "Supprimer cette fiche?",
+        "description": "La fiche, sa photo et sa vidéo seront supprimées pour tout le monde.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer"
+      }
+    }
+  },
+  "Budget": {
+    "privacy": "Ton budget est privé : personne d’autre ne le voit, et il n’est jamais envoyé à Get iT AI.",
+    "empty": {
+      "title": "Commence ton budget",
+      "description": "Ajoute tes revenus et tes dépenses fixes (salaire, loyer, abonnements), puis tes dépenses au jour le jour. Get iT calcule ce qui te reste, en tout temps."
+    },
+    "addFixed": {
+      "income": "Ajouter un revenu fixe",
+      "expense": "Ajouter une dépense fixe"
+    },
+    "addFixedShort": {
+      "income": "Revenu fixe",
+      "expense": "Dépense fixe"
+    },
+    "addExpense": "Ajouter une dépense",
+    "addIncome": "Ajouter un revenu",
+    "today": "Aujourd’hui",
+    "yesterday": "Hier",
+    "previous": {
+      "day": "Jour précédent",
+      "week": "Semaine précédente",
+      "month": "Mois précédent"
+    },
+    "following": {
+      "day": "Jour suivant",
+      "week": "Semaine suivante",
+      "month": "Mois suivant"
+    },
+    "viewLabel": "Période",
+    "views": {
+      "day": "Jour",
+      "week": "Semaine",
+      "month": "Mois"
+    },
+    "remaining": {
+      "day": "Il te reste aujourd’hui",
+      "week": "Il te reste cette semaine",
+      "month": "Il te reste ce mois-ci",
+      "other": "Reste pour cette période"
+    },
+    "over": "Tu dépasses tes revenus de {amount}.",
+    "usedLabel": "Part de tes revenus déjà utilisée",
+    "used": "{percent, number} % de tes revenus utilisés",
+    "noIncome": "Aucun revenu dans cette période.",
+    "totals": {
+      "income": "Revenus",
+      "fixed": "Dépenses fixes",
+      "spent": "Dépenses"
+    },
+    "upcoming": "dont {amount} à venir",
+    "perDay": "Tu peux encore dépenser {amount} par jour, pour {days, plural, one {le dernier jour} other {les # jours qui restent}}.",
+    "byCategory": "Dépenses par catégorie",
+    "share": "{percent, number} %",
+    "entries": "Mouvements",
+    "noEntries": "Aucune dépense ni aucun revenu pour cette période.",
+    "fixed": "Revenus et dépenses fixes",
+    "noFixed": "Aucun revenu ni aucune dépense fixe. Ajoute ton salaire, ton loyer ou tes abonnements : ils comptent dans chaque période, automatiquement.",
+    "every": {
+      "daily": "{amount} chaque jour",
+      "weekly": "{amount} chaque semaine",
+      "biweekly": "{amount} aux deux semaines",
+      "monthly": "{amount} chaque mois",
+      "yearly": "{amount} chaque année"
+    },
+    "next": "prochain : {date}",
+    "ended": "terminé",
+    "perMonth": "par mois",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "cancel": "Annuler",
+    "editLabel": "Modifier « {title} »",
+    "deleteLabel": "Supprimer « {title} »",
+    "deleteFixedTitle": "Supprimer « {title} »?",
+    "deleteFixedDescription": "Il disparaît de toutes les périodes, passées comprises. Pour l’arrêter sans changer le passé, modifie-le et choisis une date de fin.",
+    "kinds": {
+      "income": "Revenu",
+      "expense": "Dépense"
+    },
+    "categories": {
+      "housing": "Logement",
+      "groceries": "Épicerie",
+      "transport": "Transport",
+      "restaurants": "Restaurants",
+      "leisure": "Loisirs",
+      "subscriptions": "Abonnements",
+      "health": "Santé",
+      "debt": "Dettes",
+      "savings": "Épargne",
+      "other": "Autre"
+    },
+    "frequencies": {
+      "daily": "Chaque jour",
+      "weekly": "Chaque semaine",
+      "biweekly": "Aux deux semaines",
+      "monthly": "Chaque mois",
+      "yearly": "Chaque année"
+    },
+    "form": {
+      "kind": "Type",
+      "amount": "Montant",
+      "amountPlaceholder": "0,00",
+      "category": "Catégorie",
+      "date": "Date",
+      "note": "Note",
+      "optional": "(facultatif)",
+      "notePlaceholder": {
+        "expense": "Ex. épicerie de la semaine",
+        "income": "Ex. remboursement d’impôt"
+      },
+      "label": "Nom",
+      "labelPlaceholder": {
+        "income": "Ex. salaire",
+        "expense": "Ex. loyer"
+      },
+      "frequency": "Fréquence",
+      "startsOn": {
+        "income": "Date d’une paie",
+        "expense": "Date d’un paiement"
+      },
+      "endsOn": "Jusqu’au",
+      "startsOnHint": "Les suivants tombent selon la fréquence. Une date passée le fait aussi compter dans les périodes passées.",
+      "add": "Ajouter",
+      "save": "Enregistrer",
+      "delete": "Supprimer",
+      "addTitle": {
+        "expense": "Ajouter une dépense",
+        "income": "Ajouter un revenu"
+      },
+      "editTitle": {
+        "expense": "Modifier la dépense",
+        "income": "Modifier le revenu"
+      },
+      "entryDescription": "Une dépense ou un revenu ponctuel, à sa date.",
+      "addFixedTitle": {
+        "income": "Ajouter un revenu fixe",
+        "expense": "Ajouter une dépense fixe"
+      },
+      "editFixedTitle": {
+        "income": "Modifier le revenu fixe",
+        "expense": "Modifier la dépense fixe"
+      },
+      "fixedDescription": "Il revient tout seul selon sa fréquence (salaire, loyer, abonnement…)."
+    },
+    "errors": {
+      "amountInvalid": "Entre un montant valide (ex. 12,50).",
+      "categoryRequired": "Choisis une catégorie.",
+      "labelRequired": "Donne-lui un nom.",
+      "labelTooLong": "60 caractères au plus.",
+      "noteTooLong": "80 caractères au plus.",
+      "dateInvalid": "Choisis une date valide.",
+      "endBeforeStart": "La fin doit venir après le début.",
+      "recurringLimit": "Tu as atteint 100 revenus et dépenses fixes.",
+      "entryLimit": "Tu as ajouté beaucoup de mouvements aujourd’hui. Réessaie demain.",
+      "notFound": "Ce montant n’existe plus.",
+      "unexpected": "Une erreur est survenue. Réessaie."
+    },
+    "erase": {
+      "button": "Effacer mon budget",
+      "title": "Effacer ton budget?",
+      "description": "Tous tes mouvements, revenus et dépenses fixes seront supprimés. C’est définitif.",
+      "cancel": "Annuler",
+      "confirm": "Tout effacer"
+    }
   }
 }
