@@ -2191,7 +2191,68 @@
       "deleteDescription": "The plan and your questionnaire answers will be erased. What you already added to your goals and habits stays.",
       "deleteConfirm": "Delete",
       "cancel": "Cancel",
-      "goalLimit": "You already have 3 active goals in this pillar, so the goal wasn’t added. Reach or archive one, then try again."
+      "goalLimit": "You already have 3 active goals in this pillar, so the goal wasn’t added. Reach or archive one, then try again.",
+      "yourPlan": "Your plan",
+      "today": {
+        "daysLabel": "Days of the week",
+        "today": "Today",
+        "editSession": "Edit the “{title}” session",
+        "rest": "Rest",
+        "nothing": "Nothing planned",
+        "restText": "Nothing planned that day in your plan.",
+        "before": "Your plan starts on {date}.",
+        "after": "Your plan ended on {date}. Redo it to keep going.",
+        "nextSession": "Next session: {day} — {title}",
+        "items": {
+          "physical": "{count, plural, =0 {No exercises} one {# exercise} other {# exercises}}",
+          "nutrition": "{count, plural, =0 {No meals} one {# meal} other {# meals}}",
+          "mental": "{count, plural, =0 {No practices} one {# practice} other {# practices}}",
+          "social": "{count, plural, =0 {No challenges} one {# challenge} other {# challenges}}",
+          "financial": "{count, plural, =0 {No actions} one {# action} other {# actions}}",
+          "business": "{count, plural, =0 {No items} one {# item} other {# items}}"
+        },
+        "week": "Week {week, number} of {weeks, number}",
+        "media": {
+          "exercise": "Demo",
+          "recipe": "Recipe",
+          "tool": "Guide"
+        },
+        "see": {
+          "exercise": "See the demo",
+          "recipe": "See the recipe",
+          "tool": "See the guide"
+        },
+        "start": {
+          "physical": "Start the session",
+          "nutrition": "Start today’s menu",
+          "mental": "Start the routine",
+          "social": "Take on the challenges",
+          "financial": "Start",
+          "business": "Start"
+        },
+        "next": "Coming up"
+      },
+      "folds": {
+        "add": "Add to Get iT",
+        "addMeta": "{count, plural, one {# suggestion to choose} other {# suggestions to choose}}",
+        "tips": "Key points",
+        "tipsMeta": "{count, plural, one {# section of tips} other {# sections of tips}}",
+        "week": "The whole week",
+        "weekMeta": "{count, plural, =0 {No days planned} one {# day planned} other {# days planned}}",
+        "revise": "Edit with Get iT AI",
+        "reviseMeta": "Write what you want to change; the rest stays."
+      },
+      "runner": {
+        "close": "Close",
+        "description": "The session’s items, one at a time.",
+        "progressLabel": "Session progress",
+        "step": "{current, number} of {total, number}",
+        "previous": "Previous",
+        "next": "Next",
+        "finish": "Finish",
+        "doneTitle": "Done",
+        "doneText": "Well done, “{title}” is finished for today."
+      }
     },
     "revise": {
       "title": "Edit my plan",

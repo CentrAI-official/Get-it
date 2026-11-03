@@ -6,6 +6,7 @@ import { useId, useState, useTransition } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { revisePlanAction, type GeneratePlanResult } from "../actions";
 import { REVISION_MAX_LENGTH } from "../prompts";
 import type { DevelopmentKind } from "../questionnaires";
@@ -17,9 +18,12 @@ import type { DevelopmentKind } from "../questionnaires";
 export function RevisePlan({
   kind,
   onCrisis,
+  bare = false,
 }: {
   kind: DevelopmentKind;
   onCrisis: () => void;
+  /** Dans un volet qui porte déjà le titre : sans titre ni trait. */
+  bare?: boolean;
 }) {
   const t = useTranslations("Development.revise");
   const tErrors = useTranslations("Development.errors");
@@ -49,10 +53,16 @@ export function RevisePlan({
   return (
     <section
       aria-labelledby={`${id}-title`}
-      className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
+      className={cn(
+        "flex flex-col gap-3",
+        !bare && "border-t border-foreground/8 pt-6",
+      )}
     >
       <div className="flex flex-col gap-1">
-        <h3 id={`${id}-title`} className="font-heading text-lg font-bold">
+        <h3
+          id={`${id}-title`}
+          className={cn("font-heading text-lg font-bold", bare && "sr-only")}
+        >
           {t("title")}
         </h3>
         <p className="text-sm text-muted-foreground">{t("description")}</p>

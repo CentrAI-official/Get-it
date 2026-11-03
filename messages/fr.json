@@ -2191,7 +2191,68 @@
       "deleteDescription": "Le plan et tes réponses au questionnaire seront effacés. Ce que tu as déjà ajouté à tes objectifs et habitudes reste.",
       "deleteConfirm": "Supprimer",
       "cancel": "Annuler",
-      "goalLimit": "Tu as déjà 3 objectifs en cours dans ce pilier : l’objectif n’a pas été ajouté. Atteins-en un ou archive-le, puis réessaie."
+      "goalLimit": "Tu as déjà 3 objectifs en cours dans ce pilier : l’objectif n’a pas été ajouté. Atteins-en un ou archive-le, puis réessaie.",
+      "yourPlan": "Ton plan",
+      "today": {
+        "daysLabel": "Jours de la semaine",
+        "today": "Aujourd’hui",
+        "editSession": "Modifier la séance « {title} »",
+        "rest": "Repos",
+        "nothing": "Rien de prévu",
+        "restText": "Rien de prévu ce jour-là dans ton plan.",
+        "before": "Ton plan commence le {date}.",
+        "after": "Ton plan s’est terminé le {date}. Refais-le pour continuer.",
+        "nextSession": "Prochaine séance : {day} — {title}",
+        "items": {
+          "physical": "{count, plural, =0 {Aucun exercice} one {# exercice} other {# exercices}}",
+          "nutrition": "{count, plural, =0 {Aucun repas} one {# repas} other {# repas}}",
+          "mental": "{count, plural, =0 {Aucune pratique} one {# pratique} other {# pratiques}}",
+          "social": "{count, plural, =0 {Aucun défi} one {# défi} other {# défis}}",
+          "financial": "{count, plural, =0 {Aucune action} one {# action} other {# actions}}",
+          "business": "{count, plural, =0 {Aucun élément} one {# élément} other {# éléments}}"
+        },
+        "week": "Semaine {week, number} sur {weeks, number}",
+        "media": {
+          "exercise": "Démo",
+          "recipe": "Recette",
+          "tool": "Guide"
+        },
+        "see": {
+          "exercise": "Voir la démo",
+          "recipe": "Voir la recette",
+          "tool": "Voir le guide"
+        },
+        "start": {
+          "physical": "Commencer la séance",
+          "nutrition": "Commencer le menu du jour",
+          "mental": "Commencer la routine",
+          "social": "Relever les défis",
+          "financial": "Commencer",
+          "business": "Commencer"
+        },
+        "next": "Ensuite"
+      },
+      "folds": {
+        "add": "À ajouter dans Get iT",
+        "addMeta": "{count, plural, one {# proposition à choisir} other {# propositions à choisir}}",
+        "tips": "Les repères",
+        "tipsMeta": "{count, plural, one {# section de conseils} other {# sections de conseils}}",
+        "week": "Toute la semaine",
+        "weekMeta": "{count, plural, =0 {Aucun jour prévu} one {# jour prévu} other {# jours prévus}}",
+        "revise": "Modifier avec Get iT AI",
+        "reviseMeta": "Écris ce que tu veux changer, le reste est gardé."
+      },
+      "runner": {
+        "close": "Fermer",
+        "description": "Les éléments de la séance, un à la fois.",
+        "progressLabel": "Avancement de la séance",
+        "step": "{current, number} sur {total, number}",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "finish": "Terminer",
+        "doneTitle": "C’est fait",
+        "doneText": "Bravo, « {title} » est terminé pour aujourd’hui."
+      }
     },
     "revise": {
       "title": "Modifier mon plan",

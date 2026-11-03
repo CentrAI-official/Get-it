@@ -266,7 +266,8 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
   }
   return (
     <>
-      {header}
+      {/* Un plan créé commence par sa semaine (design « Aujourd'hui ») */}
+      {page.stored ? null : header}
       <DevelopmentFlow
         kind={kind}
         plan={page.stored?.plan ?? null}
