@@ -15,9 +15,11 @@ import { BackLink } from "@/components/back-link";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { planHref } from "@/features/development/questionnaires";
+import { ExerciseHistory } from "@/features/workouts/components/exercise-history";
 import { getPlanTarget } from "@/server/development/library";
 import { getLibraryItem } from "@/server/library/service";
 import { getCurrentProfile } from "@/server/profile/service";
+import { getExerciseProgress } from "@/server/workouts/service";
 import { libraryListPath } from "../paths";
 import { LibraryVideo } from "./library-video";
 import { PlanActions } from "./plan-actions";
@@ -46,6 +48,11 @@ export async function LibraryDetail({ id }: { id: string }) {
   ]);
   if (!item) notFound();
   const target = await getPlanTarget(profile.id, item);
+  // Mes séances de cet exercice : jamais montrées à quelqu'un d'autre
+  const history =
+    item.kind === "exercise"
+      ? await getExerciseProgress(profile.id, item.id, item.title)
+      : null;
   const Icon = KIND_ICONS[item.kind];
   const label = (group: string, value: string) =>
     t(`values.${group}.${value}` as "values.muscle.chest");
@@ -176,6 +183,14 @@ export async function LibraryDetail({ id }: { id: string }) {
         planHref={planHref(target.planKind)}
       />
 
+      {history?.progress ? (
+        <ExerciseHistory
+          progress={history.progress}
+          unit={history.unit}
+          title={item.title}
+        />
+      ) : null}
+
       {item.description ? (
         <p className="text-pretty whitespace-pre-line">{item.description}</p>
       ) : null}
@@ -208,6 +223,11 @@ export async function LibraryDetail({ id }: { id: string }) {
             className="mt-0.5 size-4 shrink-0 text-primary"
           />
           {t("detail.crisis")}
+        </p>
+      ) : null}
+      {history && !history.progress ? (
+        <p className="border-t border-foreground/8 pt-6 text-sm text-pretty text-muted-foreground">
+          {t("history.empty")}
         </p>
       ) : null}
       {item.kind === "exercise" ? (

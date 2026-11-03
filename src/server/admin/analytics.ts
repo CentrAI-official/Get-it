@@ -73,6 +73,7 @@ const featureActions = (since: Date) => Prisma.sql`
         UNION ALL SELECT 'budget', user_id, created_at FROM budget_entries WHERE created_at >= ${since}
         UNION ALL SELECT 'budget', user_id, created_at FROM budget_recurring WHERE created_at >= ${since}
         UNION ALL SELECT 'workouts', user_id, finished_at FROM workout_sessions WHERE finished_at >= ${since}
+        UNION ALL SELECT 'planChecks', user_id, created_at FROM plan_item_logs WHERE created_at >= ${since}
         UNION ALL SELECT
           CASE kind
             WHEN 'coach' THEN 'coach'
@@ -90,7 +91,7 @@ const featureActions = (since: Date) => Prisma.sql`
 /**
  * Actions de progrès depuis `since` (celles qui font avancer la série du jour) :
  * habitude cochée, tâche, jalon ou objectif terminé, check-in, page de journal,
- * séance d'entraînement terminée.
+ * séance d'entraînement terminée, élément d'un plan coché.
  */
 const progressActions = (since: Date) => Prisma.sql`
         SELECT h.user_id, c.created_at AS at FROM habit_completions c
@@ -101,7 +102,8 @@ const progressActions = (since: Date) => Prisma.sql`
         UNION ALL SELECT user_id, completed_at FROM goals WHERE completed_at >= ${since}
         UNION ALL SELECT user_id, created_at FROM daily_check_ins WHERE created_at >= ${since}
         UNION ALL SELECT user_id, created_at FROM journal_entries WHERE created_at >= ${since}
-        UNION ALL SELECT user_id, finished_at FROM workout_sessions WHERE finished_at >= ${since}`;
+        UNION ALL SELECT user_id, finished_at FROM workout_sessions WHERE finished_at >= ${since}
+        UNION ALL SELECT user_id, created_at FROM plan_item_logs WHERE created_at >= ${since}`;
 
 /** Jours d'activité de chaque personne depuis `since`. */
 async function activityDays(since: Date): Promise<ActivityDay[]> {

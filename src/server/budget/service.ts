@@ -154,6 +154,7 @@ export async function getBudget(
 }
 
 type Result = { ok: true } | { ok: false; error: BudgetError };
+type EntryResult = { ok: true; id: string } | { ok: false; error: BudgetError };
 
 /** Seulement les colonnes du mouvement. */
 const entryData = (input: EntryInput) => ({
@@ -179,13 +180,15 @@ export async function saveEntry(
   userId: string,
   entryId: string | null,
   input: EntryInput,
-): Promise<Result> {
+): Promise<EntryResult> {
   if (entryId) {
     const { count } = await db.budgetEntry.updateMany({
       where: { id: entryId, userId },
       data: entryData(input),
     });
-    return count > 0 ? { ok: true } : { ok: false, error: "notFound" };
+    return count > 0
+      ? { ok: true, id: entryId }
+      : { ok: false, error: "notFound" };
   }
   const recent = await db.budgetEntry.count({
     where: {
@@ -194,8 +197,11 @@ export async function saveEntry(
     },
   });
   if (recent >= MAX_ENTRIES_PER_DAY) return { ok: false, error: "entryLimit" };
-  await db.budgetEntry.create({ data: { userId, ...entryData(input) } });
-  return { ok: true };
+  const { id } = await db.budgetEntry.create({
+    data: { userId, ...entryData(input) },
+    select: { id: true },
+  });
+  return { ok: true, id };
 }
 
 export async function deleteEntry(userId: string, entryId: string) {

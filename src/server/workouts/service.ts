@@ -7,6 +7,7 @@ import {
 } from "@/features/development/plan";
 import {
   exerciseKey,
+  exerciseProgress,
   findRecords,
   historyFromRows,
   isLoaded,
@@ -16,6 +17,7 @@ import {
   workoutExercisesSchema,
   workoutRecordsSchema,
   type ExerciseHistory,
+  type ExerciseProgress,
   type SetLog,
   type SetValues,
   type WeightUnit,
@@ -68,17 +70,14 @@ const exercisesOfPlan = (plan: DevelopmentPlan, weekday: number) => {
   };
 };
 
-/** Historique d'exercices, sans la séance `exclude` (celle qu'on termine). */
-async function historyOf(
+/** Séries faites de séances terminées, de la plus récente à la plus ancienne. */
+function doneSets(
   userId: string,
-  exercises: readonly WorkoutExercise[],
+  refs: string[],
+  names: string[],
   exclude: string | null,
-): Promise<Map<string, Pick<ExerciseHistory, "last" | "best">>> {
-  const refs = exercises
-    .map((exercise) => exercise.ref)
-    .filter((ref): ref is string => uuid.safeParse(ref).success);
-  const names = exercises.map((exercise) => exercise.name);
-  const rows = await db.workoutSet.findMany({
+) {
+  return db.workoutSet.findMany({
     where: {
       done: true,
       OR: [{ libraryItemId: { in: refs } }, { exercise: { in: names } }],
@@ -105,6 +104,19 @@ async function historyOf(
       session: { select: { day: true } },
     },
   });
+}
+
+/** Historique d'exercices, sans la séance `exclude` (celle qu'on termine). */
+async function historyOf(
+  userId: string,
+  exercises: readonly WorkoutExercise[],
+  exclude: string | null,
+): Promise<Map<string, Pick<ExerciseHistory, "last" | "best">>> {
+  const refs = exercises
+    .map((exercise) => exercise.ref)
+    .filter((ref): ref is string => uuid.safeParse(ref).success);
+  const names = exercises.map((exercise) => exercise.name);
+  const rows = await doneSets(userId, refs, names, exclude);
   return new Map(
     exercises.map((exercise) => [
       exerciseKey(exercise),
@@ -278,6 +290,34 @@ export async function getWorkoutPage(
           },
         ];
       }),
+    ),
+  };
+}
+
+/** La fiche d'un exercice : ses dernières séances, son record et sa courbe. */
+export async function getExerciseProgress(
+  userId: string,
+  itemId: string,
+  title: string,
+): Promise<{ unit: WeightUnit; progress: ExerciseProgress | null }> {
+  const [rows, settings] = await Promise.all([
+    doneSets(userId, [itemId], [title], null),
+    db.userSettings.findUnique({
+      where: { userId },
+      select: { weightUnit: true },
+    }),
+  ]);
+  return {
+    unit: WEIGHT_UNITS.find((unit) => unit === settings?.weightUnit) ?? "kg",
+    progress: exerciseProgress(
+      rows.map((row) => ({
+        sessionId: row.sessionId,
+        day: fromDbDate(row.session.day),
+        setNumber: row.setNumber,
+        weightGrams: row.weightGrams,
+        reps: row.reps,
+        seconds: row.seconds,
+      })),
     ),
   };
 }

@@ -14,6 +14,8 @@ import {
   getPlanPage,
   listPlans,
 } from "@/server/development/service";
+import { isLoggedKind } from "@/features/plan-logs/rules";
+import { getPlanLogPage } from "@/server/plan-logs/service";
 import { getWorkoutPage } from "@/server/workouts/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import {
@@ -242,6 +244,11 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
     kind === "physical" && page.stored
       ? await getWorkoutPage(profile.id, page.stored.plan)
       : null;
+  // Les éléments cochés des autres plans
+  const logs =
+    isLoggedKind(kind) && page.stored
+      ? await getPlanLogPage(profile.id, kind, page.stored.plan)
+      : null;
   const header = (
     <p className="text-sm text-pretty text-muted-foreground">
       {page.stored
@@ -281,6 +288,7 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
         updatedAt={page.stored?.updatedAt ?? null}
         calendar={calendar}
         workouts={workouts}
+        logs={logs}
         minDate={page.minDate}
       />
     </>

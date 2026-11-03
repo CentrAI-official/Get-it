@@ -9,6 +9,18 @@ import {
 import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { momentOfMinute } from "@/config/moments";
+import {
+  CheckButton,
+  ItemFollowUp,
+} from "@/features/plan-logs/components/item-follow-up";
+import { usePlanLogs } from "@/features/plan-logs/components/use-plan-logs";
+import {
+  findLog,
+  isLoggedKind,
+  logDayOf,
+  sessionProgress,
+  type PlanLogPage,
+} from "@/features/plan-logs/rules";
 import { useDraftFlush } from "@/features/workouts/components/use-draft-flush";
 import {
   WorkoutLogger,
@@ -34,21 +46,25 @@ import { SessionRunner } from "./session-runner";
  * 2026-11-02) : les 7 jours de la semaine, la séance du jour choisi en grand,
  * ses éléments en cartes (vers leur fiche du catalogue), « Commencer », puis
  * les prochaines séances. Un plan d'entraînement a son carnet (`workouts`) :
- * « Commencer » y ouvre le carnet ; les autres plans, le mode séance.
+ * « Commencer » y ouvre le carnet. Les autres plans (`logs`) se cochent, sur les
+ * cartes ou dans le mode séance, et comptent dans la série de leur pilier.
  */
 export function PlanToday({
   kind,
   plan,
   today,
   workouts,
+  logs,
 }: {
   kind: DevelopmentKind;
   plan: CalendarPlan;
   today: string;
   workouts: WorkoutPageData | null;
+  logs: PlanLogPage | null;
 }) {
   const t = useTranslations("Development.plan.today");
   const tMoments = useTranslations("Development.calendar.moments");
+  const tRunner = useTranslations("Development.plan.runner");
   const format = useFormatter();
   const router = useRouter();
   const root = useRef<HTMLDivElement>(null);
@@ -60,6 +76,8 @@ export function PlanToday({
   const owner = workouts?.ownerId ?? null;
   useDraftFlush(owner, today, reload);
   const drafts = useDraftSessions(owner ?? "");
+  const logged = logs && isLoggedKind(kind) ? kind : null;
+  const controls = usePlanLogs(logs?.rows ?? []);
 
   const session = sessionOn(plan, day);
   // Carnet : la séance faite ce jour-là, et celle d'aujourd'hui pour ce jour de la semaine
@@ -84,8 +102,19 @@ export function PlanToday({
   const library = PLAN_LIBRARY[kind]?.kind ?? null;
   const week = planWeek(plan, today);
   const items = session
-    ? session.items.map((item) => ({ ...itemParts(item), ref: item.ref }))
+    ? session.items.map((item) => ({
+        ...itemParts(item),
+        ref: item.ref,
+        planName: item.name,
+        text: `${item.name} ${item.detail}`,
+      }))
     : [];
+  // Une séance à venir faite d'avance se note aujourd'hui
+  const logDay = logDayOf(day, today);
+  const progress = session
+    ? sessionProgress(controls.rows, session, logDay)
+    : { done: 0, total: 0 };
+  const allDone = progress.total > 0 && progress.done === progress.total;
   const upcoming = nextSessions(plan, day);
   const date = (value: string, options: DateTimeFormatOptions) =>
     format.dateTime(toDbDate(value), { ...options, timeZone: "UTC" });
@@ -144,10 +173,16 @@ export function PlanToday({
         {weekOf(today).map((value) => {
           const planned = sessionOn(plan, value) !== null;
           const selected = value === day;
-          const done =
-            workouts?.sessions.some(
-              (row) => row.day === value && row.finishedAt !== null,
-            ) ?? false;
+          const entry = sessionOn(plan, value);
+          const dayProgress =
+            logged && entry
+              ? sessionProgress(controls.rows, entry, logDayOf(value, today))
+              : null;
+          const done = dayProgress
+            ? dayProgress.total > 0 && dayProgress.done === dayProgress.total
+            : (workouts?.sessions.some(
+                (row) => row.day === value && row.finishedAt !== null,
+              ) ?? false);
           const label = date(value, {
             weekday: "long",
             day: "numeric",
@@ -158,7 +193,11 @@ export function PlanToday({
               key={value}
               type="button"
               aria-pressed={selected}
-              aria-label={done ? t("dayDone", { day: label }) : label}
+              aria-label={
+                done
+                  ? t(logged ? "dayAllDone" : "dayDone", { day: label })
+                  : label
+              }
               onClick={() => setDay(value)}
               className={cn(
                 "relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
@@ -253,6 +292,16 @@ export function PlanToday({
             })}
           </p>
         ) : null}
+        {logged && allDone ? (
+          <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <CircleCheck aria-hidden="true" className="size-5" />
+            {t("allDone")}
+          </p>
+        ) : logged && progress.done > 0 ? (
+          <p className="caps-label text-primary">
+            {t("progress", { done: progress.done, total: progress.total })}
+          </p>
+        ) : null}
         {!session && upcoming[0] ? (
           <Button
             variant="outline"
@@ -270,6 +319,26 @@ export function PlanToday({
       {items.length > 0 ? (
         <ol className="flex flex-col gap-2.5">
           {items.map((item, index) => {
+            const log =
+              logged && session
+                ? findLog(
+                    controls.rows,
+                    logDay,
+                    session.weekday,
+                    index,
+                    item.planName,
+                  )
+                : null;
+            const target =
+              logged && session
+                ? {
+                    kind: logged,
+                    day: logDay,
+                    weekday: session.weekday,
+                    position: index,
+                    name: item.planName,
+                  }
+                : null;
             const body = (
               <>
                 <span className="w-10 shrink-0 font-display text-3xl leading-none text-primary tabular-nums">
@@ -281,7 +350,12 @@ export function PlanToday({
                       {item.kicker}
                     </span>
                   ) : null}
-                  <span className="leading-snug font-semibold">
+                  <span
+                    className={cn(
+                      "leading-snug font-semibold",
+                      log && "text-muted-foreground",
+                    )}
+                  >
                     {item.name}
                   </span>
                   {item.sub ? (
@@ -293,7 +367,10 @@ export function PlanToday({
                 {item.ref && library ? (
                   <span
                     aria-hidden="true"
-                    className="flex size-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-primary/15 text-[10px] font-bold tracking-wide text-primary uppercase"
+                    className={cn(
+                      "flex shrink-0 flex-col items-center justify-center gap-0.5 rounded-2xl bg-primary/15 text-[10px] font-bold tracking-wide text-primary uppercase",
+                      logged ? "size-13" : "size-14",
+                    )}
                   >
                     <Play className="size-4 fill-current" />
                     {t(`media.${library}`)}
@@ -301,27 +378,61 @@ export function PlanToday({
                 ) : null}
               </>
             );
-            const card =
-              "flex items-center gap-3.5 rounded-[22px] border border-foreground/8 bg-raised p-3.5";
+            const row = "flex min-w-0 flex-1 items-center gap-3.5 p-3.5";
             return (
-              <li key={`${item.name}-${index}`}>
-                {item.ref ? (
-                  <Link
-                    href={`/services/library/${item.ref}`}
-                    className={cn(
-                      card,
-                      "outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50",
-                    )}
-                  >
-                    {body}
-                  </Link>
-                ) : (
-                  <div className={card}>{body}</div>
-                )}
+              <li
+                key={`${item.name}-${index}`}
+                className="rounded-[22px] border border-foreground/8 bg-raised"
+              >
+                <div className="flex items-center">
+                  {item.ref ? (
+                    <Link
+                      href={`/services/library/${item.ref}`}
+                      className={cn(
+                        row,
+                        "rounded-[22px] outline-none hover:bg-foreground/[0.04] focus-visible:ring-3 focus-visible:ring-ring/50",
+                      )}
+                    >
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className={row}>{body}</div>
+                  )}
+                  {target ? (
+                    <span className="shrink-0 pr-3.5">
+                      <CheckButton
+                        done={log !== null}
+                        label={t(`check.${target.kind}`, { name: item.name })}
+                        onClick={() =>
+                          controls.save(target, {
+                            done: log === null,
+                            replacedBy: null,
+                            outcome: null,
+                          })
+                        }
+                      />
+                    </span>
+                  ) : null}
+                </div>
+                {target && logs ? (
+                  <ItemFollowUp
+                    target={target}
+                    text={item.text}
+                    log={log}
+                    currency={logs.currency}
+                    controls={controls}
+                  />
+                ) : null}
               </li>
             );
           })}
         </ol>
+      ) : null}
+
+      {logged && controls.error ? (
+        <p role="alert" className="text-sm font-medium text-primary">
+          {tRunner(`errors.${controls.error}`)}
+        </p>
       ) : null}
 
       {workouts && summaryRow ? (
@@ -337,11 +448,18 @@ export function PlanToday({
       ) : session && items.length > 0 ? (
         <Button
           size="lg"
+          variant={logged && allDone ? "outline" : "default"}
           className="h-14 w-full rounded-full text-base"
           onClick={workouts ? openLogger : () => setRunning(true)}
         >
           <Play aria-hidden="true" className="fill-current" />
-          {workouts && inProgress ? t("resume") : t(`start.${kind}`)}
+          {workouts && inProgress
+            ? t("resume")
+            : logged && allDone
+              ? t("review")
+              : logged && progress.done > 0
+                ? t("continue")
+                : t(`start.${kind}`)}
         </Button>
       ) : null}
 
@@ -388,6 +506,18 @@ export function PlanToday({
           title={session.title}
           items={items}
           mediaLabel={library ? t(`see.${library}`) : null}
+          logging={
+            logged && logs
+              ? {
+                  kind: logged,
+                  day: logDay,
+                  weekday: session.weekday,
+                  controls,
+                  currency: logs.currency,
+                  minutes: logs.minutes,
+                }
+              : null
+          }
         />
       ) : null}
       {logger && workouts ? (

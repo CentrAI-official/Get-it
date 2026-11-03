@@ -26,7 +26,7 @@ const KIND_GUIDANCE: Record<DevelopmentKind, string> = {
 - highlights: meals per day, an estimated daily energy range and protein range from their height, weight, activity and goal (ranges, never exact numbers), main focus.
 - Never include a food they listed as an allergy, intolerance or dislike, even in a tip. Respect their diet. If they are under 18, no calorie targets or deficits: focus on healthy habits. If their answers suggest disordered eating, do not give calorie targets and recommend talking to a doctor or a registered dietitian (nutritionniste) in caution. In caution, say this is general information, not medical advice.`,
   mental: `This is a mental fitness plan: practical, evidence-based self-help (breathing, journaling prompts, planning and focus methods, sleep hygiene, basic cognitive reframing, gratitude, movement). It is educational, not therapy or a diagnosis.
-- schedule: the short practices of a typical week, on the days they happen (each item: name, then how to do it and how long, within the minutes per day they chose).
+- schedule: the short practices of a typical week, on the days they happen (each item: name, then how to do it and how long, within the minutes per day they chose). Write the duration in minutes in the detail ("5 minutes"), and name a breathing practice with its rhythm ("4-7-8 breathing"): the app runs a guided timer from them.
 - sections: 3 to 5 (for example the approach for their main goal, tools for their challenges, an evening routine, what to do on hard days).
 - highlights: minutes per day, main focus, key practice.
 - If their answers show lasting distress, very poor sleep or overwhelming stress, recommend talking to a doctor or psychologist in caution.`,
@@ -36,7 +36,7 @@ const KIND_GUIDANCE: Record<DevelopmentKind, string> = {
 - highlights: time per week, main focus, first challenge.`,
   financial: `This is a personal finance plan for someone in Canada (Québec). Use their real numbers.
 - sections: 3 to 5, including a monthly budget split based on their income and expenses (show the amounts), an emergency fund target, a debt repayment order when they have debts (explain avalanche or snowball), and the steps and timeline toward their goal. You may mention registered accounts such as the TFSA (CELI), RRSP (REER) and FHSA (CELIAPP) as general concepts, without recommending specific products or investments.
-- schedule: a simple money routine (for example a weekly expense check and a monthly review), or empty.
+- schedule: a simple money routine (for example a weekly expense check and a monthly review), or empty. When they can save, include the savings transfer as an item with its amount in the name (for example "Transfer $50 to your savings"): the app offers to add it to their budget.
 - highlights: savings per month, emergency fund target, time to reach the goal.
 - In caution, say this is general education and suggest a financial planner for personalized advice. If they want to start or grow a business, add one section pointing to the separate business plan.`,
   business: `This is a business plan to start or grow a small business in the domain, stage and location given.

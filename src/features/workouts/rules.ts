@@ -335,6 +335,68 @@ export function historyFromRows(
 /** Un record battu pendant une séance. */
 export type WorkoutRecord = SetValues & { exercise: string };
 
+/** Séances montrées dans la fiche d'un exercice, et points de sa courbe. */
+export const HISTORY_SESSIONS = 5;
+export const HISTORY_POINTS = 30;
+
+/** Ce que suit la courbe d'un exercice. */
+export type ProgressMetric = "weight" | "seconds" | "reps";
+
+export type ExerciseProgress = {
+  metric: ProgressMetric;
+  best: SetValues;
+  /** Dernières séances, la plus récente d'abord. */
+  sessions: { day: string; sets: PastSet[] }[];
+  /** Le meilleur de chaque jour, du plus ancien au plus récent (grammes, secondes ou répétitions). */
+  points: { day: string; value: number }[];
+};
+
+/**
+ * La fiche d'un exercice, à partir de ses séries faites (de la plus récente à
+ * la plus ancienne séance) ; null s'il n'a jamais été fait. La courbe suit le
+ * poids dès qu'il y en a un, sinon le temps, sinon les répétitions.
+ */
+export function exerciseProgress(
+  rows: readonly (PastSet & { sessionId: string; day: string })[],
+): ExerciseProgress | null {
+  const best = bestSet(rows);
+  if (!best) return null;
+  const metric: ProgressMetric = rows.some((row) => (row.weightGrams ?? 0) > 0)
+    ? "weight"
+    : rows.some((row) => (row.seconds ?? 0) > 0)
+      ? "seconds"
+      : "reps";
+  const valueOf = (row: SetValues) =>
+    (metric === "weight"
+      ? row.weightGrams
+      : metric === "seconds"
+        ? row.seconds
+        : row.reps) ?? 0;
+
+  const sessions = new Map<string, { day: string; sets: PastSet[] }>();
+  const byDay = new Map<string, number>();
+  for (const row of rows) {
+    const session = sessions.get(row.sessionId) ?? { day: row.day, sets: [] };
+    session.sets.push({
+      setNumber: row.setNumber,
+      weightGrams: row.weightGrams,
+      reps: row.reps,
+      seconds: row.seconds,
+    });
+    sessions.set(row.sessionId, session);
+    byDay.set(row.day, Math.max(byDay.get(row.day) ?? 0, valueOf(row)));
+  }
+  return {
+    metric,
+    best,
+    sessions: [...sessions.values()].slice(0, HISTORY_SESSIONS),
+    points: [...byDay.entries()]
+      .map(([day, value]) => ({ day, value }))
+      .sort((a, b) => (a.day < b.day ? -1 : 1))
+      .slice(-HISTORY_POINTS),
+  };
+}
+
 /**
  * Records d'une séance : la meilleure série de chaque exercice, si elle bat
  * l'ancienne. La toute première fois n'est pas un record.

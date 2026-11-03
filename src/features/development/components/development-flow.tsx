@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { PlanLogPage } from "@/features/plan-logs/rules";
 import type { WorkoutPageData } from "@/features/workouts/rules";
 import type { CalendarData } from "../calendar";
 import type { DevelopmentPlan } from "../plan";
@@ -18,6 +19,8 @@ type DevelopmentFlowProps = {
   calendar: CalendarData;
   /** Carnet d'entraînement (plan d'entraînement seulement). */
   workouts: WorkoutPageData | null;
+  /** Éléments cochés (les autres plans). */
+  logs: PlanLogPage | null;
   minDate: string;
 };
 
@@ -29,6 +32,7 @@ export function DevelopmentFlow({
   updatedAt,
   calendar,
   workouts,
+  logs,
   minDate,
 }: DevelopmentFlowProps) {
   const [mode, setMode] = useState<"plan" | "form" | "crisis">(
@@ -46,6 +50,7 @@ export function DevelopmentFlow({
         updatedAt={updatedAt}
         calendar={calendar}
         workouts={workouts}
+        logs={logs}
         onRedo={() => {
           setMode("form");
           window.scrollTo({ top: 0 });

@@ -2234,7 +2234,18 @@
         "done": "Session done · {minutes, number} min",
         "dayDone": "{day}, session done",
         "viewSummary": "See the summary",
-        "resume": "Resume the session"
+        "resume": "Resume the session",
+        "progress": "{done, number} of {total, number} done",
+        "allDone": "All done. It counts toward your streak.",
+        "continue": "Continue",
+        "review": "Review",
+        "dayAllDone": "{day}, all done",
+        "check": {
+          "nutrition": "“{name}” eaten",
+          "mental": "“{name}” done",
+          "social": "Challenge “{name}” met",
+          "financial": "“{name}” done"
+        }
       },
       "folds": {
         "add": "Add to Get iT",
@@ -2255,7 +2266,70 @@
         "next": "Next",
         "finish": "Finish",
         "doneTitle": "Done",
-        "doneText": "Well done, “{title}” is finished for today."
+        "doneText": "Well done, “{title}” is finished.",
+        "doneStreak": "It counts toward your streak.",
+        "partialTitle": "{done, number} of {total, number}",
+        "partialText": "The rest is waiting for later.",
+        "noneText": "Nothing checked yet. Come back when it’s done.",
+        "undo": "Undo",
+        "cancel": "Cancel",
+        "action": {
+          "nutrition": "Eaten",
+          "mental": "Done",
+          "social": "Challenge met",
+          "financial": "Done"
+        },
+        "doneState": {
+          "nutrition": "Eaten",
+          "mental": "Done",
+          "social": "Challenge met",
+          "financial": "Done"
+        },
+        "replace": "Replaced with…",
+        "replaceLabel": "What did you eat instead?",
+        "replacePlaceholder": "E.g. chicken sandwich",
+        "replaceSave": "Save",
+        "replaced": "Replaced with: {food}",
+        "outcomeTitle": "How did it go?",
+        "outcomes": {
+          "1": "Hard",
+          "2": "Okay",
+          "3": "Great"
+        },
+        "budget": {
+          "title": "Add this transfer to your budget?",
+          "amount": "Amount",
+          "add": "Add to budget",
+          "added": "In budget: {amount}",
+          "see": "See",
+          "remove": "Remove"
+        },
+        "timer": {
+          "title": "Timer",
+          "start": "Start the timer",
+          "restart": "Start again",
+          "stop": "Stop the timer",
+          "minutes": "{count, plural, one {# min} other {# min}}",
+          "less": "One minute less",
+          "more": "One minute more",
+          "finished": "Time’s up. Well done!"
+        },
+        "breath": {
+          "inhale": "Breathe in",
+          "hold": "Hold",
+          "exhale": "Breathe out",
+          "rest": "Wait",
+          "pattern": "{pattern} rhythm",
+          "safety": "If you feel dizzy, go back to breathing normally."
+        },
+        "errors": {
+          "invalid": "This choice isn’t valid.",
+          "dayInvalid": "You can check today and the previous 6 days.",
+          "notFound": "This item is no longer in your plan.",
+          "amountInvalid": "Enter a valid amount, for example 50 or 12.50.",
+          "entryLimit": "You’ve added a lot of amounts today. Try again tomorrow.",
+          "unexpected": "Not possible right now. Check your connection and try again."
+        }
       }
     },
     "revise": {
@@ -3468,7 +3542,8 @@
         "ranked": "Level measures",
         "favorites": "Marketplace favorites",
         "listings": "Listings submitted",
-        "workouts": "Workouts"
+        "workouts": "Workouts",
+        "planChecks": "Plan items checked"
       },
       "top": "Most used",
       "topNote": "The share of active members who use them.",
@@ -4157,6 +4232,25 @@
         "recipe": "Menu",
         "tool": "Routine"
       }
+    },
+    "history": {
+      "title": "Your history",
+      "empty": "Log this exercise during a session of your plan: your latest sessions, your record and your curve will show up here.",
+      "record": "Your record",
+      "last": "Your latest sessions",
+      "chart": {
+        "weight": "Your heaviest weight, day by day",
+        "seconds": "Your best time, day by day",
+        "reps": "Your best reps, day by day"
+      },
+      "chartTitle": "Your curve for “{title}”",
+      "chartLabel": "{title}, from {from} to {to}: {first} at first, {last} at the latest session.",
+      "weightReps": "{weight} × {reps, number}",
+      "weightSeconds": "{weight} · {seconds, number} s",
+      "reps": "{reps, number} reps",
+      "seconds": "{seconds, number} s",
+      "secondsUnit": "s",
+      "repsUnit": "reps"
     }
   },
   "LibraryAdmin": {

@@ -21,6 +21,7 @@ import {
   findRecords,
   formatElapsed,
   fromDisplayWeight,
+  exerciseProgress,
   historyFromRows,
   isLoaded,
   parsePrescription,
@@ -508,6 +509,69 @@ describe("brouillon de séance", () => {
     expect(
       afterSync(draft, { ...payload, finish: null, sets: [] }).finish,
     ).not.toBeNull();
+  });
+});
+
+describe("historique d'un exercice", () => {
+  const set = (
+    sessionId: string,
+    day: string,
+    setNumber: number,
+    weightGrams: number | null,
+    reps: number | null,
+    seconds: number | null = null,
+  ) => ({ sessionId, day, setNumber, weightGrams, reps, seconds });
+
+  it("rien tant que l'exercice n'a pas été fait", () => {
+    expect(exerciseProgress([])).toBeNull();
+  });
+
+  it("suit le poids : le meilleur de chaque jour, dans l'ordre", () => {
+    const progress = exerciseProgress([
+      set("c", "2026-11-03", 1, 62_500, 8),
+      set("c", "2026-11-03", 2, 60_000, 8),
+      set("b", "2026-10-27", 1, 60_000, 6),
+      set("a", "2026-10-20", 1, 55_000, 10),
+    ]);
+    expect(progress?.metric).toBe("weight");
+    expect(progress?.best).toEqual({
+      weightGrams: 62_500,
+      reps: 8,
+      seconds: null,
+    });
+    expect(progress?.points).toEqual([
+      { day: "2026-10-20", value: 55_000 },
+      { day: "2026-10-27", value: 60_000 },
+      { day: "2026-11-03", value: 62_500 },
+    ]);
+    expect(progress?.sessions[0]?.day).toBe("2026-11-03");
+    expect(progress?.sessions[0]?.sets).toHaveLength(2);
+  });
+
+  it("garde les 5 dernières séances, et un seul point par jour", () => {
+    const rows = [1, 2, 3, 4, 5, 6, 7].map((day) =>
+      set(`s${day}`, `2026-10-0${8 - day}`, 1, 40_000 + day, 8),
+    );
+    const progress = exerciseProgress([
+      ...rows,
+      set("s0", "2026-10-07", 1, 90_000, 2),
+    ]);
+    expect(progress?.sessions).toHaveLength(5);
+    expect(progress?.sessions[0]?.day).toBe("2026-10-07");
+    expect(progress?.points).toHaveLength(7);
+    expect(progress?.points.at(-1)).toEqual({
+      day: "2026-10-07",
+      value: 90_000,
+    });
+  });
+
+  it("sans poids : le temps, sinon les répétitions", () => {
+    expect(
+      exerciseProgress([set("a", "2026-11-03", 1, null, null, 40)])?.metric,
+    ).toBe("seconds");
+    const reps = exerciseProgress([set("a", "2026-11-03", 1, null, 20)]);
+    expect(reps?.metric).toBe("reps");
+    expect(reps?.points[0]?.value).toBe(20);
   });
 });
 

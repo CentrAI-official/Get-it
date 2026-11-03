@@ -4,7 +4,8 @@ import { fromDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
 
 // Jours actifs : un jour où la personne a fait au moins une action (habitude
-// cochée, tâche, jalon ou objectif terminé, check-in, page de journal). Les
+// cochée, tâche, jalon ou objectif terminé, check-in, page de journal, séance
+// d'entraînement terminée, élément d'un plan coché). Les
 // moments (tâches, jalons, objectifs) sont ramenés au jour dans son fuseau.
 // Chaque fonction reçoit l'userId de la session.
 
@@ -45,6 +46,10 @@ export async function getActivity(
       UNION ALL
       SELECT day, 'physical' FROM workout_sessions
         WHERE user_id = ${userId}::uuid AND finished_at IS NOT NULL
+      UNION ALL
+      -- Le pilier du plan (KIND_PILLAR) : la nutrition compte pour le physique
+      SELECT day, CASE kind WHEN 'nutrition' THEN 'physical' ELSE kind END
+        FROM plan_item_logs WHERE user_id = ${userId}::uuid
     ) activity
     ORDER BY day`;
 

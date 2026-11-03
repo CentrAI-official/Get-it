@@ -2234,7 +2234,18 @@
         "done": "Séance faite · {minutes, number} min",
         "dayDone": "{day}, séance faite",
         "viewSummary": "Voir le résumé",
-        "resume": "Reprendre la séance"
+        "resume": "Reprendre la séance",
+        "progress": "{done, number} sur {total, number} faits",
+        "allDone": "Tout est fait. Ça compte dans ta série.",
+        "continue": "Continuer",
+        "review": "Revoir",
+        "dayAllDone": "{day}, tout est fait",
+        "check": {
+          "nutrition": "« {name} » mangé",
+          "mental": "« {name} » faite",
+          "social": "Défi « {name} » relevé",
+          "financial": "« {name} » faite"
+        }
       },
       "folds": {
         "add": "À ajouter dans Get iT",
@@ -2255,7 +2266,70 @@
         "next": "Suivant",
         "finish": "Terminer",
         "doneTitle": "C’est fait",
-        "doneText": "Bravo, « {title} » est terminé pour aujourd’hui."
+        "doneText": "Bravo, « {title} » est terminé.",
+        "doneStreak": "Ça compte dans ta série.",
+        "partialTitle": "{done, number} sur {total, number}",
+        "partialText": "Le reste t’attend pour plus tard.",
+        "noneText": "Rien n’est coché pour l’instant. Reviens quand c’est fait.",
+        "undo": "Annuler",
+        "cancel": "Annuler",
+        "action": {
+          "nutrition": "Mangé",
+          "mental": "C’est fait",
+          "social": "Défi relevé",
+          "financial": "C’est fait"
+        },
+        "doneState": {
+          "nutrition": "Mangé",
+          "mental": "Fait",
+          "social": "Défi relevé",
+          "financial": "Fait"
+        },
+        "replace": "Remplacé par…",
+        "replaceLabel": "Qu’as-tu mangé à la place?",
+        "replacePlaceholder": "Ex. : sandwich au poulet",
+        "replaceSave": "Enregistrer",
+        "replaced": "Remplacé par : {food}",
+        "outcomeTitle": "Comment ça s’est passé?",
+        "outcomes": {
+          "1": "Difficile",
+          "2": "Correct",
+          "3": "Super bien"
+        },
+        "budget": {
+          "title": "Ajouter ce virement au budget?",
+          "amount": "Montant",
+          "add": "Ajouter au budget",
+          "added": "Au budget : {amount}",
+          "see": "Voir",
+          "remove": "Retirer"
+        },
+        "timer": {
+          "title": "Minuteur",
+          "start": "Lancer le minuteur",
+          "restart": "Recommencer",
+          "stop": "Arrêter le minuteur",
+          "minutes": "{count, plural, one {# min} other {# min}}",
+          "less": "Une minute de moins",
+          "more": "Une minute de plus",
+          "finished": "Temps écoulé. Bravo!"
+        },
+        "breath": {
+          "inhale": "Inspire",
+          "hold": "Retiens",
+          "exhale": "Expire",
+          "rest": "Attends",
+          "pattern": "Rythme {pattern}",
+          "safety": "Si tu as des étourdissements, reprends ton souffle normal."
+        },
+        "errors": {
+          "invalid": "Ce choix n’est pas valide.",
+          "dayInvalid": "Tu peux cocher aujourd’hui et les 6 jours précédents.",
+          "notFound": "Cet élément n’est plus dans ton plan.",
+          "amountInvalid": "Entre un montant valide, par exemple 50 ou 12,50.",
+          "entryLimit": "Tu as ajouté beaucoup de montants aujourd’hui. Réessaie demain.",
+          "unexpected": "Impossible pour l’instant. Vérifie ton réseau et réessaie."
+        }
       }
     },
     "revise": {
@@ -3468,7 +3542,8 @@
         "ranked": "Mesures de niveau",
         "favorites": "Favoris de la Marketplace",
         "listings": "Annonces soumises",
-        "workouts": "Séances d’entraînement"
+        "workouts": "Séances d’entraînement",
+        "planChecks": "Éléments de plan cochés"
       },
       "top": "Les plus utilisées",
       "topNote": "La part des membres actifs qui s’en servent.",
@@ -4157,6 +4232,25 @@
         "recipe": "Menu",
         "tool": "Routine"
       }
+    },
+    "history": {
+      "title": "Ton historique",
+      "empty": "Note cet exercice pendant une séance de ton plan : tes dernières séances, ton record et ta courbe apparaîtront ici.",
+      "record": "Ton record",
+      "last": "Tes dernières séances",
+      "chart": {
+        "weight": "Ton poids le plus lourd, jour par jour",
+        "seconds": "Ton meilleur temps, jour par jour",
+        "reps": "Tes meilleures répétitions, jour par jour"
+      },
+      "chartTitle": "Ta courbe pour « {title} »",
+      "chartLabel": "{title}, du {from} au {to} : {first} au début, {last} à la dernière séance.",
+      "weightReps": "{weight} × {reps, number}",
+      "weightSeconds": "{weight} · {seconds, number} s",
+      "reps": "{reps, number} rép.",
+      "seconds": "{seconds, number} s",
+      "secondsUnit": "s",
+      "repsUnit": "rép."
     }
   },
   "LibraryAdmin": {

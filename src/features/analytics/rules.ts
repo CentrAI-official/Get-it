@@ -38,6 +38,7 @@ export const ANALYTICS_FEATURES = [
   "calendarEvents",
   "budget",
   "workouts",
+  "planChecks",
   "coach",
   "goalPlans",
   "developmentPlans",

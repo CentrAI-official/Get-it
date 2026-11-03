@@ -127,6 +127,7 @@ model Profile {
   budgetRecurring      BudgetRecurring[]
   budgetEntries        BudgetEntry[]
   workoutSessions      WorkoutSession[]
+  planItemLogs         PlanItemLog[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -407,6 +408,41 @@ model CalendarEvent {
   @@map("calendar_events")
 }
 
+/// Un élément coché d'un plan de nutrition, mental, social ou financier : une
+/// ligne par élément fait ce jour-là. Privé, jamais montré aux autres membres.
+model PlanItemLog {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  /// Détaché si le plan est supprimé : l'historique reste.
+  planId        String?  @map("plan_id") @db.Uuid
+  /// nutrition, mental, social ou financial (src/features/plan-logs/rules.ts).
+  kind          String
+  /// Jour où l'élément a été fait, dans le fuseau de la personne (il compte dans la série).
+  day           DateTime @db.Date
+  /// Séance de la semaine type : 1 (lundi) à 7 (dimanche).
+  weekday       Int      @db.SmallInt
+  /// Place de l'élément dans la séance, à partir de 0.
+  position      Int      @db.SmallInt
+  /// Nom de l'élément, figé : le plan peut changer ensuite.
+  item          String
+  /// Nutrition : ce qui a été mangé à la place.
+  replacedBy    String?  @map("replaced_by")
+  /// Social : comment ça s'est passé, de 1 (difficile) à 3 (super bien).
+  outcome       Int?     @db.SmallInt
+  /// Financier : la ligne ajoutée au budget ; effacée si l'élément est décoché.
+  budgetEntryId String?  @map("budget_entry_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile     Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan        DevelopmentPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  budgetEntry BudgetEntry?     @relation(fields: [budgetEntryId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, kind, day, weekday, position])
+  @@index([userId, day])
+  @@map("plan_item_logs")
+}
+
 /// Carnet d'entraînement : une séance d'un plan, retrouvée par son jour et le
 /// jour de la semaine type. Privée, jamais montrée aux autres membres.
 model WorkoutSession {
@@ -500,6 +536,8 @@ model BudgetEntry {
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  planItemLogs PlanItemLog[]
 
   @@index([userId, occurredOn])
   @@index([userId, createdAt])
@@ -1371,6 +1409,7 @@ model DevelopmentPlan {
   habits          Habit[]
   tasks           Task[]
   workoutSessions WorkoutSession[]
+  planItemLogs    PlanItemLog[]
 
   @@unique([userId, kind])
   @@map("development_plans")
