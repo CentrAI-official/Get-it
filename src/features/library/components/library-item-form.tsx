@@ -45,8 +45,12 @@ import {
   TOOL_PILLARS,
   TOOL_THEMES,
   libraryItemSchema,
+  parseYoutubeUrl,
   tagOf,
+  YOUTUBE_MAX_SECONDS,
+  youtubeWatchUrl,
   type LibraryContent,
+  type LibraryYoutube,
   type LibraryKind,
   type ToolPillar,
 } from "../rules";
@@ -106,7 +110,39 @@ const toContent = (texts: Texts) => ({
 /** Média : déjà enregistré (lien), nouvellement envoyé (chemin) ou retiré. */
 type Media = { url: string | null; path: string | null | undefined };
 
-type FormError = "invalid" | "fileInvalid" | "uploadFailed" | "unexpected";
+type FormError =
+  | "invalid"
+  | "fileInvalid"
+  | "uploadFailed"
+  | "youtubeInvalid"
+  | "youtubeUnavailable"
+  | "unexpected";
+
+/** Secondes d'un champ (vide : null) ; undefined si la valeur est invalide. */
+function secondsField(value: string): number | null | undefined {
+  if (!value.trim()) return null;
+  const seconds = Number(value);
+  return Number.isInteger(seconds) &&
+    seconds >= 0 &&
+    seconds <= YOUTUBE_MAX_SECONDS
+    ? seconds
+    : undefined;
+}
+
+/** Démonstration YouTube saisie : null si le lien est vide, undefined si elle est invalide. */
+function youtubeFrom(
+  url: string,
+  startText: string,
+  endText: string,
+): LibraryYoutube | null | undefined {
+  if (!url.trim()) return null;
+  const parsed = parseYoutubeUrl(url);
+  const start = secondsField(startText);
+  const end = secondsField(endText);
+  if (!parsed || start === undefined || end === undefined) return undefined;
+  const video = { id: parsed.id, start: start ?? parsed.start, end };
+  return end !== null && end <= (video.start ?? 0) ? undefined : video;
+}
 
 /**
  * Formulaire d'une fiche du catalogue (équipe Get iT). Les listes s'écrivent
@@ -143,6 +179,17 @@ export function LibraryItemForm({
     url: initial?.videoUrl ?? null,
     path: undefined,
   });
+  const [youtubeUrl, setYoutubeUrl] = useState(
+    initial?.youtube
+      ? youtubeWatchUrl({ id: initial.youtube.id, start: null })
+      : "",
+  );
+  const [youtubeStart, setYoutubeStart] = useState(
+    initial?.youtube?.start?.toString() ?? "",
+  );
+  const [youtubeEnd, setYoutubeEnd] = useState(
+    initial?.youtube?.end?.toString() ?? "",
+  );
   const [uploading, setUploading] = useState<"image" | "video" | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<FormError | null>(null);
@@ -215,6 +262,11 @@ export function LibraryItemForm({
       setError("invalid");
       return;
     }
+    const youtube = youtubeFrom(youtubeUrl, youtubeStart, youtubeEnd);
+    if (youtube === undefined) {
+      setError("youtubeInvalid");
+      return;
+    }
     startTransition(async () => {
       const result = await saveLibraryItemAction({
         id: initial?.id ?? null,
@@ -222,9 +274,15 @@ export function LibraryItemForm({
         status: published ? "published" : "draft",
         ...(image.path !== undefined ? { imagePath: image.path } : {}),
         ...(video.path !== undefined ? { videoPath: video.path } : {}),
+        youtube,
       });
       if (!result.ok) {
-        setError(result.error === "fileInvalid" ? "fileInvalid" : "invalid");
+        setError(
+          result.error === "fileInvalid" ||
+            result.error === "youtubeUnavailable"
+            ? result.error
+            : "invalid",
+        );
         return;
       }
       setSaved(true);
@@ -504,6 +562,54 @@ export function LibraryItemForm({
         <p className="text-xs text-muted-foreground">
           {kind === "exercise" ? t("mediaHintExercise") : t("mediaHint")}
         </p>
+        <div className="flex flex-col gap-4 border-t border-foreground/8 pt-5">
+          <Field
+            id={`${id}-youtube`}
+            label={t("youtube")}
+            hint={t("youtubeHint")}
+          >
+            <Input
+              id={`${id}-youtube`}
+              name="youtube"
+              value={youtubeUrl}
+              onChange={(event) => setYoutubeUrl(event.target.value)}
+              inputMode="url"
+              autoComplete="off"
+              placeholder="https://www.youtube.com/watch?v=…"
+            />
+          </Field>
+          <div className="flex flex-wrap gap-4">
+            {(
+              [
+                ["start", youtubeStart, setYoutubeStart],
+                ["end", youtubeEnd, setYoutubeEnd],
+              ] as const
+            ).map(([key, value, set]) => (
+              <Field
+                key={key}
+                id={`${id}-youtube-${key}`}
+                label={t(key === "start" ? "youtubeStart" : "youtubeEnd")}
+              >
+                <Input
+                  id={`${id}-youtube-${key}`}
+                  name={`youtube-${key}`}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={YOUTUBE_MAX_SECONDS}
+                  value={value}
+                  onChange={(event) => set(event.target.value)}
+                  className="w-32"
+                />
+              </Field>
+            ))}
+          </div>
+          {initial?.youtube?.channel ? (
+            <p className="text-xs text-muted-foreground">
+              {t("youtubeChannel", { channel: initial.youtube.channel })}
+            </p>
+          ) : null}
+        </div>
         <input
           ref={imageInput}
           type="file"

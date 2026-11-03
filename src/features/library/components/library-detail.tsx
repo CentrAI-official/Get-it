@@ -21,6 +21,7 @@ import { getCurrentProfile } from "@/server/profile/service";
 import { libraryListPath } from "../paths";
 import { LibraryVideo } from "./library-video";
 import { PlanActions } from "./plan-actions";
+import { YoutubeEmbed } from "./youtube-embed";
 
 const KIND_ICONS = { exercise: Dumbbell, recipe: Utensils, tool: Sparkles };
 
@@ -113,6 +114,13 @@ export async function LibraryDetail({ id }: { id: string }) {
           src={item.videoUrl}
           poster={item.imageUrl}
           label={t("detail.videoLabel", { title: item.title })}
+        />
+      ) : item.youtube ? (
+        <YoutubeEmbed
+          video={item.youtube}
+          channel={item.youtube.channel}
+          poster={item.imageUrl}
+          title={item.title}
         />
       ) : item.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element

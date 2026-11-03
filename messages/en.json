@@ -3964,7 +3964,11 @@
       "cues": "Good form",
       "mistakes": "Common mistakes",
       "crisis": "These tools don’t replace help from a professional. If you’re in distress, call or text 9-8-8 (24/7).",
-      "safety": "Warm up first, use a load you control and stop if you feel pain. If you have a health condition, talk to a health professional first."
+      "safety": "Warm up first, use a load you control and stop if you feel pain. If you have a health condition, talk to a health professional first.",
+      "youtubePlay": "Play the demonstration",
+      "youtubeCredit": "Demonstration: {channel}, on YouTube.",
+      "youtubeCreditUnknown": "Demonstration on YouTube.",
+      "youtubePrivacy": "YouTube’s player (Google) only loads if you tap Play."
     },
     "values": {
       "muscle": {
@@ -4169,7 +4173,9 @@
         "invalid": "Check the title, summary and steps (at least one), and the field limits.",
         "fileInvalid": "The uploaded file isn’t valid (type or size).",
         "uploadFailed": "The upload failed. Try again.",
-        "unexpected": "Something went wrong. Try again in a moment."
+        "unexpected": "Something went wrong. Try again in a moment.",
+        "youtubeInvalid": "Check the YouTube link, and that the clip ends after it starts (one hour at most).",
+        "youtubeUnavailable": "This YouTube video isn’t available: it’s private, deleted, or its creator doesn’t allow embedding."
       },
       "delete": {
         "open": "Delete",
@@ -4177,7 +4183,12 @@
         "description": "The entry, its photo and its video will be deleted for everyone.",
         "cancel": "Cancel",
         "confirm": "Delete"
-      }
+      },
+      "youtube": "YouTube link",
+      "youtubeHint": "An embedded demonstration that stays on its creator’s channel. Check the form before publishing; a video uploaded above comes first.",
+      "youtubeStart": "Start (seconds)",
+      "youtubeEnd": "End (seconds)",
+      "youtubeChannel": "Channel: {channel}"
     }
   },
   "Budget": {

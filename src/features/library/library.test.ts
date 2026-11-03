@@ -5,9 +5,14 @@ import {
   LIBRARY_KINDS,
   LIBRARY_STATUSES,
   libraryItemSchema,
+  libraryYoutubeSchema,
   matchesFilters,
   parseFilters,
+  parseYoutubeUrl,
   tagOf,
+  YOUTUBE_CHANNEL_MAX,
+  YOUTUBE_MAX_SECONDS,
+  youtubeEmbedUrl,
 } from "./rules";
 import { SEED_ITEMS } from "./seed";
 
@@ -134,5 +139,74 @@ describe("migration", () => {
     expect(sql).toContain(
       'ALTER TABLE "library_items" ENABLE ROW LEVEL SECURITY',
     );
+  });
+});
+
+describe("démonstration YouTube", () => {
+  it("lit les liens courants, et rien d’autre", () => {
+    const id = "mKREc_xl_j8";
+    for (const link of [
+      id,
+      `https://www.youtube.com/watch?v=${id}`,
+      `https://m.youtube.com/watch?v=${id}&pp=0gcJCf`,
+      `youtube.com/watch?v=${id}`,
+      `https://youtu.be/${id}?si=abc`,
+      `https://www.youtube.com/shorts/${id}`,
+      `https://www.youtube-nocookie.com/embed/${id}`,
+    ]) {
+      expect(parseYoutubeUrl(link)).toEqual({ id, start: null });
+    }
+    expect(parseYoutubeUrl(`https://youtu.be/${id}?t=90`)).toEqual({
+      id,
+      start: 90,
+    });
+    expect(
+      parseYoutubeUrl(`https://www.youtube.com/watch?v=${id}&t=1m30s`),
+    ).toEqual({ id, start: 90 });
+    for (const wrong of [
+      "",
+      "pas un lien",
+      `https://vimeo.com/${id}`,
+      `https://evil.example/watch?v=${id}`,
+      "https://www.youtube.com/watch?v=trop-court",
+      "https://www.youtube.com/@chaine",
+    ]) {
+      expect(parseYoutubeUrl(wrong)).toBeNull();
+    }
+  });
+
+  it("un extrait finit après son début", () => {
+    const video = { id: "mKREc_xl_j8", start: 10, end: 70 };
+    expect(libraryYoutubeSchema.safeParse(video).success).toBe(true);
+    expect(libraryYoutubeSchema.safeParse({ ...video, end: 10 }).success).toBe(
+      false,
+    );
+    expect(libraryYoutubeSchema.safeParse({ ...video, id: "x" }).success).toBe(
+      false,
+    );
+  });
+
+  it("lecteur sans témoins, sans suggestions d’autres chaînes", () => {
+    const url = new URL(
+      youtubeEmbedUrl({ id: "mKREc_xl_j8", start: 5, end: null }),
+    );
+    expect(url.hostname).toBe("www.youtube-nocookie.com");
+    expect(url.pathname).toBe("/embed/mKREc_xl_j8");
+    expect(url.searchParams.get("rel")).toBe("0");
+    expect(url.searchParams.get("start")).toBe("5");
+    expect(url.searchParams.has("end")).toBe(false);
+  });
+
+  it("mêmes limites que la migration", () => {
+    const sql = readFileSync(
+      join(
+        process.cwd(),
+        "prisma/migrations/20261115120000_library_youtube/migration.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toContain(`BETWEEN 0 AND ${YOUTUBE_MAX_SECONDS}`);
+    expect(sql).toContain(`BETWEEN 1 AND ${YOUTUBE_CHANNEL_MAX}`);
+    expect(sql).toContain("^[A-Za-z0-9_-]{11}$");
   });
 });

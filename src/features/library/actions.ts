@@ -16,7 +16,12 @@ import {
   setLibraryStatus,
   type LibrarySaveResult,
 } from "@/server/library/service";
-import { LIBRARY_STATUSES, libraryItemSchema, MEALS } from "./rules";
+import {
+  LIBRARY_STATUSES,
+  libraryItemSchema,
+  libraryYoutubeSchema,
+  MEALS,
+} from "./rules";
 
 // Points d'entrée publics du catalogue. Gestion : réservée à l'équipe Get iT
 // (le service revérifie le rôle admin à chaque appel). « Ajouter à mon plan »
@@ -34,6 +39,7 @@ const saveSchema = z.object({
   status: z.enum(LIBRARY_STATUSES),
   imagePath: mediaPath,
   videoPath: mediaPath,
+  youtube: libraryYoutubeSchema.nullable().optional(),
 });
 
 /** Crée ou modifie une fiche du catalogue. */
@@ -43,12 +49,13 @@ export async function saveLibraryItemAction(
   const user = await requireUser();
   const parsed = saveSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const { id, item, status, imagePath, videoPath } = parsed.data;
+  const { id, item, status, imagePath, videoPath, youtube } = parsed.data;
   const result = await saveLibraryItem(user.id, id, {
     ...item,
     status,
     imagePath,
     videoPath,
+    youtube,
   });
   if (result.ok) refresh();
   return result;

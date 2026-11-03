@@ -3964,7 +3964,11 @@
       "cues": "Bonne forme",
       "mistakes": "Erreurs fréquentes",
       "crisis": "Ces outils ne remplacent pas l’aide d’un professionnel. En cas de détresse, appelle ou texte le 9-8-8 (24 h sur 24, 7 jours sur 7).",
-      "safety": "Échauffe-toi avant, garde une charge que tu contrôles et arrête en cas de douleur. Si tu as un problème de santé, parles-en d’abord à un professionnel de la santé."
+      "safety": "Échauffe-toi avant, garde une charge que tu contrôles et arrête en cas de douleur. Si tu as un problème de santé, parles-en d’abord à un professionnel de la santé.",
+      "youtubePlay": "Lire la démonstration",
+      "youtubeCredit": "Démonstration : {channel}, sur YouTube.",
+      "youtubeCreditUnknown": "Démonstration sur YouTube.",
+      "youtubePrivacy": "Le lecteur de YouTube (Google) ne se charge que si tu touches Lire."
     },
     "values": {
       "muscle": {
@@ -4169,7 +4173,9 @@
         "invalid": "Vérifie le titre, le résumé et les étapes (au moins une), et les limites des champs.",
         "fileInvalid": "Le fichier envoyé ne convient pas (type ou taille).",
         "uploadFailed": "L’envoi du fichier a échoué. Réessaie.",
-        "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+        "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+        "youtubeInvalid": "Vérifie le lien YouTube, et que la fin de l’extrait vient après son début (une heure au plus).",
+        "youtubeUnavailable": "Cette vidéo YouTube n’est pas disponible : elle est privée, supprimée, ou son créateur ne permet pas de l’intégrer."
       },
       "delete": {
         "open": "Supprimer",
@@ -4177,7 +4183,12 @@
         "description": "La fiche, sa photo et sa vidéo seront supprimées pour tout le monde.",
         "cancel": "Annuler",
         "confirm": "Supprimer"
-      }
+      },
+      "youtube": "Lien YouTube",
+      "youtubeHint": "Une démonstration intégrée, qui reste sur la chaîne de son créateur. Vérifie la forme avant de publier ; une vidéo envoyée ci-dessus passe avant.",
+      "youtubeStart": "Début (secondes)",
+      "youtubeEnd": "Fin (secondes)",
+      "youtubeChannel": "Chaîne : {channel}"
     }
   },
   "Budget": {

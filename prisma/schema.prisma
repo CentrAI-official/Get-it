@@ -1625,33 +1625,39 @@ model Measurement {
 /// exercices, recettes et outils, ajoutés par l'équipe (rôle admin). Seuls les
 /// éléments publiés se montrent aux membres.
 model LibraryItem {
-  id          String   @id @default(uuid(7)) @db.Uuid
+  id             String   @id @default(uuid(7)) @db.Uuid
   /// exercise | recipe | tool (contrainte dans la migration)
-  kind        String
+  kind           String
   /// physical (exercices, recettes) | mental | social (outils)
-  pillar      String
+  pillar         String
   /// draft | published
-  status      String   @default("draft")
+  status         String   @default("draft")
   /// Titre français (recherche) ; le contenu complet est dans `content`.
-  title       String
+  title          String
   /// Titre anglais, s'il y en a un.
-  titleEn     String?  @map("title_en")
+  titleEn        String?  @map("title_en")
   /// Contenu par langue, revalidé par localizedContentSchema.
-  content     Json
+  content        Json
   /// Étiquettes de filtre « famille:valeur » (muscle:chest, allergen:peanuts…).
-  tags        String[]
+  tags           String[]
   /// Durée ou temps de préparation, en minutes.
-  minutes     Int?     @db.SmallInt
+  minutes        Int?     @db.SmallInt
   /// Recette : portions.
-  servings    Int?     @db.SmallInt
+  servings       Int?     @db.SmallInt
   /// Vidéo (exercice) et image (aperçu ou photo), compartiment privé « media », dossier library/.
-  videoPath   String?  @map("video_path")
-  imagePath   String?  @map("image_path")
+  videoPath      String?  @map("video_path")
+  imagePath      String?  @map("image_path")
+  /// Démonstration YouTube intégrée : identifiant, extrait en secondes et
+  /// chaîne (crédit). Une vidéo envoyée (`videoPath`) passe avant.
+  youtubeId      String?  @map("youtube_id")
+  youtubeStart   Int?     @map("youtube_start") @db.SmallInt
+  youtubeEnd     Int?     @map("youtube_end") @db.SmallInt
+  youtubeChannel String?  @map("youtube_channel")
   /// Contenu de départ : clé stable, pour ne jamais l'importer deux fois.
-  seedKey     String?  @unique @map("seed_key")
-  createdById String?  @map("created_by_id") @db.Uuid
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  seedKey        String?  @unique @map("seed_key")
+  createdById    String?  @map("created_by_id") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   createdBy Profile? @relation(fields: [createdById], references: [id], onDelete: SetNull)
 

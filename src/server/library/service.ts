@@ -18,6 +18,7 @@ import {
   type LibraryKind,
   type LibraryPillar,
   type LibraryStatus,
+  type LibraryYoutube,
   type LocalizedContent,
 } from "@/features/library/rules";
 import { SEED_ITEMS } from "@/features/library/seed";
@@ -28,6 +29,7 @@ import {
   removeFiles,
   signedUrls,
 } from "@/server/storage/service";
+import { checkYoutubeVideo } from "./youtube";
 
 // Catalogue de Mon développement : lu par les membres (éléments publiés
 // seulement), géré par l'équipe Get iT (rôle admin, revérifié par chaque
@@ -63,6 +65,8 @@ export type LibraryDetail = LibraryCard & {
   ingredients: string[];
   servings: number | null;
   videoUrl: string | null;
+  /** Démonstration YouTube intégrée (une vidéo envoyée passe avant). */
+  youtube: (LibraryYoutube & { channel: string | null }) | null;
 };
 
 const cardSelect = {
@@ -75,6 +79,7 @@ const cardSelect = {
   minutes: true,
   imagePath: true,
   videoPath: true,
+  youtubeId: true,
 } as const;
 
 type CardRow = {
@@ -87,6 +92,7 @@ type CardRow = {
   minutes: number | null;
   imagePath: string | null;
   videoPath: string | null;
+  youtubeId: string | null;
 };
 
 /** Contenu relu depuis la base ; null s'il ne passe plus la validation. */
@@ -112,7 +118,7 @@ function toCard(
     tags: row.tags,
     minutes: row.minutes,
     imageUrl: row.imagePath ? (urls.get(row.imagePath) ?? null) : null,
-    hasVideo: row.videoPath !== null,
+    hasVideo: row.videoPath !== null || row.youtubeId !== null,
   };
 }
 
@@ -162,6 +168,21 @@ export async function listLibrary(
   );
 }
 
+const youtubeOf = (row: {
+  youtubeId: string | null;
+  youtubeStart: number | null;
+  youtubeEnd: number | null;
+  youtubeChannel: string | null;
+}) =>
+  row.youtubeId
+    ? {
+        id: row.youtubeId,
+        start: row.youtubeStart,
+        end: row.youtubeEnd,
+        channel: row.youtubeChannel,
+      }
+    : null;
+
 /** Un élément du catalogue (publié, ou brouillon pour l'équipe) ; null sinon. */
 export async function getLibraryItem(
   viewerId: string,
@@ -170,7 +191,13 @@ export async function getLibraryItem(
 ): Promise<LibraryDetail | null> {
   const row = await db.libraryItem.findUnique({
     where: { id },
-    select: { ...cardSelect, servings: true },
+    select: {
+      ...cardSelect,
+      servings: true,
+      youtubeStart: true,
+      youtubeEnd: true,
+      youtubeChannel: true,
+    },
   });
   if (!row) return null;
   if (row.status !== "published" && !(await isAdmin(viewerId))) return null;
@@ -189,6 +216,7 @@ export async function getLibraryItem(
     ingredients: text.ingredients,
     servings: row.servings,
     videoUrl: row.videoPath ? (urls.get(row.videoPath) ?? null) : null,
+    youtube: youtubeOf(row),
   };
 }
 
@@ -220,6 +248,7 @@ export async function listLibraryAdmin(
       status: true,
       title: true,
       videoPath: true,
+      youtubeId: true,
       imagePath: true,
       seedKey: true,
       updatedAt: true,
@@ -231,7 +260,7 @@ export async function listLibraryAdmin(
     pillar: row.pillar as LibraryPillar,
     status: row.status as LibraryStatus,
     title: row.title,
-    hasVideo: row.videoPath !== null,
+    hasVideo: row.videoPath !== null || row.youtubeId !== null,
     hasImage: row.imagePath !== null,
     seeded: row.seedKey !== null,
     updatedAt: row.updatedAt.toISOString(),
@@ -254,6 +283,10 @@ export async function getLibraryItemForEdit(userId: string, id: string) {
       servings: true,
       videoPath: true,
       imagePath: true,
+      youtubeId: true,
+      youtubeStart: true,
+      youtubeEnd: true,
+      youtubeChannel: true,
     },
   });
   if (!row) return null;
@@ -273,6 +306,7 @@ export async function getLibraryItemForEdit(userId: string, id: string) {
     servings: row.servings,
     imageUrl: row.imagePath ? (urls.get(row.imagePath) ?? null) : null,
     videoUrl: row.videoPath ? (urls.get(row.videoPath) ?? null) : null,
+    youtube: youtubeOf(row),
   };
 }
 
@@ -317,11 +351,48 @@ export type LibrarySaveInput = LibraryItemInput & {
   /** Chemin d'un fichier envoyé, null pour retirer, undefined pour garder. */
   imagePath?: string | null;
   videoPath?: string | null;
+  /** Démonstration YouTube, null pour la retirer, undefined pour garder. */
+  youtube?: LibraryYoutube | null;
 };
 
 export type LibrarySaveResult =
   | { ok: true; id: string }
-  | { ok: false; error: "forbidden" | "notFound" | "fileInvalid" };
+  | {
+      ok: false;
+      error: "forbidden" | "notFound" | "fileInvalid" | "youtubeUnavailable";
+    };
+
+/**
+ * Colonnes de la démonstration YouTube à écrire. Une nouvelle vidéo est
+ * revérifiée chez YouTube (publique, intégration permise) et sa chaîne gardée
+ * pour le crédit ; la même vidéo garde sa chaîne.
+ */
+async function youtubeData(
+  video: LibraryYoutube | null | undefined,
+  current: { youtubeId: string | null; youtubeChannel: string | null } | null,
+) {
+  if (video === undefined) return {};
+  if (video === null) {
+    return {
+      youtubeId: null,
+      youtubeStart: null,
+      youtubeEnd: null,
+      youtubeChannel: null,
+    };
+  }
+  let channel = current?.youtubeChannel ?? null;
+  if (video.id !== current?.youtubeId) {
+    const checked = await checkYoutubeVideo(video.id);
+    if (!checked) return "unavailable" as const;
+    channel = checked.channel || null;
+  }
+  return {
+    youtubeId: video.id,
+    youtubeStart: video.start,
+    youtubeEnd: video.end,
+    youtubeChannel: channel,
+  };
+}
 
 /**
  * Crée ou modifie un élément du catalogue (équipe seulement). Les fichiers
@@ -342,10 +413,20 @@ export async function saveLibraryItem(
   const current = id
     ? await db.libraryItem.findUnique({
         where: { id },
-        select: { kind: true, imagePath: true, videoPath: true },
+        select: {
+          kind: true,
+          imagePath: true,
+          videoPath: true,
+          youtubeId: true,
+          youtubeChannel: true,
+        },
       })
     : null;
   if (id && !current) return { ok: false, error: "notFound" };
+  const youtube = await youtubeData(input.youtube, current);
+  if (youtube === "unavailable") {
+    return { ok: false, error: "youtubeUnavailable" };
+  }
   // Le type d'un élément ne change pas après sa création
   const kind = (current?.kind as LibraryKind | undefined) ?? input.kind;
   const data = {
@@ -361,6 +442,7 @@ export async function saveLibraryItem(
     ...(input.videoPath !== undefined && kind === "exercise"
       ? { videoPath: input.videoPath }
       : {}),
+    ...youtube,
   };
   const saved = id
     ? await db.libraryItem.update({ where: { id }, data, select: { id: true } })

@@ -265,6 +265,112 @@ export const libraryItemSchema = z
   });
 export type LibraryItemInput = z.infer<typeof libraryItemSchema>;
 
+// --- Démonstration YouTube ---------------------------------------------------
+// La vidéo reste sur la chaîne de son créateur : on l'intègre, on ne la
+// télécharge jamais. Limites alignées sur 20261115120000_library_youtube.
+
+export const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
+/** Début et fin d'un extrait : une heure au plus. */
+export const YOUTUBE_MAX_SECONDS = 3600;
+export const YOUTUBE_CHANNEL_MAX = 100;
+
+export type LibraryYoutube = {
+  id: string;
+  /** Extrait, en secondes ; null : du début, jusqu'à la fin. */
+  start: number | null;
+  end: number | null;
+};
+
+/** « 90 », « 1m30s », « 1h2m » (paramètre `t` d'un lien) → secondes. */
+function secondsOf(value: string | null): number | null {
+  if (!value) return null;
+  if (/^\d+s?$/.test(value)) return Number.parseInt(value, 10);
+  const match = /^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/.exec(value);
+  if (!match || !match[0]) return null;
+  const [, h = "0", m = "0", s = "0"] = match;
+  return Number(h) * 3600 + Number(m) * 60 + Number(s);
+}
+
+/**
+ * Lien YouTube collé par l'équipe (watch, youtu.be, shorts, embed, ou
+ * l'identifiant seul) → identifiant et début éventuel ; null s'il n'en est pas un.
+ */
+export function parseYoutubeUrl(
+  value: string,
+): { id: string; start: number | null } | null {
+  const text = value.trim();
+  if (YOUTUBE_ID.test(text)) return { id: text, start: null };
+  let url: URL;
+  try {
+    url = new URL(/^https?:\/\//i.test(text) ? text : `https://${text}`);
+  } catch {
+    return null;
+  }
+  const host = url.hostname.replace(/^(www|m|music)\./, "");
+  let id: string | null = null;
+  if (host === "youtu.be") {
+    id = url.pathname.split("/")[1] ?? null;
+  } else if (host === "youtube.com" || host === "youtube-nocookie.com") {
+    const [, first, second] = url.pathname.split("/");
+    id =
+      first === "watch"
+        ? url.searchParams.get("v")
+        : first === "shorts" || first === "embed" || first === "live"
+          ? (second ?? null)
+          : null;
+  }
+  if (!id || !YOUTUBE_ID.test(id)) return null;
+  const start = secondsOf(
+    url.searchParams.get("t") ?? url.searchParams.get("start"),
+  );
+  return {
+    id,
+    start: start !== null && start <= YOUTUBE_MAX_SECONDS ? start : null,
+  };
+}
+
+const secondsSchema = z
+  .number()
+  .int()
+  .min(0)
+  .max(YOUTUBE_MAX_SECONDS)
+  .nullable();
+
+/** Démonstration envoyée par le formulaire de l'équipe (revalidée par le serveur). */
+export const libraryYoutubeSchema = z
+  .object({
+    id: z.string().regex(YOUTUBE_ID),
+    start: secondsSchema,
+    end: secondsSchema,
+  })
+  .refine(
+    (video) =>
+      video.end === null || (video.end > 0 && video.end > (video.start ?? 0)),
+    { path: ["end"], message: "youtubeRange" },
+  );
+
+/**
+ * Lecteur intégré, sans témoins tant que la personne ne lit pas la vidéo :
+ * pas de suggestions d'autres chaînes, lecture dans la page, et commandes
+ * JavaScript (pour la mettre en pause quand la page est cachée).
+ */
+export function youtubeEmbedUrl(video: LibraryYoutube, origin?: string) {
+  const params = new URLSearchParams({
+    autoplay: "1",
+    rel: "0",
+    playsinline: "1",
+    enablejsapi: "1",
+  });
+  if (video.start !== null) params.set("start", String(video.start));
+  if (video.end !== null) params.set("end", String(video.end));
+  if (origin) params.set("origin", origin);
+  return `https://www.youtube-nocookie.com/embed/${video.id}?${params}`;
+}
+
+/** Lien de la vidéo sur YouTube (« Voir sur YouTube », formulaire de l'équipe). */
+export const youtubeWatchUrl = (video: Pick<LibraryYoutube, "id" | "start">) =>
+  `https://www.youtube.com/watch?v=${video.id}${video.start ? `&t=${video.start}s` : ""}`;
+
 /** Pilier enregistré d'un élément : physique pour les exercices et recettes. */
 export const pillarOf = (
   kind: LibraryKind,
