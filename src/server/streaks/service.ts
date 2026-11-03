@@ -42,6 +42,9 @@ export async function getActivity(
       SELECT day, 'mental' FROM daily_check_ins WHERE user_id = ${userId}::uuid
       UNION ALL
       SELECT day, 'mental' FROM journal_entries WHERE user_id = ${userId}::uuid
+      UNION ALL
+      SELECT day, 'physical' FROM workout_sessions
+        WHERE user_id = ${userId}::uuid AND finished_at IS NOT NULL
     ) activity
     ORDER BY day`;
 

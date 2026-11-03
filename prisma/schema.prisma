@@ -126,6 +126,7 @@ model Profile {
   calendarEvents       CalendarEvent[]
   budgetRecurring      BudgetRecurring[]
   budgetEntries        BudgetEntry[]
+  workoutSessions      WorkoutSession[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -204,6 +205,8 @@ model UserSettings {
   personalizationConsentAt DateTime?       @map("personalization_consent_at") @db.Timestamptz(3)
   /// Question « Qu’est-ce qui t’aide le plus? » après une semaine : répondue ou refusée ; null : pas encore posée.
   feedbackPromptAt         DateTime?       @map("feedback_prompt_at") @db.Timestamptz(3)
+  /// Unité du carnet d'entraînement (kg ou lb), choisie à la première séance ; null : pas encore choisie.
+  weightUnit               String?         @map("weight_unit")
   /// Dernier jour (fuseau de l'utilisateur) où « Ma journée » s'est ouvert tout seul.
   dayPanelSeenOn           DateTime?       @map("day_panel_seen_on") @db.Date
   createdAt                DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
@@ -402,6 +405,62 @@ model CalendarEvent {
 
   @@index([userId, startsOn])
   @@map("calendar_events")
+}
+
+/// Carnet d'entraînement : une séance d'un plan, retrouvée par son jour et le
+/// jour de la semaine type. Privée, jamais montrée aux autres membres.
+model WorkoutSession {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  /// Détaché si le plan est supprimé : l'historique reste.
+  planId     String?   @map("plan_id") @db.Uuid
+  /// Jour de la séance, dans le fuseau de la personne (il compte dans la série).
+  day        DateTime  @db.Date
+  /// Séance de la semaine type : 1 (lundi) à 7 (dimanche).
+  weekday    Int       @db.SmallInt
+  title      String
+  /// Exercices figés au début de la séance (nom, détail, fiche du catalogue).
+  exercises  Json
+  startedAt  DateTime  @map("started_at") @db.Timestamptz(3)
+  /// Null : séance en cours ; elle ne compte dans la série qu'une fois terminée.
+  finishedAt DateTime? @map("finished_at") @db.Timestamptz(3)
+  /// Ressenti, de 1 (très facile) à 5 (très dur).
+  feeling    Int?      @db.SmallInt
+  /// Records battus, figés à la fin de la séance.
+  records    Json      @default("[]")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan    DevelopmentPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  sets    WorkoutSet[]
+
+  @@unique([userId, day, weekday])
+  @@index([userId, finishedAt])
+  @@map("workout_sessions")
+}
+
+/// Une série notée : poids en grammes (kg et lb sans erreur d'arrondi), répétitions ou secondes.
+model WorkoutSet {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  sessionId     String   @map("session_id") @db.Uuid
+  /// Place de l'exercice dans la séance, à partir de 0.
+  position      Int      @db.SmallInt
+  exercise      String
+  libraryItemId String?  @map("library_item_id") @db.Uuid
+  setNumber     Int      @map("set_number") @db.SmallInt
+  weightGrams   Int?     @map("weight_grams")
+  reps          Int?     @db.SmallInt
+  seconds       Int?     @db.SmallInt
+  done          Boolean  @default(false)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  session     WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  libraryItem LibraryItem?   @relation(fields: [libraryItemId], references: [id], onDelete: SetNull)
+
+  @@unique([sessionId, position, setNumber])
+  @@index([libraryItemId])
+  @@map("workout_sets")
 }
 
 /// Budget : revenu ou dépense fixe, avec sa fréquence (Financier › Budget).
@@ -1307,10 +1366,11 @@ model DevelopmentPlan {
   createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  goals   Goal[]
-  habits  Habit[]
-  tasks   Task[]
+  profile         Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goals           Goal[]
+  habits          Habit[]
+  tasks           Task[]
+  workoutSessions WorkoutSession[]
 
   @@unique([userId, kind])
   @@map("development_plans")
@@ -1659,7 +1719,8 @@ model LibraryItem {
   createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  createdBy Profile? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdBy   Profile?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  workoutSets WorkoutSet[]
 
   @@index([kind, pillar, status])
   @@map("library_items")

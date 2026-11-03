@@ -2230,7 +2230,11 @@
           "financial": "Commencer",
           "business": "Commencer"
         },
-        "next": "Ensuite"
+        "next": "Ensuite",
+        "done": "Séance faite · {minutes, number} min",
+        "dayDone": "{day}, séance faite",
+        "viewSummary": "Voir le résumé",
+        "resume": "Reprendre la séance"
       },
       "folds": {
         "add": "À ajouter dans Get iT",
@@ -3463,7 +3467,8 @@
         "itemEdits": "Modifier avec Get iT AI",
         "ranked": "Mesures de niveau",
         "favorites": "Favoris de la Marketplace",
-        "listings": "Annonces soumises"
+        "listings": "Annonces soumises",
+        "workouts": "Séances d’entraînement"
       },
       "top": "Les plus utilisées",
       "topNote": "La part des membres actifs qui s’en servent.",
@@ -4414,6 +4419,106 @@
       "description": "Tous tes mouvements, revenus et dépenses fixes seront supprimés. C’est définitif.",
       "cancel": "Annuler",
       "confirm": "Tout effacer"
+    }
+  },
+  "Workouts": {
+    "close": "Fermer",
+    "description": "Note tes séries, exercice par exercice : poids, répétitions, et un ✓ quand c’est fait.",
+    "elapsed": "Temps écoulé",
+    "finishShort": "Terminer",
+    "exercisesLabel": "Exercices de la séance",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "offline": "Gardé sur ton téléphone. Envoi dès que le réseau revient.",
+    "step": "Exercice {current, number} sur {total, number}",
+    "demo": "Voir la démo",
+    "suggestion": "Essaie {weight}",
+    "addSet": "Ajouter une série",
+    "removeSet": "Retirer la dernière",
+    "units": {
+      "kg": "kg",
+      "lb": "lb"
+    },
+    "unit": {
+      "title": "Kilos ou livres?",
+      "description": "Pour noter tes poids. Tu pourras changer pendant la séance.",
+      "label": "Unité de poids",
+      "kg": "Kilos (kg)",
+      "lb": "Livres (lb)"
+    },
+    "last": {
+      "sameWeight": "Dernière fois : {count, number} × {reps, number} à {weight}",
+      "sameReps": "Dernière fois : {count, number} × {reps, number}",
+      "sameTime": "Dernière fois : {count, number} × {seconds, number} s",
+      "mixed": "Dernière fois : {list}",
+      "oneWeight": "{reps, number} à {weight}",
+      "oneReps": "{reps, number}",
+      "oneTime": "{seconds, number} s"
+    },
+    "table": {
+      "set": "Série",
+      "weight": "Poids ({unit})",
+      "reps": "Reps",
+      "seconds": "Secondes",
+      "weightLabel": "Poids de la série {n, number}",
+      "repsLabel": "Répétitions de la série {n, number}",
+      "secondsLabel": "Secondes de la série {n, number}",
+      "check": "Série {n, number} faite",
+      "startHold": "Lancer le chrono de la série {n, number}"
+    },
+    "rest": {
+      "title": "Repos",
+      "minus": "Retirer {seconds, number} secondes",
+      "plus": "Ajouter {seconds, number} secondes",
+      "skip": "Passer"
+    },
+    "hold": {
+      "title": "Tiens bon",
+      "stop": "Arrêter"
+    },
+    "feelings": {
+      "1": "Très facile",
+      "2": "Facile",
+      "3": "Correct",
+      "4": "Dur",
+      "5": "Très dur"
+    },
+    "finish": {
+      "title": "Terminer la séance?",
+      "done": "{done, number} séries faites sur {total, number}",
+      "feeling": "Comment c’était? (facultatif)",
+      "noSet": "Coche au moins une série pour terminer.",
+      "confirm": "Terminer la séance",
+      "back": "Continuer la séance"
+    },
+    "summary": {
+      "title": "Séance terminée",
+      "duration": "Durée",
+      "minutes": "{count, number} min",
+      "sets": "Séries",
+      "setsValue": "{done, number} sur {total, number}",
+      "volume": "Volume",
+      "records": "Nouveaux records",
+      "recordWeight": "{weight} × {reps, number}",
+      "recordReps": "{reps, number} répétitions",
+      "recordTime": "{seconds, number} secondes",
+      "feeling": "Ressenti : {feeling}",
+      "pending": "Gardé sur ton téléphone. Envoi dès que le réseau revient.",
+      "failed": "Impossible pour l’instant. Vérifie ton réseau et réessaie.",
+      "close": "Fermer",
+      "continue": "Continuer la séance",
+      "delete": "Supprimer cette séance",
+      "deleteTitle": "Supprimer cette séance?",
+      "deleteDescription": "Ses séries sont effacées, et elle ne compte plus dans ta série.",
+      "cancel": "Annuler",
+      "deleteConfirm": "Supprimer"
+    },
+    "errors": {
+      "dayInvalid": "Cette séance est trop ancienne pour être enregistrée.",
+      "noPlan": "Crée d’abord ton plan d’entraînement.",
+      "sessionMissing": "Cette séance n’est plus dans ton plan.",
+      "noSetDone": "Coche au moins une série pour terminer.",
+      "invalid": "Vérifie tes poids et tes répétitions."
     }
   }
 }

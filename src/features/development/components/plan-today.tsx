@@ -1,14 +1,24 @@
 "use client";
 
-import { Clock, Play } from "lucide-react";
+import { Check, CircleCheck, Clock, Play } from "lucide-react";
 import {
   useFormatter,
   useTranslations,
   type DateTimeFormatOptions,
 } from "next-intl";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { momentOfMinute } from "@/config/moments";
+import { useDraftFlush } from "@/features/workouts/components/use-draft-flush";
+import {
+  WorkoutLogger,
+  type WorkoutTarget,
+} from "@/features/workouts/components/workout-logger";
+import {
+  workoutMinutes,
+  type WorkoutPageData,
+} from "@/features/workouts/rules";
+import { useDraftSessions } from "@/features/workouts/store";
 import { Link, useRouter } from "@/i18n/navigation";
 import { clockDate, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -23,16 +33,19 @@ import { SessionRunner } from "./session-runner";
  * Onglet « Mon plan », design « Aujourd'hui » (décision du fondateur,
  * 2026-11-02) : les 7 jours de la semaine, la séance du jour choisi en grand,
  * ses éléments en cartes (vers leur fiche du catalogue), « Commencer », puis
- * les prochaines séances.
+ * les prochaines séances. Un plan d'entraînement a son carnet (`workouts`) :
+ * « Commencer » y ouvre le carnet ; les autres plans, le mode séance.
  */
 export function PlanToday({
   kind,
   plan,
   today,
+  workouts,
 }: {
   kind: DevelopmentKind;
   plan: CalendarPlan;
   today: string;
+  workouts: WorkoutPageData | null;
 }) {
   const t = useTranslations("Development.plan.today");
   const tMoments = useTranslations("Development.calendar.moments");
@@ -42,8 +55,31 @@ export function PlanToday({
   const [day, setDay] = useState(today);
   const [running, setRunning] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [logger, setLogger] = useState<WorkoutTarget | null>(null);
+  const reload = useCallback(() => router.refresh(), [router]);
+  const owner = workouts?.ownerId ?? null;
+  useDraftFlush(owner, today, reload);
+  const drafts = useDraftSessions(owner ?? "");
 
   const session = sessionOn(plan, day);
+  // Carnet : la séance faite ce jour-là, et celle d'aujourd'hui pour ce jour de la semaine
+  const doneRow =
+    workouts?.sessions.find(
+      (row) =>
+        row.day === day &&
+        row.finishedAt !== null &&
+        (!session || row.weekday === session.weekday),
+    ) ?? null;
+  const todayRow = session
+    ? (workouts?.sessions.find(
+        (row) => row.day === today && row.weekday === session.weekday,
+      ) ?? null)
+    : null;
+  const summaryRow = doneRow ?? (todayRow?.finishedAt ? todayRow : null);
+  const inProgress =
+    session !== null &&
+    (todayRow?.finishedAt === null ||
+      drafts.split(",").includes(`${today}:${session.weekday}`));
   const status = dayStatus(plan, day);
   const library = PLAN_LIBRARY[kind]?.kind ?? null;
   const week = planWeek(plan, today);
@@ -75,6 +111,29 @@ export function PlanToday({
     root.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  /** Une séance se note aujourd'hui, même celle d'un autre jour de la semaine. */
+  function openLogger() {
+    if (summaryRow) {
+      setLogger({
+        day: summaryRow.day,
+        weekday: summaryRow.weekday,
+        title: summaryRow.title,
+        items: summaryRow.exercises,
+      });
+    } else if (session) {
+      setLogger({
+        day: today,
+        weekday: session.weekday,
+        title: session.title,
+        items: session.items.map(({ name, detail, ref }) => ({
+          name,
+          detail,
+          ref,
+        })),
+      });
+    }
+  }
+
   return (
     <div ref={root} className="flex scroll-mt-24 flex-col gap-6">
       <div
@@ -85,19 +144,24 @@ export function PlanToday({
         {weekOf(today).map((value) => {
           const planned = sessionOn(plan, value) !== null;
           const selected = value === day;
+          const done =
+            workouts?.sessions.some(
+              (row) => row.day === value && row.finishedAt !== null,
+            ) ?? false;
+          const label = date(value, {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          });
           return (
             <button
               key={value}
               type="button"
               aria-pressed={selected}
-              aria-label={date(value, {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              })}
+              aria-label={done ? t("dayDone", { day: label }) : label}
               onClick={() => setDay(value)}
               className={cn(
-                "flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                "relative flex h-16 flex-col items-center justify-center gap-1 rounded-2xl border outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
                 selected
                   ? "border-primary bg-primary text-primary-foreground"
                   : planned
@@ -116,6 +180,16 @@ export function PlanToday({
               >
                 {date(value, { day: "numeric" })}
               </span>
+              {done ? (
+                <Check
+                  aria-hidden="true"
+                  strokeWidth={3.5}
+                  className={cn(
+                    "absolute top-1 right-1 size-3.5",
+                    !selected && "text-primary",
+                  )}
+                />
+              ) : null}
             </button>
           );
         })}
@@ -171,6 +245,14 @@ export function PlanToday({
                   })
                 : t("restText")}
         </p>
+        {doneRow?.finishedAt ? (
+          <p className="flex items-center gap-2 text-sm font-semibold text-primary">
+            <CircleCheck aria-hidden="true" className="size-5" />
+            {t("done", {
+              minutes: workoutMinutes(doneRow.startedAt, doneRow.finishedAt),
+            })}
+          </p>
+        ) : null}
         {!session && upcoming[0] ? (
           <Button
             variant="outline"
@@ -242,14 +324,24 @@ export function PlanToday({
         </ol>
       ) : null}
 
-      {session && items.length > 0 ? (
+      {workouts && summaryRow ? (
+        <Button
+          variant="outline"
+          size="lg"
+          className="h-14 w-full rounded-full text-base"
+          onClick={openLogger}
+        >
+          <CircleCheck aria-hidden="true" />
+          {t("viewSummary")}
+        </Button>
+      ) : session && items.length > 0 ? (
         <Button
           size="lg"
           className="h-14 w-full rounded-full text-base"
-          onClick={() => setRunning(true)}
+          onClick={workouts ? openLogger : () => setRunning(true)}
         >
           <Play aria-hidden="true" className="fill-current" />
-          {t(`start.${kind}`)}
+          {workouts && inProgress ? t("resume") : t(`start.${kind}`)}
         </Button>
       ) : null}
 
@@ -289,13 +381,22 @@ export function PlanToday({
         </section>
       ) : null}
 
-      {session ? (
+      {session && !workouts ? (
         <SessionRunner
           open={running}
           onOpenChange={setRunning}
           title={session.title}
           items={items}
           mediaLabel={library ? t(`see.${library}`) : null}
+        />
+      ) : null}
+      {logger && workouts ? (
+        <WorkoutLogger
+          target={logger}
+          data={workouts}
+          today={today}
+          onClose={() => setLogger(null)}
+          onChanged={reload}
         />
       ) : null}
       {editing && session ? (

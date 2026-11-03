@@ -14,6 +14,7 @@ import {
   getPlanPage,
   listPlans,
 } from "@/server/development/service";
+import { getWorkoutPage } from "@/server/workouts/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import {
   planHref,
@@ -236,6 +237,11 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
     getCalendar(profile.id, kind),
     getTranslations("Development"),
   ]);
+  // Le carnet d'entraînement, avec tout ce qu'il faut pour démarrer sans réseau
+  const workouts =
+    kind === "physical" && page.stored
+      ? await getWorkoutPage(profile.id, page.stored.plan)
+      : null;
   const header = (
     <p className="text-sm text-pretty text-muted-foreground">
       {page.stored
@@ -274,6 +280,7 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
         answers={page.stored?.answers ?? null}
         updatedAt={page.stored?.updatedAt ?? null}
         calendar={calendar}
+        workouts={workouts}
         minDate={page.minDate}
       />
     </>

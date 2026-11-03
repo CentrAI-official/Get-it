@@ -23,6 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { WEEKDAY_DATES } from "@/features/habits/weekdays";
+import type { WorkoutPageData } from "@/features/workouts/rules";
 import { addDays } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { applyPlanAction, deletePlanAction } from "../actions";
@@ -42,6 +43,8 @@ type PlanViewProps = {
   updatedAt: string;
   /** Calendrier de ce plan (mois en cours). */
   calendar: CalendarData;
+  /** Carnet d'entraînement (plan d'entraînement seulement). */
+  workouts: WorkoutPageData | null;
   onRedo: () => void;
   /** Détresse signalée pendant une modification : ressources d'aide. */
   onCrisis: () => void;
@@ -57,6 +60,7 @@ export function PlanView({
   plan,
   updatedAt,
   calendar,
+  workouts,
   onRedo,
   onCrisis,
 }: PlanViewProps) {
@@ -79,7 +83,12 @@ export function PlanView({
 
   return (
     <article className="flex max-w-2xl flex-col gap-8">
-      <PlanToday kind={kind} plan={planEntry} today={calendar.today} />
+      <PlanToday
+        kind={kind}
+        plan={planEntry}
+        today={calendar.today}
+        workouts={workouts}
+      />
 
       <section
         aria-labelledby="plan-details"

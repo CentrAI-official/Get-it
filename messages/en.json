@@ -2230,7 +2230,11 @@
           "financial": "Start",
           "business": "Start"
         },
-        "next": "Coming up"
+        "next": "Coming up",
+        "done": "Session done · {minutes, number} min",
+        "dayDone": "{day}, session done",
+        "viewSummary": "See the summary",
+        "resume": "Resume the session"
       },
       "folds": {
         "add": "Add to Get iT",
@@ -3463,7 +3467,8 @@
         "itemEdits": "Edit with Get iT AI",
         "ranked": "Level measures",
         "favorites": "Marketplace favorites",
-        "listings": "Listings submitted"
+        "listings": "Listings submitted",
+        "workouts": "Workouts"
       },
       "top": "Most used",
       "topNote": "The share of active members who use them.",
@@ -4414,6 +4419,106 @@
       "description": "All your transactions and fixed income and expenses will be deleted. This can’t be undone.",
       "cancel": "Cancel",
       "confirm": "Erase everything"
+    }
+  },
+  "Workouts": {
+    "close": "Close",
+    "description": "Log your sets, one exercise at a time: weight, reps, and a ✓ when it’s done.",
+    "elapsed": "Time elapsed",
+    "finishShort": "Finish",
+    "exercisesLabel": "Exercises in this session",
+    "previous": "Previous",
+    "next": "Next",
+    "offline": "Saved on your phone. It will be sent when you’re back online.",
+    "step": "Exercise {current, number} of {total, number}",
+    "demo": "See the demo",
+    "suggestion": "Try {weight}",
+    "addSet": "Add a set",
+    "removeSet": "Remove the last one",
+    "units": {
+      "kg": "kg",
+      "lb": "lb"
+    },
+    "unit": {
+      "title": "Kilos or pounds?",
+      "description": "To log your weights. You can change it during the session.",
+      "label": "Weight unit",
+      "kg": "Kilos (kg)",
+      "lb": "Pounds (lb)"
+    },
+    "last": {
+      "sameWeight": "Last time: {count, number} × {reps, number} at {weight}",
+      "sameReps": "Last time: {count, number} × {reps, number}",
+      "sameTime": "Last time: {count, number} × {seconds, number} s",
+      "mixed": "Last time: {list}",
+      "oneWeight": "{reps, number} at {weight}",
+      "oneReps": "{reps, number}",
+      "oneTime": "{seconds, number} s"
+    },
+    "table": {
+      "set": "Set",
+      "weight": "Weight ({unit})",
+      "reps": "Reps",
+      "seconds": "Seconds",
+      "weightLabel": "Weight for set {n, number}",
+      "repsLabel": "Reps for set {n, number}",
+      "secondsLabel": "Seconds for set {n, number}",
+      "check": "Set {n, number} done",
+      "startHold": "Start the timer for set {n, number}"
+    },
+    "rest": {
+      "title": "Rest",
+      "minus": "Remove {seconds, number} seconds",
+      "plus": "Add {seconds, number} seconds",
+      "skip": "Skip"
+    },
+    "hold": {
+      "title": "Hold on",
+      "stop": "Stop"
+    },
+    "feelings": {
+      "1": "Very easy",
+      "2": "Easy",
+      "3": "OK",
+      "4": "Hard",
+      "5": "Very hard"
+    },
+    "finish": {
+      "title": "Finish the session?",
+      "done": "{done, number} sets done out of {total, number}",
+      "feeling": "How was it? (optional)",
+      "noSet": "Check at least one set to finish.",
+      "confirm": "Finish the session",
+      "back": "Keep going"
+    },
+    "summary": {
+      "title": "Session complete",
+      "duration": "Duration",
+      "minutes": "{count, number} min",
+      "sets": "Sets",
+      "setsValue": "{done, number} of {total, number}",
+      "volume": "Volume",
+      "records": "New records",
+      "recordWeight": "{weight} × {reps, number}",
+      "recordReps": "{reps, number} reps",
+      "recordTime": "{seconds, number} seconds",
+      "feeling": "How it felt: {feeling}",
+      "pending": "Saved on your phone. It will be sent when you’re back online.",
+      "failed": "Not possible right now. Check your connection and try again.",
+      "close": "Close",
+      "continue": "Keep going",
+      "delete": "Delete this session",
+      "deleteTitle": "Delete this session?",
+      "deleteDescription": "Its sets are erased, and it no longer counts in your streak.",
+      "cancel": "Cancel",
+      "deleteConfirm": "Delete"
+    },
+    "errors": {
+      "dayInvalid": "This session is too old to be saved.",
+      "noPlan": "Create your training plan first.",
+      "sessionMissing": "This session is no longer in your plan.",
+      "noSetDone": "Check at least one set to finish.",
+      "invalid": "Check your weights and reps."
     }
   }
 }
