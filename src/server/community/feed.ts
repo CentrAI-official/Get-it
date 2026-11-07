@@ -8,6 +8,7 @@ import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { followingIds } from "@/server/follows/service";
+import { followedPageIds } from "@/server/pages/follows";
 import { avatarUrls } from "@/server/profile/avatar";
 import { getDisplayLevels } from "@/server/levels/service";
 import { mediaForPosts, type FeedMedia } from "./media";
@@ -24,6 +25,11 @@ export type FeedAuthor = {
   avatarUrl: string | null;
   /** Niveau classé (mode Ranked), ou null : sans Ranked, le niveau reste privé. */
   level: number | null;
+  /**
+   * Publié au nom d'une page pro : le nom et le logo ci-dessus sont les siens, et
+   * la personne qui la gère n'est pas montrée.
+   */
+  page: { id: string; handle: string } | null;
 };
 
 export type FeedPost = {
@@ -108,6 +114,7 @@ export function postSelect(viewerId: string, blocked: readonly string[]) {
     profile: {
       select: { displayName: true, username: true, avatarPath: true },
     },
+    page: { select: { id: true, name: true, handle: true, logoPath: true } },
     reactions: { where: { userId: viewerId }, select: { userId: true } },
     saves: { where: { userId: viewerId }, select: { userId: true } },
     _count: {
@@ -180,7 +187,9 @@ export async function toFeedPosts(
   ]);
   const [levels, avatars] = await Promise.all([
     getDisplayLevels([...new Set(rows.map((post) => post.userId))]),
-    avatarUrls(rows.map((post) => post.profile.avatarPath)),
+    avatarUrls(
+      rows.map((post) => post.page?.logoPath ?? post.profile.avatarPath),
+    ),
   ]);
 
   return rows.map((post) => {
@@ -195,15 +204,27 @@ export async function toFeedPosts(
       progress: progress?.success ? progress.data : null,
       hidden: post.status === "hidden",
       createdAt: post.createdAt.toISOString(),
-      author: {
-        id: post.userId,
-        displayName: post.profile.displayName,
-        username: post.profile.username,
-        avatarUrl: post.profile.avatarPath
-          ? (avatars.get(post.profile.avatarPath) ?? null)
-          : null,
-        level: levels.get(post.userId) ?? null,
-      },
+      author: post.page
+        ? {
+            id: post.page.id,
+            displayName: post.page.name,
+            username: null,
+            avatarUrl: post.page.logoPath
+              ? (avatars.get(post.page.logoPath) ?? null)
+              : null,
+            level: null,
+            page: { id: post.page.id, handle: post.page.handle },
+          }
+        : {
+            id: post.userId,
+            displayName: post.profile.displayName,
+            username: post.profile.username,
+            avatarUrl: post.profile.avatarPath
+              ? (avatars.get(post.profile.avatarPath) ?? null)
+              : null,
+            level: levels.get(post.userId) ?? null,
+            page: null,
+          },
       reactions: post._count.reactions,
       reacted: post.reactions.length > 0,
       comments: post._count.comments,
@@ -252,15 +273,18 @@ export async function listFeed(
   groupId?: string,
   /** Fil « Abonnements » : les comptes que je suis, moi-même et mes groupes. */
   following = false,
+  /** Seulement les publications de cette page pro. */
+  pageId?: string,
 ): Promise<{
   posts: FeedPost[];
   nextCursor: FeedCursor | null;
   /** Moment du chargement : base des dates relatives (« il y a 5 min »). */
   loadedAt: number;
 }> {
-  const [blocked, followed] = await Promise.all([
+  const [blocked, followed, followedPages] = await Promise.all([
     getBlockedIds(viewerId),
     following ? followingIds(viewerId) : Promise.resolve([]),
+    following ? followedPageIds(viewerId) : Promise.resolve([]),
   ]);
   const myGroups = {
     group: {
@@ -272,11 +296,20 @@ export async function listFeed(
     AND: [
       visibleTo(viewerId),
       blocked.length > 0 ? { userId: { notIn: blocked } } : {},
-      authorId ? { userId: authorId } : {},
+      // Le profil d'une personne : ses publications à elle, pas celles de sa page
+      authorId ? { userId: authorId, pageId: null } : {},
+      pageId ? { pageId } : {},
       following
         ? {
             OR: [
-              { groupId: null, userId: { in: [...followed, viewerId] } },
+              {
+                groupId: null,
+                pageId: null,
+                userId: { in: [...followed, viewerId] },
+              },
+              // Les pages suivies, et la sienne
+              { pageId: { in: followedPages } },
+              { pageId: { not: null }, userId: viewerId },
               myGroups,
             ],
           }
@@ -360,24 +393,38 @@ export async function listComments(
       profile: {
         select: { displayName: true, username: true, avatarPath: true },
       },
+      page: { select: { id: true, name: true, handle: true, logoPath: true } },
     },
   });
   const avatars = await avatarUrls(
-    comments.map((comment) => comment.profile.avatarPath),
+    comments.map(
+      (comment) => comment.page?.logoPath ?? comment.profile.avatarPath,
+    ),
   );
   return comments.map((comment) => ({
     id: comment.id,
     body: comment.body,
     hidden: comment.status === "hidden",
     createdAt: comment.createdAt.toISOString(),
-    author: {
-      id: comment.userId,
-      displayName: comment.profile.displayName,
-      username: comment.profile.username,
-      avatarUrl: comment.profile.avatarPath
-        ? (avatars.get(comment.profile.avatarPath) ?? null)
-        : null,
-    },
+    author: comment.page
+      ? {
+          id: comment.page.id,
+          displayName: comment.page.name,
+          username: null,
+          avatarUrl: comment.page.logoPath
+            ? (avatars.get(comment.page.logoPath) ?? null)
+            : null,
+          page: { id: comment.page.id, handle: comment.page.handle },
+        }
+      : {
+          id: comment.userId,
+          displayName: comment.profile.displayName,
+          username: comment.profile.username,
+          avatarUrl: comment.profile.avatarPath
+            ? (avatars.get(comment.profile.avatarPath) ?? null)
+            : null,
+          page: null,
+        },
     mine: comment.userId === viewerId,
   }));
 }

@@ -28,6 +28,8 @@ type CommunityFeedProps = {
   following?: boolean;
   /** Forum de ce groupe public. */
   groupId?: string;
+  /** Seulement les publications de cette page pro. */
+  pageId?: string;
   /** Créateur ou admin du groupe : peut retirer les publications du forum. */
   groupManager?: boolean;
 };
@@ -44,6 +46,7 @@ export function CommunityFeed({
   single = false,
   following = false,
   groupId,
+  pageId,
   groupManager = false,
 }: CommunityFeedProps) {
   const t = useTranslations("Community.feed");
@@ -61,7 +64,13 @@ export function CommunityFeed({
     startLoading(async () => {
       const page = saved
         ? await loadMoreSavedAction(cursor)
-        : await loadMorePostsAction(cursor, authorId, groupId, following);
+        : await loadMorePostsAction(
+            cursor,
+            authorId,
+            groupId,
+            following,
+            pageId,
+          );
       setPosts((current) => [
         ...current,
         ...page.posts.filter((post) => !current.some((p) => p.id === post.id)),

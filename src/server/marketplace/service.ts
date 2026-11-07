@@ -61,6 +61,8 @@ export type ListingSummary = {
     avatarUrl: string | null;
     /** La page pro qui vend : son adresse (/pages/<handle>), ou null. */
     pageHandle: string | null;
+    /** Pour lui écrire dans la boîte de sa page. */
+    pageId: string | null;
   };
 };
 
@@ -136,7 +138,7 @@ const summarySelect = {
       displayName: true,
       username: true,
       avatarPath: true,
-      page: { select: { name: true, handle: true, logoPath: true } },
+      page: { select: { id: true, name: true, handle: true, logoPath: true } },
     },
   },
 } satisfies Prisma.ListingSelect;
@@ -145,7 +147,12 @@ type SellerRow = {
   displayName: string | null;
   username: string | null;
   avatarPath: string | null;
-  page: { name: string; handle: string; logoPath: string | null } | null;
+  page: {
+    id: string;
+    name: string;
+    handle: string;
+    logoPath: string | null;
+  } | null;
 };
 
 /**
@@ -166,6 +173,7 @@ async function sellerAvatars(rows: { seller: SellerRow }[]) {
       username: seller.page ? null : seller.username,
       avatarUrl: photo ? (avatars.get(photo) ?? null) : null,
       pageHandle: seller.page?.handle ?? null,
+      pageId: seller.page?.id ?? null,
     };
   };
 }

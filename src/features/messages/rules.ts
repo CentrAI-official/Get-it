@@ -36,6 +36,14 @@ export function directKey(a: string, b: string) {
   return [a, b].sort().join(":");
 }
 
+/**
+ * Une seule conversation entre un membre et une page pro. Elle ne se confond
+ * pas avec la conversation personnelle des mêmes deux personnes.
+ */
+export function pageConversationKey(pageId: string, memberId: string) {
+  return `page:${pageId}:${memberId}`;
+}
+
 export const messageBodySchema = z
   .string()
   .trim()

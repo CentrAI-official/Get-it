@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/empty-state";
 import { Avatar } from "@/components/avatar";
 import { GroupBadge } from "@/features/groups/components/group-badge";
 import { InvitationButtons } from "@/features/groups/components/group-buttons";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import type { GroupTopic } from "@/features/groups/rules";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -298,7 +299,7 @@ function GroupsTab({
   );
 }
 
-function InboxRow({ item, now }: { item: InboxItem; now: number }) {
+export function InboxRow({ item, now }: { item: InboxItem; now: number }) {
   const t = useTranslations("Messages.inbox");
   const format = useFormatter();
   const author = item.other.displayName ?? item.other.username ?? "";
@@ -331,6 +332,12 @@ function InboxRow({ item, now }: { item: InboxItem; now: number }) {
     >
       {item.group ? (
         <GroupBadge topic={item.group.topic} className="size-12" />
+      ) : item.other.page ? (
+        <PageLogo
+          name={name}
+          url={item.other.avatarUrl}
+          className="size-12 text-lg"
+        />
       ) : (
         <Avatar
           name={name}

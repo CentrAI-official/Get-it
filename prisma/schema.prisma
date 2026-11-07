@@ -133,6 +133,7 @@ model Profile {
   budgetCategories     BudgetCategorySetting[]
   budgetPlans          BudgetPlan[]
   page                 Page?
+  pageFollows          PageFollow[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -925,10 +926,13 @@ model Post {
   sharedPostId String?       @map("shared_post_id") @db.Uuid
   /// Publication du forum d'un groupe public (absente du fil du Centre).
   groupId      String?       @map("group_id") @db.Uuid
+  /// Publiée au nom de cette page pro (l'auteur reste la personne qui la gère).
+  pageId       String?       @map("page_id") @db.Uuid
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page       Page?           @relation(fields: [pageId], references: [id], onDelete: Cascade)
   sharedPost Post?           @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
   group      Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
   shares     Post[]          @relation("PostShares")
@@ -1028,11 +1032,14 @@ model PostComment {
   userId    String        @map("user_id") @db.Uuid
   body      String
   status    ContentStatus @default(visible)
+  /// Écrit au nom de cette page pro (sous une publication de la page).
+  pageId    String?       @map("page_id") @db.Uuid
   createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   post    Post            @relation(fields: [postId], references: [id], onDelete: Cascade)
   profile Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page    Page?           @relation(fields: [pageId], references: [id], onDelete: Cascade)
   reports ContentReport[]
 
   @@index([postId, createdAt])
@@ -1151,12 +1158,15 @@ model Conversation {
   directKey     String?  @unique @map("direct_key")
   /// Discussion d'un groupe privé (sans clé de paire).
   groupId       String?  @unique @map("group_id") @db.Uuid
+  /// Conversation avec une page pro : elle va dans la boîte de la page.
+  pageId        String?  @map("page_id") @db.Uuid
   createdById   String   @map("created_by_id") @db.Uuid
   lastMessageAt DateTime @default(now()) @map("last_message_at") @db.Timestamptz(3)
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
 
   createdBy Profile              @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: Cascade)
   group     Group?               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  page      Page?                @relation(fields: [pageId], references: [id], onDelete: Cascade)
   members   ConversationMember[]
   messages  Message[]
   pacts     Pact[]
@@ -1552,10 +1562,29 @@ model Page {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  owner    Profile   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  listings Listing[]
+  owner         Profile        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  listings      Listing[]
+  posts         Post[]
+  comments      PostComment[]
+  conversations Conversation[]
+  notifications Notification[]
+  followers     PageFollow[]
 
   @@map("pages")
+}
+
+/// S'abonner à une page pro : ses publications vont dans le fil « Abonnements ».
+model PageFollow {
+  pageId     String   @map("page_id") @db.Uuid
+  followerId String   @map("follower_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  page     Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  follower Profile @relation(fields: [followerId], references: [id], onDelete: Cascade)
+
+  @@id([pageId, followerId])
+  @@index([followerId, createdAt])
+  @@map("page_follows")
 }
 
 model ListingFavorite {
@@ -1701,21 +1730,24 @@ enum NotificationKind {
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.
 /// Regroupée par « groupKey » tant qu'elle n'est pas lue (ex. une discussion).
 model Notification {
-  id        String           @id @default(uuid(7)) @db.Uuid
-  userId    String           @map("user_id") @db.Uuid
-  kind      NotificationKind
-  actorId   String?          @map("actor_id") @db.Uuid
+  id          String           @id @default(uuid(7)) @db.Uuid
+  userId      String           @map("user_id") @db.Uuid
+  kind        NotificationKind
+  actorId     String?          @map("actor_id") @db.Uuid
+  /// Au nom de cette page pro : on la montre, pas la personne.
+  actorPageId String?          @map("actor_page_id") @db.Uuid
   /// Chemin sans la langue (ex. « /messages/<id> »).
-  href      String
-  subject   String           @default("")
-  groupKey  String?          @map("group_key")
-  count     Int              @default(1)
-  readAt    DateTime?        @map("read_at") @db.Timestamptz(3)
-  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  href        String
+  subject     String           @default("")
+  groupKey    String?          @map("group_key")
+  count       Int              @default(1)
+  readAt      DateTime?        @map("read_at") @db.Timestamptz(3)
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
-  actor   Profile? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor     Profile? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  actorPage Page?    @relation(fields: [actorPageId], references: [id], onDelete: Cascade)
 
   @@index([userId, updatedAt])
   @@index([userId, groupKey])

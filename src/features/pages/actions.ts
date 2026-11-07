@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { uploadRequestSchema } from "@/features/community/media";
 import { requireUser } from "@/server/auth/session";
+import { setPageFollow, type PageFollowError } from "@/server/pages/follows";
 import {
   createPage,
   deletePage,
@@ -110,4 +111,22 @@ export async function removePageImageAction(which: unknown) {
   const removed = await removePageImage(user.id, image.data);
   if (removed) refresh();
   return removed;
+}
+
+/** S'abonner à une page pro, ou se désabonner. */
+export async function setPageFollowAction(
+  pageId: unknown,
+  follow: unknown,
+): Promise<{ ok: true } | { ok: false; error: PageFollowError }> {
+  const user = await requireUser();
+  const id = z.uuid().safeParse(pageId);
+  if (!id.success || typeof follow !== "boolean") {
+    return { ok: false, error: "notFound" };
+  }
+  try {
+    return await setPageFollow(user.id, id.data, follow);
+  } catch (error) {
+    console.error("Abonnement à une page impossible", error);
+    return { ok: false, error: "notFound" };
+  }
 }

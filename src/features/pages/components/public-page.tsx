@@ -3,12 +3,17 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CommunityFeed } from "@/features/community/components/community-feed";
 import { ContactSeller } from "@/features/marketplace/components/listing-actions";
 import { ListingCard } from "@/features/marketplace/components/listing-card";
 import { Link } from "@/i18n/navigation";
+import { listFeed } from "@/server/community/feed";
+import { getCommunityMember } from "@/server/community/members";
+import { pageFollowState } from "@/server/pages/follows";
 import { getPublicPage } from "@/server/pages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { HANDLE_PATTERN } from "../rules";
+import { FollowPageButton } from "./follow-page-button";
 import { PageHero } from "./pro-views";
 
 /**
@@ -20,31 +25,47 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
   const viewer = await getCurrentProfile();
   const page = await getPublicPage(viewer.id, handle);
   if (!page) notFound();
-  const [t, format] = await Promise.all([
+  const [t, tFollows, format, follow, member, feed] = await Promise.all([
     getTranslations("Pages"),
+    getTranslations("Follows"),
     getFormatter(),
+    pageFollowState(viewer.id, page.id),
+    getCommunityMember(viewer.id),
+    listFeed(viewer.id, undefined, undefined, undefined, false, page.id),
   ]);
+  const canWrite = Boolean(member?.joined && !member.suspendedUntil);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHero page={page}>
-        <div className="flex flex-wrap gap-2">
-          {page.mine ? (
-            <Button asChild variant="outline" className="h-11">
+        {page.mine ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground tabular-nums">
+              {tFollows("followers", { count: follow.followers })}
+            </p>
+            <Button asChild variant="outline" className="h-11 w-fit">
               <Link href="/pro/edit">
                 <Pencil aria-hidden="true" />
                 {t("public.edit")}
               </Link>
             </Button>
-          ) : (
-            <div className="flex min-w-48 flex-1 sm:flex-none">
-              <ContactSeller
-                sellerId={page.ownerId}
-                label={t("public.contact")}
-              />
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-start gap-2">
+            {/* Écrire à la page : sa boîte, jamais la Messagerie de la personne */}
+            <div className="flex min-w-40 flex-1 sm:flex-none">
+              <ContactSeller pageId={page.id} label={t("public.contact")} />
             </div>
-          )}
-        </div>
+            {member?.joined ? (
+              <FollowPageButton
+                pageId={page.id}
+                name={page.name}
+                following={follow.following}
+                followers={follow.followers}
+              />
+            ) : null}
+          </div>
+        )}
       </PageHero>
 
       {page.about ? (
@@ -82,6 +103,26 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section
+        aria-labelledby="page-posts"
+        className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
+      >
+        <h2 id="page-posts" className="caps-label text-muted-foreground">
+          {t("public.posts")}
+        </h2>
+        <CommunityFeed
+          initialPosts={feed.posts}
+          initialCursor={feed.nextCursor}
+          now={feed.loadedAt}
+          canWrite={canWrite}
+          pageId={page.id}
+          empty={{
+            title: t("public.noPostsTitle"),
+            description: t("public.noPosts"),
+          }}
+        />
       </section>
 
       <section className="flex flex-col gap-1.5 border-t border-foreground/8 pt-6 text-sm text-muted-foreground">

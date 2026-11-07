@@ -29,6 +29,8 @@ export type NotifyInput = {
   subject?: string;
   /** Regroupe les notifications non lues (ex. « message:<conversationId> »). */
   groupKey?: string;
+  /** Au nom de cette page pro : son nom et son logo à la place de la personne. */
+  actorPageId?: string | null;
 };
 
 export async function notify(input: NotifyInput) {
@@ -51,7 +53,13 @@ export async function notify(input: NotifyInput) {
     if (existing) {
       await db.notification.update({
         where: { id: existing.id },
-        data: { count, actorId: input.actorId, subject, kind: input.kind },
+        data: {
+          count,
+          actorId: input.actorId,
+          actorPageId: input.actorPageId ?? null,
+          subject,
+          kind: input.kind,
+        },
       });
     } else {
       await db.notification.create({
@@ -59,6 +67,7 @@ export async function notify(input: NotifyInput) {
           userId: input.userId,
           kind: input.kind,
           actorId: input.actorId,
+          actorPageId: input.actorPageId ?? null,
           href: input.href,
           subject,
           groupKey: input.groupKey ?? null,
@@ -96,10 +105,19 @@ async function sendPush(
       where: { userId: input.userId },
       select: { locale: true },
     }),
-    db.profile.findUnique({
-      where: { id: input.actorId },
-      select: { displayName: true, username: true },
-    }),
+    input.actorPageId
+      ? db.page
+          .findUnique({
+            where: { id: input.actorPageId },
+            select: { name: true },
+          })
+          .then((page) =>
+            page ? { displayName: page.name, username: null } : null,
+          )
+      : db.profile.findUnique({
+          where: { id: input.actorId },
+          select: { displayName: true, username: true },
+        }),
   ]);
   if (subscriptions.length === 0) return;
   const locale = settings?.locale ?? "fr";
@@ -189,9 +207,12 @@ export async function listNotifications(
       actor: {
         select: { displayName: true, username: true, avatarPath: true },
       },
+      actorPage: { select: { name: true, logoPath: true } },
     },
   });
-  const avatars = await avatarUrls(rows.map((row) => row.actor?.avatarPath));
+  const avatars = await avatarUrls(
+    rows.map((row) => row.actorPage?.logoPath ?? row.actor?.avatarPath),
+  );
   return rows.map((row) => ({
     id: row.id,
     kind: row.kind,
@@ -200,14 +221,21 @@ export async function listNotifications(
     count: row.count,
     read: row.readAt !== null,
     at: row.updatedAt.toISOString(),
-    actor: row.actor
+    actor: row.actorPage
       ? {
-          name: row.actor.displayName ?? row.actor.username ?? "",
-          avatarUrl: row.actor.avatarPath
-            ? (avatars.get(row.actor.avatarPath) ?? null)
+          name: row.actorPage.name,
+          avatarUrl: row.actorPage.logoPath
+            ? (avatars.get(row.actorPage.logoPath) ?? null)
             : null,
         }
-      : null,
+      : row.actor
+        ? {
+            name: row.actor.displayName ?? row.actor.username ?? "",
+            avatarUrl: row.actor.avatarPath
+              ? (avatars.get(row.actor.avatarPath) ?? null)
+              : null,
+          }
+        : null,
   }));
 }
 

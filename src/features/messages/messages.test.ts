@@ -6,6 +6,7 @@ import {
   layoutMessages,
   MESSAGE_MAX_LENGTH,
   messageBodySchema,
+  pageConversationKey,
   reactionSchema,
   sendPermission,
 } from "./rules";
@@ -17,6 +18,14 @@ describe("directKey", () => {
   it("donne la même clé quel que soit l'ordre des deux personnes", () => {
     expect(directKey(A, B)).toBe(directKey(B, A));
     expect(directKey(A, B)).toBe(`${B}:${A}`);
+  });
+});
+
+describe("pageConversationKey", () => {
+  it("ne se confond jamais avec la conversation personnelle des mêmes personnes", () => {
+    expect(pageConversationKey(A, B)).toBe(`page:${A}:${B}`);
+    expect(pageConversationKey(A, B)).not.toBe(directKey(A, B));
+    expect(pageConversationKey(A, B)).not.toBe(pageConversationKey(B, A));
   });
 });
 

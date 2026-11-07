@@ -8,6 +8,7 @@ import {
   DAILY_NEW_CONVERSATION_LIMIT,
   directKey,
   INBOX_SIZE,
+  pageConversationKey,
   MESSAGE_PAGE_SIZE,
   sendPermission,
   type MemberStatus,
@@ -78,6 +79,18 @@ export type MessagePerson = {
   avatarUrl: string | null;
   /** Niveau classé (mode Ranked), ou null : sans Ranked, le niveau reste privé. */
   level: number | null;
+  /** Une page pro (nom et logo ci-dessus) : la personne qui la gère n'est pas montrée. */
+  page: { id: string; handle: string } | null;
+};
+
+/** La page pro d'une conversation, telle que la voit chaque participant. */
+export type ConversationPage = {
+  id: string;
+  handle: string;
+  name: string;
+  logoUrl: string | null;
+  /** La personne qui lit gère cette page : elle répond en son nom. */
+  mine: boolean;
 };
 
 export type ChatMessage = {
@@ -156,6 +169,8 @@ export type ConversationState = {
   pactCount: number;
   /** Dernière lecture de l'autre personne (« Vu ») ; null tant qu'elle n'a pas accepté la conversation. */
   otherReadAt: string | null;
+  /** Conversation avec une page pro : ni pacte, ni contact, ni présence. */
+  page: ConversationPage | null;
   /** Moment du chargement : base de « Aujourd'hui » et « Hier ». */
   loadedAt: number;
 };
@@ -275,6 +290,15 @@ export async function loadMembership(viewerId: string, conversationId: string) {
     },
     select: {
       id: true,
+      page: {
+        select: {
+          id: true,
+          handle: true,
+          name: true,
+          logoPath: true,
+          ownerId: true,
+        },
+      },
       members: {
         select: {
           userId: true,
@@ -289,7 +313,40 @@ export async function loadMembership(viewerId: string, conversationId: string) {
   const other = conversation?.members.find((m) => m.userId !== viewerId);
   if (!conversation || !viewer || !other) return null;
   if (await isBlockedPair(viewerId, other.userId)) return null;
-  return { id: conversation.id, viewer, other };
+  return { id: conversation.id, viewer, other, page: conversation.page };
+}
+
+/**
+ * Pour le membre qui écrit à une page : les messages de la page portent
+ * l'identifiant de la page, jamais celui de la personne qui la gère.
+ */
+function maskPageSender(
+  messages: ChatMessage[],
+  page: { id: string; ownerId: string } | null,
+  viewerId: string,
+) {
+  if (!page || page.ownerId === viewerId) return messages;
+  return messages.map((message) =>
+    message.mine ? message : { ...message, senderId: page.id },
+  );
+}
+
+/** Une page pro présentée comme un interlocuteur : son nom et son logo. */
+async function pagePerson(page: {
+  id: string;
+  handle: string;
+  name: string;
+  logoPath: string | null;
+}): Promise<MessagePerson> {
+  const urls = await avatarUrls([page.logoPath]);
+  return {
+    id: page.id,
+    displayName: page.name,
+    username: null,
+    avatarUrl: page.logoPath ? (urls.get(page.logoPath) ?? null) : null,
+    level: null,
+    page: { id: page.id, handle: page.handle },
+  };
 }
 
 async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
@@ -310,6 +367,7 @@ async function people(ids: string[]): Promise<Map<string, MessagePerson>> {
         ...profile,
         avatarUrl: avatarPath ? (avatars.get(avatarPath) ?? null) : null,
         level: levels.get(profile.id) ?? null,
+        page: null,
       },
     ]),
   );
@@ -411,18 +469,100 @@ export async function startConversation(
   }
 }
 
-/** Conversations visibles (avec au moins un message après une éventuelle suppression). */
-async function inboxRows(viewerId: string) {
+/**
+ * Ouvre la conversation avec une page pro (la crée au besoin). Une page reçoit
+ * les messages directement, sans demande : c'est sa raison d'être.
+ */
+export async function startPageConversation(
+  viewerId: string,
+  pageId: string,
+): Promise<{ ok: true; id: string } | Fail> {
+  const allowed = await canWrite(viewerId);
+  if (!allowed.ok) return allowed;
+  const page = await db.page.findUnique({
+    where: { id: pageId },
+    select: { ownerId: true, owner: { select: { suspendedUntil: true } } },
+  });
+  if (!page || page.ownerId === viewerId) {
+    return { ok: false, error: "notFound" };
+  }
+  if (page.owner.suspendedUntil && page.owner.suspendedUntil > new Date()) {
+    return { ok: false, error: "notFound" };
+  }
+  if (await isBlockedPair(viewerId, page.ownerId)) {
+    return { ok: false, error: "blocked" };
+  }
+  const key = pageConversationKey(pageId, viewerId);
+  const existing = await db.conversation.findUnique({
+    where: { directKey: key },
+    select: { id: true },
+  });
+  if (existing) return { ok: true, id: existing.id };
+  const started = await db.conversation.count({
+    where: { createdById: viewerId, createdAt: { gte: since24h() } },
+  });
+  if (started >= DAILY_NEW_CONVERSATION_LIMIT) {
+    return { ok: false, error: "conversationLimit" };
+  }
+  try {
+    const created = await db.conversation.create({
+      data: {
+        directKey: key,
+        pageId,
+        createdById: viewerId,
+        members: {
+          create: [
+            { userId: viewerId, status: "accepted" },
+            { userId: page.ownerId, status: "accepted" },
+          ],
+        },
+      },
+      select: { id: true },
+    });
+    return { ok: true, id: created.id };
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const again = await db.conversation.findUnique({
+        where: { directKey: key },
+        select: { id: true },
+      });
+      if (again) return { ok: true, id: again.id };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Conversations visibles (avec au moins un message après une éventuelle
+ * suppression). La Messagerie personnelle n'a pas celles de sa page ; avec
+ * `pageId`, seulement celles de cette page (sa boîte, dans l'Espace pro).
+ */
+async function inboxRows(viewerId: string, pageId?: string) {
   const blocked = await getBlockedIds(viewerId);
   const rows = await db.conversationMember.findMany({
     where: {
       userId: viewerId,
       conversation: {
         messages: { some: {} },
-        // À deux : jamais avec une personne bloquée ; un groupe reste visible
-        OR: [
-          { groupId: { not: null } },
-          { members: { none: { userId: { in: blocked } } } },
+        AND: [
+          // À deux : jamais avec une personne bloquée ; un groupe reste visible
+          {
+            OR: [
+              { groupId: { not: null } },
+              { members: { none: { userId: { in: blocked } } } },
+            ],
+          },
+          pageId
+            ? { pageId, page: { ownerId: viewerId } }
+            : {
+                OR: [
+                  { pageId: null },
+                  { page: { ownerId: { not: viewerId } } },
+                ],
+              },
         ],
       },
     },
@@ -437,6 +577,15 @@ async function inboxRows(viewerId: string) {
           id: true,
           lastMessageAt: true,
           group: { select: { id: true, name: true, pillar: true } },
+          page: {
+            select: {
+              id: true,
+              handle: true,
+              name: true,
+              logoPath: true,
+              ownerId: true,
+            },
+          },
           members: {
             where: { userId: { not: viewerId } },
             take: 1,
@@ -480,19 +629,40 @@ async function inboxRows(viewerId: string) {
   });
 }
 
-/** Boîte de réception : discussions et demandes reçues, les plus récentes d'abord. */
-export async function listInbox(viewerId: string): Promise<{
+/**
+ * Boîte de réception : discussions et demandes reçues, les plus récentes
+ * d'abord. Avec `pageId`, la boîte de sa page pro.
+ */
+export async function listInbox(
+  viewerId: string,
+  pageId?: string,
+): Promise<{
   items: InboxItem[];
   online: OnlineContact[];
   loadedAt: number;
 }> {
   const [rows, online] = await Promise.all([
-    inboxRows(viewerId),
-    onlineContactIds(viewerId),
+    inboxRows(viewerId, pageId),
+    pageId ? Promise.resolve(new Set<string>()) : onlineContactIds(viewerId),
   ]);
   const byId = await people([
     ...new Set([...rows.map((item) => item.otherId), ...online]),
   ]);
+  // Écrire à une page : on voit la page, jamais la personne qui la gère
+  const pages = new Map(
+    await Promise.all(
+      rows.flatMap(({ row }) => {
+        const page = row.conversation.page;
+        return page && page.ownerId !== viewerId
+          ? [
+              pagePerson(page).then(
+                (person) => [row.conversation.id, person] as const,
+              ),
+            ]
+          : [];
+      }),
+    ),
+  );
   // Conversation déjà ouverte avec chaque contact en ligne
   const keys = new Map([...online].map((id) => [directKey(viewerId, id), id]));
   const conversations =
@@ -506,7 +676,7 @@ export async function listInbox(viewerId: string): Promise<{
     conversations.map((row) => [keys.get(row.directKey ?? ""), row.id]),
   );
   const items = rows.flatMap(({ row, last, otherId, unread }) => {
-    const other = byId.get(otherId);
+    const other = pages.get(row.conversation.id) ?? byId.get(otherId);
     if (!other) return [];
     const group = row.conversation.group;
     return {
@@ -517,7 +687,7 @@ export async function listInbox(viewerId: string): Promise<{
         : null,
       status: row.status,
       unread,
-      online: !group && online.has(otherId),
+      online: !group && !row.conversation.page && online.has(otherId),
       lastMessage: {
         mine: last.senderId === viewerId,
         kind: last.kind,
@@ -564,8 +734,8 @@ export async function listShareTargets(
   const order: { userId: string; conversationId: string | null }[] = [];
   const seen = new Set<string>();
   for (const { row, otherId } of rows) {
-    // Les discussions de groupe ne sont pas des destinataires d'une personne
-    if (row.conversation.group) continue;
+    // Les discussions de groupe et avec une page ne sont pas des destinataires d'une personne
+    if (row.conversation.group || row.conversation.page) continue;
     if (row.status === "request" || seen.has(otherId)) continue;
     seen.add(otherId);
     order.push({ userId: otherId, conversationId: row.conversation.id });
@@ -582,9 +752,33 @@ export async function listShareTargets(
   });
 }
 
-/** Conversations avec des messages non lus (pastille de l'onglet Messagerie). */
-export async function countUnread(viewerId: string) {
-  const rows = await inboxRows(viewerId);
+/** La page pro de la personne (sa boîte de messages), ou null. */
+async function ownPageId(viewerId: string) {
+  const page = await db.page.findUnique({
+    where: { ownerId: viewerId },
+    select: { id: true },
+  });
+  return page?.id ?? null;
+}
+
+/** La boîte de messages de sa page pro ; null sans page. */
+export async function listPageInbox(viewerId: string) {
+  const pageId = await ownPageId(viewerId);
+  return pageId ? listInbox(viewerId, pageId) : null;
+}
+
+/** Conversations non lues de sa page pro (0 sans page). */
+export async function countPageUnread(viewerId: string) {
+  const pageId = await ownPageId(viewerId);
+  return pageId ? countUnread(viewerId, pageId) : 0;
+}
+
+/**
+ * Conversations avec des messages non lus (pastille de l'onglet Messagerie ;
+ * avec `pageId`, celle de la boîte de la page).
+ */
+export async function countUnread(viewerId: string, pageId?: string) {
+  const rows = await inboxRows(viewerId, pageId);
   return rows.filter((item) => item.unread).length;
 }
 
@@ -648,6 +842,9 @@ export async function getConversation(
 ): Promise<ConversationState | null> {
   const membership = await loadMembership(viewerId, conversationId);
   if (!membership) return null;
+  if (membership.page) {
+    return getPageConversation(viewerId, membership, membership.page);
+  }
   await settlePacts(conversationId, viewerId);
   const [byId, viewerMessages, page, allowed, open, contact, online] =
     await Promise.all([
@@ -684,6 +881,55 @@ export async function getConversation(
       membership.other.status === "accepted" && membership.other.lastReadAt
         ? membership.other.lastReadAt.toISOString()
         : null,
+    page: null,
+    loadedAt: Date.now(),
+  };
+}
+
+/**
+ * Une conversation avec une page pro. Pour le membre, l'interlocuteur est la
+ * page ; pour la personne qui la gère, le membre, et elle répond au nom de la page.
+ */
+type Membership = NonNullable<Awaited<ReturnType<typeof loadMembership>>>;
+
+async function getPageConversation(
+  viewerId: string,
+  membership: Membership,
+  conversationPage: NonNullable<Membership["page"]>,
+): Promise<ConversationState | null> {
+  const mine = conversationPage.ownerId === viewerId;
+  const [pageIdentity, byId, page, allowed] = await Promise.all([
+    pagePerson(conversationPage),
+    mine ? people([membership.other.userId]) : Promise.resolve(null),
+    messagesPage(viewerId, membership.id, membership.viewer.clearedAt),
+    canWrite(viewerId),
+  ]);
+  const other = mine ? byId?.get(membership.other.userId) : pageIdentity;
+  if (!other) return null;
+  return {
+    id: membership.id,
+    other,
+    otherOnline: false,
+    viewerStatus: membership.viewer.status,
+    otherStatus: membership.other.status,
+    permission: "ok",
+    canWrite: allowed.ok,
+    messages: maskPageSender(page.messages, conversationPage, viewerId),
+    hasMore: page.hasMore,
+    contact: "none",
+    pact: null,
+    // Pas de suggestion de pacte avec une page
+    pactCount: 1,
+    otherReadAt: membership.other.lastReadAt
+      ? membership.other.lastReadAt.toISOString()
+      : null,
+    page: {
+      id: conversationPage.id,
+      handle: conversationPage.handle,
+      name: conversationPage.name,
+      logoUrl: pageIdentity.avatarUrl,
+      mine,
+    },
     loadedAt: Date.now(),
   };
 }
@@ -696,12 +942,16 @@ export async function listOlderMessages(
 ) {
   const membership = await loadMembership(viewerId, conversationId);
   if (membership) {
-    return messagesPage(
+    const page = await messagesPage(
       viewerId,
       conversationId,
       membership.viewer.clearedAt,
       before,
     );
+    return {
+      ...page,
+      messages: maskPageSender(page.messages, membership.page, viewerId),
+    };
   }
   const member = await groupChatMember(viewerId, conversationId);
   if (!member) return null;
@@ -816,10 +1066,18 @@ export async function getGroupChat(
 async function sendAccess(
   viewerId: string,
   conversationId: string,
+  kind: MessageInput["kind"],
 ): Promise<"ok" | MessageError> {
   if (await groupChatMember(viewerId, conversationId)) return "ok";
   const membership = await loadMembership(viewerId, conversationId);
   if (!membership) return "notFound";
+  // Qui répond au nom d'une page n'y partage ni ses progrès ni ses stories
+  if (
+    membership.page?.ownerId === viewerId &&
+    (kind === "progress" || kind === "story")
+  ) {
+    return "notFound";
+  }
   const viewerMessages = await db.message.count({
     where: { conversationId, senderId: viewerId, kind: { not: "pact" } },
   });
@@ -845,7 +1103,7 @@ export async function sendMessage(
   const allowed = await canWrite(viewerId);
   if (!allowed.ok) return allowed;
   const [access, recent] = await Promise.all([
-    sendAccess(viewerId, conversationId),
+    sendAccess(viewerId, conversationId, input.kind),
     db.message.count({
       where: { senderId: viewerId, createdAt: { gte: since24h() } },
     }),
@@ -885,7 +1143,7 @@ export async function sendMessage(
           where: {
             conversationId,
             userId: story.userId,
-            conversation: { groupId: null },
+            conversation: { groupId: null, pageId: null },
           },
           select: { userId: true },
         })
@@ -954,6 +1212,7 @@ async function notifyMessage(viewerId: string, conversationId: string) {
     where: { id: conversationId },
     select: {
       group: { select: { name: true } },
+      page: { select: { id: true, ownerId: true } },
       members: {
         where: { userId: { not: viewerId } },
         select: { userId: true, status: true },
@@ -961,6 +1220,8 @@ async function notifyMessage(viewerId: string, conversationId: string) {
     },
   });
   if (!conversation) return;
+  const asPage =
+    conversation.page?.ownerId === viewerId ? conversation.page.id : null;
   await Promise.all(
     conversation.members.map((member) =>
       notify({
@@ -970,6 +1231,7 @@ async function notifyMessage(viewerId: string, conversationId: string) {
             ? "message_request"
             : "message",
         actorId: viewerId,
+        actorPageId: asPage,
         href: `/messages/${conversationId}`,
         subject: conversation.group?.name ?? "",
         groupKey: `message:${conversationId}`,
@@ -1018,7 +1280,7 @@ export async function requestMessageUploads(
 ): Promise<{ ok: true; slots: UploadSlot[] } | Fail> {
   const allowed = await canWrite(viewerId);
   if (!allowed.ok) return allowed;
-  const access = await sendAccess(viewerId, conversationId);
+  const access = await sendAccess(viewerId, conversationId, "text");
   if (access !== "ok") return { ok: false, error: access };
   const result = await requestUploads(viewerId, files);
   return result.ok

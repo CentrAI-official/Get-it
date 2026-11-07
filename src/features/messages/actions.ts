@@ -27,6 +27,7 @@ import {
   getGroupChat,
   listInbox,
   listOlderMessages,
+  listPageInbox,
   listShareTargets,
   requestMessageUploads,
   markRead,
@@ -35,6 +36,7 @@ import {
   sendMessage,
   setMessageReaction,
   startConversation,
+  startPageConversation,
   type ChatMessage,
   type ConversationState,
   type GroupChatState,
@@ -95,6 +97,28 @@ export async function startConversationAction(
     console.error("Conversation impossible", error);
     return { ok: false, error: "unexpected" };
   }
+}
+
+/** Ouvre (ou crée) la conversation avec une page pro. */
+export async function startPageConversationAction(
+  pageId: unknown,
+): Promise<Result<{ id: string }>> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(pageId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  try {
+    return await startPageConversation(user.id, id.data);
+  } catch (error) {
+    console.error("Conversation avec une page impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** La boîte de sa page pro (rafraîchie toutes les 10 secondes). */
+export async function listPageInboxAction(): Promise<InboxItem[]> {
+  const user = await requireUser();
+  const inbox = await listPageInbox(user.id);
+  return inbox?.items ?? [];
 }
 
 export async function listInboxAction(): Promise<{

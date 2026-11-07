@@ -174,6 +174,11 @@ export async function deletePage(userId: string) {
       logoPath: true,
       coverPath: true,
       listings: { select: { media: { select: { path: true } } } },
+      posts: {
+        select: {
+          media: { select: { path: true, posterPath: true } },
+        },
+      },
     },
   });
   if (!page) return false;
@@ -182,6 +187,9 @@ export async function deletePage(userId: string) {
     page.coverPath,
     ...page.listings.flatMap((listing) =>
       listing.media.map((media) => media.path),
+    ),
+    ...page.posts.flatMap((post) =>
+      post.media.flatMap((media) => [media.path, media.posterPath]),
     ),
   ].filter((path): path is string => Boolean(path));
   await db.$transaction([

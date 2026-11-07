@@ -22,7 +22,7 @@ export function PageLogo({
         aria-hidden="true"
         loading="lazy"
         className={cn(
-          "shrink-0 rounded-2xl bg-foreground/5 object-cover",
+          "shrink-0 rounded-[22%] bg-foreground/5 object-cover",
           className,
         )}
       />
@@ -32,7 +32,7 @@ export function PageLogo({
     <span
       aria-hidden="true"
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-2xl bg-primary font-display text-primary-foreground uppercase",
+        "flex shrink-0 items-center justify-center rounded-[22%] bg-primary font-display text-primary-foreground uppercase",
         className,
       )}
     >

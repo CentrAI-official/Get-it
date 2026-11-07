@@ -109,6 +109,14 @@ export async function blockUser(userId: string, blockedId: string) {
       ],
     },
   });
+  await db.pageFollow.deleteMany({
+    where: {
+      OR: [
+        { followerId: blockedId, page: { ownerId: userId } },
+        { followerId: userId, page: { ownerId: blockedId } },
+      ],
+    },
+  });
   await db.pact.updateMany({
     where: {
       status: { in: ["proposed", "active"] },

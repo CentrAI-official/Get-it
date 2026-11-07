@@ -1165,7 +1165,9 @@
       "messageLabel": "Message facultatif",
       "messagePlaceholder": "Ajoute un mot (facultatif)…",
       "share": "Partager",
-      "addMedia": "Ajouter une photo ou une vidéo"
+      "addMedia": "Ajouter une photo ou une vidéo",
+      "promptPage": "Publier au nom de {name}…",
+      "descriptionPage": "Ta publication paraît au nom de {page}, avec son logo, dans le fil du Centre et chez ses abonnés."
     },
     "progress": {
       "goal": "Objectif atteint : {title}",
@@ -1201,7 +1203,9 @@
       "unsavedNotice": "Publication retirée de tes enregistrements.",
       "sharedLabel": "a partagé",
       "inGroup": "dans {group}",
-      "removeFromGroup": "Retirer du groupe"
+      "removeFromGroup": "Retirer du groupe",
+      "pageLabel": "Page pro",
+      "messagePage": "Écrire à la page"
     },
     "share": {
       "title": "Partager",
@@ -1245,7 +1249,8 @@
       "report": "Signaler le commentaire",
       "label": "Ton commentaire",
       "placeholder": "Écris un commentaire…",
-      "send": "Envoyer"
+      "send": "Envoyer",
+      "pageLabel": "Page pro"
     },
     "feed": {
       "label": "Fil du Centre Get iT",
@@ -1493,7 +1498,11 @@
       "storyReplyTheirs": "A répondu à ta story",
       "storyUnavailable": "Story terminée",
       "seen": "Vu",
-      "online": "En ligne"
+      "online": "En ligne",
+      "pageSubtitle": "Page pro",
+      "toPage": "à {page}",
+      "pageFirst": "Écris à {name}. Ton message arrive directement dans la boîte de la page.",
+      "placeholderAsPage": "Répondre au nom de {page}…"
     },
     "reactions": {
       "bravo": "Bravo",
@@ -3683,7 +3692,9 @@
         "habits": "Habitudes",
         "settings": "Réglages",
         "pro": "Espace pro",
-        "proEdit": "Créer ou modifier sa page"
+        "proEdit": "Créer ou modifier sa page",
+        "proPosts": "Publications de sa page",
+        "proMessages": "Messages de sa page"
       },
       "today": {
         "dayPanel": "Ma journée"
@@ -4996,7 +5007,8 @@
       "toAccount": "Revenir à mon compte",
       "toPage": "Passer à ma page",
       "createTitle": "Crée ta page pro",
-      "createText": "Pour vendre tes services et suivre tes clients."
+      "createText": "Pour vendre tes services et suivre tes clients.",
+      "unread": "{count, plural, one {# message non lu} other {# messages non lus}}"
     },
     "home": {
       "title": "Espace pro",
@@ -5027,7 +5039,7 @@
       "points": {
         "sell": "Vends tes services dans le Marketplace, sous le nom de ta page.",
         "clients": "Bientôt : suis tes clients, leurs plans et tes notes, avec leur accord.",
-        "feed": "Bientôt : publie dans le Centre au nom de ta page."
+        "feed": "Publie dans le Centre et réponds à tes messages au nom de ta page."
       }
     },
     "edit": {
@@ -5080,7 +5092,10 @@
       "services": "Services",
       "noService": "Aucun service en ligne pour l’instant.",
       "since": "Sur Get iT depuis {date}",
-      "contact": "Écrire"
+      "contact": "Écrire",
+      "posts": "Publications",
+      "noPostsTitle": "Aucune publication",
+      "noPosts": "Cette page n’a encore rien publié."
     },
     "settings": {
       "title": "Page pro",
@@ -5108,6 +5123,27 @@
       "alreadyHasPage": "Tu as déjà une page.",
       "notFound": "Page introuvable.",
       "unexpected": "Impossible pour l’instant. Réessaie."
+    },
+    "tabs": {
+      "label": "Sections de l’Espace pro",
+      "home": "Ma page",
+      "posts": "Publications",
+      "messages": "Messages",
+      "messagesCount": "Messages ({count, number})"
+    },
+    "posts": {
+      "title": "Publications de ma page",
+      "cannotPost": "Ton compte est suspendu du Centre : ta page ne peut pas publier pour l’instant.",
+      "emptyTitle": "Aucune publication",
+      "emptyDescription": "Ce que tu publies ici paraît au nom de ta page, dans le fil du Centre et chez ses abonnés."
+    },
+    "inbox": {
+      "title": "Messages de ma page",
+      "label": "Messages de la page",
+      "emptyTitle": "Aucun message pour l’instant",
+      "emptyDescription": "Les membres écrivent à {page} depuis sa page ou ses services. Tu leur réponds ici, au nom de la page.",
+      "viewPage": "Voir ma page",
+      "hint": "Tu réponds au nom de {page}. Ta Messagerie personnelle reste à part."
     }
   }
 }

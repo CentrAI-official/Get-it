@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { countPageUnread } from "@/server/messages/service";
 import { getMyPage } from "@/server/pages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { PageLogo } from "./page-logo";
@@ -18,6 +19,8 @@ export async function PageSwitch() {
     getTranslations("Pages.switch"),
   ]);
   if (page) {
+    // Les messages de la page n’entrent pas dans la pastille de la Messagerie
+    const unread = await countPageUnread(profile.id);
     return (
       <Link
         href="/pro"
@@ -31,6 +34,15 @@ export async function PageSwitch() {
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="text-xs text-muted-foreground">{t("toPage")}</span>
           <span className="truncate text-sm font-semibold">{page.name}</span>
+          {unread > 0 ? (
+            <span className="flex items-center gap-1.5 text-xs font-medium text-primary">
+              <span
+                aria-hidden="true"
+                className="size-2 rounded-full bg-primary"
+              />
+              {t("unread", { count: unread })}
+            </span>
+          ) : null}
         </span>
         <ArrowLeftRight
           aria-hidden="true"

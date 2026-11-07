@@ -1165,7 +1165,9 @@
       "messageLabel": "Optional message",
       "messagePlaceholder": "Add a few words (optional)…",
       "share": "Share",
-      "addMedia": "Add a photo or video"
+      "addMedia": "Add a photo or video",
+      "promptPage": "Post as {name}…",
+      "descriptionPage": "Your post appears as {page}, with its logo, in the Hub feed and for its followers."
     },
     "progress": {
       "goal": "Goal reached: {title}",
@@ -1201,7 +1203,9 @@
       "unsavedNotice": "Post removed from your saved posts.",
       "sharedLabel": "shared",
       "inGroup": "in {group}",
-      "removeFromGroup": "Remove from group"
+      "removeFromGroup": "Remove from group",
+      "pageLabel": "Pro page",
+      "messagePage": "Message the page"
     },
     "share": {
       "title": "Share",
@@ -1245,7 +1249,8 @@
       "report": "Report comment",
       "label": "Your comment",
       "placeholder": "Write a comment…",
-      "send": "Send"
+      "send": "Send",
+      "pageLabel": "Pro page"
     },
     "feed": {
       "label": "Get iT Hub feed",
@@ -1493,7 +1498,11 @@
       "storyReplyTheirs": "Replied to your story",
       "storyUnavailable": "Story ended",
       "seen": "Seen",
-      "online": "Online"
+      "online": "Online",
+      "pageSubtitle": "Pro page",
+      "toPage": "to {page}",
+      "pageFirst": "Write to {name}. Your message goes straight to the page’s inbox.",
+      "placeholderAsPage": "Reply as {page}…"
     },
     "reactions": {
       "bravo": "Kudos",
@@ -3683,7 +3692,9 @@
         "habits": "Habits",
         "settings": "Settings",
         "pro": "Pro space",
-        "proEdit": "Create or edit one’s page"
+        "proEdit": "Create or edit one’s page",
+        "proPosts": "Their page’s posts",
+        "proMessages": "Their page’s messages"
       },
       "today": {
         "dayPanel": "My day"
@@ -4996,7 +5007,8 @@
       "toAccount": "Back to my account",
       "toPage": "Switch to my page",
       "createTitle": "Create your pro page",
-      "createText": "To sell your services and follow your clients."
+      "createText": "To sell your services and follow your clients.",
+      "unread": "{count, plural, one {# unread message} other {# unread messages}}"
     },
     "home": {
       "title": "Pro space",
@@ -5027,7 +5039,7 @@
       "points": {
         "sell": "Sell your services in the Marketplace, under your page’s name.",
         "clients": "Coming soon: follow your clients, their plans and your notes, with their consent.",
-        "feed": "Coming soon: post in the Hub as your page."
+        "feed": "Post in the Hub and reply to your messages as your page."
       }
     },
     "edit": {
@@ -5080,7 +5092,10 @@
       "services": "Services",
       "noService": "No services live yet.",
       "since": "On Get iT since {date}",
-      "contact": "Message"
+      "contact": "Message",
+      "posts": "Posts",
+      "noPostsTitle": "No posts yet",
+      "noPosts": "This page hasn’t posted anything yet."
     },
     "settings": {
       "title": "Pro page",
@@ -5108,6 +5123,27 @@
       "alreadyHasPage": "You already have a page.",
       "notFound": "Page not found.",
       "unexpected": "Not possible right now. Try again."
+    },
+    "tabs": {
+      "label": "Pro space sections",
+      "home": "My page",
+      "posts": "Posts",
+      "messages": "Messages",
+      "messagesCount": "Messages ({count, number})"
+    },
+    "posts": {
+      "title": "My page’s posts",
+      "cannotPost": "Your account is suspended from the Hub: your page can’t post for now.",
+      "emptyTitle": "No posts yet",
+      "emptyDescription": "What you post here appears under your page’s name, in the Hub feed and for its followers."
+    },
+    "inbox": {
+      "title": "My page’s messages",
+      "label": "Page messages",
+      "emptyTitle": "No messages yet",
+      "emptyDescription": "Members write to {page} from its page or its services. You reply here, as the page.",
+      "viewPage": "View my page",
+      "hint": "You reply as {page}. Your personal Messages stay separate."
     }
   }
 }

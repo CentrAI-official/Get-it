@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +38,8 @@ type PostComposerProps = {
   mediaEnabled: boolean;
   /** Forum d'un groupe public : publication du groupe, sans partage de progrès. */
   groupId?: string;
+  /** Au nom de sa page pro : son logo, sans partage de progrès personnel. */
+  asPage?: { name: string; logoUrl: string | null };
 };
 
 type FormProps = {
@@ -66,6 +69,7 @@ export function PostComposer({
   avatarUrl,
   mediaEnabled,
   groupId,
+  asPage,
 }: PostComposerProps) {
   const t = useTranslations("Community.composer");
   const startOnProgress = Boolean(
@@ -86,13 +90,17 @@ export function PostComposer({
   return (
     <>
       <section aria-label={t("label")} className="flex items-center gap-3">
-        <Avatar name={name} url={avatarUrl} className="size-10" />
+        {asPage ? (
+          <PageLogo name={name} url={avatarUrl} className="size-10" />
+        ) : (
+          <Avatar name={name} url={avatarUrl} className="size-10" />
+        )}
         <button
           type="button"
           onClick={() => start("post")}
           className="h-10 min-w-0 flex-1 truncate rounded-full border border-foreground/10 bg-foreground/[0.04] px-4 text-left text-sm text-muted-foreground transition-colors outline-none hover:bg-foreground/[0.07] focus-visible:ring-3 focus-visible:ring-ring/50"
         >
-          {t("prompt", { name })}
+          {asPage ? t("promptPage", { name }) : t("prompt", { name })}
         </button>
         {mediaEnabled ? (
           <Button
@@ -106,7 +114,7 @@ export function PostComposer({
             <ImagePlus aria-hidden="true" />
           </Button>
         ) : null}
-        {groupId ? null : (
+        {groupId || asPage ? null : (
           <Button
             type="button"
             variant="ghost"
@@ -135,9 +143,13 @@ export function PostComposer({
         >
           <div className="flex flex-col gap-1 pr-8">
             <DialogTitle>{t("label")}</DialogTitle>
-            <DialogDescription>{t("description")}</DialogDescription>
+            <DialogDescription>
+              {asPage
+                ? t("descriptionPage", { page: asPage.name })
+                : t("description")}
+            </DialogDescription>
           </div>
-          {groupId ? null : (
+          {groupId || asPage ? null : (
             <div role="tablist" aria-label={t("label")} className="flex gap-2">
               {(["post", "progress"] as const).map((value) => (
                 <button
@@ -153,10 +165,11 @@ export function PostComposer({
               ))}
             </div>
           )}
-          {tab === "post" || groupId ? (
+          {tab === "post" || groupId || asPage ? (
             <PostForm
               mediaEnabled={mediaEnabled}
               groupId={groupId}
+              asPage={Boolean(asPage)}
               onDone={() => setOpen(false)}
             />
           ) : (
@@ -185,7 +198,8 @@ function PostForm({
   onDone,
   mediaEnabled,
   groupId,
-}: FormProps & { mediaEnabled: boolean; groupId?: string }) {
+  asPage = false,
+}: FormProps & { mediaEnabled: boolean; groupId?: string; asPage?: boolean }) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const tPillars = useTranslations("Pillars");
@@ -220,6 +234,7 @@ function PostForm({
       <input type="hidden" name="pillar" value={pillar ?? ""} />
       <input type="hidden" name="media" value={media.payload} />
       <input type="hidden" name="groupId" value={groupId ?? ""} />
+      <input type="hidden" name="asPage" value={asPage ? "1" : ""} />
       <div
         role="radiogroup"
         aria-label={t("kindLabel")}

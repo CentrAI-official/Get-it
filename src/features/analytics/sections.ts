@@ -71,6 +71,8 @@ export const ROUTE_RULES = [
   { pattern: "/pro", section: "profile.pro" },
   { pattern: "/pro/new", section: "profile.proEdit" },
   { pattern: "/pro/edit", section: "profile.proEdit" },
+  { pattern: "/pro/posts", section: "profile.proPosts" },
+  { pattern: "/pro/messages", section: "profile.proMessages" },
   { pattern: "/pages/[handle]", section: "marketplace.page" },
   { pattern: "/services", section: "services.calendar" },
   { pattern: "/services/events/new", section: "services.event" },

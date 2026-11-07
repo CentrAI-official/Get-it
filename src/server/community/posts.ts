@@ -68,10 +68,22 @@ export async function createPost(
     pillar?: Pillar;
     media: PostMediaInput;
     groupId?: string;
+    /** Au nom de sa page pro (jamais dans un groupe). */
+    asPage?: boolean;
   },
 ): Promise<Result> {
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
+  let pageId: string | null = null;
+  if (input.asPage) {
+    if (input.groupId) return { ok: false, error: "notFound" };
+    const page = await db.page.findUnique({
+      where: { ownerId: userId },
+      select: { id: true },
+    });
+    if (!page) return { ok: false, error: "notFound" };
+    pageId = page.id;
+  }
   if (input.groupId && !(await inGroupForum(input.groupId, userId))) {
     return { ok: false, error: "groupJoinRequired" };
   }
@@ -93,6 +105,7 @@ export async function createPost(
           pillar: input.pillar ?? null,
           mediaCount: rows.length,
           groupId: input.groupId ?? null,
+          pageId,
         },
         select: { id: true },
       });
@@ -340,7 +353,13 @@ export async function reachablePost(userId: string, postId: string) {
       status: "visible",
       ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
     },
-    select: { id: true, userId: true, sharedPostId: true, groupId: true },
+    select: {
+      id: true,
+      userId: true,
+      sharedPostId: true,
+      groupId: true,
+      pageId: true,
+    },
   });
 }
 
@@ -401,11 +420,14 @@ export async function addComment(
     where: { userId, createdAt: { gte: since24h() } },
   });
   if (count >= DAILY_COMMENT_LIMIT) return { ok: false, error: "commentLimit" };
-  await db.postComment.create({ data: { postId, userId, body } });
+  // Sous une publication de sa propre page, on répond au nom de la page
+  const pageId = post.pageId && post.userId === userId ? post.pageId : null;
+  await db.postComment.create({ data: { postId, userId, body, pageId } });
   await notify({
     userId: post.userId,
     kind: "comment",
     actorId: userId,
+    actorPageId: pageId,
     href: `/community/posts/${postId}`,
     groupKey: `comment:${postId}`,
   });

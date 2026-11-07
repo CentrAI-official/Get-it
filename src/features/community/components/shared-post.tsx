@@ -4,6 +4,7 @@ import { Video } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { Avatar } from "@/components/avatar";
 import { ProfileLink } from "@/components/profile-link";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import { cn } from "@/lib/utils";
 import type { SharedPost } from "@/server/community/feed";
 import { PostMedia } from "./post-media";
@@ -22,13 +23,23 @@ function SharedAuthor({
   linked?: boolean;
 }) {
   const format = useFormatter();
+  const t = useTranslations("Community.post");
   const name = post.author.displayName ?? post.author.username ?? "";
+  const page = post.author.page;
   const who = (
     <>
-      <Avatar name={name} url={post.author.avatarUrl} className="size-6" />
+      {page ? (
+        <PageLogo
+          name={name}
+          url={post.author.avatarUrl}
+          className="size-6 text-xs"
+        />
+      ) : (
+        <Avatar name={name} url={post.author.avatarUrl} className="size-6" />
+      )}
       <span className="truncate font-semibold">{name}</span>
       <span className="truncate text-muted-foreground">
-        @{post.author.username ?? ""}
+        {page ? t("pageLabel") : `@${post.author.username ?? ""}`}
       </span>
     </>
   );
@@ -37,6 +48,7 @@ function SharedAuthor({
       {linked ? (
         <ProfileLink
           username={post.author.username}
+          pageHandle={page?.handle}
           className="flex min-w-0 items-center gap-2"
         >
           {who}

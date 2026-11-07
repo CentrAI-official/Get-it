@@ -13,16 +13,24 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { startConversationAction } from "@/features/messages/actions";
+import {
+  startConversationAction,
+  startPageConversationAction,
+} from "@/features/messages/actions";
 import { useRouter } from "@/i18n/navigation";
 import { deleteListingAction } from "../actions";
 
-/** Écrire au vendeur dans la Messagerie (le paiement viendra ensuite). */
+/**
+ * Écrire au vendeur (le paiement viendra ensuite) : dans la boîte de sa page
+ * pro s'il en a une, sinon dans sa Messagerie.
+ */
 export function ContactSeller({
   sellerId,
+  pageId,
   label,
 }: {
-  sellerId: string;
+  sellerId?: string;
+  pageId?: string | null;
   /** « Écrire » sur une page pro ; « Contacter le vendeur » par défaut. */
   label?: string;
 }) {
@@ -40,7 +48,9 @@ export function ContactSeller({
         onClick={() =>
           startTransition(async () => {
             setError(null);
-            const result = await startConversationAction(sellerId);
+            const result = pageId
+              ? await startPageConversationAction(pageId)
+              : await startConversationAction(sellerId ?? "");
             if (result.ok) router.push(`/messages/${result.id}`);
             else setError(tErrors(result.error));
           })

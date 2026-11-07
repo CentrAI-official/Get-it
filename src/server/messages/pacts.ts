@@ -409,7 +409,8 @@ export async function proposePact(
   const allowed = await canWrite(viewerId);
   if (!allowed.ok) return allowed;
   const membership = await loadMembership(viewerId, conversationId);
-  if (!membership) return { ok: false, error: "notFound" };
+  // Un pacte se fait entre deux personnes, jamais avec une page pro
+  if (!membership || membership.page) return { ok: false, error: "notFound" };
   if (
     membership.viewer.status !== "accepted" ||
     membership.other.status !== "accepted"

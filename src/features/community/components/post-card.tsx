@@ -43,7 +43,11 @@ import {
   setPostSavedAction,
 } from "../actions";
 import { requestContactAction } from "@/features/contacts/actions";
-import { startConversationAction } from "@/features/messages/actions";
+import {
+  startConversationAction,
+  startPageConversationAction,
+} from "@/features/messages/actions";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useBravo } from "../reaction-store";
 import { PostComments } from "./post-comments";
@@ -117,18 +121,29 @@ export function PostCard({
     }
   }
 
+  // Au nom d'une page pro : on montre la page, jamais la personne qui la gère
+  const page = post.author.page;
   function message() {
     startTransition(async () => {
-      const result = await startConversationAction(post.author.id);
+      const result = page
+        ? await startPageConversationAction(page.id)
+        : await startConversationAction(post.author.id);
       if (result.ok) router.push(`/messages/${result.id}`);
       else onNotice(tMessages(result.error));
     });
   }
   const name = post.author.displayName ?? post.author.username ?? "";
   const handle = `@${post.author.username ?? ""}`;
-  const profileHref = post.author.username
-    ? `/community/members/${post.author.username}`
-    : null;
+  const profileHref = page
+    ? `/pages/${page.handle}`
+    : post.author.username
+      ? `/community/members/${post.author.username}`
+      : null;
+  const picture = page ? (
+    <PageLogo name={name} url={post.author.avatarUrl} className="size-10" />
+  ) : (
+    <Avatar name={name} url={post.author.avatarUrl} className="size-10" />
+  );
 
   function addContact() {
     startTransition(async () => {
@@ -181,14 +196,10 @@ export function PostCard({
             aria-hidden="true"
             className="shrink-0"
           >
-            <Avatar
-              name={name}
-              url={post.author.avatarUrl}
-              className="size-10"
-            />
+            {picture}
           </Link>
         ) : (
-          <Avatar name={name} url={post.author.avatarUrl} className="size-10" />
+          picture
         )}
         <div className="flex min-w-0 flex-1 flex-col">
           <p
@@ -205,7 +216,9 @@ export function PostCard({
             ) : (
               <span className="font-semibold break-words">{name}</span>
             )}
-            <span className="text-sm text-muted-foreground">{handle}</span>
+            <span className="text-sm text-muted-foreground">
+              {page ? t("pageLabel") : handle}
+            </span>
           </p>
           <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
             {post.author.level === null ? null : (
@@ -281,12 +294,14 @@ export function PostCard({
                   <>
                     <DropdownMenuItem onSelect={message}>
                       <MessageCircle aria-hidden="true" />
-                      {t("message")}
+                      {page ? t("messagePage") : t("message")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={addContact}>
-                      <UserPlus aria-hidden="true" />
-                      {tContacts("addHandle", { handle })}
-                    </DropdownMenuItem>
+                    {page ? null : (
+                      <DropdownMenuItem onSelect={addContact}>
+                        <UserPlus aria-hidden="true" />
+                        {tContacts("addHandle", { handle })}
+                      </DropdownMenuItem>
+                    )}
                   </>
                 ) : null}
                 <DropdownMenuItem
@@ -295,21 +310,26 @@ export function PostCard({
                   <Flag aria-hidden="true" />
                   {t("reportPost")}
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  onSelect={() =>
-                    onReport({ type: "user", id: post.author.id })
-                  }
-                >
-                  <Flag aria-hidden="true" />
-                  {t("reportUser", { handle })}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onSelect={() => setConfirm("block")}
-                >
-                  <Ban aria-hidden="true" />
-                  {t("block", { handle })}
-                </DropdownMenuItem>
+                {/* Une page : on signale la publication (la modération retrouve qui la gère) */}
+                {page ? null : (
+                  <>
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        onReport({ type: "user", id: post.author.id })
+                      }
+                    >
+                      <Flag aria-hidden="true" />
+                      {t("reportUser", { handle })}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onSelect={() => setConfirm("block")}
+                    >
+                      <Ban aria-hidden="true" />
+                      {t("block", { handle })}
+                    </DropdownMenuItem>
+                  </>
+                )}
               </>
             )}
           </DropdownMenuContent>

@@ -111,6 +111,8 @@ export async function createPostAction(
       pillar: parsed.data.pillar,
       media: media.data,
       groupId: groupId.success ? groupId.data : undefined,
+      // Au nom de sa page pro (la page est retrouvée par la session)
+      asPage: read(formData, "asPage") === "1",
     });
     if (!result.ok) return fail(result.error, values);
   } catch (error) {
@@ -183,16 +185,19 @@ export async function loadMorePostsAction(
   authorId?: unknown,
   groupId?: unknown,
   following?: unknown,
+  pageId?: unknown,
 ): Promise<{ posts: FeedPost[]; nextCursor: FeedCursor | null }> {
   const user = await requireUser();
   const parsed = cursorSchema.safeParse(cursor);
   const author =
     authorId === undefined ? undefined : z.uuid().safeParse(authorId);
   const group = groupId === undefined ? undefined : z.uuid().safeParse(groupId);
+  const page = pageId === undefined ? undefined : z.uuid().safeParse(pageId);
   if (
     !parsed.success ||
     (author && !author.success) ||
-    (group && !group.success)
+    (group && !group.success) ||
+    (page && !page.success)
   ) {
     return { posts: [], nextCursor: null };
   }
@@ -202,6 +207,7 @@ export async function loadMorePostsAction(
     author?.data,
     group?.data,
     following === true,
+    page?.data,
   );
 }
 

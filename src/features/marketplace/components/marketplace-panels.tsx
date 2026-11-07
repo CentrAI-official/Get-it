@@ -416,7 +416,13 @@ export async function ListingLoader({ id }: { id: string }) {
               <DeleteListing listingId={listing.id} />
             ) : (
               <>
-                <ContactSeller sellerId={listing.sellerId} />
+                {/* Une page pro : on lui écrit sans recevoir l'identifiant de la personne */}
+                <ContactSeller
+                  sellerId={
+                    listing.seller.pageId ? undefined : listing.sellerId
+                  }
+                  pageId={listing.seller.pageId}
+                />
                 <FavoriteButton
                   listingId={listing.id}
                   title={listing.title}

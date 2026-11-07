@@ -10,13 +10,19 @@ import {
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Avatar } from "@/components/avatar";
+import { SectionTabs } from "@/components/layout/section-tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CommunityFeed } from "@/features/community/components/community-feed";
 import { JoinCommunityCard } from "@/features/community/components/join-community-card";
+import { PostComposer } from "@/features/community/components/post-composer";
 import { ListingCard } from "@/features/marketplace/components/listing-card";
 import { Link, redirect } from "@/i18n/navigation";
+import { listFeed } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
 import { listMyListings } from "@/server/marketplace/service";
+import { countPageUnread, listInbox } from "@/server/messages/service";
+import { pageFollowState } from "@/server/pages/follows";
 import { getMyPage } from "@/server/pages/service";
 import { avatarUrl } from "@/server/profile/avatar";
 import { getCurrentProfile } from "@/server/profile/service";
@@ -25,6 +31,7 @@ import { pageCompletion } from "../rules";
 import { DeletePage } from "./delete-page";
 import { PageForm } from "./page-form";
 import { PageImages } from "./page-images";
+import { PageInbox } from "./page-inbox";
 import { PageLogo } from "./page-logo";
 
 // L'Espace pro : la page de la personne, vue de l'intérieur. Chaque vue lit la
@@ -122,16 +129,48 @@ export async function BackToAccount() {
   );
 }
 
+/** Les onglets de l'Espace pro : la page, ses publications et sa boîte de messages. */
+async function ProTabs({
+  current,
+  userId,
+}: {
+  current: "home" | "posts" | "messages";
+  userId: string;
+}) {
+  const [unread, t] = await Promise.all([
+    countPageUnread(userId),
+    getTranslations("Pages.tabs"),
+  ]);
+  return (
+    <SectionTabs
+      label={t("label")}
+      current={current}
+      tabs={[
+        { key: "home", href: "/pro", label: t("home") },
+        { key: "posts", href: "/pro/posts", label: t("posts") },
+        {
+          key: "messages",
+          href: "/pro/messages",
+          label:
+            unread > 0 ? t("messagesCount", { count: unread }) : t("messages"),
+        },
+      ]}
+    />
+  );
+}
+
 /** L'accueil de l'Espace pro : la page, ce qu'il lui manque, et ses services. */
 export async function ProHome() {
   const profile = await getCurrentProfile();
   const page = await getMyPage(profile.id);
   if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
   if (!page) return null;
-  const [listings, t] = await Promise.all([
+  const [listings, follow, t] = await Promise.all([
     listMyListings(profile.id),
+    pageFollowState(profile.id, page.id),
     getTranslations("Pages"),
   ]);
+  const tFollows = await getTranslations("Follows");
   const completion = pageCompletion({ ...page, services: listings.length });
   const links = {
     logo: "/pro/edit",
@@ -143,7 +182,11 @@ export async function ProHome() {
   return (
     <div className="flex flex-col gap-6">
       <BackToAccount />
+      <ProTabs current="home" userId={profile.id} />
       <PageHero page={page}>
+        <p className="text-sm text-muted-foreground tabular-nums">
+          {tFollows("followers", { count: follow.followers })}
+        </p>
         <div className="flex flex-wrap gap-2">
           <Button asChild className="h-11">
             <Link href={`/pages/${page.handle}`}>
@@ -266,6 +309,75 @@ export async function ProHome() {
   );
 }
 
+/**
+ * Les publications de la page : publier au nom de la page (son nom et son
+ * logo, jamais ceux de la personne), puis tout ce qu'elle a publié.
+ */
+export async function ProPosts() {
+  const profile = await getCurrentProfile();
+  const page = await getMyPage(profile.id);
+  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
+  if (!page) return null;
+  const [member, feed, t] = await Promise.all([
+    getCommunityMember(profile.id),
+    listFeed(profile.id, undefined, undefined, undefined, false, page.id),
+    getTranslations("Pages.posts"),
+  ]);
+  const canWrite = Boolean(member?.joined && !member.suspendedUntil);
+  return (
+    <div className="flex flex-col gap-6">
+      <BackToAccount />
+      <ProTabs current="posts" userId={profile.id} />
+      {canWrite ? (
+        <PostComposer
+          shareable={[]}
+          preselected={null}
+          name={page.name}
+          avatarUrl={page.logoUrl}
+          mediaEnabled={storageEnabled()}
+          asPage={{ name: page.name, logoUrl: page.logoUrl }}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground">{t("cannotPost")}</p>
+      )}
+      <CommunityFeed
+        // Une nouvelle publication ou une suppression recharge la liste
+        key={feed.posts[0]?.id ?? "empty"}
+        initialPosts={feed.posts}
+        initialCursor={feed.nextCursor}
+        now={feed.loadedAt}
+        canWrite={canWrite}
+        pageId={page.id}
+        empty={{
+          title: t("emptyTitle"),
+          description: t("emptyDescription"),
+        }}
+      />
+    </div>
+  );
+}
+
+/** La boîte de messages de la page, à part de la Messagerie personnelle. */
+export async function ProMessages() {
+  const profile = await getCurrentProfile();
+  const page = await getMyPage(profile.id);
+  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
+  if (!page) return null;
+  const inbox = await listInbox(profile.id, page.id);
+  return (
+    <div className="flex flex-col gap-6">
+      <BackToAccount />
+      <ProTabs current="messages" userId={profile.id} />
+      <PageInbox
+        initial={inbox.items}
+        loadedAt={inbox.loadedAt}
+        pageName={page.name}
+        handle={page.handle}
+      />
+    </div>
+  );
+}
+
 /** Créer sa page : membre du Centre d'abord, une seule page par personne. */
 export async function ProNew() {
   const profile = await getCurrentProfile();
@@ -357,6 +469,11 @@ export function ProSkeleton() {
   return (
     <div className="flex flex-col gap-4">
       <Skeleton className="h-11 w-48 rounded-full" />
+      <div className="flex gap-2">
+        <Skeleton className="h-9 w-24 rounded-full" />
+        <Skeleton className="h-9 w-32 rounded-full" />
+        <Skeleton className="h-9 w-28 rounded-full" />
+      </div>
       <Skeleton className="aspect-[3/1] w-full rounded-2xl" />
       <Skeleton className="-mt-10 ml-1 size-20 rounded-2xl" />
       <Skeleton className="h-7 w-56" />

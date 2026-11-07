@@ -50,6 +50,7 @@ import {
 } from "@/features/community/rules";
 import { CameraMenu } from "@/features/community/components/camera-menu";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import type { FeedMedia } from "@/server/community/media";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { ProgressSource } from "@/server/community/posts";
@@ -103,6 +104,7 @@ function meta(state: ConversationState) {
     pactCount: state.pactCount,
     contact: state.contact,
     otherReadAt: state.otherReadAt,
+    page: state.page,
   };
 }
 
@@ -175,6 +177,10 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
   const other = state.other;
   const name = other.displayName ?? other.username ?? "";
   const handle = `@${other.username ?? ""}`;
+  // Avec une page pro : le membre parle à la page ; qui la gère répond en son nom
+  const page = state.page;
+  const toPage = page !== null && !page.mine;
+  const back = page?.mine ? "/pro/messages" : "/messages";
   const lastOther = [...messages].reverse().find((m) => !m.mine)?.id;
   // « Vu » : le dernier message est le mien et l'autre personne l'a lu depuis
   const last = messages.at(-1);
@@ -421,7 +427,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
     setConfirm(null);
     if (done) {
       refreshUnreadCount();
-      router.replace("/messages");
+      router.replace(back);
     }
   }
 
@@ -452,7 +458,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
       <header className="flex h-16 shrink-0 items-center gap-2 border-b border-foreground/5 px-2 sm:px-4">
         <Button asChild variant="ghost" size="icon-lg">
           <Link
-            href="/messages"
+            href={back}
             aria-label={t("back")}
             transitionTypes={["nav-back"]}
           >
@@ -461,14 +467,19 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
         </Button>
         <ProfileLink
           username={other.username}
+          pageHandle={toPage ? page.handle : null}
           className="flex min-w-0 flex-1 items-center gap-2"
         >
-          <Avatar
-            name={name}
-            url={other.avatarUrl}
-            online={state.otherOnline}
-            className="size-10"
-          />
+          {toPage ? (
+            <PageLogo name={name} url={other.avatarUrl} className="size-10" />
+          ) : (
+            <Avatar
+              name={name}
+              url={other.avatarUrl}
+              online={state.otherOnline}
+              className="size-10"
+            />
+          )}
           <span className="flex min-w-0 flex-1 flex-col">
             <h1 className="truncate font-heading font-bold">{name}</h1>
             <p className="truncate text-xs text-muted-foreground">
@@ -477,7 +488,8 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                   {t("online")} ·{" "}
                 </span>
               ) : null}
-              {handle}
+              {toPage ? t("pageSubtitle") : handle}
+              {page?.mine ? ` · ${t("toPage", { page: page.name })}` : null}
               {other.level === null
                 ? null
                 : ` · ${tInbox("level", { level: other.level })}`}
@@ -491,7 +503,8 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-60">
-            {state.canWrite || state.contact !== "none" ? (
+            {/* Avec une page : ni contact, ni pacte (les messages se signalent un à un) */}
+            {!page && (state.canWrite || state.contact !== "none") ? (
               <DropdownMenuItem
                 disabled={busy}
                 onSelect={() => void toggleContact()}
@@ -506,19 +519,23 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                 {tContacts(`menu.${state.contact}`, { handle })}
               </DropdownMenuItem>
             ) : null}
-            <DropdownMenuItem
-              onSelect={() => setReport({ type: "user", id: other.id })}
-            >
-              <Flag aria-hidden="true" />
-              {t("report", { handle })}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              onSelect={() => setConfirm("block")}
-            >
-              <Ban aria-hidden="true" />
-              {t("block", { handle })}
-            </DropdownMenuItem>
+            {toPage ? null : (
+              <>
+                <DropdownMenuItem
+                  onSelect={() => setReport({ type: "user", id: other.id })}
+                >
+                  <Flag aria-hidden="true" />
+                  {t("report", { handle })}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => setConfirm("block")}
+                >
+                  <Ban aria-hidden="true" />
+                  {t("block", { handle })}
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuItem onSelect={() => setConfirm("clear")}>
               <Trash2 aria-hidden="true" />
               {t("clear")}
@@ -566,11 +583,22 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
 
         {messages.length === 0 ? (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-3 py-10 text-center">
-            <Avatar
-              name={name}
-              url={other.avatarUrl}
-              className="size-16 text-2xl"
-            />
+            {toPage ? (
+              <PageLogo
+                name={name}
+                url={other.avatarUrl}
+                className="size-16 text-2xl"
+              />
+            ) : (
+              <Avatar
+                name={name}
+                url={other.avatarUrl}
+                className="size-16 text-2xl"
+              />
+            )}
+            {toPage ? (
+              <p className="text-sm">{t("pageFirst", { name })}</p>
+            ) : null}
             {state.otherStatus === "request" ? (
               <p className="text-sm">{t("firstMessage", { name })}</p>
             ) : null}
@@ -624,6 +652,7 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
 
         {/* Suggestion « Faites-le ensemble », tant qu'aucun pacte n'a été proposé */}
         {canSend &&
+        !page &&
         state.pactCount === 0 &&
         messages.some((m) => m.mine) &&
         messages.some((m) => !m.mine) ? (
@@ -727,28 +756,33 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                 disabled={!canSend}
                 className="shrink-0 text-primary hover:text-primary"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                aria-label={t("sendProgress")}
-                disabled={!canSend}
-                onClick={() => setPicker(true)}
-                className="shrink-0 text-primary hover:text-primary"
-              >
-                <Trophy aria-hidden="true" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-lg"
-                aria-label={tPacts("propose")}
-                disabled={!canSend || state.pact !== null}
-                onClick={() => setProposing(true)}
-                className="shrink-0 text-primary hover:text-primary"
-              >
-                <Handshake aria-hidden="true" />
-              </Button>
+              {/* Qui gère la page n'y montre pas ses progrès ; pas de pacte avec une page */}
+              {page?.mine ? null : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label={t("sendProgress")}
+                  disabled={!canSend}
+                  onClick={() => setPicker(true)}
+                  className="shrink-0 text-primary hover:text-primary"
+                >
+                  <Trophy aria-hidden="true" />
+                </Button>
+              )}
+              {page ? null : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-lg"
+                  aria-label={tPacts("propose")}
+                  disabled={!canSend || state.pact !== null}
+                  onClick={() => setProposing(true)}
+                  className="shrink-0 text-primary hover:text-primary"
+                >
+                  <Handshake aria-hidden="true" />
+                </Button>
+              )}
               <label htmlFor={fieldId} className="sr-only">
                 {t("label")}
               </label>
@@ -758,7 +792,11 @@ export function ConversationView({ initial, timeZone }: ConversationViewProps) {
                 rows={1}
                 maxLength={MESSAGE_MAX_LENGTH}
                 enterKeyHint="send"
-                placeholder={t("placeholder")}
+                placeholder={
+                  page?.mine
+                    ? t("placeholderAsPage", { page: page.name })
+                    : t("placeholder")
+                }
                 onChange={(event) => setText(event.target.value)}
                 onKeyDown={(event) => {
                   if (event.key === "Enter" && !event.shiftKey) {

@@ -61,6 +61,7 @@ const featureActions = (since: Date) => Prisma.sql`
         UNION ALL SELECT 'messages', sender_id, created_at FROM messages WHERE created_at >= ${since}
         UNION ALL SELECT 'contacts', requester_id, created_at FROM contacts WHERE created_at >= ${since}
         UNION ALL SELECT 'follows', follower_id, created_at FROM follows WHERE created_at >= ${since}
+        UNION ALL SELECT 'follows', follower_id, created_at FROM page_follows WHERE created_at >= ${since}
         UNION ALL SELECT 'groups', user_id, joined_at FROM group_members WHERE joined_at >= ${since}
         UNION ALL SELECT 'pacts', user_id, joined_at FROM pact_members WHERE joined_at >= ${since}
         UNION ALL SELECT 'goals', user_id, created_at FROM goals WHERE created_at >= ${since}
