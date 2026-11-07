@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
 import {
@@ -19,6 +18,7 @@ import {
   type EntryField,
   type RecurringField,
 } from "./rules";
+import { revalidateBudget } from "./revalidate";
 
 // Points d'entrée publics : session, identifiants et saisies sont revalidés ici.
 
@@ -35,7 +35,7 @@ function idOf(value: string | null) {
   return parsed.success ? parsed.data : undefined;
 }
 
-/** Ajoute (`entryId` null) ou modifie une dépense ou un revenu au jour le jour. */
+/** Ajoute (`entryId` null) ou modifie une transaction. */
 export async function saveEntryAction(
   entryId: string | null,
   _previous: BudgetFormState<EntryField>,
@@ -55,11 +55,11 @@ export async function saveEntryAction(
     console.error("Enregistrement du mouvement impossible", error);
     return { status: "error", error: "unexpected" };
   }
-  refresh();
+  revalidateBudget();
   return { status: "saved" };
 }
 
-/** Ajoute (`recurringId` null) ou modifie un revenu ou une dépense fixe. */
+/** Ajoute (`recurringId` null) ou modifie un montant fixe. */
 export async function saveRecurringAction(
   recurringId: string | null,
   _previous: BudgetFormState<RecurringField>,
@@ -82,14 +82,18 @@ export async function saveRecurringAction(
     console.error("Enregistrement du montant fixe impossible", error);
     return { status: "error", error: "unexpected" };
   }
-  refresh();
+  revalidateBudget();
   return { status: "saved" };
 }
 
-/** Supprime un mouvement (`entry`) ou un revenu ou une dépense fixe (`recurring`). */
+/**
+ * Supprime une transaction (`entry`) ou un montant fixe (`recurring`) ; ses paiements
+ * passés restent, sauf avec `withHistory`.
+ */
 export async function deleteBudgetItemAction(
   type: "entry" | "recurring",
   itemId: string,
+  withHistory = false,
 ) {
   const user = await requireUser();
   const id = recordIdSchema.safeParse(itemId);
@@ -97,9 +101,9 @@ export async function deleteBudgetItemAction(
   try {
     const deleted =
       type === "recurring"
-        ? await deleteRecurring(user.id, id.data)
+        ? await deleteRecurring(user.id, id.data, withHistory === true)
         : await deleteEntry(user.id, id.data);
-    refresh();
+    revalidateBudget();
     return deleted;
   } catch (error) {
     console.error("Suppression impossible dans le budget", error);
@@ -116,6 +120,6 @@ export async function eraseBudgetAction() {
     console.error("Effacement du budget impossible", error);
     return false;
   }
-  refresh();
+  revalidateBudget();
   return true;
 }

@@ -1,6 +1,14 @@
 "use client";
 
-import { LoaderCircle, Minus, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowLeftRight,
+  LoaderCircle,
+  Minus,
+  Pencil,
+  Plus,
+  Repeat,
+  Trash2,
+} from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { SwipeAction, SwipeRow } from "@/components/swipe-row";
@@ -18,75 +26,110 @@ import {
 import { Button } from "@/components/ui/button";
 import { addDays, toDbDate } from "@/lib/dates";
 import { deleteBudgetItemAction, eraseBudgetAction } from "../actions";
-import { formatMoney } from "../format";
-import { CATEGORY_ICONS, INCOME_ICON } from "../icons";
+import { entrySign, formatMoney } from "../format";
+import { ADJUSTMENT_ICON, INCOME_ICON, TRANSFER_ICON } from "../icons";
 import type { BudgetEntryRow, BudgetKind, BudgetRecurringRow } from "../rules";
 import { EntryDialog, RecurringDialog } from "./budget-dialogs";
+import { useBudget, useCategoryName } from "./budget-context";
+import { CategoryIcon } from "./category-icon";
 
-/** « Ajouter une dépense » et « Ajouter un revenu », en haut du budget. */
-export function BudgetAddButtons({ today }: { today: string }) {
+/** « Dépense », « Revenu » et « Virement », en haut du budget. */
+export function BudgetActions() {
   const t = useTranslations("Budget");
+  const { accounts } = useBudget();
   const [kind, setKind] = useState<BudgetKind | null>(null);
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button onClick={() => setKind("expense")}>
+    <div className="grid grid-cols-[1.4fr_1fr] gap-2 sm:flex sm:flex-wrap">
+      <Button className="h-12 text-base" onClick={() => setKind("expense")}>
         <Minus aria-hidden="true" />
         {t("addExpense")}
       </Button>
-      <Button variant="outline" onClick={() => setKind("income")}>
+      <Button
+        variant="outline"
+        className="h-12 text-base"
+        onClick={() => setKind("income")}
+      >
         <Plus aria-hidden="true" />
         {t("addIncome")}
       </Button>
+      {accounts.length >= 2 ? (
+        <Button
+          variant="outline"
+          className="col-span-2 h-11"
+          onClick={() => setKind("transfer")}
+        >
+          <ArrowLeftRight aria-hidden="true" />
+          {t("addTransfer")}
+        </Button>
+      ) : null}
       {kind ? (
         <EntryDialog
           open
           onOpenChange={(open) => (open ? null : setKind(null))}
           entry={null}
           kind={kind}
-          today={today}
         />
       ) : null}
     </div>
   );
 }
 
-/** Ajouter un revenu ou une dépense fixe (liste des fixes, premier passage). */
+/** Ajouter un montant fixe. */
 export function RecurringAddButton({
   kind,
   label,
-  today,
   variant = "outline",
 }: {
   kind: BudgetKind;
   label: string;
-  today: string;
   variant?: "default" | "outline";
 }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button variant={variant} size="sm" onClick={() => setOpen(true)}>
+      <Button variant={variant} className="h-11" onClick={() => setOpen(true)}>
         <Plus aria-hidden="true" />
         {label}
       </Button>
       {open ? (
-        <RecurringDialog
-          open
-          onOpenChange={setOpen}
-          item={null}
-          kind={kind}
-          today={today}
-        />
+        <RecurringDialog open onOpenChange={setOpen} item={null} kind={kind} />
       ) : null}
     </>
   );
 }
 
-function RowIcon({ row }: { row: { category: BudgetEntryRow["category"] } }) {
-  const Icon = row.category ? CATEGORY_ICONS[row.category] : INCOME_ICON;
+function RowIcon({
+  kind,
+  category,
+}: {
+  kind: BudgetEntryRow["kind"];
+  category: string | null;
+}) {
+  const { categories } = useBudget();
   return (
     <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground/6">
-      <Icon aria-hidden="true" className="size-[18px] text-muted-foreground" />
+      {kind === "income" ? (
+        <INCOME_ICON
+          aria-hidden="true"
+          className="size-[18px] text-muted-foreground"
+        />
+      ) : kind === "transfer" ? (
+        <TRANSFER_ICON
+          aria-hidden="true"
+          className="size-[18px] text-muted-foreground"
+        />
+      ) : kind === "adjustment" ? (
+        <ADJUSTMENT_ICON
+          aria-hidden="true"
+          className="size-[18px] text-muted-foreground"
+        />
+      ) : (
+        <CategoryIcon
+          category={category}
+          categories={categories}
+          className="size-[18px] text-muted-foreground"
+        />
+      )}
     </span>
   );
 }
@@ -98,16 +141,18 @@ function RowActions({
   onDelete,
 }: {
   title: string;
-  onEdit: () => void;
+  onEdit: (() => void) | null;
   onDelete: () => void;
 }) {
   const t = useTranslations("Budget");
   return (
     <>
-      <SwipeAction aria-label={t("editLabel", { title })} onClick={onEdit}>
-        <Pencil aria-hidden="true" />
-        {t("edit")}
-      </SwipeAction>
+      {onEdit ? (
+        <SwipeAction aria-label={t("editLabel", { title })} onClick={onEdit}>
+          <Pencil aria-hidden="true" />
+          {t("edit")}
+        </SwipeAction>
+      ) : null}
       <SwipeAction
         tone="danger"
         aria-label={t("deleteLabel", { title })}
@@ -120,18 +165,43 @@ function RowActions({
   );
 }
 
-/** Les mouvements de la période, rangés par jour (le plus récent d'abord). */
-export function EntryList({
-  entries,
-  currency,
-  today,
-}: {
-  entries: BudgetEntryRow[];
-  currency: string;
-  today: string;
-}) {
+/** Le nom et le sous-titre d'une transaction, selon son type. */
+function useEntryText() {
+  const t = useTranslations("Budget");
+  const nameOf = useCategoryName();
+  const { accounts } = useBudget();
+  const accountName = (id: string | null) =>
+    accounts.find((account) => account.id === id)?.name ?? t("noAccount");
+  return (entry: BudgetEntryRow) => {
+    const base =
+      entry.kind === "income"
+        ? t("kinds.income")
+        : entry.kind === "transfer"
+          ? t("kinds.transfer")
+          : entry.kind === "adjustment"
+            ? t("kinds.adjustment")
+            : nameOf(entry.category);
+    const detail =
+      entry.kind === "transfer"
+        ? t("transferRoute", {
+            from: accountName(entry.accountId),
+            to: accountName(entry.toAccountId),
+          })
+        : entry.kind === "refund"
+          ? t("refundOf", { category: base })
+          : entry.note
+            ? base
+            : null;
+    return { title: entry.note ?? base, detail };
+  };
+}
+
+/** Des transactions, rangées par jour (le plus récent d'abord). */
+export function EntryList({ entries }: { entries: BudgetEntryRow[] }) {
   const t = useTranslations("Budget");
   const format = useFormatter();
+  const { today, currency } = useBudget();
+  const textOf = useEntryText();
   const [editing, setEditing] = useState<BudgetEntryRow | null>(null);
   const [removed, setRemoved] = useState<string[]>([]);
   const [, startTransition] = useTransition();
@@ -149,9 +219,6 @@ export function EntryList({
             month: "long",
             timeZone: "UTC",
           });
-  const titleOf = (entry: BudgetEntryRow) =>
-    entry.note ??
-    (entry.category ? t(`categories.${entry.category}`) : t("kinds.income"));
 
   function remove(entry: BudgetEntryRow) {
     setRemoved((current) => [...current, entry.id]);
@@ -176,7 +243,8 @@ export function EntryList({
             {visible
               .filter((entry) => entry.occurredOn === day)
               .map((entry) => {
-                const title = titleOf(entry);
+                const { title, detail } = textOf(entry);
+                const editable = entry.kind !== "adjustment";
                 return (
                   <li
                     key={entry.id}
@@ -186,26 +254,32 @@ export function EntryList({
                       actions={
                         <RowActions
                           title={title}
-                          onEdit={() => setEditing(entry)}
+                          onEdit={editable ? () => setEditing(entry) : null}
                           onDelete={() => remove(entry)}
                         />
                       }
                     >
                       <button
                         type="button"
+                        disabled={!editable}
                         onClick={() => setEditing(entry)}
                         className="flex w-full items-center gap-3 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
                       >
-                        <RowIcon row={entry} />
+                        <RowIcon kind={entry.kind} category={entry.category} />
                         <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="truncate text-sm font-medium">
-                            {title}
+                          <span className="flex items-center gap-1.5 text-sm font-medium">
+                            <span className="truncate">{title}</span>
+                            {entry.recurringId ? (
+                              <Repeat
+                                role="img"
+                                aria-label={t("automatic")}
+                                className="size-3 shrink-0 text-muted-foreground"
+                              />
+                            ) : null}
                           </span>
-                          {entry.note ? (
+                          {detail ? (
                             <span className="truncate text-xs text-muted-foreground">
-                              {entry.category
-                                ? t(`categories.${entry.category}`)
-                                : t("kinds.income")}
+                              {detail}
                             </span>
                           ) : null}
                         </span>
@@ -214,7 +288,11 @@ export function EntryList({
                             format,
                             entry.amountCents,
                             currency,
-                            entry.kind,
+                            entrySign(
+                              entry.kind,
+                              entry.amountCents,
+                              entry.category,
+                            ),
                           )}
                         </span>
                       </button>
@@ -230,31 +308,43 @@ export function EntryList({
           open
           onOpenChange={(open) => (open ? null : setEditing(null))}
           entry={editing}
-          kind={editing.kind}
-          today={today}
+          kind={
+            editing.kind === "income"
+              ? "income"
+              : editing.kind === "transfer"
+                ? "transfer"
+                : "expense"
+          }
         />
       ) : null}
     </div>
   );
 }
 
-/** Revenus et dépenses fixes, avec leur fréquence et leur prochaine date. */
+/** Les montants fixes, avec leur fréquence et leur prochaine date. */
 export function RecurringList({
   items,
-  currency,
-  today,
 }: {
   items: (BudgetRecurringRow & { next: string | null; monthlyCents: number })[];
-  currency: string;
-  today: string;
 }) {
   const t = useTranslations("Budget");
   const format = useFormatter();
+  const { currency } = useBudget();
   const [editing, setEditing] = useState<BudgetRecurringRow | null>(null);
   const [confirming, setConfirming] = useState<BudgetRecurringRow | null>(null);
   const [removed, setRemoved] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
   const visible = items.filter((item) => !removed.includes(item.id));
+
+  function remove(item: BudgetRecurringRow, withHistory: boolean) {
+    setRemoved((current) => [...current, item.id]);
+    setConfirming(null);
+    startTransition(async () => {
+      if (!(await deleteBudgetItemAction("recurring", item.id, withHistory))) {
+        setRemoved((current) => current.filter((id) => id !== item.id));
+      }
+    });
+  }
 
   if (visible.length === 0) {
     return <p className="text-sm text-muted-foreground">{t("noFixed")}</p>;
@@ -281,7 +371,7 @@ export function RecurringList({
                 onClick={() => setEditing(item)}
                 className="flex w-full items-center gap-3 py-2.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
               >
-                <RowIcon row={item} />
+                <RowIcon kind={item.kind} category={item.category} />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-sm font-medium">
                     {item.label}
@@ -307,7 +397,7 @@ export function RecurringList({
                       format,
                       item.monthlyCents,
                       currency,
-                      item.kind,
+                      item.kind === "transfer" ? undefined : item.kind,
                     )}
                   </span>
                   <span className="text-xs text-muted-foreground">
@@ -325,7 +415,6 @@ export function RecurringList({
           onOpenChange={(open) => (open ? null : setEditing(null))}
           item={editing}
           kind={editing.kind}
-          today={today}
         />
       ) : null}
       <AlertDialog
@@ -344,22 +433,22 @@ export function RecurringList({
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
+              variant="outline"
+              disabled={pending}
+              onClick={() => {
+                if (confirming) remove(confirming, true);
+              }}
+            >
+              {t("deleteFixedAll")}
+            </AlertDialogAction>
+            <AlertDialogAction
               variant="destructive"
               disabled={pending}
               onClick={() => {
-                const item = confirming;
-                if (!item) return;
-                setRemoved((current) => [...current, item.id]);
-                startTransition(async () => {
-                  if (!(await deleteBudgetItemAction("recurring", item.id))) {
-                    setRemoved((current) =>
-                      current.filter((id) => id !== item.id),
-                    );
-                  }
-                });
+                if (confirming) remove(confirming, false);
               }}
             >
-              {t("delete")}
+              {t("deleteFixedKeep")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -375,7 +464,7 @@ export function EraseBudgetButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="sm" className="text-muted-foreground">
+        <Button variant="ghost" className="h-11 text-muted-foreground">
           {pending ? (
             <LoaderCircle aria-hidden="true" className="animate-spin" />
           ) : (

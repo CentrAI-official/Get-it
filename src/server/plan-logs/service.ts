@@ -208,6 +208,9 @@ export async function addPlanItemToBudget(
     amountCents,
     note: log.item.slice(0, BUDGET_NOTE_MAX),
     occurredOn: input.day,
+    accountId: null,
+    toAccountId: null,
+    goalId: null,
   });
   if (!saved.ok) {
     return {

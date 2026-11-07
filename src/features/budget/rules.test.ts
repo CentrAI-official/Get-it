@@ -1,10 +1,19 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { ACCOUNT_TYPES, RATE_MAX_BP } from "./accounts";
+import { BUDGET_CATEGORIES, BUDGET_GROUPS } from "./categories";
+import { GOAL_NAME_MAX } from "./goals";
+import { ACCOUNT_NAME_MAX } from "./accounts";
 import {
   BUDGET_AMOUNT_MAX_CENTS,
-  BUDGET_CATEGORIES,
   BUDGET_FREQUENCIES,
+  BALANCE_MAX_CENTS,
+  budgetEffect,
+  dueOccurrences,
+  ENTRY_KINDS,
+  parseSignedAmount,
+  upcomingIn,
   BUDGET_LABEL_MAX,
   BUDGET_NOTE_MAX,
   entryFieldErrors,
@@ -59,6 +68,9 @@ describe("formulaires", () => {
       category: "groceries",
       note: "Épicerie de la semaine",
       occurredOn: "2026-11-01",
+      accountId: null,
+      toAccountId: null,
+      goalId: null,
     });
     expect(
       entryFormSchema.parse({
@@ -112,6 +124,8 @@ describe("formulaires", () => {
       frequency: "biweekly",
       startsOn: "2026-10-30",
       endsOn: null,
+      accountId: null,
+      toAccountId: null,
     });
     const long = recurringFormSchema.safeParse({
       ...valid,
@@ -129,6 +143,174 @@ describe("formulaires", () => {
     expect(!before.success && recurringFieldErrors(before.error)).toEqual({
       endsOn: "endBeforeStart",
     });
+  });
+});
+
+describe("transactions", () => {
+  const a = "0190f5b2-1d3e-7c4a-8b6f-111111111111";
+  const b = "0190f5b2-1d3e-7c4a-8b6f-222222222222";
+
+  it("un virement va d'un compte à un autre", () => {
+    const base = { amount: "50", date: "2026-11-04", kind: "transfer" };
+    expect(
+      entryFormSchema.parse({ ...base, accountId: a, toAccountId: b }),
+    ).toMatchObject({ kind: "transfer", category: null, toAccountId: b });
+    const same = entryFormSchema.safeParse({
+      ...base,
+      accountId: a,
+      toAccountId: a,
+    });
+    expect(!same.success && entryFieldErrors(same.error)).toEqual({
+      toAccountId: "sameAccount",
+    });
+    const missing = entryFormSchema.safeParse(base);
+    expect(!missing.success && entryFieldErrors(missing.error)).toEqual({
+      accountId: "accountRequired",
+      toAccountId: "accountRequired",
+    });
+  });
+
+  it("une catégorie personnelle est un uuid ; un remboursement en demande une", () => {
+    expect(
+      entryFormSchema.parse({
+        kind: "refund",
+        amount: "12",
+        category: a,
+        date: "2026-11-04",
+      }),
+    ).toMatchObject({ kind: "refund", category: a });
+    expect(
+      entryFormSchema.safeParse({
+        kind: "expense",
+        amount: "12",
+        category: "pas-une-categorie",
+        date: "2026-11-04",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("un montant signé, d'un relevé ou d'un solde", () => {
+    expect(parseSignedAmount("-12,50")).toBe(-1250);
+    expect(parseSignedAmount("(12.50)")).toBe(-1250);
+    expect(parseSignedAmount("12.50-")).toBe(-1250);
+    expect(parseSignedAmount("1 250,00 $")).toBe(125000);
+    expect(parseSignedAmount("+3")).toBe(300);
+    expect(parseSignedAmount("0")).toBe(0);
+    expect(parseSignedAmount("abc")).toBeNull();
+    expect(parseSignedAmount(String(BALANCE_MAX_CENTS / 100 + 1))).toBeNull();
+  });
+
+  it("l'épargne n'est pas une dépense, payer sa carte ne compte pas deux fois", () => {
+    const types = new Map([
+      [a, "chequing" as const],
+      [b, "savings" as const],
+      ["card", "credit" as const],
+      ["loan", "loan" as const],
+    ]);
+    const move = (kind: (typeof ENTRY_KINDS)[number], extra = {}) => ({
+      kind,
+      category: null,
+      amountCents: 5000,
+      accountId: a,
+      toAccountId: null,
+      ...extra,
+    });
+    expect(budgetEffect(move("income"), types).income).toBe(5000);
+    expect(
+      budgetEffect(move("expense", { category: "groceries" }), types),
+    ).toMatchObject({ spent: 5000, category: "groceries" });
+    expect(
+      budgetEffect(move("refund", { category: "groceries" }), types).spent,
+    ).toBe(-5000);
+    expect(
+      budgetEffect(move("expense", { category: "savings" }), types),
+    ).toMatchObject({ spent: 0, saved: 5000 });
+    expect(
+      budgetEffect(move("transfer", { toAccountId: b }), types),
+    ).toMatchObject({ saved: 5000, spent: 0 });
+    expect(
+      budgetEffect(move("transfer", { accountId: b, toAccountId: a }), types)
+        .saved,
+    ).toBe(-5000);
+    expect(
+      budgetEffect(move("transfer", { toAccountId: "card" }), types),
+    ).toMatchObject({ saved: 0, spent: 0 });
+    expect(
+      budgetEffect(move("transfer", { toAccountId: "loan" }), types),
+    ).toMatchObject({ spent: 5000, category: "debt" });
+    expect(budgetEffect(move("adjustment"), types).income).toBe(0);
+  });
+});
+
+describe("montants fixes inscrits", () => {
+  const rent = {
+    frequency: "monthly" as const,
+    startsOn: "2026-09-01",
+    endsOn: null,
+    postedThrough: null,
+  };
+
+  it("inscrit les paiements passés, puis seulement les nouveaux", () => {
+    const first = dueOccurrences(rent, "2026-11-04", 100);
+    expect(first).toEqual({
+      days: ["2026-09-01", "2026-10-01", "2026-11-01"],
+      postedThrough: "2026-11-04",
+    });
+    expect(
+      dueOccurrences(
+        { ...rent, postedThrough: "2026-11-04" },
+        "2026-11-30",
+        100,
+      ).days,
+    ).toEqual([]);
+    expect(
+      dueOccurrences(
+        { ...rent, postedThrough: "2026-11-04" },
+        "2026-12-01",
+        100,
+      ).days,
+    ).toEqual(["2026-12-01"]);
+  });
+
+  it("pas plus de 13 mois en arrière, et le reste à la prochaine fois", () => {
+    const old = { ...rent, startsOn: "2020-01-01" };
+    expect(dueOccurrences(old, "2026-11-04", 100).days[0]).toBe("2025-10-01");
+    const daily = { ...rent, frequency: "daily" as const };
+    const part = dueOccurrences(daily, "2026-11-04", 10);
+    expect(part.days).toHaveLength(10);
+    expect(part.postedThrough).toBe("2026-09-10");
+  });
+
+  it("ce qui s'en vient : seulement après aujourd'hui, par date", () => {
+    const rules = [
+      {
+        ...rent,
+        id: "loyer",
+        kind: "expense" as const,
+        label: "Loyer",
+        category: "housing",
+        amountCents: 120000,
+        accountId: null,
+        toAccountId: null,
+      },
+      {
+        ...rent,
+        id: "paie",
+        kind: "income" as const,
+        label: "Paie",
+        category: null,
+        amountCents: 150000,
+        frequency: "biweekly" as const,
+        startsOn: "2026-10-30",
+        accountId: null,
+        toAccountId: null,
+      },
+    ];
+    expect(
+      upcomingIn(rules, "2026-11-01", "2026-11-30", "2026-11-04").map(
+        (item) => `${item.recurringId} ${item.day}`,
+      ),
+    ).toEqual(["paie 2026-11-13", "paie 2026-11-27"]);
   });
 });
 
@@ -210,85 +392,97 @@ describe("revenus et dépenses fixes", () => {
 });
 
 describe("summarizeBudget", () => {
-  const recurring: BudgetRecurringRow[] = [
-    {
-      id: "salaire",
-      kind: "income",
-      label: "Salaire",
-      category: null,
-      amountCents: 150000,
-      frequency: "biweekly",
-      startsOn: "2026-10-02",
-      endsOn: null,
-    },
-    {
-      id: "loyer",
-      kind: "expense",
-      label: "Loyer",
-      category: "housing",
-      amountCents: 120000,
-      frequency: "monthly",
-      startsOn: "2026-01-01",
-      endsOn: null,
-    },
-    {
-      id: "telephone",
-      kind: "expense",
-      label: "Téléphone",
-      category: "subscriptions",
-      amountCents: 5000,
-      frequency: "monthly",
-      startsOn: "2026-01-20",
-      endsOn: null,
-    },
-  ];
+  const types = new Map();
+  const entry = (
+    kind: "income" | "expense",
+    cents: number,
+    occurredOn: string,
+    category: string | null = null,
+    recurringId: string | null = null,
+  ) => ({
+    kind,
+    category,
+    amountCents: cents,
+    accountId: null,
+    toAccountId: null,
+    occurredOn,
+    recurringId,
+  });
   const entries = [
+    entry("income", 150000, "2026-11-13", null, "paie"),
+    entry("expense", 120000, "2026-11-01", "housing", "loyer"),
+    entry("expense", 15000, "2026-11-03", "groceries"),
+    entry("expense", 30000, "2026-11-05", "savings"),
+  ];
+  const upcoming = [
     {
-      id: "a",
-      kind: "expense" as const,
-      category: "groceries" as const,
-      amountCents: 15000,
-      note: null,
-      occurredOn: "2026-11-03",
-    },
-    {
-      id: "b",
       kind: "income" as const,
       category: null,
-      amountCents: 10000,
-      note: "Cadeau",
-      occurredOn: "2026-11-05",
+      amountCents: 150000,
+      accountId: null,
+      toAccountId: null,
+      recurringId: "paie",
+      label: "Paie",
+      day: "2026-11-27",
+      frequency: "biweekly" as const,
+    },
+    {
+      kind: "expense" as const,
+      category: "subscriptions",
+      amountCents: 5000,
+      accountId: null,
+      toAccountId: null,
+      recurringId: "tel",
+      label: "Téléphone",
+      day: "2026-11-20",
+      frequency: "monthly" as const,
     },
   ];
 
-  it("ce qui entre, le prévu, le dépensé et ce qui reste", () => {
+  it("ce qui entre, sort, est gardé et reste", () => {
     const summary = summarizeBudget({
       entries,
-      recurring,
+      upcoming,
+      types,
       start: "2026-11-01",
       end: "2026-11-30",
-      today: "2026-11-11",
+      today: "2026-11-15",
     });
-    // Deux paies (13 et 27 novembre) et un cadeau
-    expect(summary.incomeCents).toBe(310000);
-    expect(summary.fixedCents).toBe(125000);
-    expect(summary.spentCents).toBe(15000);
-    expect(summary.remainingCents).toBe(170000);
-    // Le téléphone du 20 est encore à venir
-    expect(summary.upcomingFixedCents).toBe(5000);
-    expect(summary.categories.map((entry) => entry.category)).toEqual([
+    expect(summary.incomeCents).toBe(150000);
+    expect(summary.upcomingIncomeCents).toBe(150000);
+    expect(summary.spentCents).toBe(135000);
+    expect(summary.fixedSpentCents).toBe(120000);
+    expect(summary.upcomingCents).toBe(5000);
+    // L'épargne n'est pas une dépense
+    expect(summary.savedCents).toBe(30000);
+    expect(summary.remainingCents).toBe(300000 - 135000 - 5000 - 30000);
+    expect(summary.categories.map((line) => line.category)).toEqual([
       "housing",
       "groceries",
       "subscriptions",
     ]);
-    expect(summary.daysLeft).toBe(20);
-    expect(summary.perDayCents).toBe(8500);
+    expect(summary.daysLeft).toBe(16);
+    expect(summary.perDayCents).toBe(Math.floor(130000 / 16));
+  });
+
+  it("l'épargne prévue pas encore faite n'est pas à dépenser", () => {
+    const summary = summarizeBudget({
+      entries,
+      upcoming,
+      types,
+      start: "2026-11-01",
+      end: "2026-11-30",
+      today: "2026-11-15",
+      reserveCents: 20000,
+    });
+    expect(summary.remainingCents).toBe(110000);
   });
 
   it("une période passée n'a plus de jours, un dépassement est négatif", () => {
     const summary = summarizeBudget({
-      entries: [{ ...entries[0]!, amountCents: 400000 }],
-      recurring,
+      entries: [entry("expense", 400000, "2026-11-03", "groceries")],
+      upcoming: [],
+      types,
       start: "2026-11-01",
       end: "2026-11-30",
       today: "2026-12-05",
@@ -300,18 +494,42 @@ describe("summarizeBudget", () => {
 });
 
 describe("migration", () => {
-  const sql = readFileSync(
-    join(
-      process.cwd(),
-      "prisma/migrations/20261114120000_budget/migration.sql",
-    ),
-    "utf8",
-  );
+  const read = (name: string) =>
+    readFileSync(
+      join(process.cwd(), `prisma/migrations/${name}/migration.sql`),
+      "utf8",
+    );
+  const sql = read("20261114120000_budget");
+  const complete = read("20261118120000_budget_complete");
   const list = (values: readonly string[]) =>
     values.map((value) => `'${value}'`).join(", ");
 
+  it("le budget complet garde les mêmes listes et limites que les règles", () => {
+    expect(complete).toContain(`"category" IN (${list(BUDGET_CATEGORIES)})`);
+    expect(complete).toContain(`"kind" IN (${list(ENTRY_KINDS)})`);
+    expect(complete).toContain(`"type" IN (${list(ACCOUNT_TYPES)})`);
+    expect(complete).toContain(`"group" IN (${list(BUDGET_GROUPS)})`);
+    expect(complete).toContain(
+      `char_length("name") BETWEEN 1 AND ${ACCOUNT_NAME_MAX}`,
+    );
+    expect(complete).toContain(
+      `char_length("name") BETWEEN 1 AND ${GOAL_NAME_MAX}`,
+    );
+    expect(complete).toContain(`"rate_bp" BETWEEN 0 AND ${RATE_MAX_BP}`);
+    expect(complete).toContain(
+      `BETWEEN -${BALANCE_MAX_CENTS} AND ${BALANCE_MAX_CENTS}`,
+    );
+    for (const table of [
+      "budget_accounts",
+      "budget_goals",
+      "budget_categories",
+      "budget_plans",
+    ]) {
+      expect(complete).toContain(`"${table}" ENABLE ROW LEVEL SECURITY`);
+    }
+  });
+
   it("garde les mêmes listes et limites que les règles", () => {
-    expect(sql).toContain(`"category" IN (${list(BUDGET_CATEGORIES)})`);
     expect(sql).toContain(`"frequency" IN (${list(BUDGET_FREQUENCIES)})`);
     expect(sql).toContain(`BETWEEN 1 AND ${BUDGET_LABEL_MAX}`);
     expect(sql).toContain(`BETWEEN 1 AND ${BUDGET_NOTE_MAX}`);

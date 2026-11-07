@@ -128,6 +128,10 @@ model Profile {
   budgetEntries        BudgetEntry[]
   workoutSessions      WorkoutSession[]
   planItemLogs         PlanItemLog[]
+  budgetAccounts       BudgetAccount[]
+  budgetGoals          BudgetGoal[]
+  budgetCategories     BudgetCategorySetting[]
+  budgetPlans          BudgetPlan[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -141,36 +145,36 @@ model Profile {
   postReactions        PostReaction[]
   postSaves            PostSave[]
   stories              Story[]
-  storyViews           StoryView[]          @relation("StoryViewer")
-  storyPollVotes       StoryPollVote[]      @relation("StoryPollVoter")
-  storyAnswers         StoryAnswer[]        @relation("StoryAnswerer")
-  musicTracksAdded     MusicTrack[]         @relation("MusicTrackAdder")
+  storyViews           StoryView[]             @relation("StoryViewer")
+  storyPollVotes       StoryPollVote[]         @relation("StoryPollVoter")
+  storyAnswers         StoryAnswer[]           @relation("StoryAnswerer")
+  musicTracksAdded     MusicTrack[]            @relation("MusicTrackAdder")
   videoViews           PostVideoView[]
-  notifications        Notification[]       @relation("NotificationRecipient")
-  notificationsSent    Notification[]       @relation("NotificationActor")
+  notifications        Notification[]          @relation("NotificationRecipient")
+  notificationsSent    Notification[]          @relation("NotificationActor")
   pushSubscriptions    PushSubscription[]
-  ownedGroups          Group[]              @relation("GroupOwner")
-  groupMemberships     GroupMember[]        @relation("GroupMembership")
-  groupInvitesSent     GroupMember[]        @relation("GroupInviter")
-  reportsMade          ContentReport[]      @relation("ReportReporter")
-  reportsReceived      ContentReport[]      @relation("ReportedUser")
-  reportsResolved      ContentReport[]      @relation("ReportResolver")
-  blocking             UserBlock[]          @relation("Blocker")
-  blockedBy            UserBlock[]          @relation("Blocked")
-  conversationsStarted Conversation[]       @relation("ConversationCreator")
+  ownedGroups          Group[]                 @relation("GroupOwner")
+  groupMemberships     GroupMember[]           @relation("GroupMembership")
+  groupInvitesSent     GroupMember[]           @relation("GroupInviter")
+  reportsMade          ContentReport[]         @relation("ReportReporter")
+  reportsReceived      ContentReport[]         @relation("ReportedUser")
+  reportsResolved      ContentReport[]         @relation("ReportResolver")
+  blocking             UserBlock[]             @relation("Blocker")
+  blockedBy            UserBlock[]             @relation("Blocked")
+  conversationsStarted Conversation[]          @relation("ConversationCreator")
   conversationMembers  ConversationMember[]
   messagesSent         Message[]
   messageReactions     MessageReaction[]
   mediaUploads         MediaUpload[]
-  contactsRequested    Contact[]            @relation("ContactRequester")
-  contactsReceived     Contact[]            @relation("ContactAddressee")
-  following            Follow[]             @relation("Follower")
-  followers            Follow[]             @relation("Followed")
-  pactsProposed        Pact[]               @relation("PactProposer")
-  pactsEnded           Pact[]               @relation("PactEnder")
+  contactsRequested    Contact[]               @relation("ContactRequester")
+  contactsReceived     Contact[]               @relation("ContactAddressee")
+  following            Follow[]                @relation("Follower")
+  followers            Follow[]                @relation("Followed")
+  pactsProposed        Pact[]                  @relation("PactProposer")
+  pactsEnded           Pact[]                  @relation("PactEnder")
   pactMembers          PactMember[]
-  listings             Listing[]            @relation("ListingSeller")
-  listingsReviewed     Listing[]            @relation("ListingReviewer")
+  listings             Listing[]               @relation("ListingSeller")
+  listingsReviewed     Listing[]               @relation("ListingReviewer")
   listingFavorites     ListingFavorite[]
   developmentPlans     DevelopmentPlan[]
   rankedEvaluations    RankedEvaluation[]
@@ -179,8 +183,8 @@ model Profile {
   analyticsEvents      AnalyticsEvent[]
   feedback             Feedback[]
   appErrors            AppError[]
-  adminAuditEntries    AdminAuditEntry[]    @relation("AuditAdmin")
-  adminAuditTargets    AdminAuditEntry[]    @relation("AuditTarget")
+  adminAuditEntries    AdminAuditEntry[]       @relation("AuditAdmin")
+  adminAuditTargets    AdminAuditEntry[]       @relation("AuditTarget")
 
   @@map("profiles")
 }
@@ -502,46 +506,156 @@ model WorkoutSet {
 /// Budget : revenu ou dépense fixe, avec sa fréquence (Financier › Budget).
 /// Privé, jamais montré aux autres membres ni envoyé à Get iT AI.
 model BudgetRecurring {
-  id          String    @id @default(uuid(7)) @db.Uuid
-  userId      String    @map("user_id") @db.Uuid
-  /// income ou expense (src/features/budget/rules.ts).
-  kind        String
-  label       String
-  /// Catégorie d'une dépense ; null pour un revenu.
-  category    String?
-  amountCents Int       @map("amount_cents")
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  /// income, expense ou transfer (src/features/budget/rules.ts).
+  kind          String
+  label         String
+  /// Catégorie d'une dépense ; null pour un revenu ou un virement.
+  category      String?
+  amountCents   Int       @map("amount_cents")
   /// daily, weekly, biweekly, monthly ou yearly.
-  frequency   String
-  startsOn    DateTime  @map("starts_on") @db.Date
-  endsOn      DateTime? @map("ends_on") @db.Date
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+  frequency     String
+  startsOn      DateTime  @map("starts_on") @db.Date
+  endsOn        DateTime? @map("ends_on") @db.Date
+  accountId     String?   @map("account_id") @db.Uuid
+  toAccountId   String?   @map("to_account_id") @db.Uuid
+  /// Dernier jour déjà inscrit dans les transactions (src/server/budget/service.ts).
+  postedThrough DateTime? @map("posted_through") @db.Date
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile   Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account   BudgetAccount? @relation("RecurringAccount", fields: [accountId], references: [id], onDelete: SetNull)
+  toAccount BudgetAccount? @relation("RecurringToAccount", fields: [toAccountId], references: [id], onDelete: SetNull)
+  entries   BudgetEntry[]
 
   @@index([userId])
   @@map("budget_recurring")
 }
 
-/// Budget : dépense ou revenu au jour le jour.
+/// Budget : une transaction. Dépense, revenu, remboursement, virement entre deux
+/// comptes ou correction du solde d'un compte (adjustment, signé).
 model BudgetEntry {
-  id          String   @id @default(uuid(7)) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
+  id          String    @id @default(uuid(7)) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
   kind        String
   category    String?
-  amountCents Int      @map("amount_cents")
+  amountCents Int       @map("amount_cents")
   note        String?
-  occurredOn  DateTime @map("occurred_on") @db.Date
+  occurredOn  DateTime  @map("occurred_on") @db.Date
+  accountId   String?   @map("account_id") @db.Uuid
+  toAccountId String?   @map("to_account_id") @db.Uuid
+  /// Le montant fixe dont vient cette transaction, et la date qu'il prévoyait.
+  recurringId String?   @map("recurring_id") @db.Uuid
+  recurringOn DateTime? @map("recurring_on") @db.Date
+  goalId      String?   @map("goal_id") @db.Uuid
+  /// Empreinte d'une ligne importée : importer deux fois n'ajoute rien.
+  importKey   String?   @map("import_key")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile   Profile          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account   BudgetAccount?   @relation("EntryAccount", fields: [accountId], references: [id], onDelete: SetNull)
+  toAccount BudgetAccount?   @relation("EntryToAccount", fields: [toAccountId], references: [id], onDelete: SetNull)
+  recurring BudgetRecurring? @relation(fields: [recurringId], references: [id], onDelete: SetNull)
+  goal      BudgetGoal?      @relation(fields: [goalId], references: [id], onDelete: SetNull)
+
+  planItemLogs PlanItemLog[]
+
+  @@unique([recurringId, recurringOn])
+  @@unique([userId, importKey])
+  @@index([userId, occurredOn])
+  @@index([userId, createdAt])
+  @@index([accountId])
+  @@index([toAccountId])
+  @@index([goalId])
+  @@map("budget_entries")
+}
+
+/// Budget : un compte (chèques, épargne, placements, biens, carte de crédit, prêt).
+/// Le solde vient du solde d'ouverture et des transactions depuis `openedOn`.
+model BudgetAccount {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  name         String
+  /// src/features/budget/accounts.ts
+  type         String
+  /// Signé : une dette est négative.
+  openingCents Int       @map("opening_cents")
+  openedOn     DateTime  @map("opened_on") @db.Date
+  /// Taux annuel d'une dette, en centièmes de pour cent (19,99 % = 1999).
+  rateBp       Int?      @map("rate_bp")
+  minimumCents Int?      @map("minimum_cents")
+  archivedAt   DateTime? @map("archived_at") @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile           Profile           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries           BudgetEntry[]     @relation("EntryAccount")
+  incoming          BudgetEntry[]     @relation("EntryToAccount")
+  recurring         BudgetRecurring[] @relation("RecurringAccount")
+  incomingRecurring BudgetRecurring[] @relation("RecurringToAccount")
+
+  @@index([userId])
+  @@map("budget_accounts")
+}
+
+/// Budget : un objectif d'épargne. Le montant mis de côté vient des transactions liées.
+model BudgetGoal {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  userId        String    @map("user_id") @db.Uuid
+  name          String
+  targetCents   Int       @map("target_cents")
+  targetOn      DateTime? @map("target_on") @db.Date
+  /// Déjà mis de côté avant de commencer.
+  startingCents Int       @default(0) @map("starting_cents")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries BudgetEntry[]
+
+  @@index([userId])
+  @@map("budget_goals")
+}
+
+/// Budget : une catégorie personnelle (`key` est son uuid), ou le report d'une
+/// catégorie de Get iT (`key` est sa clé, sans nom).
+model BudgetCategorySetting {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  key          String
+  name         String?
+  /// needs, wants ou savings.
+  group        String?
+  icon         String?
+  /// Le report commence ce mois-là ; null : pas de report.
+  rolloverFrom DateTime? @map("rollover_from") @db.Date
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@map("budget_categories")
+}
+
+/// Budget : le montant prévu d'une catégorie, à partir de `month` (son 1er jour)
+/// et jusqu'au prochain changement.
+model BudgetPlan {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  category    String
+  month       DateTime @db.Date
+  amountCents Int      @map("amount_cents")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  planItemLogs PlanItemLog[]
-
-  @@index([userId, occurredOn])
-  @@index([userId, createdAt])
-  @@map("budget_entries")
+  @@unique([userId, category, month])
+  @@map("budget_plans")
 }
 
 /// Check-in quotidien : comment l'utilisateur se sent, une fois par jour (§29).

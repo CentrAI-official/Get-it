@@ -4,6 +4,7 @@ import { LoaderCircle, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -29,15 +30,13 @@ import {
   saveRecurringAction,
   type BudgetFormState,
 } from "../actions";
+import { BUDGET_GROUPS } from "../categories";
 import { amountField } from "../format";
-import { CATEGORY_ICONS } from "../icons";
 import {
-  BUDGET_CATEGORIES,
   BUDGET_FREQUENCIES,
   BUDGET_KINDS,
   BUDGET_LABEL_MAX,
   BUDGET_NOTE_MAX,
-  type BudgetCategory,
   type BudgetEntryRow,
   type BudgetError,
   type BudgetFrequency,
@@ -46,14 +45,16 @@ import {
   type EntryField,
   type RecurringField,
 } from "../rules";
+import { useBudget, useCategoryName } from "./budget-context";
+import { CategoryIcon } from "./category-icon";
 
 const chip =
-  "inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
+  "inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50";
 const chipOn = "border-primary bg-primary/15 text-foreground";
 const chipOff =
   "border-foreground/10 text-muted-foreground hover:text-foreground";
 
-/** Un choix parmi des pastilles (type, catégorie, fréquence), gardé dans un champ caché. */
+/** Un choix parmi des pastilles, gardé dans un champ caché. */
 function Chips<Value extends string>({
   name,
   legend,
@@ -61,7 +62,6 @@ function Chips<Value extends string>({
   value,
   onChange,
   label,
-  icon,
   error,
 }: {
   name: string;
@@ -70,7 +70,6 @@ function Chips<Value extends string>({
   value: Value | null;
   onChange: (value: Value) => void;
   label: (value: Value) => string;
-  icon?: (value: Value) => React.ComponentType<{ className?: string }>;
   error?: string | null;
 }) {
   return (
@@ -82,22 +81,135 @@ function Chips<Value extends string>({
         aria-label={legend}
         className="flex flex-wrap gap-2"
       >
-        {values.map((entry) => {
-          const Icon = icon?.(entry);
-          return (
+        {values.map((entry) => (
+          <button
+            key={entry}
+            type="button"
+            role="radio"
+            aria-checked={value === entry}
+            onClick={() => onChange(entry)}
+            className={cn(chip, value === entry ? chipOn : chipOff)}
+          >
+            {label(entry)}
+          </button>
+        ))}
+      </div>
+      {error ? <FieldError>{error}</FieldError> : null}
+    </FieldSet>
+  );
+}
+
+/** Les catégories, rangées par groupe (essentiels, envies, épargne et dettes). */
+function CategoryField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string | null;
+  onChange: (value: string) => void;
+  error: string | null;
+}) {
+  const t = useTranslations("Budget.form");
+  const tGroups = useTranslations("Budget.groups");
+  const nameOf = useCategoryName();
+  const { categories } = useBudget();
+  return (
+    <FieldSet data-invalid={error ? true : undefined}>
+      <FieldLegend variant="label">{t("category")}</FieldLegend>
+      <input type="hidden" name="category" value={value ?? ""} />
+      <div className="flex flex-col gap-3">
+        {BUDGET_GROUPS.map((group) => (
+          <div key={group} className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">
+              {tGroups(group)}
+            </span>
+            <div
+              role="radiogroup"
+              aria-label={tGroups(group)}
+              className="flex flex-wrap gap-1.5"
+            >
+              {categories
+                .filter((entry) => entry.group === group)
+                .map((entry) => (
+                  <button
+                    key={entry.key}
+                    type="button"
+                    role="radio"
+                    aria-checked={value === entry.key}
+                    onClick={() => onChange(entry.key)}
+                    className={cn(chip, value === entry.key ? chipOn : chipOff)}
+                  >
+                    <CategoryIcon
+                      category={entry.key}
+                      categories={categories}
+                      className="size-4"
+                    />
+                    {nameOf(entry.key)}
+                  </button>
+                ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {error ? <FieldError>{error}</FieldError> : null}
+    </FieldSet>
+  );
+}
+
+/** Un compte parmi ceux de la personne ; `optional` permet de n'en choisir aucun. */
+function AccountField({
+  name,
+  legend,
+  value,
+  onChange,
+  optional,
+  exclude,
+  error,
+}: {
+  name: string;
+  legend: string;
+  value: string | null;
+  onChange: (value: string | null) => void;
+  optional: boolean;
+  exclude?: string | null;
+  error?: string | null;
+}) {
+  const t = useTranslations("Budget");
+  const { accounts } = useBudget();
+  return (
+    <FieldSet data-invalid={error ? true : undefined}>
+      <FieldLegend variant="label">{legend}</FieldLegend>
+      <input type="hidden" name={name} value={value ?? ""} />
+      <div
+        role="radiogroup"
+        aria-label={legend}
+        className="flex flex-wrap gap-2"
+      >
+        {optional ? (
+          <button
+            type="button"
+            role="radio"
+            aria-checked={value === null}
+            onClick={() => onChange(null)}
+            className={cn(chip, value === null ? chipOn : chipOff)}
+          >
+            {t("noAccount")}
+          </button>
+        ) : null}
+        {accounts
+          .filter((account) => account.id !== exclude)
+          .map((account) => (
             <button
-              key={entry}
+              key={account.id}
               type="button"
               role="radio"
-              aria-checked={value === entry}
-              onClick={() => onChange(entry)}
-              className={cn(chip, value === entry ? chipOn : chipOff)}
+              aria-checked={value === account.id}
+              onClick={() => onChange(account.id)}
+              className={cn(chip, value === account.id ? chipOn : chipOff)}
             >
-              {Icon ? <Icon aria-hidden="true" className="size-4" /> : null}
-              {label(entry)}
+              {account.name}
             </button>
-          );
-        })}
+          ))}
       </div>
       {error ? <FieldError>{error}</FieldError> : null}
     </FieldSet>
@@ -105,32 +217,36 @@ function Chips<Value extends string>({
 }
 
 /** Champ du montant, en grand, avec le symbole de la devise. */
-function AmountField({
+export function AmountField({
   id,
   value,
   onChange,
   error,
+  label,
+  name = "amount",
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
   error: string | null;
+  label?: string;
+  name?: string;
 }) {
   const t = useTranslations("Budget.form");
   return (
     <Field data-invalid={error ? true : undefined}>
-      <FieldLabel htmlFor={`${id}-amount`}>{t("amount")}</FieldLabel>
+      <FieldLabel htmlFor={`${id}-${name}`}>{label ?? t("amount")}</FieldLabel>
       <div className="relative">
         <Input
-          id={`${id}-amount`}
-          name="amount"
+          id={`${id}-${name}`}
+          name={name}
           value={value}
           onChange={(change) => onChange(change.target.value)}
           inputMode="decimal"
           autoComplete="off"
           placeholder={t("amountPlaceholder")}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${id}-amount-error` : undefined}
+          aria-describedby={error ? `${id}-${name}-error` : undefined}
           className="h-12 pr-9 font-display text-2xl tracking-wide tabular-nums"
         />
         <span
@@ -141,7 +257,7 @@ function AmountField({
         </span>
       </div>
       {error ? (
-        <FieldError id={`${id}-amount-error`}>{error}</FieldError>
+        <FieldError id={`${id}-${name}-error`}>{error}</FieldError>
       ) : null}
     </Field>
   );
@@ -186,37 +302,41 @@ function useErrorText() {
   return (key: BudgetError | undefined) => (key ? t(key) : null);
 }
 
-/** Ajouter ou modifier une dépense ou un revenu au jour le jour. */
+/** Un virement demande deux comptes : sans eux, ce choix n'est pas proposé. */
+function useKinds() {
+  const { accounts } = useBudget();
+  return accounts.length >= 2
+    ? BUDGET_KINDS
+    : BUDGET_KINDS.filter((kind) => kind !== "transfer");
+}
+
+/** Ajouter ou modifier une transaction. */
 export function EntryDialog({
   open,
   onOpenChange,
   entry,
   kind,
-  today,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Le mouvement à modifier, ou null pour en ajouter un. */
+  /** La transaction à modifier, ou null pour en ajouter une. */
   entry: BudgetEntryRow | null;
-  /** Type proposé pour un nouveau mouvement. */
+  /** Type proposé pour une nouvelle transaction. */
   kind: BudgetKind;
-  today: string;
 }) {
   const t = useTranslations("Budget.form");
-  const current = entry?.kind ?? kind;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {entry ? t(`editTitle.${current}`) : t(`addTitle.${current}`)}
+            {entry ? t(`editTitle.${kind}`) : t(`addTitle.${kind}`)}
           </DialogTitle>
           <DialogDescription>{t("entryDescription")}</DialogDescription>
         </DialogHeader>
         <EntryForm
           entry={entry}
-          kind={current}
-          today={today}
+          kind={kind}
           onDone={() => onOpenChange(false)}
         />
       </DialogContent>
@@ -227,27 +347,35 @@ export function EntryDialog({
 function EntryForm({
   entry,
   kind: initialKind,
-  today,
   onDone,
 }: {
   entry: BudgetEntryRow | null;
   kind: BudgetKind;
-  today: string;
   onDone: () => void;
 }) {
   const t = useTranslations("Budget");
   const locale = useLocale();
   const id = useId();
   const errorText = useErrorText();
+  const kinds = useKinds();
+  const { accounts, goals, today } = useBudget();
   const [kind, setKind] = useState<BudgetKind>(initialKind);
+  const [refund, setRefund] = useState(entry?.kind === "refund");
   const [amount, setAmount] = useState(
     entry ? amountField(entry.amountCents, locale) : "",
   );
-  const [category, setCategory] = useState<BudgetCategory | null>(
+  const [category, setCategory] = useState<string | null>(
     entry?.category ?? null,
   );
   const [date, setDate] = useState(entry?.occurredOn ?? today);
   const [note, setNote] = useState(entry?.note ?? "");
+  const [accountId, setAccountId] = useState<string | null>(
+    entry?.accountId ?? null,
+  );
+  const [toAccountId, setToAccountId] = useState<string | null>(
+    entry?.toAccountId ?? null,
+  );
+  const [goalId, setGoalId] = useState<string | null>(entry?.goalId ?? null);
   const [state, formAction, pending] = useActionState<
     BudgetFormState<EntryField>,
     FormData
@@ -265,17 +393,25 @@ function EntryForm({
   );
   const fieldError = (field: EntryField) =>
     errorText(state.fieldErrors?.[field]);
+  const savingGoal =
+    kind === "expense" && category === "savings" && goals.length > 0;
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
       <FieldGroup className="gap-5">
         <Chips
-          name="kind"
+          name="kindChoice"
           legend={t("form.kind")}
-          values={BUDGET_KINDS}
+          values={kinds}
           value={kind}
           onChange={setKind}
           label={(value) => t(`kinds.${value}`)}
+        />
+        {/* Ce qui part au serveur : un remboursement est une dépense à l'envers */}
+        <input
+          type="hidden"
+          name="kind"
+          value={kind === "expense" && refund ? "refund" : kind}
         />
         <AmountField
           id={id}
@@ -284,15 +420,88 @@ function EntryForm({
           error={fieldError("amount")}
         />
         {kind === "expense" ? (
-          <Chips
-            name="category"
-            legend={t("form.category")}
-            values={BUDGET_CATEGORIES}
-            value={category}
-            onChange={setCategory}
-            label={(value) => t(`categories.${value}`)}
-            icon={(value) => CATEGORY_ICONS[value]}
-            error={fieldError("category")}
+          <>
+            <CategoryField
+              value={category}
+              onChange={setCategory}
+              error={fieldError("category")}
+            />
+            <label className="flex min-h-11 items-start gap-3 text-sm">
+              <Checkbox
+                checked={refund}
+                onCheckedChange={(value) => setRefund(value === true)}
+                className="mt-0.5"
+              />
+              <span className="flex flex-col">
+                <span className="font-medium">{t("form.refund")}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t("form.refundHint")}
+                </span>
+              </span>
+            </label>
+          </>
+        ) : null}
+        {savingGoal ? (
+          <FieldSet>
+            <FieldLegend variant="label">{t("form.goal")}</FieldLegend>
+            <input type="hidden" name="goalId" value={goalId ?? ""} />
+            <div
+              role="radiogroup"
+              aria-label={t("form.goal")}
+              className="flex flex-wrap gap-2"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={goalId === null}
+                onClick={() => setGoalId(null)}
+                className={cn(chip, goalId === null ? chipOn : chipOff)}
+              >
+                {t("form.noGoal")}
+              </button>
+              {goals.map((goal) => (
+                <button
+                  key={goal.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={goalId === goal.id}
+                  onClick={() => setGoalId(goal.id)}
+                  className={cn(chip, goalId === goal.id ? chipOn : chipOff)}
+                >
+                  {goal.name}
+                </button>
+              ))}
+            </div>
+          </FieldSet>
+        ) : null}
+        {kind === "transfer" ? (
+          <>
+            <AccountField
+              name="accountId"
+              legend={t("form.from")}
+              value={accountId}
+              onChange={setAccountId}
+              optional={false}
+              error={fieldError("accountId")}
+            />
+            <AccountField
+              name="toAccountId"
+              legend={t("form.to")}
+              value={toAccountId}
+              onChange={setToAccountId}
+              optional={false}
+              exclude={accountId}
+              error={fieldError("toAccountId")}
+            />
+            <FieldDescription>{t("form.transferHint")}</FieldDescription>
+          </>
+        ) : accounts.length > 0 ? (
+          <AccountField
+            name="accountId"
+            legend={t("form.account")}
+            value={accountId}
+            onChange={setAccountId}
+            optional
           />
         ) : null}
         <Field data-invalid={fieldError("date") ? true : undefined}>
@@ -341,7 +550,7 @@ function EntryForm({
         {entry ? (
           <DeleteButton type="entry" itemId={entry.id} onDeleted={onDone} />
         ) : null}
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="h-11" disabled={pending}>
           {pending ? (
             <LoaderCircle aria-hidden="true" className="animate-spin" />
           ) : null}
@@ -352,37 +561,31 @@ function EntryForm({
   );
 }
 
-/** Ajouter ou modifier un revenu ou une dépense fixe. */
+/** Ajouter ou modifier un montant fixe. */
 export function RecurringDialog({
   open,
   onOpenChange,
   item,
   kind,
-  today,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: BudgetRecurringRow | null;
   kind: BudgetKind;
-  today: string;
 }) {
   const t = useTranslations("Budget.form");
-  const current = item?.kind ?? kind;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {item
-              ? t(`editFixedTitle.${current}`)
-              : t(`addFixedTitle.${current}`)}
+            {item ? t(`editFixedTitle.${kind}`) : t(`addFixedTitle.${kind}`)}
           </DialogTitle>
           <DialogDescription>{t("fixedDescription")}</DialogDescription>
         </DialogHeader>
         <RecurringForm
           item={item}
-          kind={current}
-          today={today}
+          kind={kind}
           onDone={() => onOpenChange(false)}
         />
       </DialogContent>
@@ -393,18 +596,18 @@ export function RecurringDialog({
 function RecurringForm({
   item,
   kind: initialKind,
-  today,
   onDone,
 }: {
   item: BudgetRecurringRow | null;
   kind: BudgetKind;
-  today: string;
   onDone: () => void;
 }) {
   const t = useTranslations("Budget");
   const locale = useLocale();
   const id = useId();
   const errorText = useErrorText();
+  const kinds = useKinds();
+  const { accounts, today } = useBudget();
   const [kind, setKind] = useState<BudgetKind>(initialKind);
   const [label, setLabel] = useState(item?.label ?? "");
   const [amount, setAmount] = useState(
@@ -413,11 +616,17 @@ function RecurringForm({
   const [frequency, setFrequency] = useState<BudgetFrequency>(
     item?.frequency ?? "monthly",
   );
-  const [category, setCategory] = useState<BudgetCategory | null>(
+  const [category, setCategory] = useState<string | null>(
     item?.category ?? null,
   );
   const [startsOn, setStartsOn] = useState(item?.startsOn ?? today);
   const [endsOn, setEndsOn] = useState(item?.endsOn ?? "");
+  const [accountId, setAccountId] = useState<string | null>(
+    item?.accountId ?? null,
+  );
+  const [toAccountId, setToAccountId] = useState<string | null>(
+    item?.toAccountId ?? null,
+  );
   const [state, formAction, pending] = useActionState<
     BudgetFormState<RecurringField>,
     FormData
@@ -442,7 +651,7 @@ function RecurringForm({
         <Chips
           name="kind"
           legend={t("form.kind")}
-          values={BUDGET_KINDS}
+          values={kinds}
           value={kind}
           onChange={setKind}
           label={(value) => t(`kinds.${value}`)}
@@ -479,15 +688,39 @@ function RecurringForm({
           label={(value) => t(`frequencies.${value}`)}
         />
         {kind === "expense" ? (
-          <Chips
-            name="category"
-            legend={t("form.category")}
-            values={BUDGET_CATEGORIES}
+          <CategoryField
             value={category}
             onChange={setCategory}
-            label={(value) => t(`categories.${value}`)}
-            icon={(value) => CATEGORY_ICONS[value]}
             error={fieldError("category")}
+          />
+        ) : null}
+        {kind === "transfer" ? (
+          <>
+            <AccountField
+              name="accountId"
+              legend={t("form.from")}
+              value={accountId}
+              onChange={setAccountId}
+              optional={false}
+              error={fieldError("accountId")}
+            />
+            <AccountField
+              name="toAccountId"
+              legend={t("form.to")}
+              value={toAccountId}
+              onChange={setToAccountId}
+              optional={false}
+              exclude={accountId}
+              error={fieldError("toAccountId")}
+            />
+          </>
+        ) : accounts.length > 0 ? (
+          <AccountField
+            name="accountId"
+            legend={t("form.account")}
+            value={accountId}
+            onChange={setAccountId}
+            optional
           />
         ) : null}
         <div className="flex flex-wrap gap-4">
@@ -536,7 +769,9 @@ function RecurringForm({
             ) : null}
           </Field>
         </div>
-        <FieldDescription>{t("form.startsOnHint")}</FieldDescription>
+        <FieldDescription>
+          {t(item ? "form.editHint" : "form.startsOnHint")}
+        </FieldDescription>
       </FieldGroup>
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">
@@ -547,7 +782,7 @@ function RecurringForm({
         {item ? (
           <DeleteButton type="recurring" itemId={item.id} onDeleted={onDone} />
         ) : null}
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="h-11" disabled={pending}>
           {pending ? (
             <LoaderCircle aria-hidden="true" className="animate-spin" />
           ) : null}

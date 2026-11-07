@@ -1,29 +1,28 @@
 import { z } from "zod";
 import { addDays, daysBetween, isoWeekday } from "@/lib/dates";
 import { fieldErrorsFrom } from "@/lib/form-errors";
+import { isSavingsType, type AccountType } from "./accounts";
+import { isCategoryKey } from "./categories";
 
-// Financier › Budget (décision du fondateur, 2026-11-01) : revenus et dépenses
-// fixes avec leur fréquence, mouvements au jour le jour, et le suivi par jour,
-// semaine ou mois. Listes et limites alignées sur la migration
-// 20261114120000_budget (un test le vérifie). Fonctions pures.
+// Financier › Budget (décisions du fondateur, 2026-11-01 et 2026-11-04) : les
+// transactions, les montants fixes qui en deviennent à leur date, et le suivi par
+// jour, semaine ou mois. Listes et limites alignées sur les migrations
+// 20261114120000_budget et 20261118120000_budget_complete (un test le vérifie).
+// Fonctions pures.
 
-export const BUDGET_KINDS = ["income", "expense"] as const;
-export type BudgetKind = (typeof BUDGET_KINDS)[number];
-
-/** Catégories des dépenses (un revenu n'en a pas). */
-export const BUDGET_CATEGORIES = [
-  "housing",
-  "groceries",
-  "transport",
-  "restaurants",
-  "leisure",
-  "subscriptions",
-  "health",
-  "debt",
-  "savings",
-  "other",
+/** Ce qu'enregistre une transaction : un remboursement réduit une dépense, une correction ajuste le solde d'un compte. */
+export const ENTRY_KINDS = [
+  "income",
+  "expense",
+  "refund",
+  "transfer",
+  "adjustment",
 ] as const;
-export type BudgetCategory = (typeof BUDGET_CATEGORIES)[number];
+export type EntryKind = (typeof ENTRY_KINDS)[number];
+
+/** Ce que l'on choisit dans les formulaires. */
+export const BUDGET_KINDS = ["expense", "income", "transfer"] as const;
+export type BudgetKind = (typeof BUDGET_KINDS)[number];
 
 export const BUDGET_FREQUENCIES = [
   "daily",
@@ -49,6 +48,13 @@ export const MAX_ENTRIES_PER_DAY = 200;
 /** Erreurs affichables (clés de `Budget.errors`). */
 export const BUDGET_ERRORS = [
   "amountInvalid",
+  "rateInvalid",
+  "accountRequired",
+  "sameAccount",
+  "accountLimit",
+  "goalLimit",
+  "categoryLimit",
+  "importLimit",
   "categoryRequired",
   "labelRequired",
   "labelTooLong",
@@ -66,47 +72,139 @@ export function isBudgetError(value: unknown): value is BudgetError {
   return BUDGET_ERRORS.includes(value as BudgetError);
 }
 
-/** Un mouvement au jour le jour, tel que l'affiche la page. */
+/** Une transaction, telle que l'affiche la page. */
 export type BudgetEntryRow = {
   id: string;
-  kind: BudgetKind;
-  category: BudgetCategory | null;
+  kind: EntryKind;
+  category: string | null;
   amountCents: number;
   note: string | null;
   /** « AAAA-MM-JJ ». */
   occurredOn: string;
+  accountId: string | null;
+  toAccountId: string | null;
+  /** Vient d'un montant fixe. */
+  recurringId: string | null;
+  goalId: string | null;
 };
 
-/** Un revenu ou une dépense fixe. */
+/** Un revenu, une dépense ou un virement fixe. */
 export type BudgetRecurringRow = {
   id: string;
   kind: BudgetKind;
   label: string;
-  category: BudgetCategory | null;
+  category: string | null;
   amountCents: number;
   frequency: BudgetFrequency;
   startsOn: string;
   endsOn: string | null;
+  accountId: string | null;
+  toAccountId: string | null;
+  /** Dernier jour déjà inscrit dans les transactions. */
+  postedThrough: string | null;
 };
+
+/** Le type de chaque compte, pour savoir ce qu'un virement change au budget. */
+export type AccountTypes = ReadonlyMap<string, AccountType>;
+
+/** Ce qu'il faut savoir d'une transaction pour connaître son effet sur le budget. */
+export type MoneyMove = {
+  kind: EntryKind;
+  category: string | null;
+  amountCents: number;
+  accountId: string | null;
+  toAccountId: string | null;
+};
+
+/**
+ * L'effet d'une transaction sur le budget. L'épargne n'est pas une dépense :
+ * c'est de l'argent gardé. Payer sa carte de crédit ne change rien (l'achat a déjà
+ * compté) ; un paiement sur un prêt compte dans la catégorie Dettes.
+ */
+export function budgetEffect(
+  move: MoneyMove,
+  types: AccountTypes,
+): { income: number; spent: number; saved: number; category: string | null } {
+  const none = { income: 0, spent: 0, saved: 0, category: null };
+  const cents = move.amountCents;
+  switch (move.kind) {
+    case "income":
+      return { ...none, income: cents };
+    case "adjustment":
+      return none;
+    case "expense":
+    case "refund": {
+      const signed = move.kind === "expense" ? cents : -cents;
+      return move.category === "savings"
+        ? { ...none, saved: signed, category: "savings" }
+        : { ...none, spent: signed, category: move.category };
+    }
+    case "transfer": {
+      const from = move.accountId ? types.get(move.accountId) : null;
+      const to = move.toAccountId ? types.get(move.toAccountId) : null;
+      if (isSavingsType(to) && !isSavingsType(from)) {
+        return { ...none, saved: cents, category: "savings" };
+      }
+      if (isSavingsType(from) && !isSavingsType(to)) {
+        return { ...none, saved: -cents, category: "savings" };
+      }
+      if (to === "loan" && from !== "loan") {
+        return { ...none, spent: cents, category: "debt" };
+      }
+      return none;
+    }
+  }
+}
+
+/** Sépare les milliers des cents : le dernier séparateur est celui des cents. */
+function normalizeNumber(value: string) {
+  const text = value.replace(/[\s\u00a0\u202f$]/g, "");
+  if (text.includes(",") && text.includes(".")) {
+    return text.lastIndexOf(",") > text.lastIndexOf(".")
+      ? text.replace(/\./g, "").replace(",", ".")
+      : text.replace(/,/g, "");
+  }
+  return text.replace(",", ".");
+}
 
 /**
  * Montant saisi (« 12 », « 12,50 », « 1 250,50 », « 1,250.50 $ ») vers des
  * cents ; null s'il est invalide, nul ou trop grand.
  */
 export function parseAmount(value: string): number | null {
-  let text = value.replace(/[\s  $]/g, "");
-  if (text.includes(",") && text.includes(".")) {
-    // Le dernier séparateur est celui des cents, l'autre sépare les milliers
-    text =
-      text.lastIndexOf(",") > text.lastIndexOf(".")
-        ? text.replace(/\./g, "").replace(",", ".")
-        : text.replace(/,/g, "");
-  } else {
-    text = text.replace(",", ".");
-  }
+  const text = normalizeNumber(value);
   if (!/^\d+(\.\d{1,2})?$/.test(text)) return null;
   const cents = Math.round(Number(text) * 100);
   return cents >= 1 && cents <= BUDGET_AMOUNT_MAX_CENTS ? cents : null;
+}
+
+/** Limite d'un solde : plus de 20 millions de dollars ne tient pas dans la colonne. */
+export const BALANCE_MAX_CENTS = 2_000_000_000;
+
+/**
+ * Montant signé (un solde, une ligne de relevé) : « -12,50 », « (12.50) », « 12.50- ».
+ * Zéro est permis ; null s'il est invalide ou trop grand.
+ */
+export function parseSignedAmount(value: string): number | null {
+  let text = normalizeNumber(value.trim());
+  let negative = false;
+  if (/^\(.*\)$/.test(text)) {
+    negative = true;
+    text = text.slice(1, -1);
+  }
+  if (text.endsWith("-")) {
+    negative = true;
+    text = text.slice(0, -1);
+  }
+  if (text.startsWith("-")) {
+    negative = !negative;
+    text = text.slice(1);
+  }
+  if (text.startsWith("+")) text = text.slice(1);
+  if (!/^\d+(\.\d{1,2})?$/.test(text)) return null;
+  const cents = Math.round(Number(text) * 100);
+  if (cents > BALANCE_MAX_CENTS) return null;
+  return negative ? -cents : cents;
 }
 
 const error = (key: BudgetError) => ({ error: key });
@@ -135,15 +233,19 @@ const categoryField = z
   .optional()
   .transform((value) => value || null);
 
-/** Une dépense demande une catégorie ; un revenu n'en garde pas. */
+const optionalId = z
+  .union([z.uuid(), z.literal("")])
+  .optional()
+  .transform((value) => value || null);
+
+/** Une dépense demande une catégorie ; un revenu et un virement n'en gardent pas. */
 function categoryOf(
-  kind: BudgetKind,
+  kind: EntryKind,
   value: string | null,
   context: z.RefinementCtx,
-): BudgetCategory | null {
-  if (kind === "income") return null;
-  const category = BUDGET_CATEGORIES.find((entry) => entry === value);
-  if (!category) {
+): string | null {
+  if (kind !== "expense" && kind !== "refund") return null;
+  if (!isCategoryKey(value)) {
     context.addIssue({
       code: "custom",
       path: ["category"],
@@ -151,28 +253,79 @@ function categoryOf(
     });
     return null;
   }
-  return category;
+  return value;
 }
 
-const ENTRY_FIELDS = ["kind", "amount", "category", "note", "date"] as const;
+/** Un virement va d'un compte à un autre. */
+function checkTransfer(
+  kind: EntryKind,
+  accountId: string | null,
+  toAccountId: string | null,
+  context: z.RefinementCtx,
+) {
+  if (kind !== "transfer") return;
+  if (!accountId) {
+    context.addIssue({
+      code: "custom",
+      path: ["accountId"],
+      message: "accountRequired",
+    });
+  }
+  if (!toAccountId) {
+    context.addIssue({
+      code: "custom",
+      path: ["toAccountId"],
+      message: "accountRequired",
+    });
+  } else if (toAccountId === accountId) {
+    context.addIssue({
+      code: "custom",
+      path: ["toAccountId"],
+      message: "sameAccount",
+    });
+  }
+}
+
+const ENTRY_FIELDS = [
+  "kind",
+  "amount",
+  "category",
+  "note",
+  "date",
+  "accountId",
+  "toAccountId",
+] as const;
 export type EntryField = (typeof ENTRY_FIELDS)[number];
 
-/** Formulaire d'une dépense ou d'un revenu au jour le jour. */
+/** Formulaire d'une transaction. */
 export const entryFormSchema = z
   .object({
-    kind: z.enum(BUDGET_KINDS, error("unexpected")),
+    kind: z.enum(
+      ["expense", "income", "refund", "transfer"],
+      error("unexpected"),
+    ),
     amount: amountSchema,
     category: categoryField,
     note: optionalText(BUDGET_NOTE_MAX, "noteTooLong"),
     date: z.iso.date(error("dateInvalid")),
+    accountId: optionalId,
+    toAccountId: optionalId,
+    goalId: optionalId,
   })
-  .transform((input, context) => ({
-    kind: input.kind,
-    amountCents: input.amount,
-    category: categoryOf(input.kind, input.category, context),
-    note: input.note,
-    occurredOn: input.date,
-  }));
+  .transform((input, context) => {
+    checkTransfer(input.kind, input.accountId, input.toAccountId, context);
+    const transfer = input.kind === "transfer";
+    return {
+      kind: input.kind,
+      amountCents: input.amount,
+      category: categoryOf(input.kind, input.category, context),
+      note: input.note,
+      occurredOn: input.date,
+      accountId: input.accountId,
+      toAccountId: transfer ? input.toAccountId : null,
+      goalId: input.goalId,
+    };
+  });
 export type EntryInput = z.output<typeof entryFormSchema>;
 
 export function entryFieldErrors(zodError: z.ZodError) {
@@ -187,10 +340,12 @@ const RECURRING_FIELDS = [
   "frequency",
   "startsOn",
   "endsOn",
+  "accountId",
+  "toAccountId",
 ] as const;
 export type RecurringField = (typeof RECURRING_FIELDS)[number];
 
-/** Formulaire d'un revenu ou d'une dépense fixe. */
+/** Formulaire d'un revenu, d'une dépense ou d'un virement fixe. */
 export const recurringFormSchema = z
   .object({
     kind: z.enum(BUDGET_KINDS, error("unexpected")),
@@ -207,8 +362,11 @@ export const recurringFormSchema = z
       .union([z.iso.date(error("dateInvalid")), z.literal("")])
       .optional()
       .transform((value) => value || null),
+    accountId: optionalId,
+    toAccountId: optionalId,
   })
   .transform((input, context) => {
+    checkTransfer(input.kind, input.accountId, input.toAccountId, context);
     if (input.endsOn !== null && input.endsOn < input.startsOn) {
       context.addIssue({
         code: "custom",
@@ -224,6 +382,8 @@ export const recurringFormSchema = z
       frequency: input.frequency,
       startsOn: input.startsOn,
       endsOn: input.endsOn,
+      accountId: input.accountId,
+      toAccountId: input.kind === "transfer" ? input.toAccountId : null,
     };
   });
 export type RecurringInput = z.output<typeof recurringFormSchema>;
@@ -259,7 +419,7 @@ const dayOf = (year: number, month: number, day: number) =>
   `${year}-${pad(month)}-${pad(day)}`;
 
 /** Premier jour du mois, décalé de `months` mois. */
-function monthStart(day: string, months = 0) {
+export function monthStart(day: string, months = 0) {
   const date = new Date(
     Date.UTC(Number(day.slice(0, 4)), Number(day.slice(5, 7)) - 1 + months, 1),
   );
@@ -382,83 +542,174 @@ export function monthlyEquivalent(
   return Math.round((rule.amountCents * perYear) / 12);
 }
 
+/** Un paiement fixe encore à venir (rien n'est inscrit avant sa date). */
+export type UpcomingItem = MoneyMove & {
+  recurringId: string;
+  label: string;
+  /** « AAAA-MM-JJ ». */
+  day: string;
+  frequency: BudgetFrequency;
+};
+
+/** Les paiements fixes à venir entre `from` et `to`, après aujourd'hui, par date. */
+export function upcomingIn(
+  rules: readonly BudgetRecurringRow[],
+  from: string,
+  to: string,
+  today: string,
+): UpcomingItem[] {
+  const tomorrow = addDays(today, 1);
+  return rules
+    .flatMap((rule) =>
+      occurrencesIn(rule, from > tomorrow ? from : tomorrow, to).map((day) => ({
+        kind: rule.kind,
+        category: rule.category,
+        amountCents: rule.amountCents,
+        accountId: rule.accountId,
+        toAccountId: rule.toAccountId,
+        recurringId: rule.id,
+        label: rule.label,
+        day,
+        frequency: rule.frequency,
+      })),
+    )
+    .sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
+}
+
+/** Combien de jours en arrière inscrire un montant fixe ajouté avec une date passée. */
+export const BACKFILL_DAYS = 400;
+
+/**
+ * Les dates d'un montant fixe à inscrire dans les transactions, jusqu'à aujourd'hui
+ * (au plus `limit`, le reste à la prochaine fois), et jusqu'où il sera alors inscrit.
+ * Une fois inscrit, un paiement vit sa vie : le changer ou le supprimer ne le refait
+ * pas, et changer le montant fixe ne réécrit pas le passé.
+ */
+export function dueOccurrences(
+  rule: Pick<
+    BudgetRecurringRow,
+    "frequency" | "startsOn" | "endsOn" | "postedThrough"
+  >,
+  today: string,
+  limit: number,
+): { days: string[]; postedThrough: string } {
+  const earliest = addDays(today, -BACKFILL_DAYS);
+  const from = rule.postedThrough
+    ? addDays(rule.postedThrough, 1)
+    : rule.startsOn > earliest
+      ? rule.startsOn
+      : earliest;
+  const days = occurrencesIn(rule, from, today, limit);
+  return {
+    days,
+    postedThrough: days.length >= limit ? (days.at(-1) ?? today) : today,
+  };
+}
+
 export type BudgetSummary = {
-  /** Revenus fixes et ponctuels de la période. */
+  /** Revenus reçus pendant la période. */
   incomeCents: number;
-  /** Dépenses fixes de la période (le prévu). */
-  fixedCents: number;
-  /** Dépenses au jour le jour de la période. */
+  /** Revenus fixes encore à venir. */
+  upcomingIncomeCents: number;
+  /** Dépenses déjà sorties (remboursements retirés), fixes comprises. */
   spentCents: number;
-  /** Revenus moins toutes les dépenses (négatif : dépassement). */
+  /** Dont celles qui viennent d'un montant fixe. */
+  fixedSpentCents: number;
+  /** Dépenses fixes encore à venir. */
+  upcomingCents: number;
+  /** Mis de côté (l'épargne n'est pas une dépense). */
+  savedCents: number;
+  /** Épargne fixe encore à venir. */
+  upcomingSavedCents: number;
+  /** L'épargne prévue pas encore faite (elle n'est pas à dépenser). */
+  reserveCents: number;
+  /** Ce qui reste à dépenser : revenus prévus, moins tout ce qui sort, moins l'épargne prévue. */
   remainingCents: number;
-  /** Dépenses fixes encore à venir dans la période (après aujourd'hui). */
-  upcomingFixedCents: number;
-  /** Dépenses par catégorie (fixes et au jour le jour), la plus grosse d'abord. */
-  categories: { category: BudgetCategory; cents: number }[];
+  /** Dépenses par catégorie (sorties et à venir), la plus grosse d'abord. */
+  categories: { category: string; cents: number }[];
   /** Jours qui restent dans la période, aujourd'hui compris (0 si elle est passée). */
   daysLeft: number;
   /** Ce qu'on peut encore dépenser par jour d'ici la fin (période en cours, reste positif). */
   perDayCents: number | null;
 };
 
-/** Le suivi d'une période : ce qui entre, ce qui est prévu, ce qui est dépensé, ce qui reste. */
+/** Le suivi d'une période : ce qui entre, ce qui sort, ce qui est gardé, ce qui reste. */
 export function summarizeBudget({
   entries,
-  recurring,
+  upcoming,
+  types,
   start,
   end,
   today,
+  reserveCents = 0,
 }: {
-  entries: BudgetEntryRow[];
-  recurring: BudgetRecurringRow[];
+  entries: readonly (MoneyMove & {
+    occurredOn: string;
+    recurringId: string | null;
+  })[];
+  upcoming: readonly UpcomingItem[];
+  types: AccountTypes;
   start: string;
   end: string;
   today: string;
+  /** L'épargne prévue pas encore mise de côté. */
+  reserveCents?: number;
 }): BudgetSummary {
   let incomeCents = 0;
-  let fixedCents = 0;
+  let upcomingIncomeCents = 0;
   let spentCents = 0;
-  let upcomingFixedCents = 0;
-  const byCategory = new Map<BudgetCategory, number>();
-  const addCategory = (category: BudgetCategory | null, cents: number) => {
+  let fixedSpentCents = 0;
+  let upcomingCents = 0;
+  let savedCents = 0;
+  let upcomingSavedCents = 0;
+  const byCategory = new Map<string, number>();
+  const addCategory = (category: string | null, cents: number) => {
     const key = category ?? "other";
     byCategory.set(key, (byCategory.get(key) ?? 0) + cents);
   };
 
-  for (const rule of recurring) {
-    const days = occurrencesIn(rule, start, end);
-    const total = rule.amountCents * days.length;
-    if (rule.kind === "income") {
-      incomeCents += total;
-    } else if (total > 0) {
-      fixedCents += total;
-      upcomingFixedCents +=
-        rule.amountCents * days.filter((day) => day > today).length;
-      addCategory(rule.category, total);
-    }
-  }
   for (const entry of entries) {
     if (entry.occurredOn < start || entry.occurredOn > end) continue;
-    if (entry.kind === "income") {
-      incomeCents += entry.amountCents;
-    } else {
-      spentCents += entry.amountCents;
-      addCategory(entry.category, entry.amountCents);
-    }
+    const effect = budgetEffect(entry, types);
+    incomeCents += effect.income;
+    savedCents += effect.saved;
+    spentCents += effect.spent;
+    if (entry.recurringId) fixedSpentCents += effect.spent;
+    if (effect.spent !== 0) addCategory(effect.category, effect.spent);
+  }
+  for (const item of upcoming) {
+    if (item.day < start || item.day > end) continue;
+    const effect = budgetEffect(item, types);
+    upcomingIncomeCents += effect.income;
+    upcomingSavedCents += effect.saved;
+    upcomingCents += effect.spent;
+    if (effect.spent !== 0) addCategory(effect.category, effect.spent);
   }
 
-  const remainingCents = incomeCents - fixedCents - spentCents;
+  const remainingCents =
+    incomeCents +
+    upcomingIncomeCents -
+    spentCents -
+    upcomingCents -
+    savedCents -
+    upcomingSavedCents -
+    reserveCents;
   const daysLeft =
     today > end ? 0 : daysBetween(today < start ? start : today, end) + 1;
   const current = today >= start && today <= end;
   return {
     incomeCents,
-    fixedCents,
+    upcomingIncomeCents,
     spentCents,
+    fixedSpentCents,
+    upcomingCents,
+    savedCents,
+    upcomingSavedCents,
+    reserveCents,
     remainingCents,
-    upcomingFixedCents,
     categories: [...byCategory]
       .map(([category, cents]) => ({ category, cents }))
+      .filter((line) => line.cents > 0)
       .sort((a, b) => b.cents - a.cents),
     daysLeft,
     perDayCents:

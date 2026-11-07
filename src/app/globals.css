@@ -431,3 +431,12 @@
     animation-delay: 0s !important;
   }
 }
+
+/* Budget : ce qui s'en vient, hachuré, à côté de ce qui est déjà sorti */
+@utility budget-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--primary) 0 3px,
+    color-mix(in srgb, var(--primary) 25%, transparent) 3px 7px
+  );
+}

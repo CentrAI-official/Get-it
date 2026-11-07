@@ -89,6 +89,17 @@ export const ROUTE_RULES = [
   { pattern: "/services/financial", section: "services.plan" },
   { pattern: "/services/financial/budget", section: "services.budget" },
   {
+    pattern: "/services/financial/budget/transactions",
+    section: "services.budget",
+  },
+  { pattern: "/services/financial/budget/bills", section: "services.budget" },
+  {
+    pattern: "/services/financial/budget/accounts",
+    section: "services.budget",
+  },
+  { pattern: "/services/financial/budget/goals", section: "services.budget" },
+  { pattern: "/services/financial/budget/reports", section: "services.budget" },
+  {
     pattern: "/services/library/[id]",
     section: "services.libraryItem",
     target: "uuid",

@@ -70,7 +70,7 @@ const featureActions = (since: Date) => Prisma.sql`
         UNION ALL SELECT 'journal', user_id, created_at FROM journal_entries WHERE created_at >= ${since}
         UNION ALL SELECT 'checkIns', user_id, created_at FROM daily_check_ins WHERE created_at >= ${since}
         UNION ALL SELECT 'calendarEvents', user_id, created_at FROM calendar_events WHERE created_at >= ${since}
-        UNION ALL SELECT 'budget', user_id, created_at FROM budget_entries WHERE created_at >= ${since}
+        UNION ALL SELECT 'budget', user_id, created_at FROM budget_entries WHERE created_at >= ${since} AND recurring_id IS NULL AND import_key IS NULL
         UNION ALL SELECT 'budget', user_id, created_at FROM budget_recurring WHERE created_at >= ${since}
         UNION ALL SELECT 'workouts', user_id, finished_at FROM workout_sessions WHERE finished_at >= ${since}
         UNION ALL SELECT 'planChecks', user_id, created_at FROM plan_item_logs WHERE created_at >= ${since}
