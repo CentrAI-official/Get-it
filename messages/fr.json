@@ -1890,7 +1890,8 @@
       "deleteTitle": "Supprimer cette annonce?",
       "deleteDescription": "Elle disparaît du Marketplace avec ses photos. Cette action est définitive.",
       "deleteConfirm": "Supprimer",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "seePage": "Voir la page"
     },
     "affiliate": {
       "title": "Deviens affilié pour vendre",
@@ -1962,7 +1963,7 @@
       "reviewNotice": "L’équipe Get iT vérifie chaque annonce avant sa mise en ligne.",
       "submit": "Soumettre l’annonce",
       "errors": {
-        "notAffiliate": "Passe en compte affilié pour vendre.",
+        "notAffiliate": "Crée ta page pro pour vendre.",
         "gearSoon": "La vente de gear arrive bientôt.",
         "notJoined": "Rejoins le Centre Get iT pour vendre.",
         "suspended": "Ton compte est suspendu pour l’instant : tu ne peux pas publier d’annonce.",
@@ -3670,7 +3671,8 @@
         "sell": "Vendre",
         "mine": "Mes annonces",
         "approvals": "Approbations",
-        "listing": "Une annonce"
+        "listing": "Une annonce",
+        "page": "Une page pro"
       },
       "profile": {
         "overview": "Aperçu",
@@ -3679,7 +3681,9 @@
         "ranked": "Ranked",
         "goals": "Objectifs",
         "habits": "Habitudes",
-        "settings": "Réglages"
+        "settings": "Réglages",
+        "pro": "Espace pro",
+        "proEdit": "Créer ou modifier sa page"
       },
       "today": {
         "dayPanel": "Ma journée"
@@ -4984,6 +4988,126 @@
       "sessionMissing": "Cette séance n’est plus dans ton plan.",
       "noSetDone": "Coche au moins une série pour terminer.",
       "invalid": "Vérifie tes poids et tes répétitions."
+    }
+  },
+  "Pages": {
+    "moreRegions": "et {count, number} de plus",
+    "switch": {
+      "toAccount": "Revenir à mon compte",
+      "toPage": "Passer à ma page",
+      "createTitle": "Crée ta page pro",
+      "createText": "Pour vendre tes services et suivre tes clients."
+    },
+    "home": {
+      "title": "Espace pro",
+      "viewPublic": "Voir ma page",
+      "edit": "Modifier",
+      "completeTitle": "Complète ta page",
+      "completeCount": "{done, number} sur {total, number}",
+      "steps": {
+        "logo": "Ajoute ton logo",
+        "cover": "Ajoute une photo de couverture",
+        "about": "Présente-toi en quelques lignes",
+        "service": "Publie ton premier service"
+      },
+      "services": "Mes services",
+      "addService": "Ajouter un service",
+      "noService": "Aucun service pour l’instant. Chaque service est vérifié par l’équipe Get iT avant d’être visible dans le Marketplace.",
+      "status": {
+        "pending": "En attente d’approbation",
+        "approved": "En ligne",
+        "rejected": "Refusé",
+        "archived": "Retiré"
+      }
+    },
+    "new": {
+      "title": "Créer ma page pro",
+      "back": "Profil",
+      "description": "Ta page est séparée de ton compte personnel, comme une page Facebook. Tu passes de l’un à l’autre depuis ton profil.",
+      "points": {
+        "sell": "Vends tes services dans le Marketplace, sous le nom de ta page.",
+        "clients": "Bientôt : suis tes clients, leurs plans et tes notes, avec leur accord.",
+        "feed": "Bientôt : publie dans le Centre au nom de ta page."
+      }
+    },
+    "edit": {
+      "title": "Modifier ma page",
+      "back": "Espace pro",
+      "images": "Logo et couverture",
+      "info": "Informations",
+      "deleteHint": "Supprimer ta page retire aussi ses services du Marketplace. Ton compte personnel ne change pas."
+    },
+    "form": {
+      "name": "Nom de la page",
+      "namePlaceholder": "Ex. Coach Max Énergie",
+      "handle": "Adresse de la page",
+      "handleHint": "Minuscules, chiffres, points ou tirets, de 3 à 30 caractères.",
+      "category": "Domaine",
+      "regulatedHint": "Profession encadrée : ton numéro de permis te sera demandé pour chaque service.",
+      "regions": "Régions servies",
+      "about": "Présentation",
+      "aboutPlaceholder": "Ce que tu offres, ton approche, ta formation…",
+      "aboutCount": "{count, number} sur {max, number} caractères",
+      "website": "Site web",
+      "optional": "(facultatif)",
+      "create": "Créer ma page",
+      "save": "Enregistrer",
+      "saved": "C’est enregistré."
+    },
+    "images": {
+      "cover": "Couverture",
+      "logo": "Logo",
+      "addCover": "Ajouter une couverture",
+      "changeCover": "Changer la couverture",
+      "addLogo": "Ajouter un logo",
+      "changeLogo": "Changer le logo",
+      "remove": "Retirer",
+      "disabled": "L’envoi d’images n’est pas encore activé."
+    },
+    "delete": {
+      "button": "Supprimer ma page",
+      "title": "Supprimer « {name} »?",
+      "description": "La page et ses services disparaissent du Marketplace, avec leurs photos. Ton compte personnel reste tel quel.",
+      "failed": "Impossible pour l’instant. Réessaie.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer"
+    },
+    "public": {
+      "title": "Page pro",
+      "back": "Marketplace",
+      "edit": "Modifier ma page",
+      "about": "Présentation",
+      "services": "Services",
+      "noService": "Aucun service en ligne pour l’instant.",
+      "since": "Sur Get iT depuis {date}",
+      "contact": "Écrire"
+    },
+    "settings": {
+      "title": "Page pro",
+      "description": "Pour vendre tes services et, bientôt, suivre tes clients : une page séparée de ton compte personnel.",
+      "open": "Ouvrir mon Espace pro",
+      "create": "Créer ma page pro"
+    },
+    "sell": {
+      "title": "Crée ta page pro pour vendre",
+      "description": "Tes services se vendent sous le nom de ta page, séparée de ton compte personnel. Tout membre du Centre peut en créer une.",
+      "action": "Créer ma page pro"
+    },
+    "errors": {
+      "nameRequired": "Donne un nom à ta page (2 caractères au moins).",
+      "nameTooLong": "60 caractères au plus.",
+      "handleInvalid": "Minuscules, chiffres, points ou tirets, de 3 à 30 caractères, sans commencer ni finir par un signe.",
+      "handleReserved": "Cette adresse est réservée.",
+      "handleTaken": "Cette adresse est déjà prise.",
+      "categoryRequired": "Choisis ton domaine.",
+      "aboutTooLong": "600 caractères au plus.",
+      "websiteInvalid": "Entre une adresse qui commence par https://",
+      "regionsInvalid": "Choisis des régions de la liste.",
+      "notJoined": "Rejoins le Centre Get iT pour créer ta page.",
+      "suspended": "Ton compte est suspendu : tu ne peux pas créer de page pour l’instant.",
+      "alreadyHasPage": "Tu as déjà une page.",
+      "notFound": "Page introuvable.",
+      "unexpected": "Impossible pour l’instant. Réessaie."
     }
   }
 }

@@ -132,6 +132,7 @@ model Profile {
   budgetGoals          BudgetGoal[]
   budgetCategories     BudgetCategorySetting[]
   budgetPlans          BudgetPlan[]
+  page                 Page?
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -1455,6 +1456,8 @@ model Listing {
   socialUrl     String?       @map("social_url")
   /// Numéro de permis d'une profession réglementée (ordre professionnel, AMF).
   licenseNumber String?       @map("license_number")
+  /// La page pro qui vend ce service (src/features/pages).
+  pageId        String?       @map("page_id") @db.Uuid
   mediaCount    Int           @default(0) @map("media_count") @db.SmallInt
   /// Raison d'un refus, montrée au vendeur.
   reviewNote    String?       @map("review_note")
@@ -1464,6 +1467,7 @@ model Listing {
   updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   seller    Profile           @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  page      Page?             @relation(fields: [pageId], references: [id], onDelete: Cascade)
   reviewer  Profile?          @relation("ListingReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
   media     ListingMedia[]
   favorites ListingFavorite[]
@@ -1530,6 +1534,30 @@ model DevelopmentPlan {
 }
 
 /// Annonce gardée en favori par un acheteur. Privé : jamais montré au vendeur ni aux autres.
+/// Page pro : comme une page Facebook, celle d'une personne qui vend des
+/// services, séparée de son compte personnel. Une page par personne.
+model Page {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  ownerId   String   @unique @map("owner_id") @db.Uuid
+  /// Son adresse : /pages/<handle> (src/features/pages/rules.ts).
+  handle    String   @unique
+  name      String
+  /// Le domaine, une des catégories de services de la Marketplace.
+  category  String
+  about     String   @default("")
+  regions   String[] @default([])
+  website   String?
+  logoPath  String?  @map("logo_path")
+  coverPath String?  @map("cover_path")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  owner    Profile   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  listings Listing[]
+
+  @@map("pages")
+}
+
 model ListingFavorite {
   userId    String   @map("user_id") @db.Uuid
   listingId String   @map("listing_id") @db.Uuid

@@ -38,7 +38,9 @@ import {
   type ListingKind,
   type Region,
 } from "../rules";
-import { BecomeAffiliate } from "./become-affiliate";
+import { CreatePageCard } from "@/features/pages/components/page-switch";
+import { PageLogo } from "@/features/pages/components/page-logo";
+import { getMyPage } from "@/server/pages/service";
 import { CatalogFilterBar } from "./catalog-filters";
 import { CatalogList } from "./catalog-list";
 import { ContactSeller, DeleteListing } from "./listing-actions";
@@ -324,19 +326,41 @@ async function ListingBody({
         <h2 className="caps-label text-muted-foreground">
           {t("detail.seller")}
         </h2>
-        <p className="flex items-center gap-3">
-          <Avatar
-            name={seller}
-            url={listing.seller.avatarUrl}
-            className="size-10"
-          />
-          <span className="flex min-w-0 flex-col">
-            <span className="truncate font-semibold">{seller}</span>
-            <span className="truncate text-sm text-muted-foreground">
-              @{listing.seller.username}
+        {listing.seller.pageHandle ? (
+          // Le vendeur est une page pro : son logo, son nom, et un lien vers elle
+          <Link
+            href={`/pages/${listing.seller.pageHandle}`}
+            className="flex min-h-12 w-fit items-center gap-3 rounded-xl outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <PageLogo
+              name={seller}
+              url={listing.seller.avatarUrl}
+              className="size-10 text-lg"
+            />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate font-semibold">{seller}</span>
+              <span className="truncate text-sm text-muted-foreground">
+                {t("detail.seePage")}
+              </span>
             </span>
-          </span>
-        </p>
+          </Link>
+        ) : (
+          <p className="flex items-center gap-3">
+            <Avatar
+              name={seller}
+              url={listing.seller.avatarUrl}
+              className="size-10"
+            />
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate font-semibold">{seller}</span>
+              {listing.seller.username ? (
+                <span className="truncate text-sm text-muted-foreground">
+                  @{listing.seller.username}
+                </span>
+              ) : null}
+            </span>
+          </p>
+        )}
         {listing.website || listing.socialUrl ? (
           <ul className="flex flex-wrap gap-x-5 gap-y-2">
             {[
@@ -420,10 +444,10 @@ export function ListingSkeleton() {
   );
 }
 
-/** « Vendre » : affilié et membre du Centre, sinon ce qu'il reste à faire. */
+/** « Vendre » : une page pro et membre du Centre, sinon ce qu'il reste à faire. */
 export async function SellGate() {
   const profile = await getCurrentProfile();
-  if (profile.accountType !== "affiliate") return <BecomeAffiliate />;
+  if (!(await getMyPage(profile.id))) return <CreatePageCard />;
   const [member, t] = await Promise.all([
     getCommunityMember(profile.id),
     getTranslations("Marketplace.sell"),

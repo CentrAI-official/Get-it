@@ -57,8 +57,10 @@ export type ListingSummary = {
   seller: {
     displayName: string | null;
     username: string | null;
-    /** Photo de profil (lien temporaire), ou null. */
+    /** Photo de profil, ou logo de la page (lien temporaire), ou null. */
     avatarUrl: string | null;
+    /** La page pro qui vend : son adresse (/pages/<handle>), ou null. */
+    pageHandle: string | null;
   };
 };
 
@@ -91,19 +93,19 @@ async function isAdmin(userId: string) {
   return profile?.role === "admin";
 }
 
-/** Peut vendre : affilié, membre du Centre (nom public) et pas suspendu. */
-async function canSell(userId: string): Promise<{ ok: true } | Fail> {
-  const profile = await db.profile.findUnique({
-    where: { id: userId },
-    select: { accountType: true },
+/** Peut vendre : a sa page pro, est membre du Centre (nom public) et pas suspendu. */
+async function canSell(
+  userId: string,
+): Promise<{ ok: true; pageId: string } | Fail> {
+  const page = await db.page.findUnique({
+    where: { ownerId: userId },
+    select: { id: true },
   });
-  if (profile?.accountType !== "affiliate") {
-    return { ok: false, error: "notAffiliate" };
-  }
+  if (!page) return { ok: false, error: "notAffiliate" };
   const member = await getCommunityMember(userId);
   if (!member?.joined) return { ok: false, error: "notJoined" };
   if (member.suspendedUntil) return { ok: false, error: "suspended" };
-  return { ok: true };
+  return { ok: true, pageId: page.id };
 }
 
 /** Conditions d'une annonce visible des acheteurs. */
@@ -129,25 +131,43 @@ const summarySelect = {
   priceMaxCents: true,
   priceUnit: true,
   regions: true,
-  seller: { select: { displayName: true, username: true, avatarPath: true } },
+  seller: {
+    select: {
+      displayName: true,
+      username: true,
+      avatarPath: true,
+      page: { select: { name: true, handle: true, logoPath: true } },
+    },
+  },
 } satisfies Prisma.ListingSelect;
 
 type SellerRow = {
   displayName: string | null;
   username: string | null;
   avatarPath: string | null;
+  page: { name: string; handle: string; logoPath: string | null } | null;
 };
 
-/** Vendeurs avec le lien de leur photo (le chemin du fichier ne sort pas du serveur). */
+/**
+ * Vendeurs avec le lien de leur photo (le chemin du fichier ne sort pas du
+ * serveur). Une personne qui a sa page vend sous le nom et le logo de sa page :
+ * son compte personnel n'apparaît pas.
+ */
 async function sellerAvatars(rows: { seller: SellerRow }[]) {
-  const avatars = await avatarUrls(rows.map((row) => row.seller.avatarPath));
-  return (seller: SellerRow) => ({
-    displayName: seller.displayName,
-    username: seller.username,
-    avatarUrl: seller.avatarPath
-      ? (avatars.get(seller.avatarPath) ?? null)
-      : null,
-  });
+  const avatars = await avatarUrls(
+    rows.map((row) =>
+      row.seller.page ? row.seller.page.logoPath : row.seller.avatarPath,
+    ),
+  );
+  return (seller: SellerRow) => {
+    const photo = seller.page ? seller.page.logoPath : seller.avatarPath;
+    return {
+      displayName: seller.page?.name ?? seller.displayName,
+      username: seller.page ? null : seller.username,
+      avatarUrl: photo ? (avatars.get(photo) ?? null) : null,
+      pageHandle: seller.page?.handle ?? null,
+    };
+  };
 }
 
 /** Photos de plusieurs annonces, avec leurs liens de lecture temporaires. */
@@ -293,6 +313,35 @@ export async function getListing(
     mine,
     reviewNote: mine ? row.reviewNote : null,
   };
+}
+
+/** Les services visibles d'une page pro (sa page publique). */
+export async function listPageListings(
+  viewerId: string,
+  pageId: string,
+): Promise<ListingSummary[]> {
+  const blocked = await getBlockedIds(viewerId);
+  const rows = await db.listing.findMany({
+    // Une page par personne : les annonces de sa propriétaire
+    where: {
+      AND: [visibleWhere(blocked), { seller: { page: { id: pageId } } }],
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: summarySelect,
+  });
+  const ids = rows.map((row) => row.id);
+  const [photos, seller, favorites] = await Promise.all([
+    photosFor(ids, true),
+    sellerAvatars(rows),
+    favoriteIdsAmong(viewerId, ids),
+  ]);
+  return rows.map((row) => ({
+    ...row,
+    seller: seller(row.seller),
+    photo: photos.get(row.id)?.[0] ?? null,
+    favorite: favorites.has(row.id),
+  }));
 }
 
 /** Annonces du vendeur, tous statuts confondus. */
@@ -445,6 +494,7 @@ export async function createListing(
       const listing = await tx.listing.create({
         data: {
           sellerId: userId,
+          pageId: allowed.pageId,
           kind: input.kind,
           pillar: input.pillar,
           category: input.category,

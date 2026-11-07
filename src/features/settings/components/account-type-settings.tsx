@@ -1,38 +1,11 @@
-import { getTranslations } from "next-intl/server";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { getCurrentProfile } from "@/server/profile/service";
-import { AccountTypeChoice } from "./account-type-choice";
+  PageSettings,
+  PageSettingsSkeleton,
+} from "@/features/pages/components/page-switch";
 
-/** Consommateur ou affilié. Lit la session : à placer dans un <Suspense>. */
-export async function AccountTypeSettings() {
-  const [profile, t] = await Promise.all([
-    getCurrentProfile(),
-    getTranslations("App.settings.accountType"),
-  ]);
-
-  return (
-    <Card className="max-w-2xl">
-      <CardHeader>
-        <CardTitle id="account-type-title">{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <AccountTypeChoice
-          current={profile.accountType}
-          labelledBy="account-type-title"
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-export function AccountTypeSettingsSkeleton() {
-  return <Skeleton className="h-48 max-w-2xl rounded-3xl" />;
-}
+/**
+ * La page pro (qui remplace le choix consommateur ou affilié) : l'ouvrir ou la
+ * créer. Lit la session : à placer dans un <Suspense>.
+ */
+export const AccountTypeSettings = PageSettings;
+export const AccountTypeSettingsSkeleton = PageSettingsSkeleton;

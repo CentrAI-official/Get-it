@@ -1890,7 +1890,8 @@
       "deleteTitle": "Delete this listing?",
       "deleteDescription": "It disappears from the Marketplace with its photos. This can’t be undone.",
       "deleteConfirm": "Delete",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "seePage": "See the page"
     },
     "affiliate": {
       "title": "Become an affiliate to sell",
@@ -1962,7 +1963,7 @@
       "reviewNotice": "The Get iT team checks every listing before it goes live.",
       "submit": "Submit the listing",
       "errors": {
-        "notAffiliate": "Switch to an affiliate account to sell.",
+        "notAffiliate": "Create your pro page to sell.",
         "gearSoon": "Selling gear is coming soon.",
         "notJoined": "Join the Get iT Centre to sell.",
         "suspended": "Your account is suspended for now: you can’t publish listings.",
@@ -3670,7 +3671,8 @@
         "sell": "Sell",
         "mine": "My listings",
         "approvals": "Approvals",
-        "listing": "A listing"
+        "listing": "A listing",
+        "page": "A pro page"
       },
       "profile": {
         "overview": "Overview",
@@ -3679,7 +3681,9 @@
         "ranked": "Ranked",
         "goals": "Goals",
         "habits": "Habits",
-        "settings": "Settings"
+        "settings": "Settings",
+        "pro": "Pro space",
+        "proEdit": "Create or edit one’s page"
       },
       "today": {
         "dayPanel": "My day"
@@ -4984,6 +4988,126 @@
       "sessionMissing": "This session is no longer in your plan.",
       "noSetDone": "Check at least one set to finish.",
       "invalid": "Check your weights and reps."
+    }
+  },
+  "Pages": {
+    "moreRegions": "and {count, number} more",
+    "switch": {
+      "toAccount": "Back to my account",
+      "toPage": "Switch to my page",
+      "createTitle": "Create your pro page",
+      "createText": "To sell your services and follow your clients."
+    },
+    "home": {
+      "title": "Pro space",
+      "viewPublic": "View my page",
+      "edit": "Edit",
+      "completeTitle": "Complete your page",
+      "completeCount": "{done, number} of {total, number}",
+      "steps": {
+        "logo": "Add your logo",
+        "cover": "Add a cover photo",
+        "about": "Introduce yourself in a few lines",
+        "service": "Publish your first service"
+      },
+      "services": "My services",
+      "addService": "Add a service",
+      "noService": "No services yet. Each service is reviewed by the Get iT team before it shows in the Marketplace.",
+      "status": {
+        "pending": "Awaiting approval",
+        "approved": "Live",
+        "rejected": "Rejected",
+        "archived": "Withdrawn"
+      }
+    },
+    "new": {
+      "title": "Create my pro page",
+      "back": "Profile",
+      "description": "Your page is separate from your personal account, like a Facebook page. You switch between them from your profile.",
+      "points": {
+        "sell": "Sell your services in the Marketplace, under your page’s name.",
+        "clients": "Coming soon: follow your clients, their plans and your notes, with their consent.",
+        "feed": "Coming soon: post in the Hub as your page."
+      }
+    },
+    "edit": {
+      "title": "Edit my page",
+      "back": "Pro space",
+      "images": "Logo and cover",
+      "info": "Details",
+      "deleteHint": "Deleting your page also removes its services from the Marketplace. Your personal account doesn’t change."
+    },
+    "form": {
+      "name": "Page name",
+      "namePlaceholder": "E.g. Coach Max Energy",
+      "handle": "Page address",
+      "handleHint": "Lowercase letters, numbers, dots or dashes, 3 to 30 characters.",
+      "category": "Field",
+      "regulatedHint": "Regulated profession: your licence number will be asked for each service.",
+      "regions": "Regions served",
+      "about": "About",
+      "aboutPlaceholder": "What you offer, your approach, your training…",
+      "aboutCount": "{count, number} of {max, number} characters",
+      "website": "Website",
+      "optional": "(optional)",
+      "create": "Create my page",
+      "save": "Save",
+      "saved": "Saved."
+    },
+    "images": {
+      "cover": "Cover",
+      "logo": "Logo",
+      "addCover": "Add a cover",
+      "changeCover": "Change the cover",
+      "addLogo": "Add a logo",
+      "changeLogo": "Change the logo",
+      "remove": "Remove",
+      "disabled": "Image uploads aren’t enabled yet."
+    },
+    "delete": {
+      "button": "Delete my page",
+      "title": "Delete “{name}”?",
+      "description": "The page and its services disappear from the Marketplace, with their photos. Your personal account stays as it is.",
+      "failed": "Not possible right now. Try again.",
+      "cancel": "Cancel",
+      "confirm": "Delete"
+    },
+    "public": {
+      "title": "Pro page",
+      "back": "Marketplace",
+      "edit": "Edit my page",
+      "about": "About",
+      "services": "Services",
+      "noService": "No services live yet.",
+      "since": "On Get iT since {date}",
+      "contact": "Message"
+    },
+    "settings": {
+      "title": "Pro page",
+      "description": "To sell your services and, soon, follow your clients: a page separate from your personal account.",
+      "open": "Open my pro space",
+      "create": "Create my pro page"
+    },
+    "sell": {
+      "title": "Create your pro page to sell",
+      "description": "Your services are sold under your page’s name, separate from your personal account. Any Hub member can create one.",
+      "action": "Create my pro page"
+    },
+    "errors": {
+      "nameRequired": "Give your page a name (at least 2 characters).",
+      "nameTooLong": "60 characters at most.",
+      "handleInvalid": "Lowercase letters, numbers, dots or dashes, 3 to 30 characters, not starting or ending with a sign.",
+      "handleReserved": "This address is reserved.",
+      "handleTaken": "This address is already taken.",
+      "categoryRequired": "Choose your field.",
+      "aboutTooLong": "600 characters at most.",
+      "websiteInvalid": "Enter an address starting with https://",
+      "regionsInvalid": "Choose regions from the list.",
+      "notJoined": "Join the Get iT Hub to create your page.",
+      "suspended": "Your account is suspended: you can’t create a page for now.",
+      "alreadyHasPage": "You already have a page.",
+      "notFound": "Page not found.",
+      "unexpected": "Not possible right now. Try again."
     }
   }
 }

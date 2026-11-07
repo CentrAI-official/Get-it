@@ -18,7 +18,14 @@ import { useRouter } from "@/i18n/navigation";
 import { deleteListingAction } from "../actions";
 
 /** Écrire au vendeur dans la Messagerie (le paiement viendra ensuite). */
-export function ContactSeller({ sellerId }: { sellerId: string }) {
+export function ContactSeller({
+  sellerId,
+  label,
+}: {
+  sellerId: string;
+  /** « Écrire » sur une page pro ; « Contacter le vendeur » par défaut. */
+  label?: string;
+}) {
   const t = useTranslations("Marketplace.detail");
   const tErrors = useTranslations("Messages.errors");
   const router = useRouter();
@@ -44,7 +51,7 @@ export function ContactSeller({ sellerId }: { sellerId: string }) {
         ) : (
           <MessageCircle aria-hidden="true" />
         )}
-        {t("contact")}
+        {label ?? t("contact")}
       </Button>
       {error ? (
         <p role="alert" className="text-sm text-destructive">

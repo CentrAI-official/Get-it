@@ -24,6 +24,8 @@ export const PROTECTED_PATHS = [
   "/moderation",
   "/notifications",
   "/settings",
+  "/pro",
+  "/pages",
   ONBOARDING_PATH,
 ] as const;
 

@@ -40,12 +40,17 @@ export const appNavItems = [
   },
   { key: "messages", href: "/messages", icon: MessageCircle },
   { key: "services", href: "/services", icon: Handshake },
-  { key: "marketplace", href: "/marketplace", icon: ShoppingBag },
+  {
+    key: "marketplace",
+    href: "/marketplace",
+    icon: ShoppingBag,
+    includes: ["/pages"],
+  },
   {
     key: "profile",
     href: "/profile",
     icon: UserRound,
-    includes: ["/goals", "/habits", "/settings"],
+    includes: ["/goals", "/habits", "/settings", "/pro"],
   },
 ] as const satisfies readonly AppNavItem[];
 
