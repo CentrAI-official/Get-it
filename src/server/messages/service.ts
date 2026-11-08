@@ -536,6 +536,62 @@ export async function startPageConversation(
 }
 
 /**
+ * La page écrit à un de ses clients (suivi en cours) : la même conversation
+ * que celle où le client écrit à la page. Une page n'écrit jamais à un membre
+ * qui ne lui a pas écrit ou qui n'est pas son client.
+ */
+export async function startClientConversation(
+  ownerId: string,
+  pageId: string,
+  clientId: string,
+): Promise<{ ok: true; id: string } | Fail> {
+  const allowed = await canWrite(ownerId);
+  if (!allowed.ok) return allowed;
+  const relation = await db.pageClient.count({
+    where: { pageId, clientId, status: "active", page: { ownerId } },
+  });
+  if (relation === 0) return { ok: false, error: "notFound" };
+  if (await isBlockedPair(ownerId, clientId)) {
+    return { ok: false, error: "blocked" };
+  }
+  const key = pageConversationKey(pageId, clientId);
+  const existing = await db.conversation.findUnique({
+    where: { directKey: key },
+    select: { id: true },
+  });
+  if (existing) return { ok: true, id: existing.id };
+  try {
+    const created = await db.conversation.create({
+      data: {
+        directKey: key,
+        pageId,
+        createdById: ownerId,
+        members: {
+          create: [
+            { userId: clientId, status: "accepted" },
+            { userId: ownerId, status: "accepted" },
+          ],
+        },
+      },
+      select: { id: true },
+    });
+    return { ok: true, id: created.id };
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const again = await db.conversation.findUnique({
+        where: { directKey: key },
+        select: { id: true },
+      });
+      if (again) return { ok: true, id: again.id };
+    }
+    throw error;
+  }
+}
+
+/**
  * Conversations visibles (avec au moins un message après une éventuelle
  * suppression). La Messagerie personnelle n'a pas celles de sa page ; avec
  * `pageId`, seulement celles de cette page (sa boîte, dans l'Espace pro).

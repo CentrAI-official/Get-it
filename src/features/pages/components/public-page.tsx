@@ -14,6 +14,7 @@ import { getActingPage } from "@/server/pages/identity";
 import { getPublicPage } from "@/server/pages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { HANDLE_PATTERN } from "../rules";
+import { ClientRequestArea } from "@/features/clients/components/clients-views";
 import { FollowPageButton } from "./follow-page-button";
 import { PageHero } from "./pro-views";
 
@@ -63,12 +64,16 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
               <ContactSeller pageId={page.id} label={t("public.contact")} />
             </div>
             {member?.joined ? (
-              <FollowPageButton
-                pageId={page.id}
-                name={page.name}
-                following={follow.following}
-                followers={follow.followers}
-              />
+              <>
+                <FollowPageButton
+                  pageId={page.id}
+                  name={page.name}
+                  following={follow.following}
+                  followers={follow.followers}
+                />
+                {/* Devenir client : le client choisit ce que la page verra */}
+                <ClientRequestArea pageId={page.id} pageName={page.name} />
+              </>
             ) : null}
           </div>
         )}

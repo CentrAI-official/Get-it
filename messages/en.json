@@ -3322,7 +3322,10 @@
       "like": "{name} likes your post",
       "likes": "{name} and {others, plural, one {# other person like} other {# other people like}} your post",
       "story": "{name} answered your question: “{subject}”",
-      "follow": "{name} started following you"
+      "follow": "{name} started following you",
+      "client_invite": "{name} invites you to become a client",
+      "client_request": "{name} wants to become a client of your page",
+      "client_accepted": "{name} accepted the follow-up"
     },
     "push": {
       "title": "Notifications on this device",
@@ -3676,7 +3679,8 @@
         "library": "Library (exercises, recipes, tools)",
         "libraryItem": "Catalogue entry",
         "budget": "Budget",
-        "clients": "Clients (pro page)"
+        "clients": "Clients (pro page)",
+        "clientFile": "A client file (pro page)"
       },
       "marketplace": {
         "vitrine": "Showcase",
@@ -3697,7 +3701,8 @@
         "habits": "Habits",
         "settings": "Settings",
         "pro": "Their page (page profile)",
-        "proEdit": "Create or edit one’s page"
+        "proEdit": "Create or edit one’s page",
+        "pros": "My pros"
       },
       "today": {
         "dayPanel": "My day"
@@ -5152,8 +5157,148 @@
   },
   "Clients": {
     "title": "Clients",
-    "question": "The people your page supports.",
-    "soonTitle": "Your clients are coming soon",
-    "soonDescription": "Invite your clients or accept their requests. They choose what your page sees, plan by plan; their file, your notes and their follow-up will be here."
+    "question": "The people your page supports: what they show you, and your notes.",
+    "sharesNone": "Shares no plan",
+    "sharesList": "Shares: {list}",
+    "cancel": "Cancel",
+    "write": "Message",
+    "cancelInvite": "Withdraw invitation",
+    "cancelInviteTitle": "Withdraw this invitation?",
+    "cancelInviteDescription": "The person won’t see it anymore. You can invite them again.",
+    "home": {
+      "emptyTitle": "No clients yet",
+      "emptyDescription": "Invite a Hub member by username, or wait for requests: “Become a client” is on your page.",
+      "requests": "{count, plural, one {Request} other {Requests}} ({count, number})",
+      "requested": "Request received on {date}",
+      "message": "Their note: “{message}”",
+      "clients": "Your clients ({count, number})",
+      "since": "Client since {date}",
+      "invited": "Invitations sent",
+      "invitedOn": "Invitation sent on {date}",
+      "former": "Former clients",
+      "endedOn": "Follow-up ended on {date}"
+    },
+    "file": {
+      "title": "Client file",
+      "since": "Client since {date}",
+      "shared": "What {name} shows you",
+      "nothingShared": "{name} doesn’t share any plan yet. They can change it anytime in Profile › My pros.",
+      "noPlan": "{plan}: {name} doesn’t have one yet.",
+      "week": "Week {week, number} of {weeks, number}",
+      "sessionsDone": "{done, number} of {total, number} sessions done this week",
+      "itemsDone": "{done, number} of {total, number} done this week",
+      "done": "Done: ",
+      "notDone": "Not done yet: ",
+      "replaced": "replaced with {food}",
+      "outcome": {
+        "1": "hard",
+        "2": "okay",
+        "3": "great"
+      },
+      "workout": "Workout done · {minutes, number} min · {sets, plural, one {# set} other {# sets}}",
+      "records": "{count, plural, one {# record} other {# records}}",
+      "recent": "Latest logged workouts",
+      "rest": "Rest",
+      "nothing": "Nothing planned",
+      "notes": "Your notes",
+      "notesHint": "Private: {name} never sees them. They stay here after the follow-up ends.",
+      "noNotes": "No notes yet."
+    },
+    "notes": {
+      "label": "New note",
+      "placeholder": "Session, goal, what changed…",
+      "add": "Add note",
+      "delete": "Delete note",
+      "count": "{count, number} of {max, number}"
+    },
+    "shares": {
+      "title": "What {page} will see",
+      "hint": "Choose the plans to show, with what you check in them. You can change your mind anytime.",
+      "noPlan": "no plan yet",
+      "mentalConsent": "I agree that {page} can see my mental plan and what I check in it. This is sensitive information: I can withdraw this consent anytime.",
+      "never": "{page} never sees your journal, your check-ins, your budget amounts, or your personal goals and habits.",
+      "notes": "The pro can take notes about your follow-up. They stay with their page, even after the follow-up ends, and are deleted with the page or your account.",
+      "edit": "Change what I share",
+      "editTitle": "What {page} sees",
+      "save": "Save"
+    },
+    "request": {
+      "button": "Become a client",
+      "close": "Close",
+      "title": "Become a client of {page}",
+      "description": "The page receives your request and accepts it or not. It only sees what you choose here.",
+      "message": "A note for {page} (optional)",
+      "send": "Send my request",
+      "client": "You’re a client",
+      "sent": "Request sent",
+      "invited": "{page} invited you"
+    },
+    "invitation": {
+      "accept": "Accept",
+      "acceptTitle": "Accept {page}’s follow-up",
+      "confirm": "Start the follow-up",
+      "decline": "Decline",
+      "declineTitle": "Decline {page}’s invitation?",
+      "declineDescription": "The page won’t be notified."
+    },
+    "leave": {
+      "button": "End the follow-up",
+      "title": "End {page}’s follow-up?",
+      "description": "{page} won’t see your plans anymore, right away. Their notes stay with their page.",
+      "confirm": "End",
+      "cancelRequest": "Withdraw my request",
+      "cancelTitle": "Withdraw your request to {page}?",
+      "cancelDescription": "You can send another one later."
+    },
+    "invite": {
+      "button": "Invite a client",
+      "close": "Close",
+      "title": "Invite a client",
+      "description": "The person receives an invitation and chooses what your page will see. Their mental plan always requires their explicit consent.",
+      "username": "Username",
+      "placeholder": "@name",
+      "message": "A note (optional)",
+      "send": "Send invitation",
+      "sent": "Invitation sent to @{username}."
+    },
+    "answer": {
+      "accept": "Accept",
+      "decline": "Decline"
+    },
+    "end": {
+      "button": "End the follow-up",
+      "title": "End {name}’s follow-up?",
+      "description": "You won’t see their plans anymore. Your notes stay here.",
+      "confirm": "End"
+    },
+    "pros": {
+      "title": "My pros",
+      "back": "Profile",
+      "description": "The pro pages that support you. For each one, you choose what it sees.",
+      "invited": "Invited you on {date}",
+      "waiting": "Request sent, waiting for an answer",
+      "since": "Follow-up since {date}",
+      "emptyTitle": "No pros yet",
+      "emptyDescription": "Find a coach, a nutritionist or an advisor in the Marketplace, then “Become a client” on their page.",
+      "browse": "See the Marketplace",
+      "invitations": "{count, plural, one {# invitation to accept} other {# invitations to accept}}",
+      "count": "{count, plural, one {# pro} other {# pros}}"
+    },
+    "errors": {
+      "notFound": "Not found. Check the username, or this person isn’t a Hub member.",
+      "notJoined": "Join the Hub first (Community).",
+      "suspended": "Your account is suspended from the Hub for now.",
+      "self": "You can’t be your own client.",
+      "already": "There’s already a follow-up with this person (invitation, request or ongoing).",
+      "inviteLimit": "You’ve sent a lot of invitations today. Try again tomorrow.",
+      "requestLimit": "You’ve sent a lot of requests today. Try again tomorrow.",
+      "clientLimit": "This page has reached the maximum number of follow-ups.",
+      "noteLimit": "You’ve reached the maximum number of notes for this client.",
+      "mentalConsentRequired": "Check the consent box to show your mental plan.",
+      "messageTooLong": "300 characters at most.",
+      "noteRequired": "Write something before adding the note.",
+      "noteTooLong": "2,000 characters at most.",
+      "unexpected": "That didn’t work. Try again."
+    }
   }
 }

@@ -12,6 +12,7 @@ import { countContacts } from "@/server/profile/public";
 import { getCurrentProfile } from "@/server/profile/service";
 import { getMyLevels } from "@/server/levels/service";
 import { storageEnabled } from "@/server/storage/service";
+import { ProsLink } from "@/features/clients/components/clients-views";
 import { PageSwitch } from "@/features/pages/components/page-switch";
 import { ProfileEditor } from "./profile-editor";
 
@@ -142,6 +143,8 @@ export async function ProfileOverview({
         </div>
         {/* Comme sur Facebook : passer à sa page pro */}
         <PageSwitch />
+        {/* Mes pros : les pages qui me suivent, et ce que je leur montre */}
+        <ProsLink />
         {ranked !== null ? (
           // Niveau classé (Canada et États-Unis) ; sans lui, « Ta progression »
           // invite à s'évaluer

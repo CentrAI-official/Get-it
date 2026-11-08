@@ -13,6 +13,9 @@ export const NOTIFICATION_KINDS = [
   "like",
   "story",
   "follow",
+  "client_invite",
+  "client_request",
+  "client_accepted",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 

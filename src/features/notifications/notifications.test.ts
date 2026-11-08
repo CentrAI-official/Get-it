@@ -49,7 +49,8 @@ describe("notifications", () => {
     const sql =
       read("20261101140000_notifications") +
       read("20261106120000_story_kinds") +
-      read("20261108110000_follow_kind");
+      read("20261108110000_follow_kind") +
+      read("20261122110000_client_kinds");
     for (const kind of NOTIFICATION_KINDS) expect(sql).toContain(`'${kind}'`);
     expect(sql).toContain(
       'ALTER TABLE "notifications" ENABLE ROW LEVEL SECURITY',

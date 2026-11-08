@@ -134,6 +134,10 @@ model Profile {
   budgetPlans          BudgetPlan[]
   page                 Page?
   pageFollows          PageFollow[]
+  /// Les pages pro qui me suivent comme client (lot 3).
+  proPages             PageClient[]
+  /// Notes des pros sur moi (jamais montrées ; effacées avec le compte).
+  proNotes             ClientNote[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -1584,10 +1588,63 @@ model Page {
   conversations     Conversation[]
   notifications     Notification[]     @relation("NotificationActorPage")
   pageNotifications Notification[]     @relation("NotificationPage")
+  clients           PageClient[]
+  clientNotes       ClientNote[]
   followers         PageFollow[]
   postReactions     PostPageReaction[]
 
   @@map("pages")
+}
+
+/// Suivi d'un client par une page pro (lot 3).
+enum PageClientStatus {
+  invited
+  requested
+  active
+  ended
+}
+
+/// Un client d'une page pro : le client choisit ce que la page voit, plan par plan.
+model PageClient {
+  id              String            @id @default(uuid(7)) @db.Uuid
+  pageId          String            @map("page_id") @db.Uuid
+  clientId        String            @map("client_id") @db.Uuid
+  status          PageClientStatus
+  /// « page » (invitation) ou « client » (demande).
+  initiatedBy     String            @map("initiated_by")
+  /// Plans que le client montre à la page (src/features/clients/rules.ts).
+  sharedKinds     DevelopmentKind[] @default([]) @map("shared_kinds")
+  /// Accord explicite pour le plan mental (Loi 25).
+  mentalConsentAt DateTime?         @map("mental_consent_at") @db.Timestamptz(3)
+  message         String            @default("")
+  acceptedAt      DateTime?         @map("accepted_at") @db.Timestamptz(3)
+  endedAt         DateTime?         @map("ended_at") @db.Timestamptz(3)
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  page   Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  client Profile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, status])
+  @@index([clientId])
+  @@map("page_clients")
+}
+
+/// Note privée d'un pro sur un client (jamais montrée au client).
+model ClientNote {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  pageId    String   @map("page_id") @db.Uuid
+  clientId  String   @map("client_id") @db.Uuid
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  page   Page    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  client Profile @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, clientId, createdAt])
+  @@index([clientId])
+  @@map("client_notes")
 }
 
 /// S'abonner à une page pro : ses publications vont dans le fil « Abonnements ».
@@ -1742,6 +1799,12 @@ enum NotificationKind {
   story
   /// Nouvel abonné.
   follow
+  /// Une page invite à devenir son client.
+  client_invite
+  /// Un membre demande à devenir client d'une page (cloche de la page).
+  client_request
+  /// Le suivi est accepté (par le client ou par la page).
+  client_accepted
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.

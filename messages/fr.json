@@ -3322,7 +3322,10 @@
       "like": "{name} aime ta publication",
       "likes": "{name} et {others, plural, one {# autre personne aiment} other {# autres personnes aiment}} ta publication",
       "story": "{name} a répondu à ta question : « {subject} »",
-      "follow": "{name} s’est abonné à toi"
+      "follow": "{name} s’est abonné à toi",
+      "client_invite": "{name} t’invite à devenir client",
+      "client_request": "{name} veut devenir client de ta page",
+      "client_accepted": "{name} a accepté le suivi"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -3676,7 +3679,8 @@
         "library": "Bibliothèque (exercices, recettes, outils)",
         "libraryItem": "Fiche du catalogue",
         "budget": "Budget",
-        "clients": "Clients (page pro)"
+        "clients": "Clients (page pro)",
+        "clientFile": "Fiche d’un client (page pro)"
       },
       "marketplace": {
         "vitrine": "Vitrine",
@@ -3697,7 +3701,8 @@
         "habits": "Habitudes",
         "settings": "Réglages",
         "pro": "Sa page (profil de la page)",
-        "proEdit": "Créer ou modifier sa page"
+        "proEdit": "Créer ou modifier sa page",
+        "pros": "Mes pros"
       },
       "today": {
         "dayPanel": "Ma journée"
@@ -5152,8 +5157,148 @@
   },
   "Clients": {
     "title": "Clients",
-    "question": "Les personnes que ta page accompagne.",
-    "soonTitle": "Tes clients arrivent bientôt",
-    "soonDescription": "Invite tes clients ou accepte leurs demandes. Ils choisissent ce que ta page voit, plan par plan ; leur fiche, tes notes et leur suivi seront ici."
+    "question": "Les personnes que ta page accompagne : ce qu’elles te montrent, et tes notes.",
+    "sharesNone": "Ne partage aucun plan",
+    "sharesList": "Partage : {list}",
+    "cancel": "Annuler",
+    "write": "Écrire",
+    "cancelInvite": "Retirer l’invitation",
+    "cancelInviteTitle": "Retirer cette invitation?",
+    "cancelInviteDescription": "La personne ne la verra plus. Tu pourras l’inviter de nouveau.",
+    "home": {
+      "emptyTitle": "Aucun client pour l’instant",
+      "emptyDescription": "Invite un membre du Centre par son nom d’utilisateur, ou attends les demandes : « Devenir client » est sur ta page.",
+      "requests": "{count, plural, one {Demande} other {Demandes}} ({count, number})",
+      "requested": "Demande reçue le {date}",
+      "message": "Son mot : « {message} »",
+      "clients": "Tes clients ({count, number})",
+      "since": "Client depuis le {date}",
+      "invited": "Invitations envoyées",
+      "invitedOn": "Invitation envoyée le {date}",
+      "former": "Anciens clients",
+      "endedOn": "Suivi terminé le {date}"
+    },
+    "file": {
+      "title": "Fiche client",
+      "since": "Client depuis le {date}",
+      "shared": "Ce que {name} te montre",
+      "nothingShared": "{name} ne partage aucun plan pour l’instant. Il ou elle peut le changer à tout moment dans Profil › Mes pros.",
+      "noPlan": "{plan} : {name} n’en a pas encore.",
+      "week": "Semaine {week, number} sur {weeks, number}",
+      "sessionsDone": "{done, number} sur {total, number} séances faites cette semaine",
+      "itemsDone": "{done, number} sur {total, number} faits cette semaine",
+      "done": "Fait : ",
+      "notDone": "Pas encore fait : ",
+      "replaced": "remplacé par {food}",
+      "outcome": {
+        "1": "difficile",
+        "2": "correct",
+        "3": "super bien"
+      },
+      "workout": "Séance faite · {minutes, number} min · {sets, plural, one {# série} other {# séries}}",
+      "records": "{count, plural, one {# record} other {# records}}",
+      "recent": "Dernières séances du carnet",
+      "rest": "Repos",
+      "nothing": "Rien de prévu",
+      "notes": "Tes notes",
+      "notesHint": "Privées : {name} ne les voit jamais. Elles restent ici après la fin du suivi.",
+      "noNotes": "Aucune note pour l’instant."
+    },
+    "notes": {
+      "label": "Nouvelle note",
+      "placeholder": "Séance, objectif, ce qui a changé…",
+      "add": "Ajouter la note",
+      "delete": "Supprimer la note",
+      "count": "{count, number} sur {max, number}"
+    },
+    "shares": {
+      "title": "Ce que {page} verra",
+      "hint": "Choisis les plans à montrer, avec ce que tu y coches. Tu pourras changer d’avis à tout moment.",
+      "noPlan": "pas encore de plan",
+      "mentalConsent": "J’accepte que {page} voie mon plan mental et ce que j’y coche. Ce sont des renseignements sensibles : je peux retirer cet accord quand je veux.",
+      "never": "{page} ne voit jamais ton journal, tes check-ins, les montants de ton budget, ni tes objectifs et habitudes personnels.",
+      "notes": "Le pro peut prendre des notes sur ton suivi. Elles restent à sa page, même après la fin du suivi, et partent avec la page ou avec ton compte.",
+      "edit": "Changer ce que je partage",
+      "editTitle": "Ce que {page} voit",
+      "save": "Enregistrer"
+    },
+    "request": {
+      "button": "Devenir client",
+      "close": "Fermer",
+      "title": "Devenir client de {page}",
+      "description": "La page reçoit ta demande et l’accepte ou non. Elle ne voit que ce que tu choisis ici.",
+      "message": "Un mot pour {page} (facultatif)",
+      "send": "Envoyer ma demande",
+      "client": "Tu es client",
+      "sent": "Demande envoyée",
+      "invited": "{page} t’a invité"
+    },
+    "invitation": {
+      "accept": "Accepter",
+      "acceptTitle": "Accepter le suivi de {page}",
+      "confirm": "Commencer le suivi",
+      "decline": "Refuser",
+      "declineTitle": "Refuser l’invitation de {page}?",
+      "declineDescription": "La page ne sera pas prévenue."
+    },
+    "leave": {
+      "button": "Mettre fin au suivi",
+      "title": "Mettre fin au suivi de {page}?",
+      "description": "{page} ne verra plus tes plans, tout de suite. Ses notes restent à sa page.",
+      "confirm": "Mettre fin",
+      "cancelRequest": "Retirer ma demande",
+      "cancelTitle": "Retirer ta demande à {page}?",
+      "cancelDescription": "Tu pourras en envoyer une autre plus tard."
+    },
+    "invite": {
+      "button": "Inviter un client",
+      "close": "Fermer",
+      "title": "Inviter un client",
+      "description": "La personne reçoit une invitation et choisit ce que ta page verra. Son plan mental demande toujours son accord explicite.",
+      "username": "Nom d’utilisateur",
+      "placeholder": "@nom",
+      "message": "Un mot (facultatif)",
+      "send": "Envoyer l’invitation",
+      "sent": "Invitation envoyée à @{username}."
+    },
+    "answer": {
+      "accept": "Accepter",
+      "decline": "Refuser"
+    },
+    "end": {
+      "button": "Mettre fin au suivi",
+      "title": "Mettre fin au suivi de {name}?",
+      "description": "Tu ne verras plus ses plans. Tes notes restent ici.",
+      "confirm": "Mettre fin"
+    },
+    "pros": {
+      "title": "Mes pros",
+      "back": "Profil",
+      "description": "Les pages pro qui t’accompagnent. Tu choisis, pour chacune, ce qu’elle voit.",
+      "invited": "T’a invité le {date}",
+      "waiting": "Demande envoyée, en attente de réponse",
+      "since": "Suivi depuis le {date}",
+      "emptyTitle": "Aucun pro pour l’instant",
+      "emptyDescription": "Trouve un coach, une nutritionniste ou un conseiller dans la Marketplace, puis « Devenir client » sur sa page.",
+      "browse": "Voir la Marketplace",
+      "invitations": "{count, plural, one {# invitation à accepter} other {# invitations à accepter}}",
+      "count": "{count, plural, one {# pro} other {# pros}}"
+    },
+    "errors": {
+      "notFound": "Introuvable. Vérifie le nom d’utilisateur, ou cette personne n’est pas membre du Centre.",
+      "notJoined": "Rejoins d’abord le Centre (Communauté).",
+      "suspended": "Ton compte est suspendu du Centre pour l’instant.",
+      "self": "Tu ne peux pas être ton propre client.",
+      "already": "Un suivi existe déjà avec cette personne (invitation, demande ou suivi en cours).",
+      "inviteLimit": "Tu as envoyé beaucoup d’invitations aujourd’hui. Réessaie demain.",
+      "requestLimit": "Tu as envoyé beaucoup de demandes aujourd’hui. Réessaie demain.",
+      "clientLimit": "Cette page a atteint le nombre maximal de suivis.",
+      "noteLimit": "Tu as atteint le nombre maximal de notes pour ce client.",
+      "mentalConsentRequired": "Coche l’accord pour montrer ton plan mental.",
+      "messageTooLong": "300 caractères au plus.",
+      "noteRequired": "Écris quelque chose avant d’ajouter la note.",
+      "noteTooLong": "2000 caractères au plus.",
+      "unexpected": "Ça n’a pas fonctionné. Réessaie."
+    }
   }
 }
