@@ -1232,6 +1232,11 @@ async function notifyMessage(viewerId: string, conversationId: string) {
             : "message",
         actorId: viewerId,
         actorPageId: asPage,
+        // Un membre écrit à la page : la cloche de la page
+        pageId:
+          conversation.page?.ownerId === member.userId
+            ? conversation.page.id
+            : null,
         href: `/messages/${conversationId}`,
         subject: conversation.group?.name ?? "",
         groupKey: `message:${conversationId}`,

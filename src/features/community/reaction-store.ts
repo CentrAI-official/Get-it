@@ -1,4 +1,5 @@
 import { useSyncExternalStore, useTransition } from "react";
+import { currentIdentity } from "@/features/identity/client";
 import { setReactionAction } from "./actions";
 
 // « Bravo » donné depuis le fil ou depuis la visionneuse des progrès du jour :
@@ -47,7 +48,8 @@ export function useBravo(post: {
       count: reaction.count + (next ? 1 : -1),
     });
     startTransition(async () => {
-      const result = await setReactionAction(post.id, next);
+      // Au nom du compte sous lequel l'écran a été chargé (sa page en mode page)
+      const result = await setReactionAction(post.id, next, currentIdentity());
       if (!result.ok) setReaction(post.id, previous);
     });
   }

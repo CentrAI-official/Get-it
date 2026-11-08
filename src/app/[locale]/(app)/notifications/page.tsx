@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationList } from "@/features/notifications/components/notification-list";
 import { requireUser } from "@/server/auth/session";
 import { getNotificationsPage } from "@/server/notifications/service";
+import { getActingPage } from "@/server/pages/identity";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Notifications");
@@ -36,6 +37,8 @@ export default function NotificationsPage() {
 
 async function Notifications() {
   const user = await requireUser();
-  const page = await getNotificationsPage(user.id);
+  // Celles du compte actif : le sien, ou celles de sa page
+  const acting = await getActingPage(user.id);
+  const page = await getNotificationsPage(user.id, acting?.id ?? null);
   return <NotificationList items={page.items} now={page.loadedAt} />;
 }

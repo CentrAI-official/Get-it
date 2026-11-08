@@ -10,6 +10,7 @@ import { Link } from "@/i18n/navigation";
 import { listFeed } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
 import { pageFollowState } from "@/server/pages/follows";
+import { getActingPage } from "@/server/pages/identity";
 import { getPublicPage } from "@/server/pages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { HANDLE_PATTERN } from "../rules";
@@ -25,13 +26,14 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
   const viewer = await getCurrentProfile();
   const page = await getPublicPage(viewer.id, handle);
   if (!page) notFound();
+  const acting = await getActingPage(viewer.id);
   const [t, tFollows, format, follow, member, feed] = await Promise.all([
     getTranslations("Pages"),
     getTranslations("Follows"),
     getFormatter(),
     pageFollowState(viewer.id, page.id),
     getCommunityMember(viewer.id),
-    listFeed(viewer.id, undefined, undefined, undefined, false, page.id),
+    listFeed(viewer.id, { pageId: page.id, asPageId: acting?.id ?? null }),
   ]);
   const canWrite = Boolean(member?.joined && !member.suspendedUntil);
 
@@ -43,7 +45,11 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
             <p className="text-sm text-muted-foreground tabular-nums">
               {tFollows("followers", { count: follow.followers })}
             </p>
-            <Button asChild variant="outline" className="h-11 w-fit">
+            <Button
+              asChild
+              variant="outline"
+              className="identity-page h-11 w-fit"
+            >
               <Link href="/pro/edit">
                 <Pencil aria-hidden="true" />
                 {t("public.edit")}
@@ -118,6 +124,7 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
           now={feed.loadedAt}
           canWrite={canWrite}
           pageId={page.id}
+          asPage={acting !== null}
           empty={{
             title: t("public.noPostsTitle"),
             description: t("public.noPosts"),

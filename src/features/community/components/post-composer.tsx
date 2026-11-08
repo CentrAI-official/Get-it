@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/avatar";
+import { currentIdentity } from "@/features/identity/client";
 import { PageLogo } from "@/features/pages/components/page-logo";
 import {
   Dialog,
@@ -169,7 +170,6 @@ export function PostComposer({
             <PostForm
               mediaEnabled={mediaEnabled}
               groupId={groupId}
-              asPage={Boolean(asPage)}
               onDone={() => setOpen(false)}
             />
           ) : (
@@ -198,8 +198,7 @@ function PostForm({
   onDone,
   mediaEnabled,
   groupId,
-  asPage = false,
-}: FormProps & { mediaEnabled: boolean; groupId?: string; asPage?: boolean }) {
+}: FormProps & { mediaEnabled: boolean; groupId?: string }) {
   const t = useTranslations("Community.composer");
   const tErrors = useTranslations("Community.errors");
   const tPillars = useTranslations("Pillars");
@@ -225,7 +224,11 @@ function PostForm({
   return (
     <form
       ref={formRef}
-      action={formAction}
+      action={(formData) => {
+        // Au nom du compte sous lequel l'écran a été chargé (sa page en mode page)
+        formData.set("identity", currentIdentity());
+        formAction(formData);
+      }}
       noValidate
       className="flex flex-col gap-3"
     >
@@ -234,7 +237,6 @@ function PostForm({
       <input type="hidden" name="pillar" value={pillar ?? ""} />
       <input type="hidden" name="media" value={media.payload} />
       <input type="hidden" name="groupId" value={groupId ?? ""} />
-      <input type="hidden" name="asPage" value={asPage ? "1" : ""} />
       <div
         role="radiogroup"
         aria-label={t("kindLabel")}

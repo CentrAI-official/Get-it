@@ -97,8 +97,18 @@ export function visibleTo(viewerId: string) {
   };
 }
 
-/** Colonnes d'une publication du fil, vue par `viewerId`. */
-export function postSelect(viewerId: string, blocked: readonly string[]) {
+/** Aucune page : l'identifiant nul ne correspond à aucun « J'aime » de page. */
+const NO_PAGE = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Colonnes d'une publication du fil, vue par `viewerId` (au nom de sa page
+ * `asPageId` en mode page : ses « J'aime » à elle).
+ */
+export function postSelect(
+  viewerId: string,
+  blocked: readonly string[],
+  asPageId: string | null = null,
+) {
   return {
     id: true,
     kind: true,
@@ -116,10 +126,15 @@ export function postSelect(viewerId: string, blocked: readonly string[]) {
     },
     page: { select: { id: true, name: true, handle: true, logoPath: true } },
     reactions: { where: { userId: viewerId }, select: { userId: true } },
+    pageReactions: {
+      where: { pageId: asPageId ?? NO_PAGE },
+      select: { pageId: true },
+    },
     saves: { where: { userId: viewerId }, select: { userId: true } },
     _count: {
       select: {
         reactions: true,
+        pageReactions: true,
         videoViews: true,
         comments: {
           where: {
@@ -174,6 +189,7 @@ export async function sharedPostsFor(
 export async function toFeedPosts(
   rows: readonly PostRow[],
   viewerId: string,
+  asPageId: string | null = null,
 ): Promise<FeedPost[]> {
   const sharedIds = rows.flatMap((post) =>
     post.sharedPostId ? [post.sharedPostId] : [],
@@ -225,8 +241,11 @@ export async function toFeedPosts(
             level: levels.get(post.userId) ?? null,
             page: null,
           },
-      reactions: post._count.reactions,
-      reacted: post.reactions.length > 0,
+      // « J'aime » des personnes et des pages ; le mien, ou celui de ma page en mode page
+      reactions: post._count.reactions + post._count.pageReactions,
+      reacted: asPageId
+        ? post.pageReactions.length > 0
+        : post.reactions.length > 0,
       comments: post._count.comments,
       mine: post.userId === viewerId,
       media: media.get(post.id) ?? [],
@@ -244,6 +263,7 @@ export async function toFeedPosts(
 export async function getFeedPost(
   viewerId: string,
   postId: string,
+  asPageId: string | null = null,
 ): Promise<{ post: FeedPost; loadedAt: number } | null> {
   const blocked = await getBlockedIds(viewerId);
   const row = await db.post.findFirst({
@@ -252,10 +272,10 @@ export async function getFeedPost(
       ...visibleTo(viewerId),
       ...(blocked.length > 0 ? { userId: { notIn: blocked } } : {}),
     },
-    select: postSelect(viewerId, blocked),
+    select: postSelect(viewerId, blocked, asPageId),
   });
   if (!row) return null;
-  const [post] = await toFeedPosts([row], viewerId);
+  const [post] = await toFeedPosts([row], viewerId, asPageId);
   return post ? { post, loadedAt: Date.now() } : null;
 }
 
@@ -266,15 +286,30 @@ export async function getFeedPost(
  * montre aussi les publications des groupes publics dont la personne est
  * membre, comme sur Facebook.
  */
+export type FeedOptions = {
+  cursor?: FeedCursor;
+  /** Seulement les publications de cette personne (pas celles de sa page). */
+  authorId?: string;
+  /** Forum de ce groupe public. */
+  groupId?: string;
+  /** Fil « Abonnements » : les comptes que je suis, moi-même et mes groupes. */
+  following?: boolean;
+  /** Seulement les publications de cette page pro. */
+  pageId?: string;
+  /** Lu au nom de sa page (mode page) : ses « J'aime », sans les forums des groupes. */
+  asPageId?: string | null;
+};
+
 export async function listFeed(
   viewerId: string,
-  cursor?: FeedCursor,
-  authorId?: string,
-  groupId?: string,
-  /** Fil « Abonnements » : les comptes que je suis, moi-même et mes groupes. */
-  following = false,
-  /** Seulement les publications de cette page pro. */
-  pageId?: string,
+  {
+    cursor,
+    authorId,
+    groupId,
+    following = false,
+    pageId,
+    asPageId = null,
+  }: FeedOptions = {},
 ): Promise<{
   posts: FeedPost[];
   nextCursor: FeedCursor | null;
@@ -298,6 +333,8 @@ export async function listFeed(
       blocked.length > 0 ? { userId: { notIn: blocked } } : {},
       // Le profil d'une personne : ses publications à elle, pas celles de sa page
       authorId ? { userId: authorId, pageId: null } : {},
+      // Une page ne participe pas (encore) aux forums des groupes
+      asPageId ? { groupId: null } : {},
       pageId ? { pageId } : {},
       following
         ? {
@@ -344,14 +381,14 @@ export async function listFeed(
     where,
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: FEED_PAGE_SIZE + 1,
-    select: postSelect(viewerId, blocked),
+    select: postSelect(viewerId, blocked, asPageId),
   });
 
   const page = rows.slice(0, FEED_PAGE_SIZE);
   const last = page.at(-1);
 
   return {
-    posts: await toFeedPosts(page, viewerId),
+    posts: await toFeedPosts(page, viewerId, asPageId),
     nextCursor:
       rows.length > FEED_PAGE_SIZE && last
         ? { createdAt: last.createdAt.toISOString(), id: last.id }

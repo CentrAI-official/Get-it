@@ -1,7 +1,7 @@
 "use client";
 
 import { LoaderCircle, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useState, useTransition } from "react";
 import {
   AlertDialog,
@@ -15,13 +15,13 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "@/i18n/navigation";
+import { reloadTo } from "@/features/identity/client";
 import { deletePageAction } from "../actions";
 
 /** Supprimer sa page, ses annonces et leurs photos, après confirmation. */
 export function DeletePage({ name }: { name: string }) {
   const t = useTranslations("Pages.delete");
-  const router = useRouter();
+  const locale = useLocale();
   const [failed, setFailed] = useState(false);
   const [pending, startTransition] = useTransition();
   return (
@@ -52,8 +52,10 @@ export function DeletePage({ name }: { name: string }) {
             variant="destructive"
             onClick={() =>
               startTransition(async () => {
-                if (await deletePageAction()) router.push("/profile");
-                else setFailed(true);
+                // Retour au compte personnel : l'application est rechargée
+                if (await deletePageAction()) {
+                  reloadTo(locale, "/profile");
+                } else setFailed(true);
               })
             }
           >

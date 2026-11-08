@@ -5,6 +5,8 @@ import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ContactsView } from "@/features/contacts/components/contacts-view";
+import { IdentitySwitch } from "@/features/identity/components/identity-switch";
+import { PageInbox } from "@/features/pages/components/page-inbox";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { Link } from "@/i18n/navigation";
 import { minuteOfDay } from "@/lib/dates";
@@ -17,6 +19,7 @@ import {
   listInbox,
 } from "@/server/messages/service";
 import { listActivePacts } from "@/server/messages/pacts";
+import { getActingPage } from "@/server/pages/identity";
 import { onlineContactIds } from "@/server/presence/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ConversationView } from "./conversation-view";
@@ -47,6 +50,19 @@ export async function MessagesHome() {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinFirst />;
+  // Sur sa page : la boîte de la page, à part de la Messagerie personnelle
+  const acting = await getActingPage(profile.id);
+  if (acting) {
+    const inbox = await listInbox(profile.id, acting.id);
+    return (
+      <PageInbox
+        initial={inbox.items}
+        loadedAt={inbox.loadedAt}
+        pageName={acting.name}
+        handle={acting.handle}
+      />
+    );
+  }
   const [inbox, contactRequests, groups, pacts, t] = await Promise.all([
     listInbox(profile.id),
     countContactRequests(profile.id),
@@ -121,16 +137,60 @@ export async function ConversationLoader({ id }: { id: string }) {
   const profile = await getCurrentProfile();
   const conversationId = recordIdSchema.safeParse(id);
   if (!conversationId.success) notFound();
-  const conversation = await getConversation(profile.id, conversationId.data);
+  const [conversation, acting] = await Promise.all([
+    getConversation(profile.id, conversationId.data),
+    getActingPage(profile.id),
+  ]);
   if (conversation) {
+    // Chaque conversation est d'un seul compte : celle de la page sur la page,
+    // les autres sur le compte personnel (on n'écrit jamais sous le mauvais nom)
+    const ofMyPage = conversation.page?.mine === true;
+    if (ofMyPage !== (acting !== null)) {
+      return (
+        <OtherIdentity
+          to={ofMyPage ? "page" : "personal"}
+          id={conversationId.data}
+        />
+      );
+    }
     return (
       <ConversationView initial={conversation} timeZone={profile.timeZone} />
     );
   }
-  // Discussion d'un groupe privé
+  // Discussion d'un groupe privé (compte personnel)
   const chat = await getGroupChat(profile.id, conversationId.data);
   if (!chat) notFound();
+  if (acting) {
+    return <OtherIdentity to="personal" id={conversationId.data} />;
+  }
   return <GroupChatView initial={chat} timeZone={profile.timeZone} />;
+}
+
+/** Cette conversation est sous l'autre compte : on propose d'y passer. */
+async function OtherIdentity({
+  to,
+  id,
+}: {
+  to: "page" | "personal";
+  id: string;
+}) {
+  const t = await getTranslations("Identity.otherAccount");
+  return (
+    <EmptyState
+      icon={MessageCircle}
+      title={t(`${to}Title`)}
+      description={t(`${to}Description`)}
+      action={
+        <IdentitySwitch
+          to={to}
+          href={`/messages/${id}`}
+          className="h-10 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
+        >
+          {t(`${to}Action`)}
+        </IdentitySwitch>
+      }
+    />
+  );
 }
 
 export function InboxSkeleton() {

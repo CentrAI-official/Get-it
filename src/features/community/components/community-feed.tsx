@@ -30,6 +30,8 @@ type CommunityFeedProps = {
   groupId?: string;
   /** Seulement les publications de cette page pro. */
   pageId?: string;
+  /** Lu au nom de sa page (mode page) : voir PostCard. */
+  asPage?: boolean;
   /** Créateur ou admin du groupe : peut retirer les publications du forum. */
   groupManager?: boolean;
 };
@@ -48,6 +50,7 @@ export function CommunityFeed({
   groupId,
   pageId,
   groupManager = false,
+  asPage = false,
 }: CommunityFeedProps) {
   const t = useTranslations("Community.feed");
   const [posts, setPosts] = useState(initialPosts);
@@ -117,6 +120,7 @@ export function CommunityFeed({
             onNotice={setNotice}
             inGroup={Boolean(groupId)}
             groupManager={groupManager}
+            asPage={asPage}
           />
         ))
       )}

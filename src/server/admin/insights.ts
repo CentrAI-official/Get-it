@@ -232,7 +232,8 @@ export async function getContent(
       EXISTS (SELECT 1 FROM post_media m WHERE m.post_id = p.id AND m.kind = 'video') AS "hasVideo",
       p.created_at AS "createdAt", pr.username, pr.display_name AS "displayName",
       g.name AS "groupName",
-      (SELECT count(*)::int FROM post_reactions r WHERE r.post_id = p.id) AS likes,
+      (SELECT count(*)::int FROM post_reactions r WHERE r.post_id = p.id)
+        + (SELECT count(*)::int FROM post_page_reactions r WHERE r.post_id = p.id) AS likes,
       (SELECT count(*)::int FROM post_comments c WHERE c.post_id = p.id AND c.status = 'visible') AS comments,
       (SELECT count(*)::int FROM post_saves s WHERE s.post_id = p.id) AS saves,
       (SELECT count(*)::int FROM posts sp WHERE sp.shared_post_id = p.id) AS shares,

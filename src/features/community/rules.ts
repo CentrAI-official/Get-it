@@ -198,6 +198,7 @@ export const COMMUNITY_ERRORS = [
   "storyStreak",
   "storyMusic",
   "storyAnswerInvalid",
+  "identityChanged",
   "unexpected",
 ] as const;
 

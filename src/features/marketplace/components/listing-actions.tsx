@@ -41,7 +41,8 @@ export function ContactSeller({
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="flex flex-1 flex-col gap-2">
+    // Écrire est au compte personnel : caché sur sa page
+    <div className="identity-personal flex flex-1 flex-col gap-2">
       <Button
         size="lg"
         disabled={pending}

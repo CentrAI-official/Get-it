@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { requireUser } from "@/server/auth/session";
+import { getActingPage } from "@/server/pages/identity";
 import {
   countUnreadNotifications,
   markNotificationsRead,
@@ -9,16 +10,18 @@ import {
   savePushSubscription,
 } from "@/server/notifications/service";
 
-/** Pastille de la cloche. */
+/** Pastille de la cloche (celle du compte actif : le sien, ou sa page). */
 export async function countUnreadNotificationsAction(): Promise<number> {
   const user = await requireUser();
-  return countUnreadNotifications(user.id).catch(() => 0);
+  const page = await getActingPage(user.id);
+  return countUnreadNotifications(user.id, page?.id ?? null).catch(() => 0);
 }
 
-/** La page des notifications est ouverte : tout est lu. */
+/** La page des notifications est ouverte : tout est lu (pour le compte actif). */
 export async function markNotificationsReadAction() {
   const user = await requireUser();
-  await markNotificationsRead(user.id);
+  const page = await getActingPage(user.id);
+  await markNotificationsRead(user.id, page?.id ?? null);
 }
 
 // Abonnement web push envoyé par le navigateur (PushSubscription.toJSON())

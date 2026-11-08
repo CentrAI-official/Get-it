@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { UnreadBadge } from "@/features/messages/components/unread-badge";
-import { appNavItems, isActiveItem } from "./nav-items";
+import { appNavItems, identityClass, isActiveItem } from "./nav-items";
 
 /** Barre de navigation collée au bas de l'écran sur mobile, « Mon développement » au centre. */
 export function AppMobileNav() {
@@ -36,10 +36,15 @@ function Tabs({ pathname }: { pathname: string | null }) {
       {appNavItems.map((item) => {
         const { key, href, icon: Icon } = item;
         const active = pathname !== null && isActiveItem(pathname, item);
-        // « Mon développement » au centre : une bulle surélevée, comme une orbite
-        const center = key === "services";
+        // « Mon développement » (ou Clients, sur sa page) au centre : une bulle surélevée
+        const center = key === "services" || key === "clients";
         return (
-          <li key={key}>
+          <li
+            key={key}
+            className={identityClass(
+              "identity" in item ? item.identity : undefined,
+            )}
+          >
             <Link
               href={href}
               // Changer de catégorie : un fondu, pas un glissement
@@ -70,7 +75,7 @@ function Tabs({ pathname }: { pathname: string | null }) {
                 </span>
               )}
               {/* Nom court : « Mon développement » ne tient pas dans la barre */}
-              {t(center ? "servicesShort" : key)}
+              {t(key === "services" ? "servicesShort" : key)}
             </Link>
           </li>
         );

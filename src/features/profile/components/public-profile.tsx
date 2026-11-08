@@ -13,6 +13,7 @@ import { listFeed } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
 import { followCounts } from "@/server/follows/service";
 import { getPublicProfile } from "@/server/profile/public";
+import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { ProfileActions } from "./profile-actions";
 
@@ -26,8 +27,10 @@ export async function PublicProfileLoader({ username }: { username: string }) {
   if (!member?.joined) return <JoinCommunityCard />;
   const profile = await getPublicProfile(viewer.id, username);
   if (!profile) notFound();
+  // Sur sa page : on aime et commente au nom de la page
+  const acting = await getActingPage(viewer.id);
   const [feed, follows, t, tPillars, format] = await Promise.all([
-    listFeed(viewer.id, undefined, profile.id),
+    listFeed(viewer.id, { authorId: profile.id, asPageId: acting?.id ?? null }),
     followCounts(viewer.id, profile.id),
     getTranslations("Community.profile"),
     getTranslations("Pillars"),
@@ -96,14 +99,15 @@ export async function PublicProfileLoader({ username }: { username: string }) {
           </li>
         </ul>
         {profile.mine ? (
-          <Button asChild variant="outline" className="w-fit">
+          <Button asChild variant="outline" className="identity-personal w-fit">
             <Link href="/profile">
               <PenLine aria-hidden="true" />
               {t("edit")}
             </Link>
           </Button>
         ) : (
-          <div className="flex flex-wrap items-start gap-2">
+          // Suivre, écrire, ajouter : au compte personnel (cachés sur sa page)
+          <div className="identity-personal flex flex-wrap items-start gap-2">
             <FollowButton
               userId={profile.id}
               name={name}
@@ -182,6 +186,7 @@ export async function PublicProfileLoader({ username }: { username: string }) {
           now={feed.loadedAt}
           canWrite={!member.suspendedUntil}
           authorId={profile.id}
+          asPage={acting !== null}
           empty={{
             title: t("emptyTitle"),
             description: t("emptyDescription", { name }),

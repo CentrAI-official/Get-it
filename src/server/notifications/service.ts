@@ -31,6 +31,11 @@ export type NotifyInput = {
   groupKey?: string;
   /** Au nom de cette page pro : son nom et son logo à la place de la personne. */
   actorPageId?: string | null;
+  /**
+   * Destinée à la page pro du destinataire (sa cloche, en mode page) : un
+   * message à la page, un commentaire ou un « J'aime » sur ses publications.
+   */
+  pageId?: string | null;
 };
 
 export async function notify(input: NotifyInput) {
@@ -43,6 +48,7 @@ export async function notify(input: NotifyInput) {
       ? await db.notification.findFirst({
           where: {
             userId: input.userId,
+            pageId: input.pageId ?? null,
             groupKey: input.groupKey,
             readAt: null,
           },
@@ -68,6 +74,7 @@ export async function notify(input: NotifyInput) {
           kind: input.kind,
           actorId: input.actorId,
           actorPageId: input.actorPageId ?? null,
+          pageId: input.pageId ?? null,
           href: input.href,
           subject,
           groupKey: input.groupKey ?? null,
@@ -96,7 +103,7 @@ async function sendPush(
 ) {
   const env = getServerEnv();
   if (!env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || !env.VAPID_PRIVATE_KEY) return;
-  const [subscriptions, settings, actor] = await Promise.all([
+  const [subscriptions, settings, actor, page] = await Promise.all([
     db.pushSubscription.findMany({
       where: { userId: input.userId },
       select: { id: true, endpoint: true, p256dh: true, auth: true },
@@ -118,6 +125,13 @@ async function sendPush(
           where: { id: input.actorId },
           select: { displayName: true, username: true },
         }),
+    // Pour la page : son nom en titre, on sait tout de suite quel compte est visé
+    input.pageId
+      ? db.page.findUnique({
+          where: { id: input.pageId },
+          select: { name: true },
+        })
+      : null,
   ]);
   if (subscriptions.length === 0) return;
   const locale = settings?.locale ?? "fr";
@@ -128,7 +142,7 @@ async function sendPush(
     count: input.count,
   });
   const payload = JSON.stringify({
-    title: siteConfig.name,
+    title: page?.name ?? siteConfig.name,
     body: t(`items.${text.key}`, text.values),
     url: `/${locale}${input.href}`,
     // Même étiquette : la notification précédente de la discussion est remplacée
@@ -177,13 +191,18 @@ export type NotificationItem = {
   actor: { name: string; avatarUrl: string | null } | null;
 };
 
-/** Mes notifications, les plus récentes d'abord (les vieilles lues sont effacées). */
+/**
+ * Mes notifications, les plus récentes d'abord (les vieilles lues sont
+ * effacées) : celles de mon compte, ou celles de ma page (`pageId`).
+ */
 export async function listNotifications(
   userId: string,
+  pageId: string | null,
 ): Promise<NotificationItem[]> {
   await db.notification.deleteMany({
     where: {
       userId,
+      pageId,
       readAt: { not: null },
       updatedAt: { lt: new Date(Date.now() - NOTIFICATION_RETENTION_MS) },
     },
@@ -192,6 +211,7 @@ export async function listNotifications(
   const rows = await db.notification.findMany({
     where: {
       userId,
+      pageId,
       ...(blocked.length > 0 ? { actorId: { notIn: blocked } } : {}),
     },
     orderBy: { updatedAt: "desc" },
@@ -240,27 +260,37 @@ export async function listNotifications(
 }
 
 /** Page des notifications : la liste et l'heure du chargement (dates relatives). */
-export async function getNotificationsPage(userId: string) {
-  const items = await listNotifications(userId);
+export async function getNotificationsPage(
+  userId: string,
+  pageId: string | null,
+) {
+  const items = await listNotifications(userId, pageId);
   return { items, loadedAt: Date.now() };
 }
 
-/** Notifications pas encore lues (pastille de la cloche). */
-export async function countUnreadNotifications(userId: string) {
+/** Notifications pas encore lues (pastille de la cloche du compte, ou de la page). */
+export async function countUnreadNotifications(
+  userId: string,
+  pageId: string | null,
+) {
   const blocked = await getBlockedIds(userId);
   return db.notification.count({
     where: {
       userId,
+      pageId,
       readAt: null,
       ...(blocked.length > 0 ? { actorId: { notIn: blocked } } : {}),
     },
   });
 }
 
-/** Tout est lu (la page des notifications est ouverte). */
-export async function markNotificationsRead(userId: string) {
+/** Tout est lu (la page des notifications du compte, ou de la page, est ouverte). */
+export async function markNotificationsRead(
+  userId: string,
+  pageId: string | null,
+) {
   await db.notification.updateMany({
-    where: { userId, readAt: null },
+    where: { userId, pageId, readAt: null },
     data: { readAt: new Date() },
   });
 }

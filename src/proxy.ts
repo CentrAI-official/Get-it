@@ -1,7 +1,10 @@
+import { hasLocale } from "next-intl";
 import createMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { adminSurfaceRedirect } from "./features/admin/surface";
+import { IDENTITY_COOKIE, identityFromCookie } from "./config/identity";
 import { getAuthRedirect } from "./features/auth/access";
+import { identityRedirect } from "./features/identity/routes";
 import { routing } from "./i18n/routing";
 import { getServerEnv } from "./server/env";
 import { refreshSession } from "./server/supabase/proxy";
@@ -17,14 +20,15 @@ export default async function proxy(request: NextRequest) {
 
   // Application admin : seul /admin existe, et ses pages vérifient elles-mêmes
   // la session, le rôle et la double authentification
+  const admin = getServerEnv().APP_SURFACE === "admin";
   const target =
-    getServerEnv().APP_SURFACE === "admin"
+    (admin
       ? adminSurfaceRedirect(request.nextUrl.pathname)
       : getAuthRedirect({
           pathname: request.nextUrl.pathname,
           search: request.nextUrl.search,
           isAuthenticated: userId !== null,
-        });
+        })) ?? (admin || !userId ? null : identityTarget(request));
   if (!target) return response;
 
   // Redirection selon la session, en conservant les cookies et en-têtes déjà posés
@@ -35,6 +39,20 @@ export default async function proxy(request: NextRequest) {
     if (value) redirect.headers.set(header, value);
   }
   return redirect;
+}
+
+/**
+ * Compte actif (mode page) : une section qui n'existe que pour l'autre compte
+ * mène à son équivalent (ex. Mon développement → Clients sur sa page).
+ */
+function identityTarget(request: NextRequest) {
+  const [, locale, ...rest] = request.nextUrl.pathname.split("/");
+  if (!hasLocale(routing.locales, locale)) return null;
+  const identity = identityFromCookie(
+    request.cookies.get(IDENTITY_COOKIE)?.value,
+  );
+  const to = identityRedirect(`/${rest.join("/")}`, identity);
+  return to ? `/${locale}${to}` : null;
 }
 
 export const config = {

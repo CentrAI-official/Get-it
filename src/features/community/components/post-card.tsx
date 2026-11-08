@@ -69,6 +69,11 @@ type PostCardProps = {
   inGroup?: boolean;
   /** Créateur ou admin du groupe : « Retirer du groupe ». */
   groupManager?: boolean;
+  /**
+   * Lu au nom de sa page (mode page) : « J'aime » et commentaires au nom de la
+   * page ; ni message, ni contact, ni enregistrement, ni partage dans un fil.
+   */
+  asPage?: boolean;
 };
 
 /**
@@ -85,6 +90,7 @@ export function PostCard({
   onNotice,
   inGroup = false,
   groupManager = false,
+  asPage = false,
 }: PostCardProps) {
   const t = useTranslations("Community.post");
   const tPillars = useTranslations("Pillars");
@@ -156,7 +162,9 @@ export function PostCard({
     });
   }
 
-  const canReact = canWrite && !post.hidden && !post.mine;
+  // Une page ne participe pas (encore) aux forums des groupes
+  const canReact =
+    canWrite && !post.hidden && !post.mine && !(asPage && post.group);
   // Photos sans vidéo : affichage immersif, actions posées sur la photo
   const photos =
     post.media.length > 0 && post.media.every((item) => item.kind === "image");
@@ -290,7 +298,7 @@ export function PostCard({
               </DropdownMenuItem>
             ) : (
               <>
-                {canWrite ? (
+                {canWrite && !asPage ? (
                   <>
                     <DropdownMenuItem onSelect={message}>
                       <MessageCircle aria-hidden="true" />
@@ -311,7 +319,7 @@ export function PostCard({
                   {t("reportPost")}
                 </DropdownMenuItem>
                 {/* Une page : on signale la publication (la modération retrouve qui la gère) */}
-                {page ? null : (
+                {page || asPage ? null : (
                   <>
                     <DropdownMenuItem
                       onSelect={() =>
@@ -446,26 +454,29 @@ export function PostCard({
         >
           <Send aria-hidden="true" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-pressed={saved}
-          aria-label={t("save")}
-          onClick={toggleSaved}
-          className={cn("ml-auto", saved && "text-primary")}
-        >
-          <Bookmark
-            aria-hidden="true"
-            className={cn(saved && "fill-current")}
-          />
-        </Button>
+        {/* Enregistrer : propre au compte personnel */}
+        {asPage ? null : (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-pressed={saved}
+            aria-label={t("save")}
+            onClick={toggleSaved}
+            className={cn("ml-auto", saved && "text-primary")}
+          >
+            <Bookmark
+              aria-hidden="true"
+              className={cn(saved && "fill-current")}
+            />
+          </Button>
+        )}
       </div>
 
       <ShareDialog
         post={post}
         open={sharing}
         onOpenChange={setSharing}
-        canWrite={canWrite}
+        canWrite={canWrite && !asPage}
         onNotice={onNotice}
       />
 
@@ -473,7 +484,7 @@ export function PostCard({
         <PostComments
           postId={post.id}
           now={now}
-          canWrite={canWrite && !post.hidden}
+          canWrite={canWrite && !post.hidden && !(asPage && post.group)}
           onCountChange={setComments}
           onReport={(commentId) => onReport({ type: "comment", id: commentId })}
         />

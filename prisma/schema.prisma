@@ -931,18 +931,19 @@ model Post {
   createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile    Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  page       Page?           @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  sharedPost Post?           @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
-  group      Group?          @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  shares     Post[]          @relation("PostShares")
-  comments   PostComment[]
-  reactions  PostReaction[]
-  reports    ContentReport[]
-  media      PostMedia[]
-  saves      PostSave[]
-  videoViews PostVideoView[]
-  messages   Message[]
+  profile       Profile            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page          Page?              @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  sharedPost    Post?              @relation("PostShares", fields: [sharedPostId], references: [id], onDelete: Cascade)
+  group         Group?             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  shares        Post[]             @relation("PostShares")
+  comments      PostComment[]
+  reactions     PostReaction[]
+  pageReactions PostPageReaction[]
+  reports       ContentReport[]
+  media         PostMedia[]
+  saves         PostSave[]
+  videoViews    PostVideoView[]
+  messages      Message[]
 
   @@unique([userId, sharedPostId])
   @@index([status, createdAt])
@@ -1048,6 +1049,20 @@ model PostComment {
 }
 
 /// « Bravo » sur une publication : une seule réaction par personne.
+/// « J'aime » au nom d'une page pro (mode page).
+model PostPageReaction {
+  postId    String   @map("post_id") @db.Uuid
+  pageId    String   @map("page_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@id([postId, pageId])
+  @@index([pageId])
+  @@map("post_page_reactions")
+}
+
 model PostReaction {
   postId    String   @map("post_id") @db.Uuid
   userId    String   @map("user_id") @db.Uuid
@@ -1562,13 +1577,15 @@ model Page {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  owner         Profile        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  listings      Listing[]
-  posts         Post[]
-  comments      PostComment[]
-  conversations Conversation[]
-  notifications Notification[]
-  followers     PageFollow[]
+  owner             Profile            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  listings          Listing[]
+  posts             Post[]
+  comments          PostComment[]
+  conversations     Conversation[]
+  notifications     Notification[]     @relation("NotificationActorPage")
+  pageNotifications Notification[]     @relation("NotificationPage")
+  followers         PageFollow[]
+  postReactions     PostPageReaction[]
 
   @@map("pages")
 }
@@ -1736,6 +1753,8 @@ model Notification {
   actorId     String?          @map("actor_id") @db.Uuid
   /// Au nom de cette page pro : on la montre, pas la personne.
   actorPageId String?          @map("actor_page_id") @db.Uuid
+  /// Destinée à cette page pro (sa cloche, en mode page), pas à la personne.
+  pageId      String?          @map("page_id") @db.Uuid
   /// Chemin sans la langue (ex. « /messages/<id> »).
   href        String
   subject     String           @default("")
@@ -1747,10 +1766,12 @@ model Notification {
 
   profile   Profile  @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
   actor     Profile? @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
-  actorPage Page?    @relation(fields: [actorPageId], references: [id], onDelete: Cascade)
+  actorPage Page?    @relation("NotificationActorPage", fields: [actorPageId], references: [id], onDelete: Cascade)
+  page      Page?    @relation("NotificationPage", fields: [pageId], references: [id], onDelete: Cascade)
 
   @@index([userId, updatedAt])
   @@index([userId, groupKey])
+  @@index([pageId, updatedAt])
   @@map("notifications")
 }
 

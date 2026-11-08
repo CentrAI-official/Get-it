@@ -135,7 +135,9 @@
       "services": "My development",
       "servicesShort": "Development",
       "marketplace": "Marketplace",
-      "profile": "Profile"
+      "profile": "Profile",
+      "clients": "Clients",
+      "page": "My page"
     },
     "topActions": {
       "label": "Page actions",
@@ -147,7 +149,8 @@
       "shopServices": "Shop for services",
       "sell": "Sell",
       "favorites": "My favorites",
-      "settings": "Settings"
+      "settings": "Settings",
+      "editPage": "Edit page"
     },
     "profileTabs": {
       "label": "Profile sections",
@@ -1349,7 +1352,8 @@
       "storyMention": "You can only mention contacts who have a username.",
       "storyStreak": "This habit can’t be found.",
       "storyMusic": "This song is no longer available. Pick another one.",
-      "storyAnswerInvalid": "Your answer must be between 1 and 200 characters."
+      "storyAnswerInvalid": "Your answer must be between 1 and 200 characters.",
+      "identityChanged": "You switched accounts in another tab. Reload the page to continue."
     },
     "media": {
       "gallery": "Photo/video",
@@ -3671,7 +3675,8 @@
         "section": "A section",
         "library": "Library (exercises, recipes, tools)",
         "libraryItem": "Catalogue entry",
-        "budget": "Budget"
+        "budget": "Budget",
+        "clients": "Clients (pro page)"
       },
       "marketplace": {
         "vitrine": "Showcase",
@@ -3691,10 +3696,8 @@
         "goals": "Goals",
         "habits": "Habits",
         "settings": "Settings",
-        "pro": "Pro space",
-        "proEdit": "Create or edit one’s page",
-        "proPosts": "Their page’s posts",
-        "proMessages": "Their page’s messages"
+        "pro": "Their page (page profile)",
+        "proEdit": "Create or edit one’s page"
       },
       "today": {
         "dayPanel": "My day"
@@ -5008,10 +5011,11 @@
       "toPage": "Switch to my page",
       "createTitle": "Create your pro page",
       "createText": "To sell your services and follow your clients.",
-      "unread": "{count, plural, one {# unread message} other {# unread messages}}"
+      "unread": "{count, plural, one {# new item} other {# new items}}",
+      "gone": "This page no longer exists."
     },
     "home": {
-      "title": "Pro space",
+      "title": "My page",
       "viewPublic": "View my page",
       "edit": "Edit",
       "completeTitle": "Complete your page",
@@ -5030,16 +5034,19 @@
         "approved": "Live",
         "rejected": "Rejected",
         "archived": "Withdrawn"
-      }
+      },
+      "posts": "Posts",
+      "noPostsTitle": "No posts yet",
+      "noPosts": "Post as your page: it will appear in the Hub feed and for your followers."
     },
     "new": {
       "title": "Create my pro page",
       "back": "Profile",
-      "description": "Your page is separate from your personal account, like a Facebook page. You switch between them from your profile.",
+      "description": "Your page is separate from your personal account, like a Facebook page. You switch between them from your profile, and everything you do on your page is in its name.",
       "points": {
         "sell": "Sell your services in the Marketplace, under your page’s name.",
         "clients": "Coming soon: follow your clients, their plans and your notes, with their consent.",
-        "feed": "Post in the Hub and reply to your messages as your page."
+        "feed": "Post, comment and reply to your messages as your page."
       }
     },
     "edit": {
@@ -5099,8 +5106,8 @@
     },
     "settings": {
       "title": "Pro page",
-      "description": "To sell your services and, soon, follow your clients: a page separate from your personal account.",
-      "open": "Open my pro space",
+      "description": "To sell your services and follow your clients: a page separate from your personal account. You switch between them like on Facebook.",
+      "open": "Switch to my page",
       "create": "Create my pro page"
     },
     "sell": {
@@ -5124,26 +5131,29 @@
       "notFound": "Page not found.",
       "unexpected": "Not possible right now. Try again."
     },
-    "tabs": {
-      "label": "Pro space sections",
-      "home": "My page",
-      "posts": "Posts",
-      "messages": "Messages",
-      "messagesCount": "Messages ({count, number})"
-    },
-    "posts": {
-      "title": "My page’s posts",
-      "cannotPost": "Your account is suspended from the Hub: your page can’t post for now.",
-      "emptyTitle": "No posts yet",
-      "emptyDescription": "What you post here appears under your page’s name, in the Hub feed and for its followers."
-    },
     "inbox": {
-      "title": "My page’s messages",
       "label": "Page messages",
       "emptyTitle": "No messages yet",
       "emptyDescription": "Members write to {page} from its page or its services. You reply here, as the page.",
       "viewPage": "View my page",
       "hint": "You reply as {page}. Your personal Messages stay separate."
     }
+  },
+  "Identity": {
+    "chipLabel": "You’re acting as {page}",
+    "otherAccount": {
+      "pageTitle": "This conversation is in your page’s inbox",
+      "pageDescription": "Switch to your page to read it and reply as the page.",
+      "pageAction": "Switch to my page",
+      "personalTitle": "This conversation is on your personal account",
+      "personalDescription": "Switch back to your account to read it and reply.",
+      "personalAction": "Back to my account"
+    }
+  },
+  "Clients": {
+    "title": "Clients",
+    "question": "The people your page supports.",
+    "soonTitle": "Your clients are coming soon",
+    "soonDescription": "Invite your clients or accept their requests. They choose what your page sees, plan by plan; their file, your notes and their follow-up will be here."
   }
 }

@@ -273,7 +273,7 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
   const [members, feed, myAvatar] = await Promise.all([
     listGroupMembers(profile.id, group.id),
     group.visibility === "public"
-      ? listFeed(profile.id, undefined, undefined, group.id)
+      ? listFeed(profile.id, { groupId: group.id })
       : null,
     avatarUrl(profile.avatarPath),
   ]);

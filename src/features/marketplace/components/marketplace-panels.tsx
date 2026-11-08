@@ -40,7 +40,9 @@ import {
 } from "../rules";
 import { CreatePageCard } from "@/features/pages/components/page-switch";
 import { PageLogo } from "@/features/pages/components/page-logo";
+import { getActingPage } from "@/server/pages/identity";
 import { getMyPage } from "@/server/pages/service";
+import { PageServices } from "@/features/pages/components/pro-views";
 import { CatalogFilterBar } from "./catalog-filters";
 import { CatalogList } from "./catalog-list";
 import { ContactSeller, DeleteListing } from "./listing-actions";
@@ -95,10 +97,16 @@ export async function CatalogPanel({
     q: one(params.q),
     view: one(params.view),
   });
-  const [pending, t] = await Promise.all([
+  const [pending, t, acting] = await Promise.all([
     countPendingListings(profile.id),
     getTranslations("Marketplace"),
+    getActingPage(profile.id),
   ]);
+  // Sur sa page : ses services d'abord (statut, « Ajouter un service »)
+  const pageListings =
+    acting && kind === "service" && !isFiltered(filters)
+      ? await listMyListings(profile.id)
+      : null;
   const base = kind === "service" ? "/marketplace" : "/marketplace/gear";
   const empty = (
     <EmptyState
@@ -131,6 +139,8 @@ export async function CatalogPanel({
           ) : null}
         </div>
       ) : null}
+
+      {pageListings ? <PageServices listings={pageListings} /> : null}
 
       <VitrineSearch
         // Nouvelle recherche : le champ reprend la valeur de l'adresse

@@ -10,18 +10,19 @@ import {
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Avatar } from "@/components/avatar";
-import { SectionTabs } from "@/components/layout/section-tabs";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommunityFeed } from "@/features/community/components/community-feed";
 import { JoinCommunityCard } from "@/features/community/components/join-community-card";
 import { PostComposer } from "@/features/community/components/post-composer";
+import { IdentitySwitch } from "@/features/identity/components/identity-switch";
 import { ListingCard } from "@/features/marketplace/components/listing-card";
 import { Link, redirect } from "@/i18n/navigation";
 import { listFeed } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
 import { listMyListings } from "@/server/marketplace/service";
-import { countPageUnread, listInbox } from "@/server/messages/service";
+import { countUnread } from "@/server/messages/service";
+import { countUnreadNotifications } from "@/server/notifications/service";
 import { pageFollowState } from "@/server/pages/follows";
 import { getMyPage } from "@/server/pages/service";
 import { avatarUrl } from "@/server/profile/avatar";
@@ -31,10 +32,10 @@ import { pageCompletion } from "../rules";
 import { DeletePage } from "./delete-page";
 import { PageForm } from "./page-form";
 import { PageImages } from "./page-images";
-import { PageInbox } from "./page-inbox";
 import { PageLogo } from "./page-logo";
 
-// L'Espace pro : la page de la personne, vue de l'intérieur. Chaque vue lit la
+// La page vue de l'intérieur, en mode page (son « Profil ») : l'en-tête, ce
+// qu'il lui manque, ses services et ses publications. Chaque vue lit la
 // session : à placer dans un <Suspense>.
 
 /** L'en-tête d'une page : couverture, logo, nom, domaine et régions. */
@@ -105,19 +106,24 @@ export async function PageHero({
   );
 }
 
-/** Revenir à son compte personnel (la bascule, comme sur Facebook). */
+/**
+ * Revenir à son compte personnel (la bascule, comme sur Facebook), avec ce qui
+ * l'attend : messages et notifications non lus.
+ */
 export async function BackToAccount() {
-  const [profile, t] = await Promise.all([
-    getCurrentProfile(),
+  const profile = await getCurrentProfile();
+  const [photo, messages, notifications, t] = await Promise.all([
+    avatarUrl(profile.avatarPath),
+    countUnread(profile.id).catch(() => 0),
+    countUnreadNotifications(profile.id, null).catch(() => 0),
     getTranslations("Pages.switch"),
   ]);
   const name = profile.displayName ?? profile.email ?? "";
-  const photo = await avatarUrl(profile.avatarPath);
+  const news = messages + notifications;
   return (
-    <Link
-      href="/profile"
-      transitionTypes={["nav-back"]}
-      className="flex min-h-11 w-fit items-center gap-2.5 rounded-full bg-foreground/[0.05] py-1 pr-4 pl-1 text-sm font-medium outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50"
+    <IdentitySwitch
+      to="personal"
+      className="flex min-h-11 w-fit items-center gap-2.5 rounded-full bg-foreground/[0.05] py-1 pr-4 pl-1 text-sm font-medium outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
     >
       <Avatar name={name} url={photo} className="size-9 text-sm" />
       <ArrowLeftRight
@@ -125,51 +131,48 @@ export async function BackToAccount() {
         className="size-4 text-muted-foreground"
       />
       {t("toAccount")}
-    </Link>
+      {news > 0 ? (
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+          <span aria-hidden="true" className="size-2 rounded-full bg-primary" />
+          {t("unread", { count: news })}
+        </span>
+      ) : null}
+    </IdentitySwitch>
   );
 }
 
-/** Les onglets de l'Espace pro : la page, ses publications et sa boîte de messages. */
-async function ProTabs({
-  current,
-  userId,
-}: {
-  current: "home" | "posts" | "messages";
-  userId: string;
-}) {
-  const [unread, t] = await Promise.all([
-    countPageUnread(userId),
-    getTranslations("Pages.tabs"),
-  ]);
+/** Le cookie demande une page qui n'existe plus : on propose de revenir à son compte. */
+async function NoPage() {
+  const t = await getTranslations("Pages.switch");
   return (
-    <SectionTabs
-      label={t("label")}
-      current={current}
-      tabs={[
-        { key: "home", href: "/pro", label: t("home") },
-        { key: "posts", href: "/pro/posts", label: t("posts") },
-        {
-          key: "messages",
-          href: "/pro/messages",
-          label:
-            unread > 0 ? t("messagesCount", { count: unread }) : t("messages"),
-        },
-      ]}
-    />
+    <div className="flex flex-col items-start gap-3">
+      <p className="text-sm text-muted-foreground">{t("gone")}</p>
+      <IdentitySwitch
+        to="personal"
+        className="h-11 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
+      >
+        {t("toAccount")}
+      </IdentitySwitch>
+    </div>
   );
 }
 
-/** L'accueil de l'Espace pro : la page, ce qu'il lui manque, et ses services. */
+/**
+ * Le profil de la page (mode page) : l'en-tête, ce qu'il lui manque, ses
+ * services, puis ses publications, où l'on publie en son nom.
+ */
 export async function ProHome() {
   const profile = await getCurrentProfile();
   const page = await getMyPage(profile.id);
-  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
-  if (!page) return null;
-  const [listings, follow, t] = await Promise.all([
+  if (!page) return <NoPage />;
+  const [listings, follow, member, feed, t] = await Promise.all([
     listMyListings(profile.id),
     pageFollowState(profile.id, page.id),
+    getCommunityMember(profile.id),
+    listFeed(profile.id, { pageId: page.id, asPageId: page.id }),
     getTranslations("Pages"),
   ]);
+  const canWrite = Boolean(member?.joined && !member.suspendedUntil);
   const tFollows = await getTranslations("Follows");
   const completion = pageCompletion({ ...page, services: listings.length });
   const links = {
@@ -182,7 +185,6 @@ export async function ProHome() {
   return (
     <div className="flex flex-col gap-6">
       <BackToAccount />
-      <ProTabs current="home" userId={profile.id} />
       <PageHero page={page}>
         <p className="text-sm text-muted-foreground tabular-nums">
           {tFollows("followers", { count: follow.followers })}
@@ -263,118 +265,91 @@ export async function ProHome() {
         </section>
       ) : null}
 
+      <PageServices listings={listings} />
+
       <section
-        aria-labelledby="pro-services"
-        className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
+        aria-labelledby="pro-posts"
+        className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
       >
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="pro-services" className="caps-label text-muted-foreground">
-            {t("home.services")}
-          </h2>
-          <Button asChild variant="outline" size="sm" className="h-10">
-            <Link href="/marketplace/sell">
-              <Plus aria-hidden="true" />
-              {t("home.addService")}
-            </Link>
-          </Button>
-        </div>
-        {listings.length === 0 ? (
-          <p className="flex items-start gap-2 text-sm text-pretty text-muted-foreground">
-            <Store aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-            {t("home.noService")}
-          </p>
-        ) : (
-          <ul className="flex flex-col">
-            {listings.map((listing) => (
-              <li
-                key={listing.id}
-                className="border-b border-foreground/8 pb-3"
-              >
-                <ListingCard listing={listing} showFavorite={false} />
-                <span
-                  className={
-                    listing.status === "approved"
-                      ? "rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary"
-                      : "rounded-full bg-foreground/8 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
-                  }
-                >
-                  {t(`home.status.${listing.status}`)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
+        <h2 id="pro-posts" className="caps-label text-muted-foreground">
+          {t("home.posts")}
+        </h2>
+        {canWrite ? (
+          <PostComposer
+            shareable={[]}
+            preselected={null}
+            name={page.name}
+            avatarUrl={page.logoUrl}
+            mediaEnabled={storageEnabled()}
+            asPage={{ name: page.name, logoUrl: page.logoUrl }}
+          />
+        ) : null}
+        <CommunityFeed
+          // Une nouvelle publication ou une suppression recharge la liste
+          key={feed.posts[0]?.id ?? "empty"}
+          initialPosts={feed.posts}
+          initialCursor={feed.nextCursor}
+          now={feed.loadedAt}
+          canWrite={canWrite}
+          pageId={page.id}
+          asPage
+          empty={{
+            title: t("home.noPostsTitle"),
+            description: t("home.noPosts"),
+          }}
+        />
       </section>
     </div>
   );
 }
 
-/**
- * Les publications de la page : publier au nom de la page (son nom et son
- * logo, jamais ceux de la personne), puis tout ce qu'elle a publié.
- */
-export async function ProPosts() {
-  const profile = await getCurrentProfile();
-  const page = await getMyPage(profile.id);
-  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
-  if (!page) return null;
-  const [member, feed, t] = await Promise.all([
-    getCommunityMember(profile.id),
-    listFeed(profile.id, undefined, undefined, undefined, false, page.id),
-    getTranslations("Pages.posts"),
-  ]);
-  const canWrite = Boolean(member?.joined && !member.suspendedUntil);
+/** Les services de la page et leur statut (profil de la page, Marketplace en mode page). */
+export async function PageServices({
+  listings,
+}: {
+  listings: Awaited<ReturnType<typeof listMyListings>>;
+}) {
+  const t = await getTranslations("Pages");
   return (
-    <div className="flex flex-col gap-6">
-      <BackToAccount />
-      <ProTabs current="posts" userId={profile.id} />
-      {canWrite ? (
-        <PostComposer
-          shareable={[]}
-          preselected={null}
-          name={page.name}
-          avatarUrl={page.logoUrl}
-          mediaEnabled={storageEnabled()}
-          asPage={{ name: page.name, logoUrl: page.logoUrl }}
-        />
+    <section
+      aria-labelledby="pro-services"
+      className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="pro-services" className="caps-label text-muted-foreground">
+          {t("home.services")}
+        </h2>
+        <Button asChild variant="outline" size="sm" className="h-10">
+          <Link href="/marketplace/sell">
+            <Plus aria-hidden="true" />
+            {t("home.addService")}
+          </Link>
+        </Button>
+      </div>
+      {listings.length === 0 ? (
+        <p className="flex items-start gap-2 text-sm text-pretty text-muted-foreground">
+          <Store aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+          {t("home.noService")}
+        </p>
       ) : (
-        <p className="text-sm text-muted-foreground">{t("cannotPost")}</p>
+        <ul className="flex flex-col">
+          {listings.map((listing) => (
+            <li key={listing.id} className="border-b border-foreground/8 pb-3">
+              <ListingCard listing={listing} showFavorite={false} />
+              <span
+                className={
+                  listing.status === "approved"
+                    ? "rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary"
+                    : "rounded-full bg-foreground/8 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+                }
+              >
+                {t(`home.status.${listing.status}`)}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
-      <CommunityFeed
-        // Une nouvelle publication ou une suppression recharge la liste
-        key={feed.posts[0]?.id ?? "empty"}
-        initialPosts={feed.posts}
-        initialCursor={feed.nextCursor}
-        now={feed.loadedAt}
-        canWrite={canWrite}
-        pageId={page.id}
-        empty={{
-          title: t("emptyTitle"),
-          description: t("emptyDescription"),
-        }}
-      />
-    </div>
-  );
-}
-
-/** La boîte de messages de la page, à part de la Messagerie personnelle. */
-export async function ProMessages() {
-  const profile = await getCurrentProfile();
-  const page = await getMyPage(profile.id);
-  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
-  if (!page) return null;
-  const inbox = await listInbox(profile.id, page.id);
-  return (
-    <div className="flex flex-col gap-6">
-      <BackToAccount />
-      <ProTabs current="messages" userId={profile.id} />
-      <PageInbox
-        initial={inbox.items}
-        loadedAt={inbox.loadedAt}
-        pageName={page.name}
-        handle={page.handle}
-      />
-    </div>
+    </section>
   );
 }
 
@@ -420,8 +395,7 @@ export async function ProNew() {
 export async function ProEdit() {
   const profile = await getCurrentProfile();
   const page = await getMyPage(profile.id);
-  if (!page) redirect({ href: "/pro/new", locale: await getLocale() });
-  if (!page) return null;
+  if (!page) return <NoPage />;
   const t = await getTranslations("Pages.edit");
   return (
     <div className="flex flex-col gap-8">

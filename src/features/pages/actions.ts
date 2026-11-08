@@ -5,6 +5,7 @@ import { z } from "zod";
 import { uploadRequestSchema } from "@/features/community/media";
 import { requireUser } from "@/server/auth/session";
 import { setPageFollow, type PageFollowError } from "@/server/pages/follows";
+import { setIdentity } from "@/server/pages/identity";
 import {
   createPage,
   deletePage,
@@ -49,6 +50,8 @@ export async function savePageAction(
       mode === "create"
         ? await createPage(user.id, parsed.data)
         : await updatePage(user.id, parsed.data);
+    // Page créée : on y passe aussitôt, comme sur Facebook
+    if (result.ok && mode === "create") await setIdentity(user.id, "page");
     if (!result.ok) {
       return result.error === "handleTaken"
         ? { status: "error", fieldErrors: { handle: "handleTaken" } }
@@ -66,7 +69,10 @@ export async function savePageAction(
 export async function deletePageAction() {
   const user = await requireUser();
   try {
-    return await deletePage(user.id);
+    const deleted = await deletePage(user.id);
+    // Plus de page : retour au compte personnel sur cet appareil
+    if (deleted) await setIdentity(user.id, "personal");
+    return deleted;
   } catch (error) {
     console.error("Page : suppression impossible", error);
     return false;

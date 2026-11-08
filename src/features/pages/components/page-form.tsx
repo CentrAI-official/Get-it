@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, LoaderCircle } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useActionState, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,8 @@ import {
   REGULATED_CATEGORIES,
   SERVICE_CATEGORIES,
 } from "@/features/marketplace/rules";
-import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { reloadTo } from "@/features/identity/client";
 import { savePageAction, type PageFormState } from "../actions";
 import {
   handleFromName,
@@ -57,7 +57,7 @@ export function PageForm({
   const tErrors = useTranslations("Pages.errors");
   const tCategories = useTranslations("Marketplace.categories");
   const tRegions = useTranslations("Marketplace.regions");
-  const router = useRouter();
+  const locale = useLocale();
   const id = useId();
   const [name, setName] = useState(initial?.name ?? "");
   const [handle, setHandle] = useState(initial?.handle ?? "");
@@ -70,7 +70,10 @@ export function PageForm({
   const [state, formAction, pending] = useActionState<PageFormState, FormData>(
     async (previous, formData) => {
       const result = await savePageAction(mode, previous, formData);
-      if (result.status === "saved" && mode === "create") router.push("/pro");
+      // Page créée : on y passe aussitôt (le serveur a choisi la page), application rechargée
+      if (result.status === "saved" && mode === "create") {
+        reloadTo(locale, "/pro");
+      }
       return result;
     },
     { status: "idle" },

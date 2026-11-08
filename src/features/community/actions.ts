@@ -4,6 +4,7 @@ import { refresh } from "next/cache";
 import { z } from "zod";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
+import { actingFor, getActingPage } from "@/server/pages/identity";
 import {
   listComments,
   listFeed,
@@ -102,6 +103,9 @@ export async function createPostAction(
   }
   const media = postMediaSchema.safeParse(rawMedia);
   if (!media.success) return fail(firstCommunityError(media.error), values);
+  // Au nom du compte actif : sa page en mode page (retrouvée par la session)
+  const acting = await actingFor(user.id, read(formData, "identity") || null);
+  if (!acting.ok) return fail(acting.error, values);
   try {
     // Forum d'un groupe public (revérifié par le service)
     const groupId = recordIdSchema.safeParse(read(formData, "groupId"));
@@ -111,8 +115,7 @@ export async function createPostAction(
       pillar: parsed.data.pillar,
       media: media.data,
       groupId: groupId.success ? groupId.data : undefined,
-      // Au nom de sa page pro (la page est retrouvée par la session)
-      asPage: read(formData, "asPage") === "1",
+      asPage: acting.pageId !== null,
     });
     if (!result.ok) return fail(result.error, values);
   } catch (error) {
@@ -150,6 +153,8 @@ export async function shareProgressAction(
 ): Promise<CommunityFormState> {
   const user = await requireUser();
   const values = { body: read(formData, "body") };
+  // Un progrès est personnel : jamais au nom d'une page
+  if (await getActingPage(user.id)) return fail("identityChanged", values);
   let source: unknown = null;
   try {
     source = JSON.parse(read(formData, "source"));
@@ -201,14 +206,15 @@ export async function loadMorePostsAction(
   ) {
     return { posts: [], nextCursor: null };
   }
-  return listFeed(
-    user.id,
-    parsed.data,
-    author?.data,
-    group?.data,
-    following === true,
-    page?.data,
-  );
+  const acting = await getActingPage(user.id);
+  return listFeed(user.id, {
+    cursor: parsed.data,
+    authorId: author?.data,
+    groupId: group?.data,
+    following: following === true,
+    pageId: page?.data,
+    asPageId: acting?.id ?? null,
+  });
 }
 
 export async function deletePostAction(postId: string) {
@@ -241,8 +247,10 @@ export async function addCommentAction(
   const body = commentSchema.safeParse(values.body);
   if (!id.success) return fail("notFound", values);
   if (!body.success) return fail(firstCommunityError(body.error), values);
+  const acting = await actingFor(user.id, read(formData, "identity") || null);
+  if (!acting.ok) return fail(acting.error, values);
   try {
-    const result = await addComment(user.id, id.data, body.data);
+    const result = await addComment(user.id, id.data, body.data, acting.pageId);
     if (!result.ok) return fail(result.error, values);
   } catch (error) {
     console.error("Commentaire impossible", error);
@@ -258,14 +266,23 @@ export async function deleteCommentAction(commentId: string) {
   return deleteComment(user.id, id.data).catch(() => false);
 }
 
-/** « Bravo » : ajoute ou retire sa réaction. */
-export async function setReactionAction(postId: string, on: boolean) {
+/**
+ * « J'aime » : ajoute ou retire sa réaction, ou celle de sa page en mode page
+ * (`identity` : le compte sous lequel l'écran a été chargé).
+ */
+export async function setReactionAction(
+  postId: string,
+  on: boolean,
+  identity?: unknown,
+) {
   const user = await requireUser();
   const id = recordIdSchema.safeParse(postId);
   if (!id.success || typeof on !== "boolean") {
     return { ok: false as const, error: "notFound" as const };
   }
-  return setReaction(user.id, id.data, on).catch(() => ({
+  const acting = await actingFor(user.id, identity);
+  if (!acting.ok) return acting;
+  return setReaction(user.id, id.data, on, acting.pageId).catch(() => ({
     ok: false as const,
     error: "unexpected" as const,
   }));
@@ -377,6 +394,8 @@ export async function sharePostAction(
   if (!parsed.success) {
     return { ok: false, error: firstCommunityError(parsed.error) };
   }
+  // Une page ne partage pas (encore) dans son fil : seulement le lien
+  if (await getActingPage(user.id)) return { ok: false, error: "notFound" };
   try {
     const result = await sharePost(
       user.id,

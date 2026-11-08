@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   categoryActions,
   currentCategory,
+  identityClass,
   isActivePath,
   topActions,
 } from "./nav-items";
@@ -36,10 +37,16 @@ function CurrentActions() {
         <NotificationBell active={isActivePath(pathname, "/notifications")} />
       </li>
       {(category ? categoryActions[category] : []).map((key) => {
-        const { href, icon: Icon } = topActions[key];
+        const action = topActions[key];
+        const { href, icon: Icon } = action;
         const active = isActivePath(pathname, href);
         return (
-          <li key={key}>
+          <li
+            key={key}
+            className={identityClass(
+              "identity" in action ? action.identity : undefined,
+            )}
+          >
             <Link
               href={href}
               aria-current={active ? "page" : undefined}

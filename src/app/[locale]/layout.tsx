@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { siteConfig } from "@/config/site";
 import { THEME_COLORS } from "@/config/theme";
+import { IdentityScript } from "@/components/identity-script";
 import { ThemeScript } from "@/components/theme-script";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ export default async function LocaleLayout({
     >
       <body className="min-h-dvh">
         <ThemeScript />
+        <IdentityScript />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"

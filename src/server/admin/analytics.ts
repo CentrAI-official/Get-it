@@ -55,6 +55,8 @@ const featureActions = (since: Date) => Prisma.sql`
           WHERE created_at >= ${since} AND shared_post_id IS NOT NULL
         UNION ALL SELECT 'comments', user_id, created_at FROM post_comments WHERE created_at >= ${since}
         UNION ALL SELECT 'likes', user_id, created_at FROM post_reactions WHERE created_at >= ${since}
+        UNION ALL SELECT 'likes', pg.owner_id, r.created_at FROM post_page_reactions r
+          JOIN pages pg ON pg.id = r.page_id WHERE r.created_at >= ${since}
         UNION ALL SELECT 'saves', user_id, created_at FROM post_saves WHERE created_at >= ${since}
         UNION ALL SELECT 'stories', user_id, created_at FROM stories WHERE created_at >= ${since}
         UNION ALL SELECT 'storyViews', viewer_id, viewed_at FROM story_views WHERE viewed_at >= ${since}

@@ -7,6 +7,7 @@ import { Avatar } from "@/components/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageLogo } from "@/features/pages/components/page-logo";
+import { currentIdentity } from "@/features/identity/client";
 import { Link } from "@/i18n/navigation";
 import type { FeedComment } from "@/server/community/feed";
 import {
@@ -211,7 +212,11 @@ export function PostComments({
       {canWrite ? (
         <form
           ref={formRef}
-          action={formAction}
+          action={(formData) => {
+            // Au nom du compte sous lequel l'écran a été chargé
+            formData.set("identity", currentIdentity());
+            formAction(formData);
+          }}
           noValidate
           className="flex flex-col gap-1.5"
         >

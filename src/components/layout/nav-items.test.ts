@@ -44,14 +44,34 @@ describe("isActiveItem", () => {
 });
 
 describe("catégories", () => {
-  it("cinq catégories, « Mes services » au centre", () => {
-    expect(appNavItems.map((item) => item.key)).toEqual([
+  it("cinq catégories par compte, « Mes services » (ou Clients) au centre", () => {
+    const visible = (identity: "personal" | "page") =>
+      appNavItems
+        .filter((item) => !("identity" in item) || item.identity === identity)
+        .map((item) => item.key);
+    expect(visible("personal")).toEqual([
       "community",
       "messages",
       "services",
       "marketplace",
       "profile",
     ]);
+    // Sur sa page : Clients à la place de Mon développement, la page à la place de Profil
+    expect(visible("page")).toEqual([
+      "community",
+      "messages",
+      "clients",
+      "marketplace",
+      "page",
+    ]);
+  });
+
+  it("retrouve la catégorie de la page pro", () => {
+    expect(currentCategory("/pro")).toBe("page");
+    expect(currentCategory("/pro/edit")).toBe("page");
+    expect(currentCategory("/clients")).toBe("clients");
+    // Créer sa page se fait depuis son compte
+    expect(currentCategory("/pro/new")).toBe("profile");
   });
 
   it("retrouve la catégorie de la page, Événements et Groupes dans la Communauté", () => {
@@ -62,14 +82,23 @@ describe("catégories", () => {
     expect(currentCategory("/coach")).toBeNull();
   });
 
-  it("Get iT AI en haut de chaque catégorie, Réglages seulement dans Profil", () => {
-    for (const actions of Object.values(categoryActions)) {
-      expect(actions).toContain("coach");
+  it("Get iT AI en haut des catégories du compte, Réglages dans Profil et sur la page", () => {
+    for (const key of [
+      "community",
+      "messages",
+      "services",
+      "marketplace",
+      "profile",
+    ] as const) {
+      expect(categoryActions[key]).toContain("coach");
     }
+    // Get iT AI est le coach personnel : jamais dans les catégories de la page
+    expect(categoryActions.clients).not.toContain("coach");
+    expect(categoryActions.page).not.toContain("coach");
     expect(categoryActions.community).toEqual(["groups", "events", "coach"]);
     const withSettings = Object.entries(categoryActions)
       .filter(([, actions]) => actions.includes("settings"))
       .map(([key]) => key);
-    expect(withSettings).toEqual(["profile"]);
+    expect(withSettings).toEqual(["profile", "page"]);
   });
 });

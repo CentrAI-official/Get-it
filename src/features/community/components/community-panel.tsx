@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { avatarUrl } from "@/server/profile/avatar";
+import { avatarUrl, avatarUrls } from "@/server/profile/avatar";
 import { listFeed } from "@/server/community/feed";
 import { storageEnabled } from "@/server/storage/service";
 import { getCommunityMember, isModerator } from "@/server/community/members";
 import { listShareableProgress } from "@/server/community/posts";
 import { StoryRow } from "@/features/stories/components/story-row";
 import { listStoryRings, purgeExpiredStories } from "@/server/stories/service";
+import { getActingPage, type ActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CommunityFeed } from "./community-feed";
 import { JoinCommunityCard } from "./join-community-card";
@@ -31,6 +32,17 @@ export async function CommunityPanel({
   if (!member?.joined) {
     return <JoinCommunityCard />;
   }
+  // Sur sa page : publier et réagir au nom de la page
+  const acting = await getActingPage(profile.id);
+  if (acting) {
+    return (
+      <PageCommunity
+        page={acting}
+        userId={profile.id}
+        suspended={Boolean(member.suspendedUntil)}
+      />
+    );
+  }
 
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const now = new Date();
@@ -38,7 +50,7 @@ export async function CommunityPanel({
   // « ?fil=abonnements » : seulement les comptes que je suis et mes groupes
   const following = params.fil === "abonnements";
   const [feed, stories, shareable, myAvatar, t, format] = await Promise.all([
-    listFeed(profile.id, undefined, undefined, undefined, following),
+    listFeed(profile.id, { following }),
     listStoryRings(profile.id, now),
     member.suspendedUntil ? [] : listShareableProgress(profile.id),
     avatarUrl(profile.avatarPath),
@@ -148,6 +160,49 @@ export async function CommunityPanel({
               }
             : undefined
         }
+      />
+    </div>
+  );
+}
+
+/**
+ * La Communauté vue depuis sa page : le même fil (sans les forums des groupes),
+ * où l'on publie, commente et aime au nom de la page. Pas de stories ni de fil
+ * « Abonnements » pour une page.
+ */
+async function PageCommunity({
+  page,
+  userId,
+  suspended,
+}: {
+  page: ActingPage;
+  userId: string;
+  suspended: boolean;
+}) {
+  const [feed, urls] = await Promise.all([
+    listFeed(userId, { asPageId: page.id }),
+    avatarUrls([page.logoPath]),
+  ]);
+  const logoUrl = page.logoPath ? (urls.get(page.logoPath) ?? null) : null;
+  return (
+    <div className="flex flex-col gap-5">
+      {suspended ? null : (
+        <PostComposer
+          shareable={[]}
+          preselected={null}
+          name={page.name}
+          avatarUrl={logoUrl}
+          mediaEnabled={storageEnabled()}
+          asPage={{ name: page.name, logoUrl }}
+        />
+      )}
+      <CommunityFeed
+        key={`page:${feed.posts[0]?.id ?? "empty"}`}
+        initialPosts={feed.posts}
+        initialCursor={feed.nextCursor}
+        now={feed.loadedAt}
+        canWrite={!suspended}
+        asPage
       />
     </div>
   );

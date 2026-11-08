@@ -1,6 +1,7 @@
 import { toCalendarDay } from "@/lib/dates";
 import { isDayPanelDue } from "@/server/day/service";
 import { weekQuestionDue } from "@/server/feedback/service";
+import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { WeekQuestionDialog } from "./week-question-dialog";
 
@@ -13,6 +14,8 @@ import { WeekQuestionDialog } from "./week-question-dialog";
 export async function WeekQuestion() {
   const profile = await getCurrentProfile();
   if (!profile.onboardedAt) return null;
+  // Pas sur sa page : la question porte sur son usage personnel
+  if (await getActingPage(profile.id)) return null;
   // L'heure courante est lue après la session : jamais pendant le prérendu
   const now = new Date();
   const [due, dayPanelDue] = await Promise.all([

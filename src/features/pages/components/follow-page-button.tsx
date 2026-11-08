@@ -45,7 +45,8 @@ export function FollowPageButton({
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    // S'abonner est au compte personnel : caché sur sa page
+    <div className="identity-personal flex flex-col gap-1">
       <div className="flex flex-wrap items-center gap-3">
         <Button
           type="button"

@@ -27,7 +27,7 @@ export async function MyPostsPanel({
   const [feed, t] = await Promise.all([
     view === "saved"
       ? listSavedPosts(profile.id)
-      : listFeed(profile.id, undefined, profile.id),
+      : listFeed(profile.id, { authorId: profile.id }),
     getTranslations("App.profile.posts"),
   ]);
   return (

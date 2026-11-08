@@ -3,7 +3,9 @@ import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { IdentitySwitch } from "@/features/identity/components/identity-switch";
 import { countPageUnread } from "@/server/messages/service";
+import { countUnreadNotifications } from "@/server/notifications/service";
 import { getMyPage } from "@/server/pages/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { PageLogo } from "./page-logo";
@@ -19,12 +21,16 @@ export async function PageSwitch() {
     getTranslations("Pages.switch"),
   ]);
   if (page) {
-    // Les messages de la page n’entrent pas dans la pastille de la Messagerie
-    const unread = await countPageUnread(profile.id);
+    // Ce qui attend la page : ses messages et ses notifications (sa cloche à elle)
+    const [messages, notifications] = await Promise.all([
+      countPageUnread(profile.id).catch(() => 0),
+      countUnreadNotifications(profile.id, page.id).catch(() => 0),
+    ]);
+    const unread = messages + notifications;
     return (
-      <Link
-        href="/pro"
-        className="flex min-h-14 items-center gap-3 rounded-2xl bg-foreground/[0.05] p-2 pr-3 outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50"
+      <IdentitySwitch
+        to="page"
+        className="flex min-h-14 w-full items-center gap-3 rounded-2xl bg-foreground/[0.05] p-2 pr-3 text-left outline-none hover:bg-foreground/[0.08] focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-60"
       >
         <PageLogo
           name={page.name}
@@ -48,7 +54,7 @@ export async function PageSwitch() {
           aria-hidden="true"
           className="size-4 text-muted-foreground"
         />
-      </Link>
+      </IdentitySwitch>
     );
   }
   if (profile.accountType !== "affiliate") return null;
@@ -98,9 +104,12 @@ export async function PageSettings() {
           <span className="min-w-0 flex-1 truncate font-semibold">
             {page.name}
           </span>
-          <Button asChild variant="outline" className="h-11">
-            <Link href="/pro">{t("open")}</Link>
-          </Button>
+          <IdentitySwitch
+            to="page"
+            className="h-11 rounded-lg border border-foreground/12 px-4 text-sm font-medium outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {t("open")}
+          </IdentitySwitch>
         </div>
       ) : (
         <Button asChild className="h-11 w-fit">

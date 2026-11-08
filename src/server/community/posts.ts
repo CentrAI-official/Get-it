@@ -403,15 +403,22 @@ export async function sharePost(
   return { ok: true };
 }
 
+/**
+ * Commente une publication : au nom de sa page pro en mode page (`asPageId`,
+ * retrouvée par la session), sinon en son nom.
+ */
 export async function addComment(
   userId: string,
   postId: string,
   body: string,
+  asPageId: string | null = null,
 ): Promise<Result> {
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
   const post = await reachablePost(userId, postId);
   if (!post) return { ok: false, error: "notFound" };
+  // Une page ne participe pas (encore) aux forums des groupes
+  if (asPageId && post.groupId) return { ok: false, error: "notFound" };
   // Forum d'un groupe : il faut l'avoir rejoint pour y participer
   if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
     return { ok: false, error: "groupJoinRequired" };
@@ -420,14 +427,16 @@ export async function addComment(
     where: { userId, createdAt: { gte: since24h() } },
   });
   if (count >= DAILY_COMMENT_LIMIT) return { ok: false, error: "commentLimit" };
-  // Sous une publication de sa propre page, on répond au nom de la page
-  const pageId = post.pageId && post.userId === userId ? post.pageId : null;
-  await db.postComment.create({ data: { postId, userId, body, pageId } });
+  await db.postComment.create({
+    data: { postId, userId, body, pageId: asPageId },
+  });
   await notify({
     userId: post.userId,
     kind: "comment",
     actorId: userId,
-    actorPageId: pageId,
+    actorPageId: asPageId,
+    // Sous une publication d'une page : la cloche de la page
+    pageId: post.pageId,
     href: `/community/posts/${postId}`,
     groupKey: `comment:${postId}`,
   });
@@ -457,38 +466,56 @@ export async function deleteComment(userId: string, commentId: string) {
   return count > 0;
 }
 
-/** « J'aime » sur la publication de quelqu'un d'autre (pas sur la sienne). */
+/**
+ * « J'aime » sur la publication de quelqu'un d'autre (pas sur la sienne, ni
+ * sur celle de sa page) : au nom de sa page pro en mode page (`asPageId`).
+ */
 export async function setReaction(
   userId: string,
   postId: string,
   on: boolean,
+  asPageId: string | null = null,
 ): Promise<Result> {
   if (!on) {
-    await db.postReaction.deleteMany({ where: { postId, userId } });
+    if (asPageId) {
+      await db.postPageReaction.deleteMany({
+        where: { postId, pageId: asPageId },
+      });
+    } else {
+      await db.postReaction.deleteMany({ where: { postId, userId } });
+    }
     return { ok: true };
   }
   const allowed = await canParticipate(userId);
   if (!allowed.ok) return allowed;
   const post = await reachablePost(userId, postId);
   if (!post || post.userId === userId) return { ok: false, error: "notFound" };
+  if (asPageId && post.groupId) return { ok: false, error: "notFound" };
   if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
     return { ok: false, error: "groupJoinRequired" };
   }
-  const existing = await db.postReaction.findUnique({
-    where: { postId_userId: { postId, userId } },
-    select: { postId: true },
-  });
-  await db.postReaction.upsert({
-    where: { postId_userId: { postId, userId } },
-    update: {},
-    create: { postId, userId },
-  });
+  let created: boolean;
+  if (asPageId) {
+    const { count } = await db.postPageReaction.createMany({
+      data: [{ postId, pageId: asPageId }],
+      skipDuplicates: true,
+    });
+    created = count > 0;
+  } else {
+    const { count } = await db.postReaction.createMany({
+      data: [{ postId, userId }],
+      skipDuplicates: true,
+    });
+    created = count > 0;
+  }
   // Un nouveau « J'aime » seulement (pas un double-tap répété)
-  if (!existing) {
+  if (created) {
     await notify({
       userId: post.userId,
       kind: "like",
       actorId: userId,
+      actorPageId: asPageId,
+      pageId: post.pageId,
       href: `/community/posts/${postId}`,
       groupKey: `like:${postId}`,
     });

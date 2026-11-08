@@ -6,7 +6,12 @@ import { Logo } from "@/components/brand/logo";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { UnreadBadge } from "@/features/messages/components/unread-badge";
-import { appNavItems, isActiveItem, type AppNavItem } from "./nav-items";
+import {
+  appNavItems,
+  identityClass,
+  isActiveItem,
+  type AppNavItem,
+} from "./nav-items";
 
 /** Barre latérale de l'application (ordinateur et tablette en paysage) : les cinq catégories. */
 export function AppSidebar() {
@@ -59,6 +64,7 @@ function LinkList({
         transitionTypes={["nav-tab"]}
         aria-current={active ? "page" : undefined}
         className={cn(
+          identityClass(item.identity),
           "relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground",
           active &&
             "bg-primary/10 text-foreground before:absolute before:inset-y-2.5 before:left-0 before:w-0.5 before:rounded-full before:bg-primary hover:bg-primary/10",

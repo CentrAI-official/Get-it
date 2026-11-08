@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { getFeedPost } from "@/server/community/feed";
 import { getCommunityMember } from "@/server/community/members";
+import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CommunityFeed } from "./community-feed";
 import { JoinCommunityCard } from "./join-community-card";
@@ -18,9 +19,10 @@ export async function PostPageLoader({ postId }: { postId: string }) {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinCommunityCard />;
+  const acting = await getActingPage(profile.id);
   const [found, t] = await Promise.all([
     recordIdSchema.safeParse(postId).success
-      ? getFeedPost(profile.id, postId)
+      ? getFeedPost(profile.id, postId, acting?.id ?? null)
       : null,
     getTranslations("Community.postPage"),
   ]);
@@ -45,6 +47,7 @@ export async function PostPageLoader({ postId }: { postId: string }) {
       canWrite={!member.suspendedUntil}
       empty={empty}
       single
+      asPage={acting !== null}
     />
   );
 }

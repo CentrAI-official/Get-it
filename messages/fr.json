@@ -135,7 +135,9 @@
       "services": "Mon développement",
       "servicesShort": "Développement",
       "marketplace": "Marketplace",
-      "profile": "Profil"
+      "profile": "Profil",
+      "clients": "Clients",
+      "page": "Ma page"
     },
     "topActions": {
       "label": "Actions de la page",
@@ -147,7 +149,8 @@
       "shopServices": "Magasiner des services",
       "sell": "Vendre",
       "settings": "Réglages",
-      "favorites": "Mes favoris"
+      "favorites": "Mes favoris",
+      "editPage": "Modifier la page"
     },
     "profileTabs": {
       "label": "Sections du profil",
@@ -1349,7 +1352,8 @@
       "storyMention": "Tu ne peux mentionner que tes contacts qui ont un nom d’utilisateur.",
       "storyStreak": "Cette habitude est introuvable.",
       "storyMusic": "Cette musique n’est plus disponible. Choisis-en une autre.",
-      "storyAnswerInvalid": "Ta réponse doit faire entre 1 et 200 caractères."
+      "storyAnswerInvalid": "Ta réponse doit faire entre 1 et 200 caractères.",
+      "identityChanged": "Tu as changé de compte dans un autre onglet. Recharge la page pour continuer."
     },
     "media": {
       "gallery": "Photo/vidéo",
@@ -3671,7 +3675,8 @@
         "section": "Une section",
         "library": "Bibliothèque (exercices, recettes, outils)",
         "libraryItem": "Fiche du catalogue",
-        "budget": "Budget"
+        "budget": "Budget",
+        "clients": "Clients (page pro)"
       },
       "marketplace": {
         "vitrine": "Vitrine",
@@ -3691,10 +3696,8 @@
         "goals": "Objectifs",
         "habits": "Habitudes",
         "settings": "Réglages",
-        "pro": "Espace pro",
-        "proEdit": "Créer ou modifier sa page",
-        "proPosts": "Publications de sa page",
-        "proMessages": "Messages de sa page"
+        "pro": "Sa page (profil de la page)",
+        "proEdit": "Créer ou modifier sa page"
       },
       "today": {
         "dayPanel": "Ma journée"
@@ -5008,10 +5011,11 @@
       "toPage": "Passer à ma page",
       "createTitle": "Crée ta page pro",
       "createText": "Pour vendre tes services et suivre tes clients.",
-      "unread": "{count, plural, one {# message non lu} other {# messages non lus}}"
+      "unread": "{count, plural, one {# nouveauté} other {# nouveautés}}",
+      "gone": "Cette page n’existe plus."
     },
     "home": {
-      "title": "Espace pro",
+      "title": "Ma page",
       "viewPublic": "Voir ma page",
       "edit": "Modifier",
       "completeTitle": "Complète ta page",
@@ -5030,16 +5034,19 @@
         "approved": "En ligne",
         "rejected": "Refusé",
         "archived": "Retiré"
-      }
+      },
+      "posts": "Publications",
+      "noPostsTitle": "Aucune publication",
+      "noPosts": "Publie au nom de ta page : elle paraîtra dans le fil du Centre et chez tes abonnés."
     },
     "new": {
       "title": "Créer ma page pro",
       "back": "Profil",
-      "description": "Ta page est séparée de ton compte personnel, comme une page Facebook. Tu passes de l’un à l’autre depuis ton profil.",
+      "description": "Ta page est séparée de ton compte personnel, comme une page Facebook. Tu passes de l’un à l’autre depuis ton profil, et tout ce que tu fais sur ta page est en son nom.",
       "points": {
         "sell": "Vends tes services dans le Marketplace, sous le nom de ta page.",
         "clients": "Bientôt : suis tes clients, leurs plans et tes notes, avec leur accord.",
-        "feed": "Publie dans le Centre et réponds à tes messages au nom de ta page."
+        "feed": "Publie, commente et réponds à tes messages au nom de ta page."
       }
     },
     "edit": {
@@ -5099,8 +5106,8 @@
     },
     "settings": {
       "title": "Page pro",
-      "description": "Pour vendre tes services et, bientôt, suivre tes clients : une page séparée de ton compte personnel.",
-      "open": "Ouvrir mon Espace pro",
+      "description": "Pour vendre tes services et suivre tes clients : une page séparée de ton compte personnel. Tu passes de l’un à l’autre comme sur Facebook.",
+      "open": "Passer à ma page",
       "create": "Créer ma page pro"
     },
     "sell": {
@@ -5124,26 +5131,29 @@
       "notFound": "Page introuvable.",
       "unexpected": "Impossible pour l’instant. Réessaie."
     },
-    "tabs": {
-      "label": "Sections de l’Espace pro",
-      "home": "Ma page",
-      "posts": "Publications",
-      "messages": "Messages",
-      "messagesCount": "Messages ({count, number})"
-    },
-    "posts": {
-      "title": "Publications de ma page",
-      "cannotPost": "Ton compte est suspendu du Centre : ta page ne peut pas publier pour l’instant.",
-      "emptyTitle": "Aucune publication",
-      "emptyDescription": "Ce que tu publies ici paraît au nom de ta page, dans le fil du Centre et chez ses abonnés."
-    },
     "inbox": {
-      "title": "Messages de ma page",
       "label": "Messages de la page",
       "emptyTitle": "Aucun message pour l’instant",
       "emptyDescription": "Les membres écrivent à {page} depuis sa page ou ses services. Tu leur réponds ici, au nom de la page.",
       "viewPage": "Voir ma page",
       "hint": "Tu réponds au nom de {page}. Ta Messagerie personnelle reste à part."
     }
+  },
+  "Identity": {
+    "chipLabel": "Tu agis au nom de {page}",
+    "otherAccount": {
+      "pageTitle": "Cette conversation est dans la boîte de ta page",
+      "pageDescription": "Passe à ta page pour la lire et y répondre en son nom.",
+      "pageAction": "Passer à ma page",
+      "personalTitle": "Cette conversation est sur ton compte personnel",
+      "personalDescription": "Reviens à ton compte pour la lire et y répondre.",
+      "personalAction": "Revenir à mon compte"
+    }
+  },
+  "Clients": {
+    "title": "Clients",
+    "question": "Les personnes que ta page accompagne.",
+    "soonTitle": "Tes clients arrivent bientôt",
+    "soonDescription": "Invite tes clients ou accepte leurs demandes. Ils choisissent ce que ta page voit, plan par plan ; leur fiche, tes notes et leur suivi seront ici."
   }
 }

@@ -2,6 +2,7 @@ import "server-only";
 import { DAILY_FOLLOW_LIMIT } from "@/features/follows/rules";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
+import { notify } from "@/server/notifications/service";
 
 // S'abonner à une page pro : ses publications vont dans le fil « Abonnements ».
 // Qui suit une page reste privé ; seul leur nombre se voit. Chaque fonction
@@ -70,10 +71,20 @@ export async function setPageFollow(
   if (people + pages >= DAILY_FOLLOW_LIMIT) {
     return { ok: false, error: "followLimit" };
   }
-  await db.pageFollow.upsert({
-    where: { pageId_followerId: { pageId, followerId: viewerId } },
-    update: {},
-    create: { pageId, followerId: viewerId },
+  const { count } = await db.pageFollow.createMany({
+    data: [{ pageId, followerId: viewerId }],
+    skipDuplicates: true,
   });
+  // Un nouvel abonné : la cloche de la page
+  if (count > 0 && member.username) {
+    await notify({
+      userId: page.ownerId,
+      pageId,
+      kind: "follow",
+      actorId: viewerId,
+      href: `/community/members/${member.username}`,
+      groupKey: `page-follow:${viewerId}`,
+    });
+  }
   return { ok: true };
 }

@@ -9,6 +9,7 @@ import {
 import { progressShareSchema } from "@/features/community/rules";
 import { recordIdSchema } from "@/features/goals/schemas";
 import { requireUser } from "@/server/auth/session";
+import { getActingPage } from "@/server/pages/identity";
 import { touchPresence } from "@/server/presence/service";
 import { listShareableProgress } from "@/server/community/posts";
 import { countContactRequests } from "@/server/contacts/service";
@@ -132,6 +133,15 @@ export async function listInboxAction(): Promise<{
 
 export async function countUnreadAction(): Promise<number> {
   const user = await requireUser();
+  // Sur sa page : la pastille de la boîte de la page
+  const acting = await getActingPage(user.id);
+  if (acting) {
+    const [unread] = await Promise.all([
+      countUnread(user.id, acting.id).catch(() => 0),
+      touchPresence(user.id).catch(() => {}),
+    ]);
+    return unread;
+  }
   // L'application est ouverte : la présence en ligne avance au passage
   const [unread, requests, invitations] = await Promise.all([
     countUnread(user.id).catch(() => 0),

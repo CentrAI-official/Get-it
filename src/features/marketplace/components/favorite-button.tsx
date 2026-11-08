@@ -49,7 +49,8 @@ export function FavoriteButton({
         aria-label={t(on ? "remove" : "add", { title })}
         onClick={toggle}
         className={cn(
-          "flex size-11 shrink-0 items-center justify-center rounded-full transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+          // « Mes favoris » est au compte personnel : caché sur sa page
+          "identity-personal flex size-11 shrink-0 items-center justify-center rounded-full transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
           overlay
             ? "bg-black/55 text-white backdrop-blur-sm hover:bg-black/70"
             : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
