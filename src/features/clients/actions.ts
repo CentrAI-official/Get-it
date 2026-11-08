@@ -18,9 +18,21 @@ import {
   respondToClientRequest,
   updateShares,
 } from "@/server/clients/service";
+import {
+  answerProposal,
+  proposePlanChange,
+  withdrawProposal,
+} from "@/server/clients/proposals";
 import { startClientConversation } from "@/server/messages/service";
 import { getActingPage } from "@/server/pages/identity";
 import {
+  firstProposalError,
+  proposalNoteSchema,
+  scheduleEditSchema,
+  type ProposalError,
+} from "./proposals";
+import {
+  SHAREABLE_KINDS,
   clientMessageSchema,
   firstClientError,
   noteSchema,
@@ -261,4 +273,76 @@ export async function leaveProAction(relationId: unknown) {
   const ok = await leavePro(user.id, id.data).catch(() => false);
   if (ok) refresh();
   return ok;
+}
+
+// ——— Modifications de plan (lot 4) ———
+
+/** Sur sa page : proposer une modification de la semaine type d'un client. */
+export async function proposePlanChangeAction(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; error: ProposalError }> {
+  const user = await requireUser();
+  const page = await pageOf(user.id);
+  if (!page) return { ok: false, error: "notFound" };
+  const parsed = z
+    .object({
+      clientId: z.uuid(),
+      kind: z.enum(SHAREABLE_KINDS),
+      schedule: scheduleEditSchema,
+      note: proposalNoteSchema.default(""),
+    })
+    .safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: firstProposalError(parsed.error) };
+  }
+  try {
+    const result = await proposePlanChange(
+      user.id,
+      page.id,
+      parsed.data.clientId,
+      parsed.data.kind,
+      parsed.data.schedule,
+      parsed.data.note,
+    );
+    if (!result.ok) return result;
+    refresh();
+    return { ok: true };
+  } catch (error) {
+    console.error("Modification de plan impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+export async function withdrawProposalAction(proposalId: unknown) {
+  const user = await requireUser();
+  const page = await pageOf(user.id);
+  const id = recordIdSchema.safeParse(proposalId);
+  if (!page || !id.success) return false;
+  const ok = await withdrawProposal(user.id, page.id, id.data).catch(
+    () => false,
+  );
+  if (ok) refresh();
+  return ok;
+}
+
+/** Sur son compte : accepter (le plan change) ou refuser une modification. */
+export async function answerProposalAction(
+  proposalId: unknown,
+  accept: unknown,
+): Promise<{ ok: true } | { ok: false; error: ProposalError }> {
+  const user = await requireUser();
+  if (!(await personal(user.id))) return { ok: false, error: "notFound" };
+  const id = recordIdSchema.safeParse(proposalId);
+  if (!id.success || typeof accept !== "boolean") {
+    return { ok: false, error: "notFound" };
+  }
+  try {
+    const result = await answerProposal(user.id, id.data, accept);
+    // Dépassée : la page affiche son nouvel état
+    refresh();
+    return result.ok ? { ok: true } : result;
+  } catch (error) {
+    console.error("Réponse à une modification impossible", error);
+    return { ok: false, error: "unexpected" };
+  }
 }

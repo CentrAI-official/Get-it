@@ -17,6 +17,11 @@ import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
 import { notify } from "@/server/notifications/service";
 import { avatarUrls } from "@/server/profile/avatar";
+import {
+  listProposalHistory,
+  withdrawPendingProposals,
+  type ProposalSummary,
+} from "./proposals";
 
 // Les clients d'une page pro (lot 3). La page est toujours celle de la
 // personne connectée (retrouvée par sa session) ; le client décide seul de ce
@@ -278,8 +283,13 @@ export async function endByPage(
   pageId: string,
   relationId: string,
 ) {
-  const { count } = await db.pageClient.updateMany({
+  const relation = await db.pageClient.findFirst({
     where: { id: relationId, pageId, page: { ownerId }, status: "active" },
+    select: { clientId: true },
+  });
+  if (!relation) return false;
+  await db.pageClient.update({
+    where: { id: relationId },
     data: {
       status: "ended",
       endedAt: new Date(),
@@ -287,7 +297,9 @@ export async function endByPage(
       mentalConsentAt: null,
     },
   });
-  return count > 0;
+  // Une modification en attente ne peut plus s'appliquer
+  await withdrawPendingProposals(pageId, relation.clientId);
+  return true;
 }
 
 // ——— La fiche d'un client ———
@@ -346,6 +358,8 @@ export type ClientFile = {
   /** Les plans partagés qui existent (lecture seule, semaine en cours). */
   plans: ClientPlanView[];
   notes: ClientNoteItem[];
+  /** Les modifications proposées par la page (lot 4), plus récentes d'abord. */
+  proposals: ProposalSummary[];
 };
 
 /** Les séances terminées du carnet : durée, séries faites, records. */
@@ -533,7 +547,7 @@ export async function getClientFile(
   const visible = orderedShares(relation.sharedKinds).filter((kind) =>
     canSeePlan(relation, kind),
   );
-  const [byId, plans, notes] = await Promise.all([
+  const [byId, plans, notes, proposals] = await Promise.all([
     people([clientId]),
     sharedPlans(clientId, visible),
     db.clientNote.findMany({
@@ -542,6 +556,7 @@ export async function getClientFile(
       take: CLIENT_LIMITS.notesPerClient,
       select: { id: true, body: true, createdAt: true },
     }),
+    listProposalHistory(pageId, clientId),
   ]);
   const client = byId.get(clientId);
   if (!client) return null;
@@ -559,6 +574,7 @@ export async function getClientFile(
       body: note.body,
       createdAt: note.createdAt.toISOString(),
     })),
+    proposals,
   };
 }
 
@@ -800,7 +816,7 @@ export async function updateShares(
       clientId: userId,
       status: { in: ["active", "requested"] },
     },
-    select: { mentalConsentAt: true },
+    select: { mentalConsentAt: true, pageId: true },
   });
   if (!relation) return { ok: false, error: "notFound" };
   await db.pageClient.update({
@@ -810,6 +826,12 @@ export async function updateShares(
       mentalConsentAt: consentOf(shares, relation.mentalConsentAt),
     },
   });
+  // Un plan qui n'est plus partagé : ses modifications en attente sont retirées
+  await withdrawPendingProposals(
+    relation.pageId,
+    userId,
+    shares.kinds.length > 0 ? shares.kinds : [],
+  );
   return { ok: true };
 }
 
@@ -824,9 +846,10 @@ export async function leavePro(userId: string, relationId: string) {
       clientId: userId,
       status: { in: ["active", "requested"] },
     },
-    select: { status: true },
+    select: { status: true, pageId: true },
   });
   if (!relation) return false;
+  await withdrawPendingProposals(relation.pageId, userId);
   if (relation.status === "requested") {
     await db.pageClient.delete({ where: { id: relationId } });
     return true;

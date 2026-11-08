@@ -138,6 +138,8 @@ model Profile {
   proPages             PageClient[]
   /// Notes des pros sur moi (jamais montrées ; effacées avec le compte).
   proNotes             ClientNote[]
+  /// Modifications de mes plans proposées par mes pros.
+  planProposals        PlanProposal[]
   checkIns             DailyCheckIn[]
   journalEntries       JournalEntry[]
   journalMedia         JournalMedia[]
@@ -1557,6 +1559,7 @@ model DevelopmentPlan {
   tasks           Task[]
   workoutSessions WorkoutSession[]
   planItemLogs    PlanItemLog[]
+  proposals       PlanProposal[]
 
   @@unique([userId, kind])
   @@map("development_plans")
@@ -1590,6 +1593,7 @@ model Page {
   pageNotifications Notification[]     @relation("NotificationPage")
   clients           PageClient[]
   clientNotes       ClientNote[]
+  planProposals     PlanProposal[]
   followers         PageFollow[]
   postReactions     PostPageReaction[]
 
@@ -1645,6 +1649,43 @@ model ClientNote {
   @@index([pageId, clientId, createdAt])
   @@index([clientId])
   @@map("client_notes")
+}
+
+/// Une modification de plan proposée par une page pro (lot 4).
+enum PlanProposalStatus {
+  pending
+  accepted
+  declined
+  withdrawn
+  /// Le plan a changé entre-temps : elle ne peut plus s'appliquer.
+  outdated
+}
+
+/// Modification d'un plan proposée par une page pro : le client l'accepte ou non.
+model PlanProposal {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  pageId    String             @map("page_id") @db.Uuid
+  clientId  String             @map("client_id") @db.Uuid
+  planId    String             @map("plan_id") @db.Uuid
+  kind      DevelopmentKind
+  /// Semaine type au moment de la proposition (src/features/clients/proposals.ts).
+  before    Json
+  /// Semaine type proposée.
+  after     Json
+  note      String             @default("")
+  status    PlanProposalStatus @default(pending)
+  decidedAt DateTime?          @map("decided_at") @db.Timestamptz(3)
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  page   Page            @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  client Profile         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  plan   DevelopmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([clientId, status])
+  @@index([pageId, clientId, createdAt])
+  @@index([planId])
+  @@map("plan_proposals")
 }
 
 /// S'abonner à une page pro : ses publications vont dans le fil « Abonnements ».
@@ -1805,6 +1846,12 @@ enum NotificationKind {
   client_request
   /// Le suivi est accepté (par le client ou par la page).
   client_accepted
+  /// Une page propose de modifier un plan du client.
+  plan_change
+  /// Le client a accepté la modification (cloche de la page).
+  plan_change_accepted
+  /// Le client a refusé la modification (cloche de la page).
+  plan_change_declined
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.

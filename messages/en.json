@@ -3325,7 +3325,10 @@
       "follow": "{name} started following you",
       "client_invite": "{name} invites you to become a client",
       "client_request": "{name} wants to become a client of your page",
-      "client_accepted": "{name} accepted the follow-up"
+      "client_accepted": "{name} accepted the follow-up",
+      "plan_change": "{name} suggests a change to “{subject}”",
+      "plan_change_accepted": "{name} accepted your change to “{subject}”",
+      "plan_change_declined": "{name} declined your change to “{subject}”"
     },
     "push": {
       "title": "Notifications on this device",
@@ -3680,7 +3683,8 @@
         "libraryItem": "Catalogue entry",
         "budget": "Budget",
         "clients": "Clients (pro page)",
-        "clientFile": "A client file (pro page)"
+        "clientFile": "A client file (pro page)",
+        "clientPlanEdit": "Editing a client’s plan (pro page)"
       },
       "marketplace": {
         "vitrine": "Showcase",
@@ -3702,7 +3706,8 @@
         "settings": "Settings",
         "pro": "Their page (page profile)",
         "proEdit": "Create or edit one’s page",
-        "pros": "My pros"
+        "pros": "My pros",
+        "prosChange": "A suggested change"
       },
       "today": {
         "dayPanel": "My day"
@@ -5282,7 +5287,8 @@
       "emptyDescription": "Find a coach, a nutritionist or an advisor in the Marketplace, then “Become a client” on their page.",
       "browse": "See the Marketplace",
       "invitations": "{count, plural, one {# invitation to accept} other {# invitations to accept}}",
-      "count": "{count, plural, one {# pro} other {# pros}}"
+      "count": "{count, plural, one {# pro} other {# pros}}",
+      "toDo": "{count, plural, one {# thing to review} other {# things to review}}"
     },
     "errors": {
       "notFound": "Not found. Check the username, or this person isn’t a Hub member.",
@@ -5299,6 +5305,71 @@
       "noteRequired": "Write something before adding the note.",
       "noteTooLong": "2,000 characters at most.",
       "unexpected": "That didn’t work. Try again."
+    },
+    "proposals": {
+      "edit": "Edit this plan",
+      "waiting": "Change sent, waiting for {name}",
+      "historyLine": "Change of {date}: {status}",
+      "status": {
+        "pending": "pending",
+        "accepted": "accepted",
+        "declined": "declined",
+        "withdrawn": "withdrawn",
+        "outdated": "outdated (the plan had changed)"
+      },
+      "toReview": "{page} suggests a change: {plan}",
+      "pastLine": "{plan}, change of {date}: {status}",
+      "pendingNotice": "A change is already waiting for {name}’s answer. Sending a new one replaces it.",
+      "withdraw": "Withdraw the change",
+      "session": "Session",
+      "noSession": "No session",
+      "title": "Session title",
+      "itemName": "Item {number, number}",
+      "itemDetail": "Item {number, number} detail",
+      "itemNamePlaceholder": "Exercise, meal, action…",
+      "itemDetailPlaceholder": "E.g. 4 × 8, rest 90 s",
+      "removeItem": "Remove item {number, number}",
+      "addItem": "Add an item",
+      "note": "A note for {name} (optional)",
+      "notePlaceholder": "Why this change…",
+      "sendHint": "{name} gets a notification and sees every change. Their plan only changes if they accept.",
+      "send": "Send to {name}",
+      "accept": "Accept the change",
+      "decline": "Decline",
+      "editorTitle": "Edit a plan",
+      "editorDescription": "Edit the weekly schedule. {name} will have to accept for it to apply.",
+      "reviewPageTitle": "Suggested change",
+      "reviewTitle": "Suggested change: {plan}",
+      "sentOn": "sent on {date}",
+      "noteFrom": "{page}’s note: “{note}”",
+      "decided": {
+        "accepted": "You accepted this change on {date}: your plan changed.",
+        "declined": "You declined this change on {date}.",
+        "withdrawn": "This change was withdrawn on {date}.",
+        "outdated": "Your plan had changed: this change couldn’t apply ({date}).",
+        "pending": "Waiting for your answer."
+      },
+      "outdatedNotice": "Your plan changed since this suggestion: it can’t apply as is anymore. You can decline it, and {page} can send a new one.",
+      "changesTitle": "What changes",
+      "noChanges": "Nothing changes compared to your current plan.",
+      "day": {
+        "added": "New session",
+        "removed": "Session removed",
+        "changed": "Session changed"
+      },
+      "added": "Added:",
+      "removed": "Removed:",
+      "noDetail": "no detail",
+      "answerHint": "Accepting replaces your plan’s weekly schedule with this one. Declining changes nothing, and {page} will know.",
+      "errors": {
+        "notFound": "This plan isn’t shared anymore, or this change is no longer available.",
+        "noChange": "Nothing changed compared to the current plan.",
+        "outdated": "The plan changed since: this change can’t apply anymore.",
+        "proposalLimit": "Many changes sent today. Try again tomorrow.",
+        "noteTooLong": "500 characters at most.",
+        "sessionInvalid": "Each session needs a title and at least one item.",
+        "unexpected": "That didn’t work. Try again."
+      }
     }
   }
 }

@@ -3325,7 +3325,10 @@
       "follow": "{name} s’est abonné à toi",
       "client_invite": "{name} t’invite à devenir client",
       "client_request": "{name} veut devenir client de ta page",
-      "client_accepted": "{name} a accepté le suivi"
+      "client_accepted": "{name} a accepté le suivi",
+      "plan_change": "{name} propose une modification de « {subject} »",
+      "plan_change_accepted": "{name} a accepté ta modification de « {subject} »",
+      "plan_change_declined": "{name} a refusé ta modification de « {subject} »"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -3680,7 +3683,8 @@
         "libraryItem": "Fiche du catalogue",
         "budget": "Budget",
         "clients": "Clients (page pro)",
-        "clientFile": "Fiche d’un client (page pro)"
+        "clientFile": "Fiche d’un client (page pro)",
+        "clientPlanEdit": "Modifier le plan d’un client (page pro)"
       },
       "marketplace": {
         "vitrine": "Vitrine",
@@ -3702,7 +3706,8 @@
         "settings": "Réglages",
         "pro": "Sa page (profil de la page)",
         "proEdit": "Créer ou modifier sa page",
-        "pros": "Mes pros"
+        "pros": "Mes pros",
+        "prosChange": "Une modification proposée"
       },
       "today": {
         "dayPanel": "Ma journée"
@@ -5282,7 +5287,8 @@
       "emptyDescription": "Trouve un coach, une nutritionniste ou un conseiller dans la Marketplace, puis « Devenir client » sur sa page.",
       "browse": "Voir la Marketplace",
       "invitations": "{count, plural, one {# invitation à accepter} other {# invitations à accepter}}",
-      "count": "{count, plural, one {# pro} other {# pros}}"
+      "count": "{count, plural, one {# pro} other {# pros}}",
+      "toDo": "{count, plural, one {# chose à voir} other {# choses à voir}}"
     },
     "errors": {
       "notFound": "Introuvable. Vérifie le nom d’utilisateur, ou cette personne n’est pas membre du Centre.",
@@ -5299,6 +5305,71 @@
       "noteRequired": "Écris quelque chose avant d’ajouter la note.",
       "noteTooLong": "2000 caractères au plus.",
       "unexpected": "Ça n’a pas fonctionné. Réessaie."
+    },
+    "proposals": {
+      "edit": "Modifier ce plan",
+      "waiting": "Modification envoyée, en attente de {name}",
+      "historyLine": "Modification du {date} : {status}",
+      "status": {
+        "pending": "en attente",
+        "accepted": "acceptée",
+        "declined": "refusée",
+        "withdrawn": "retirée",
+        "outdated": "dépassée (le plan avait changé)"
+      },
+      "toReview": "{page} propose une modification : {plan}",
+      "pastLine": "{plan}, modification du {date} : {status}",
+      "pendingNotice": "Une modification attend déjà la réponse de {name}. En envoyer une nouvelle la remplace.",
+      "withdraw": "Retirer la proposition",
+      "session": "Séance",
+      "noSession": "Pas de séance",
+      "title": "Titre de la séance",
+      "itemName": "Élément {number, number}",
+      "itemDetail": "Détail de l’élément {number, number}",
+      "itemNamePlaceholder": "Exercice, repas, action…",
+      "itemDetailPlaceholder": "Ex. 4 × 8, repos 90 s",
+      "removeItem": "Retirer l’élément {number, number}",
+      "addItem": "Ajouter un élément",
+      "note": "Un mot pour {name} (facultatif)",
+      "notePlaceholder": "Pourquoi ce changement…",
+      "sendHint": "{name} reçoit une notification et voit chaque changement. Son plan ne change que s’il ou elle accepte.",
+      "send": "Envoyer à {name}",
+      "accept": "Accepter la modification",
+      "decline": "Refuser",
+      "editorTitle": "Modifier un plan",
+      "editorDescription": "Modifie la semaine type. {name} devra accepter pour que ça s’applique.",
+      "reviewPageTitle": "Modification proposée",
+      "reviewTitle": "Modification proposée : {plan}",
+      "sentOn": "envoyée le {date}",
+      "noteFrom": "Le mot de {page} : « {note} »",
+      "decided": {
+        "accepted": "Tu as accepté cette modification le {date} : ton plan a changé.",
+        "declined": "Tu as refusé cette modification le {date}.",
+        "withdrawn": "Cette modification a été retirée le {date}.",
+        "outdated": "Ton plan avait changé : cette modification n’a pas pu s’appliquer ({date}).",
+        "pending": "En attente de ta réponse."
+      },
+      "outdatedNotice": "Ton plan a changé depuis cette proposition : elle ne peut plus s’appliquer telle quelle. Tu peux la refuser, et {page} pourra en envoyer une nouvelle.",
+      "changesTitle": "Ce qui change",
+      "noChanges": "Rien ne change par rapport à ton plan actuel.",
+      "day": {
+        "added": "Nouvelle séance",
+        "removed": "Séance retirée",
+        "changed": "Séance modifiée"
+      },
+      "added": "Ajouté :",
+      "removed": "Retiré :",
+      "noDetail": "sans détail",
+      "answerHint": "Accepter remplace la semaine type de ton plan par celle-ci. Refuser ne change rien, et {page} le saura.",
+      "errors": {
+        "notFound": "Ce plan n’est plus partagé, ou cette modification n’est plus disponible.",
+        "noChange": "Rien n’a changé par rapport au plan actuel.",
+        "outdated": "Le plan a changé depuis : cette modification ne peut plus s’appliquer.",
+        "proposalLimit": "Beaucoup de modifications envoyées aujourd’hui. Réessaie demain.",
+        "noteTooLong": "500 caractères au plus.",
+        "sessionInvalid": "Chaque séance a besoin d’un titre et d’au moins un élément.",
+        "unexpected": "Ça n’a pas fonctionné. Réessaie."
+      }
     }
   }
 }

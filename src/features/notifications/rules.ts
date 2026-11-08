@@ -16,6 +16,9 @@ export const NOTIFICATION_KINDS = [
   "client_invite",
   "client_request",
   "client_accepted",
+  "plan_change",
+  "plan_change_accepted",
+  "plan_change_declined",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 

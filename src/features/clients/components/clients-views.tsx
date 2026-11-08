@@ -1,6 +1,7 @@
 import {
   Check,
   ChevronRight,
+  Pencil,
   ClipboardList,
   Dumbbell,
   HeartHandshake,
@@ -28,6 +29,11 @@ import {
   type ClientPlanView,
   type PageClientItem,
 } from "@/server/clients/service";
+import {
+  listMyProposals,
+  type MyProposalItem,
+  type ProposalSummary,
+} from "@/server/clients/proposals";
 import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CLIENT_LIMITS, type ShareableKind } from "../rules";
@@ -344,7 +350,15 @@ export async function ClientFileView({ clientId }: { clientId: string }) {
             </p>
           ) : null}
           {file.plans.map((plan) => (
-            <ClientPlan key={plan.kind} plan={plan} />
+            <ClientPlan
+              key={plan.kind}
+              plan={plan}
+              clientId={file.client.id}
+              name={name}
+              proposals={file.proposals.filter(
+                (proposal) => proposal.kind === plan.kind,
+              )}
+            />
           ))}
           {missing.map((kind) => (
             <p key={kind} className="text-sm text-muted-foreground">
@@ -413,12 +427,26 @@ export async function ClientFileView({ clientId }: { clientId: string }) {
 }
 
 /** Un plan partagé, en lecture seule : la semaine en cours et ce qui est fait. */
-async function ClientPlan({ plan }: { plan: ClientPlanView }) {
-  const [t, tKinds, format] = await Promise.all([
+async function ClientPlan({
+  plan,
+  clientId,
+  name,
+  proposals,
+}: {
+  plan: ClientPlanView;
+  clientId: string;
+  name: string;
+  /** Les modifications proposées pour ce plan (lot 4). */
+  proposals: ProposalSummary[];
+}) {
+  const [t, tKinds, tProposals, format] = await Promise.all([
     getTranslations("Clients.file"),
     getTranslations("Development.kinds"),
+    getTranslations("Clients.proposals"),
     getFormatter(),
   ]);
+  const pending = proposals.find((proposal) => proposal.status === "pending");
+  const history = proposals.filter((proposal) => proposal.status !== "pending");
   const scheduled = plan.days.filter((day) => day.session);
   const doneCount = scheduled.reduce(
     (sum, day) =>
@@ -457,6 +485,34 @@ async function ClientPlan({ plan }: { plan: ClientPlanView }) {
           })}
         </p>
       </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button asChild variant="outline" className="h-10">
+          <Link href={`/clients/${clientId}/plans/${plan.kind}`}>
+            <Pencil aria-hidden="true" />
+            {tProposals("edit")}
+          </Link>
+        </Button>
+        {pending ? (
+          <span className="text-xs font-medium text-primary">
+            {tProposals("waiting", { name })}
+          </span>
+        ) : null}
+      </div>
+      {history.length > 0 ? (
+        <ul className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+          {history.slice(0, 5).map((proposal) => (
+            <li key={proposal.id}>
+              {tProposals("historyLine", {
+                date: format.dateTime(new Date(proposal.createdAt), {
+                  day: "numeric",
+                  month: "long",
+                }),
+                status: tProposals(`status.${proposal.status}`),
+              })}
+            </li>
+          ))}
+        </ul>
+      ) : null}
       <ol className="flex flex-col">
         {plan.days.map((day) => (
           <li
@@ -594,12 +650,16 @@ async function ClientPlan({ plan }: { plan: ClientPlanView }) {
 /** Mes pros (Profil) : invitations, demandes et suivis, et ce que je partage. */
 export async function MyPros() {
   const profile = await getCurrentProfile();
-  const [items, kinds, t, format] = await Promise.all([
+  const [items, kinds, proposals, t, tKinds, format] = await Promise.all([
     listMyPros(profile.id),
     myPlanKinds(profile.id),
+    listMyProposals(profile.id),
     getTranslations("Clients"),
+    getTranslations("Development.kinds"),
     getFormatter(),
   ]);
+  const ofPage = (pageId: string) =>
+    proposals.filter((proposal) => proposal.pageId === pageId);
   const date = (iso: string) =>
     format.dateTime(new Date(iso), { day: "numeric", month: "long" });
   if (items.length === 0) {
@@ -650,6 +710,12 @@ export async function MyPros() {
               </span>
             </span>
           </Link>
+          <ProposalLines
+            proposals={ofPage(item.page.id)}
+            pageName={item.page.name}
+            planName={(kind) => tKinds(`${kind}.title`)}
+            date={date}
+          />
           {item.status === "invited" && item.message ? (
             <p className="text-sm break-words whitespace-pre-line">
               {t("home.message", { message: item.message })}
@@ -701,18 +767,83 @@ export async function MyPros() {
   );
 }
 
+/** Les modifications d'un pro : à voir (en attente), puis les dernières décisions. */
+async function ProposalLines({
+  proposals,
+  pageName,
+  planName,
+  date,
+}: {
+  proposals: MyProposalItem[];
+  pageName: string;
+  planName: (kind: ShareableKind) => string;
+  date: (iso: string) => string;
+}) {
+  const t = await getTranslations("Clients.proposals");
+  const pending = proposals.filter((proposal) => proposal.status === "pending");
+  const past = proposals
+    .filter(
+      (proposal) =>
+        proposal.status === "accepted" || proposal.status === "declined",
+    )
+    .slice(0, 3);
+  if (pending.length === 0 && past.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {pending.map((proposal) => (
+        <Link
+          key={proposal.id}
+          href={`/profile/pros/changes/${proposal.id}`}
+          className="flex min-h-12 items-center gap-3 rounded-xl bg-primary/10 px-3 text-sm font-medium outline-none hover:bg-primary/15 focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <Pencil aria-hidden="true" className="size-4 shrink-0 text-primary" />
+          <span className="min-w-0 flex-1">
+            {t("toReview", { page: pageName, plan: planName(proposal.kind) })}
+          </span>
+          <ChevronRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-muted-foreground"
+          />
+        </Link>
+      ))}
+      {past.length > 0 ? (
+        <ul className="flex flex-col gap-0.5 text-xs text-muted-foreground">
+          {past.map((proposal) => (
+            <li key={proposal.id}>
+              <Link
+                href={`/profile/pros/changes/${proposal.id}`}
+                className="hover:text-foreground hover:underline"
+              >
+                {t("pastLine", {
+                  plan: planName(proposal.kind),
+                  date: date(proposal.decidedAt ?? proposal.createdAt),
+                  status: t(`status.${proposal.status}`),
+                })}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * Dans l'Aperçu du Profil : « Mes pros », seulement si on en a (ou une
  * invitation en attente).
  */
 export async function ProsLink() {
   const profile = await getCurrentProfile();
-  const [items, t] = await Promise.all([
+  const [items, proposals, t] = await Promise.all([
     listMyPros(profile.id),
+    listMyProposals(profile.id),
     getTranslations("Clients.pros"),
   ]);
   if (items.length === 0) return null;
-  const invitations = items.filter((item) => item.status === "invited").length;
+  // À faire : les invitations à accepter et les modifications à voir
+  const invitations =
+    items.filter((item) => item.status === "invited").length +
+    proposals.filter((proposal) => proposal.status === "pending").length;
   return (
     <Link
       href="/profile/pros"
@@ -733,7 +864,7 @@ export async function ProsLink() {
           )}
         >
           {invitations > 0
-            ? t("invitations", { count: invitations })
+            ? t("toDo", { count: invitations })
             : t("count", { count: items.length })}
         </span>
       </span>
