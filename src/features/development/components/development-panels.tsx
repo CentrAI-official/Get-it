@@ -284,6 +284,7 @@ export async function DevelopmentLoader({ kind }: { kind: string }) {
       <DevelopmentFlow
         kind={kind}
         plan={page.stored?.plan ?? null}
+        language={page.stored?.language ?? null}
         answers={page.stored?.answers ?? null}
         updatedAt={page.stored?.updatedAt ?? null}
         calendar={calendar}

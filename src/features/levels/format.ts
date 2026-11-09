@@ -1,6 +1,7 @@
 import type { createFormatter } from "next-intl";
 import type { Country, Sex } from "@/features/profile/details";
-import type { LevelFactor } from "./factors";
+import type { WeightUnit } from "@/features/workouts/rules";
+import { fromKilograms, type LevelFactor } from "./factors";
 
 // Affichage des mesures et des objectifs de niveau, partagé par le serveur
 // (titre enregistré de l'objectif) et les écrans. Les libellés vivent dans
@@ -19,6 +20,8 @@ export type FormatContext = {
   sex: Sex;
   /** Poids du corps de la dernière mesure du développé couché, s'il y en a une. */
   weightKg: number | null;
+  /** Unité des poids (préférence du carnet d'entraînement). */
+  weightUnit: WeightUnit;
 };
 
 const currencyOf = (country: Country) => (country === "US" ? "USD" : "CAD");
@@ -97,14 +100,17 @@ export function levelGoalTitle(
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });
-      return context.weightKg
-        ? t("bench", {
-            kg: format.number(
-              Math.ceil((target * context.weightKg) / 2.5) * 2.5,
-            ),
-            ratio,
-          })
-        : t("benchRatio", { ratio });
+      if (!context.weightKg) return t("benchRatio", { ratio });
+      // Arrondi vers le haut à ce qu'on peut charger : 2,5 kg ou 5 lb
+      const step = context.weightUnit === "kg" ? 2.5 : 5;
+      const load =
+        Math.ceil(
+          fromKilograms(target * context.weightKg, context.weightUnit) / step,
+        ) * step;
+      return t("bench", {
+        load: `${format.number(load)} ${context.weightUnit}`,
+        ratio,
+      });
     }
     case "hourly":
       return t("hourly", {

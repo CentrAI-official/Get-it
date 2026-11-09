@@ -15,6 +15,7 @@ import {
   getCalendar,
   removeSession,
   revisePlan,
+  translatePlan,
   updateSession,
   type DevelopmentError,
 } from "@/server/development/service";
@@ -195,6 +196,30 @@ export async function revisePlanAction(
     return result;
   } catch (error) {
     console.error("Plan de développement impossible à modifier", error);
+    return { ok: false, error: "unexpected" };
+  }
+}
+
+/** « Traduire ce plan » : le même plan dans la langue choisie (une demande Get iT AI). */
+export async function translatePlanAction(
+  kind: unknown,
+  locale: unknown,
+): Promise<GeneratePlanResult> {
+  const user = await requireUser();
+  const parsedKind = kindSchema.safeParse(kind);
+  const parsedLocale = z.enum(["fr", "en"]).safeParse(locale);
+  if (!parsedKind.success) return { ok: false, error: "notFound" };
+  if (!parsedLocale.success) return { ok: false, error: "invalid" };
+  try {
+    const result = await translatePlan(
+      user.id,
+      parsedKind.data,
+      parsedLocale.data,
+    );
+    if (result.ok) refresh();
+    return result;
+  } catch (error) {
+    console.error("Plan de développement impossible à traduire", error);
     return { ok: false, error: "unexpected" };
   }
 }

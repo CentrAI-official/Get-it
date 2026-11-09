@@ -1,23 +1,9 @@
-import {
-  Activity,
-  Apple,
-  BadgeCheck,
-  BookOpen,
-  Brain,
-  Dumbbell,
-  Handshake,
-  Shirt,
-  ShoppingBag,
-  Sparkles,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { pillarIcons, type Pillar } from "@/config/pillars";
 import { KIND_PILLAR } from "@/features/development/questionnaires";
 import { Link } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
 import { listPlans } from "@/server/development/service";
 import { listCatalog, type ListingSummary } from "@/server/marketplace/service";
 import {
@@ -27,24 +13,12 @@ import {
   type ListingCategory,
   type ListingKind,
 } from "../rules";
+import { CategoryTabs } from "./category-tabs";
 import { FavoriteButton } from "./favorite-button";
 import { ListingPrice } from "./listing-price";
 
 // Vitrine de la Marketplace (design « Vitrine ») : catégories en icônes, puis
 // des collections en grandes cartes. Aucune mise en avant payée.
-
-const CATEGORY_ICONS: Record<string, LucideIcon> = {
-  all: Sparkles,
-  services: Handshake,
-  gear: ShoppingBag,
-  fitness_coach: Activity,
-  nutritionist: Apple,
-  financial_advisor: Wallet,
-  psychologist: Brain,
-  clothing: Shirt,
-  equipment: Dumbbell,
-  books: BookOpen,
-};
 
 const baseOf = (kind: ListingKind) =>
   kind === "service" ? "/marketplace" : "/marketplace/gear";
@@ -80,30 +54,14 @@ export function CategoryRow({
   ];
 
   return (
-    <nav
-      aria-label={t("label")}
-      className="-mx-4 flex [scrollbar-width:none] gap-6 overflow-x-auto border-b border-foreground/8 px-4 sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
-    >
-      {items.map((item) => {
-        const Icon = CATEGORY_ICONS[item.key] ?? Sparkles;
-        return (
-          <Link
-            key={item.key}
-            href={item.href}
-            aria-current={item.active ? "page" : undefined}
-            className={cn(
-              "flex shrink-0 flex-col items-center gap-1.5 rounded-sm pt-1 pb-2.5 text-xs font-semibold transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-              item.active
-                ? "text-foreground shadow-[inset_0_-2px_0_var(--primary)]"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Icon aria-hidden="true" className="size-6" />
-            {t(item.key as "all")}
-          </Link>
-        );
-      })}
-    </nav>
+    <CategoryTabs
+      label={t("label")}
+      items={items.map((item) => ({
+        ...item,
+        active: Boolean(item.active),
+        label: t(item.key as "all"),
+      }))}
+    />
   );
 }
 

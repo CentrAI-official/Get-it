@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { BackButton } from "@/components/back-button";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotificationList } from "@/features/notifications/components/notification-list";
@@ -17,8 +18,10 @@ export async function generateMetadata(): Promise<Metadata> {
 // Notifications : messages, demandes, invitations, pactes, commentaires et « J'aime »
 export default function NotificationsPage() {
   const t = useTranslations("Notifications");
+  const tCommon = useTranslations("Common");
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <BackButton fallback="/community" label={tCommon("back")} />
       <PageHeader title={t("title")} description={t("description")} />
       <Suspense
         fallback={

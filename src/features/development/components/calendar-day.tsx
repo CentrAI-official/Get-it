@@ -359,21 +359,24 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
       <HourColumn
         minute={event.startMinute}
         below={
-          span > 0
-            ? t("untilDay", {
-                date: format.dateTime(toDbDate(addDays(day, span)), {
-                  day: "numeric",
-                  month: "short",
-                  timeZone: "UTC",
-                }),
-              })
-            : t("until", {
-                time: format.dateTime(clockDate(event.endMinute), {
-                  hour: "numeric",
-                  minute: "2-digit",
-                  timeZone: "UTC",
-                }),
-              })
+          // Sans fin : seulement l'heure de début
+          event.endMinute === null
+            ? undefined
+            : span > 0
+              ? t("untilDay", {
+                  date: format.dateTime(toDbDate(addDays(day, span)), {
+                    day: "numeric",
+                    month: "short",
+                    timeZone: "UTC",
+                  }),
+                })
+              : t("until", {
+                  time: format.dateTime(clockDate(event.endMinute), {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    timeZone: "UTC",
+                  }),
+                })
         }
       />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">

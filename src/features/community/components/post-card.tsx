@@ -65,6 +65,8 @@ type PostCardProps = {
   onReport: (target: { type: "post" | "comment" | "user"; id: string }) => void;
   /** Message d'information (ex. conversation impossible). */
   onNotice: (text: string) => void;
+  /** Enregistrée (ou retirée des enregistrements) : message avec un lien vers elles. */
+  onSaved: (saved: boolean) => void;
   /** Affichée dans le forum de son groupe : pas de rappel du groupe. */
   inGroup?: boolean;
   /** Créateur ou admin du groupe : « Retirer du groupe ». */
@@ -88,6 +90,7 @@ export function PostCard({
   onRemoved,
   onReport,
   onNotice,
+  onSaved,
   inGroup = false,
   groupManager = false,
   asPage = false,
@@ -120,7 +123,7 @@ export function PostCard({
       error: "unexpected" as const,
     }));
     if (result.ok) {
-      onNotice(next ? t("savedNotice") : t("unsavedNotice"));
+      onSaved(next);
     } else {
       setSaved(!next);
       onNotice(tErrors(result.error));

@@ -25,6 +25,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { Country, Sex } from "@/features/profile/details";
+import type { WeightUnit } from "@/features/workouts/rules";
 import { eraseLevelsAction, setRankedAction } from "../actions";
 import type { LevelFactor } from "../factors";
 import { MeasureForm } from "./measure-form";
@@ -32,7 +33,8 @@ import { MeasureForm } from "./measure-form";
 /**
  * Refaire une mesure (ou la faire, si elle manque) dans une fenêtre ; après
  * l'envoi, le niveau du pilier avant et après. `defaultOpen` : ouverte depuis
- * un objectif de niveau (« Mettre à jour ma mesure »).
+ * un objectif de niveau (« Mettre à jour ma mesure »). `correct` : corrige la
+ * dernière mesure (faute de saisie, dans les 48 h).
  */
 export function MeasureDialog({
   factor,
@@ -40,6 +42,8 @@ export function MeasureDialog({
   consentRequired,
   country,
   sex,
+  weightUnit,
+  correct = false,
   defaultOpen = false,
 }: {
   factor: LevelFactor;
@@ -47,6 +51,8 @@ export function MeasureDialog({
   consentRequired: boolean;
   country: Country;
   sex: Sex;
+  weightUnit: WeightUnit;
+  correct?: boolean;
   defaultOpen?: boolean;
 }) {
   const t = useTranslations("Levels.update");
@@ -66,14 +72,16 @@ export function MeasureDialog({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant={correct ? "ghost" : "outline"} size="sm">
           {label}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{tFactors(factor)}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogDescription>
+            {correct ? t("correctDescription") : t("description")}
+          </DialogDescription>
         </DialogHeader>
         {done ? (
           <div role="status" className="flex flex-col items-start gap-4">
@@ -94,6 +102,8 @@ export function MeasureDialog({
             consentRequired={consentRequired}
             country={country}
             sex={sex}
+            weightUnit={weightUnit}
+            correct={correct}
             onSaved={(result) =>
               setDone({ before: result.before, after: result.after })
             }

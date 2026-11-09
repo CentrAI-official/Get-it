@@ -51,7 +51,7 @@ describe("eventFormSchema", () => {
     ).toBe(false);
   });
 
-  it("accepte un événement sur plusieurs jours, pas plus de 14", () => {
+  it("accepte un événement de plusieurs jours, jusqu'à un an", () => {
     expect(
       eventFormSchema.safeParse({
         ...valid,
@@ -59,14 +59,36 @@ describe("eventFormSchema", () => {
         endTime: "08:00",
       }).success,
     ).toBe(true);
+    // Plus de 14 jours : des vacances, une session d'études
+    expect(
+      eventFormSchema.safeParse({ ...valid, endDate: "2026-12-20" }).success,
+    ).toBe(true);
     const result = eventFormSchema.safeParse({
       ...valid,
-      endDate: "2026-11-10",
+      endDate: "2027-11-10",
     });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(eventFieldErrors(result.error)).toEqual({ endDate: "tooLong" });
     }
+  });
+
+  it("sans fin : seulement le début compte", () => {
+    const parsed = eventFormSchema.parse({
+      ...valid,
+      noEnd: "on",
+      endDate: "",
+      endTime: "",
+    });
+    expect(parsed).toMatchObject({ endsOn: null, endMinute: null });
+    expect(
+      eventFormSchema.parse({
+        ...valid,
+        noEnd: "on",
+        endDate: undefined,
+        endTime: undefined,
+      }).endsOn,
+    ).toBeNull();
   });
 
   it("refuse un titre vide ou trop long et une heure invalide", () => {
@@ -154,13 +176,14 @@ describe("momentOfMinute", () => {
 });
 
 describe("migration", () => {
-  const sql = readFileSync(
-    join(
-      process.cwd(),
-      "prisma/migrations/20261103120000_calendar_events/migration.sql",
-    ),
-    "utf8",
-  );
+  const read = (name: string) =>
+    readFileSync(
+      join(process.cwd(), `prisma/migrations/${name}/migration.sql`),
+      "utf8",
+    );
+  // Limites élargies le 2026-11-08 ; l'enum vient de la première migration
+  const sql = read("20261124120000_corrections");
+  const created = read("20261103120000_calendar_events");
   const schema = readFileSync(
     join(process.cwd(), "prisma/schema.prisma"),
     "utf8",
@@ -174,7 +197,7 @@ describe("migration", () => {
 
   it("a les mêmes répétitions que l'enum Prisma", () => {
     const values = EVENT_REPEATS.map((value) => `'${value}'`).join(", ");
-    expect(sql).toContain(`AS ENUM (${values})`);
+    expect(created).toContain(`AS ENUM (${values})`);
     const block = /enum EventRepeat \{([^}]*)\}/.exec(schema)?.[1] ?? "";
     expect(block.trim().split(/\s+/)).toEqual([...EVENT_REPEATS]);
   });

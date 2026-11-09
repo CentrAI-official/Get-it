@@ -52,6 +52,7 @@ export async function LevelsPanel({
     country: person.country,
     sex: person.sex,
     weightKg: state.weightKg,
+    weightUnit: state.weightUnit,
   };
   const measured = LEVEL_PILLARS.some((pillar) =>
     state.pillars[pillar].factors.some((factor) => factor.value !== null),
@@ -185,6 +186,7 @@ async function PillarSection({
             consentRequired
             country={context.country}
             sex={context.sex}
+            weightUnit={context.weightUnit}
           />
         </div>
       ) : (
@@ -258,8 +260,22 @@ async function PillarSection({
                       </span>
                     ) : null}
                     {factor.availableAt ? (
-                      <span className="text-xs text-muted-foreground">
-                        {t("availableOn", { date: date(factor.availableAt) })}
+                      <span className="flex flex-wrap items-center justify-end gap-x-2">
+                        <span className="text-xs text-muted-foreground">
+                          {t("availableOn", { date: date(factor.availableAt) })}
+                        </span>
+                        {factor.correctableUntil ? (
+                          // Faute de saisie (kg au lieu de lb…) : corrigeable 48 h
+                          <MeasureDialog
+                            factor={factor.factor}
+                            label={t("correct")}
+                            consentRequired={false}
+                            country={context.country}
+                            sex={context.sex}
+                            weightUnit={context.weightUnit}
+                            correct
+                          />
+                        ) : null}
                       </span>
                     ) : (
                       <MeasureDialog
@@ -270,6 +286,7 @@ async function PillarSection({
                         consentRequired={false}
                         country={context.country}
                         sex={context.sex}
+                        weightUnit={context.weightUnit}
                         defaultOpen={requested === factor.factor}
                       />
                     )}

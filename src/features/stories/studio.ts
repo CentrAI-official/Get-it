@@ -236,3 +236,31 @@ export function pollPercents(counts: readonly [number, number]) {
 
 /** Réponse à une question, revalidée par le serveur. */
 export const storyAnswerSchema = short(STORY_ANSWER_MAX);
+
+/**
+ * Textes et emoji posés sur une photo ou la vidéo d'une publication (décision
+ * du fondateur, 2026-11-08 : « comme sur la story ») : les mêmes réglages que
+ * dans le studio, sans les stickers (heure, mention, sondage…). Position en
+ * part du média, tailles en part de sa largeur.
+ */
+export type PostOverlay = Extract<StoryOverlay, { kind: "text" | "emoji" }>;
+
+const isPostOverlay = (item: StoryOverlay): item is PostOverlay =>
+  item.kind === "text" || item.kind === "emoji";
+
+/** Ceux d'un média : 20 au plus, des textes et des emoji seulement. */
+export const postOverlaysSchema = z
+  .array(overlaySchema)
+  .max(STORY_OVERLAYS_MAX, { error: "storyOverlays" })
+  .refine(
+    (overlays) =>
+      overlays.every(isPostOverlay) &&
+      new Set(overlays.map((item) => item.id)).size === overlays.length,
+    { error: "storyOverlays" },
+  )
+  .transform((overlays) => overlays.filter(isPostOverlay));
+
+/** Relit ceux d'un média enregistré (les autres sont ignorés). */
+export function readPostOverlays(value: unknown): PostOverlay[] {
+  return readOverlays(value).filter(isPostOverlay);
+}

@@ -15,7 +15,8 @@
       "period": "a.m. or p.m.",
       "am": "a.m.",
       "pm": "p.m."
-    }
+    },
+    "back": "Back"
   },
   "LocaleSwitcher": {
     "label": "Language",
@@ -200,9 +201,7 @@
     },
     "events": {
       "title": "Events",
-      "question": "Where can I meet people who grow like me?",
-      "soonTitle": "Events are coming soon",
-      "soonDescription": "Networking, competitions, workshops and meetups: soon you’ll discover community events and propose your own."
+      "question": "Where can I meet people who are moving forward like me?"
     },
     "marketplace": {
       "gear": {
@@ -1202,13 +1201,14 @@
       "message": "Send a message",
       "share": "Share",
       "save": "Save",
-      "savedNotice": "Post saved. Find it in Profile › Posts.",
       "unsavedNotice": "Post removed from your saved posts.",
       "sharedLabel": "shared",
       "inGroup": "in {group}",
       "removeFromGroup": "Remove from group",
       "pageLabel": "Pro page",
-      "messagePage": "Message the page"
+      "messagePage": "Message the page",
+      "savedToast": "Post saved",
+      "savedToastLink": "See saved posts"
     },
     "share": {
       "title": "Share",
@@ -1271,7 +1271,8 @@
         "comment": "Report comment",
         "user": "Report this person",
         "message": "Report message",
-        "story": "Report the story"
+        "story": "Report the story",
+        "event": "Report the event"
       },
       "description": "Tell us what’s wrong. Your report stays anonymous.",
       "reasonLabel": "Reason for the report",
@@ -1298,7 +1299,8 @@
         "comment": "Comment",
         "user": "Person",
         "message": "Private message",
-        "story": "Story"
+        "story": "Story",
+        "event": "Event"
       },
       "count": "{count, plural, one {# report} other {# reports}}",
       "status": {
@@ -1370,7 +1372,16 @@
       "previous": "Previous photo",
       "next": "Next photo",
       "limitsPhotos": "Up to 4 photos. GPS location is removed from photos.",
-      "views": "{count, plural, one {{formatted} view} other {{formatted} views}}"
+      "views": "{count, plural, one {{formatted} view} other {{formatted} views}}",
+      "writeOn": "Write on this media",
+      "editor": {
+        "title": "Write on the media",
+        "description": "Add text and emoji anywhere on your photo or video. Move them with your finger, pinch to resize and rotate.",
+        "close": "Close without saving",
+        "hint": "Tap Aa to write, or the smiley for an emoji.",
+        "clear": "Clear all",
+        "done": "Done"
+      }
     },
     "profile": {
       "back": "Community",
@@ -1646,7 +1657,9 @@
         "with": "with {name}",
         "open": "{title}, with {name}: open the chat",
         "goTo": "Show pact {n, number} of {total, number}",
-        "bothDone": "You both did it!"
+        "bothDone": "You both did it!",
+        "startsWord": "Starts",
+        "tomorrowWord": "tomorrow"
       },
       "part": {
         "title": "I did my part",
@@ -2422,7 +2435,7 @@
         "routine": "Your pace"
       },
       "financial": {
-        "career": "Your career",
+        "career": "Your work",
         "goal": "Your goal",
         "situation": "Your situation",
         "business": "Business"
@@ -2668,16 +2681,6 @@
         }
       },
       "financial": {
-        "career": {
-          "label": "Your situation",
-          "options": {
-            "employee": "Employee",
-            "employer": "Employer",
-            "self_employed": "Self-employed",
-            "student": "Student",
-            "between_jobs": "Between jobs"
-          }
-        },
         "income": {
           "label": "Your annual income before taxes"
         },
@@ -2730,6 +2733,23 @@
             "has_business": "I already have a business",
             "wants_business": "I want to start one"
           }
+        },
+        "career": {
+          "label": "Your employment situation",
+          "hint": "If you study and also work, choose “Student”: your work hours are asked right after.",
+          "options": {
+            "full_time": "Full-time job",
+            "part_time": "Part-time job",
+            "self_employed": "Self-employed",
+            "employer": "Employer (I run a business with employees)",
+            "student": "Student",
+            "unemployed": "Not working",
+            "retired": "Retired"
+          }
+        },
+        "weeklyHours": {
+          "label": "How many hours do you work per week?",
+          "hint": "On average, to earn your income (job, business, side work). Student without a job: 0."
         }
       },
       "business": {
@@ -2896,6 +2916,17 @@
         "description": "It will be built from the catalogue’s recipes, for your goals and allergies. Meanwhile, explore the recipes.",
         "action": "See the recipes"
       }
+    },
+    "translate": {
+      "label": "Plan language",
+      "notice": "This plan was written in {language}.",
+      "action": "Translate into {language}",
+      "translating": "Translating…",
+      "hint": "Get iT AI rewrites the same plan in the other language: one of your 20 requests for the day.",
+      "languages": {
+        "fr": "French",
+        "en": "English"
+      }
     }
   },
   "Events": {
@@ -2905,7 +2936,7 @@
     "title": "Title",
     "titlePlaceholder": "Work, dinner, meal prep…",
     "location": "Place",
-    "locationPlaceholder": "Add a place",
+    "locationPlaceholder": "Address or place name",
     "start": "Starts",
     "end": "Ends",
     "startDate": "Start date",
@@ -2937,16 +2968,19 @@
     "errors": {
       "titleRequired": "Give the event a title.",
       "titleTooLong": "The title is too long (120 characters at most).",
-      "locationTooLong": "The place is too long (120 characters at most).",
+      "locationTooLong": "The location is too long (200 characters at most).",
       "dateInvalid": "Pick a valid date and time.",
       "endBeforeStart": "The end must come after the start.",
-      "tooLong": "An event lasts 14 days at most.",
+      "tooLong": "An event lasts one year at most.",
       "eventLimit": "You’ve reached 500 events. Delete one to add another.",
       "notFound": "This event no longer exists.",
       "unexpected": "Something went wrong. Try again in a moment."
     },
     "startTimeAt": "Start time: {time}",
-    "endTimeAt": "End time: {time}"
+    "endTimeAt": "End time: {time}",
+    "noEnd": "No end",
+    "noEndHint": "The event shows at its start time, with no end time.",
+    "openMap": "See on the map"
   },
   "NotFound": {
     "title": "Page not found",
@@ -3132,7 +3166,10 @@
       "WV": "West Virginia",
       "WI": "Wisconsin",
       "WY": "Wyoming"
-    }
+    },
+    "label": "Suggested addresses",
+    "searching": "Looking for addresses…",
+    "attribution": "Addresses: © OpenStreetMap contributors"
   },
   "Details": {
     "birthDate": "Date of birth",
@@ -3328,7 +3365,11 @@
       "client_accepted": "{name} accepted the follow-up",
       "plan_change": "{name} suggests a change to “{subject}”",
       "plan_change_accepted": "{name} accepted your change to “{subject}”",
-      "plan_change_declined": "{name} declined your change to “{subject}”"
+      "plan_change_declined": "{name} declined your change to “{subject}”",
+      "event_rsvp": "{name} is going to your event “{subject}”",
+      "eventRsvps": "{name} and {others, plural, one {# other person are} other {# other people are}} going to your event “{subject}”",
+      "event_update": "{name} changed the date or place of “{subject}”",
+      "event_cancelled": "{name} cancelled the event “{subject}”"
     },
     "push": {
       "title": "Notifications on this device",
@@ -3666,7 +3707,8 @@
         "events": "Events",
         "moderation": "Moderation",
         "storyViewer": "Story viewer",
-        "storyStudio": "Story studio"
+        "storyStudio": "Story studio",
+        "event": "An event"
       },
       "messages": {
         "inbox": "Inbox",
@@ -3949,7 +3991,8 @@
       "saved": "Measure saved.",
       "level": "Pillar level: {level, number}",
       "levelChanged": "Pillar level: {from, number} → {to, number}",
-      "close": "Close"
+      "close": "Close",
+      "correctDescription": "A typo or the wrong unit? Correct your last measurement: it is replaced, on the same date, and your level is recalculated."
     },
     "goalBadge": "Level goal · level {level, number}",
     "goalHint": "Calculated from people your age; it completes itself when your measure reaches it.",
@@ -3974,14 +4017,20 @@
       "notice": "Your level is calculated automatically from your answers and public data, never by AI. You can redo a measure to correct it, or erase everything.",
       "consent": "I agree that this information, including financial and health information, is used to calculate my levels. It stays private: only my levels are shown, and only if I go Ranked.",
       "submit": "Calculate my level",
-      "submitting": "Calculating…"
+      "submitting": "Calculating…",
+      "unitLabel": "Weight unit",
+      "converted": "= {value} {unit}",
+      "weightError": "Check this number and the unit (kg or lb).",
+      "benchPreview": "Your one-rep max is estimated at {max}, which is {ratio} times your body weight.",
+      "submitCorrect": "Correct my measurement"
     },
     "errors": {
       "invalid": "Some answers are missing or out of range.",
       "detailsMissing": "First fill in your date of birth, sex and region in Settings.",
       "consentRequired": "Check the consent box to calculate your level.",
       "tooSoon": "You took this measure recently: a physical test can be redone after 7 days, a financial measure after a month.",
-      "unexpected": "Something went wrong. Try again in a moment."
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "tooLateToCorrect": "A measurement can only be corrected within 48 hours. Redo the test when it becomes available."
     },
     "erase": {
       "open": "Erase my measures",
@@ -4006,7 +4055,7 @@
       "reachShort": "Get within {cm} cm of your toes in the sit-and-reach",
       "squats": "Do {count} squats in 60 seconds",
       "jump": "Jump {cm} cm from standing",
-      "bench": "Bench press {kg} kg ({ratio} × your weight)",
+      "bench": "Bench press {load} ({ratio} × your body weight)",
       "benchRatio": "Bench press {ratio} times your weight",
       "hourly": "Earn {amount} net per hour",
       "netWorth": "Reach a net worth of {amount}",
@@ -4041,19 +4090,11 @@
       },
       "jumpCm": {
         "label": "Power: how far can you jump from a standstill?",
-        "hint": "Standing with feet together behind a line, jump as far forward as you can with both feet, without a run-up. Measure from the line to the nearest heel. Keep the best of 3 tries."
-      },
-      "weightKg": {
-        "label": "Your weight",
-        "hint": "In kilograms. Example: 170 lb ≈ 77 kg. It puts your strength relative to your weight."
-      },
-      "benchKg": {
-        "label": "Bench press: what weight do you lift?",
-        "hint": "The total weight (bar included) you lift 1 to 10 times in a row with good form, with a spotter or on a machine. Don’t test your max alone."
+        "hint": "Stand with your feet together behind a line and jump forward as far as you can with both feet, without a run-up. Measure from the line to the closest heel, in centimetres: 100 cm = 1 m (example: 1.85 m = 185 cm). Keep the best of 3 tries."
       },
       "benchReps": {
-        "label": "How many times in a row?",
-        "hint": "From 1 to 10. Your one-rep max is estimated from your set."
+        "label": "How many reps in a row did you do with this weight?",
+        "hint": "From 1 to 10. More than 10: redo the test with a heavier weight. Your one-rep max is estimated from your set."
       },
       "netIncome": {
         "label": "Your net yearly income",
@@ -4061,7 +4102,15 @@
       },
       "weeklyHours": {
         "label": "Your work hours per week",
-        "hint": "How many hours you work on average to earn this income (job, business, side gigs), not counting commuting. For the same income, fewer hours means a better level. With no paid work, enter 0: your income is counted over 40 hours a week."
+        "hint": "How many hours you work on average to earn this income (job, business, side gigs), not counting commuting. For the same income, fewer hours means a better level. With no paid work, enter 0: your income is counted over 40 hours a week.",
+        "byStatus": {
+          "full_time": "Full time: usually 35 to 40 hours.",
+          "part_time": "Part time: your usual hours, for example 20.",
+          "self_employed": "Self-employed: the hours you actually work, on average.",
+          "student": "Student: only your paid work hours (0 if you don’t work).",
+          "unemployed": "Not working: enter 0.",
+          "retired": "Retired: enter 0, or your hours if you still work a little."
+        }
       },
       "assets": {
         "label": "Your assets",
@@ -4074,9 +4123,40 @@
       "monthlyExpenses": {
         "label": "Your monthly expenses",
         "hint": "What you spend on average each month to live (housing, groceries, transportation, bills, going out), not counting your savings or investments."
+      },
+      "bodyWeight": {
+        "label": "Your body weight",
+        "hint": "Your body weight on a scale. Pick the right unit: kg or lb (170 lb ≈ 77 kg). It is used to compare your strength to your weight."
+      },
+      "benchLoad": {
+        "label": "Bench press: what weight did you lift?",
+        "hint": "The total weight: the bar (20 kg or 45 lb) plus the plates on both sides."
+      },
+      "benchSteps": {
+        "title": "How to do the bench press test",
+        "warmUp": "Warm up: one set of 10 with the empty bar, then one set of 5 with a light weight.",
+        "choose": "Pick a heavy weight you can lift between 1 and 10 times with good form.",
+        "lift": "Lying on the bench with your feet on the floor, lower the bar until it touches your chest, then press until your arms are straight. Don’t bounce it off your chest.",
+        "count": "Do as many reps as you can in a row, without resting, and stop when your form breaks.",
+        "write": "Enter your body weight, the total weight and the number of reps. Get iT estimates your one-rep max and compares it to your weight.",
+        "example": "Example: 87 kg body weight, 100 kg lifted 3 times → about 110 kg for one rep, 1.26 times your weight.",
+        "safety": "Always with a spotter or on a machine. Never test your max alone."
+      },
+      "employment": {
+        "label": "What is your employment situation?",
+        "hint": "Pick what best describes you right now. If you study and also work, choose “Student” and enter your work hours below.",
+        "options": {
+          "full_time": "Full time",
+          "part_time": "Part time",
+          "self_employed": "Self-employed",
+          "student": "Student",
+          "unemployed": "Not working",
+          "retired": "Retired"
+        }
       }
     },
-    "remeasure": "Update"
+    "remeasure": "Update",
+    "correct": "Correct"
   },
   "Library": {
     "search": {
@@ -5370,6 +5450,164 @@
         "sessionInvalid": "Each session needs a title and at least one item.",
         "unexpected": "That didn’t work. Try again."
       }
+    }
+  },
+  "CommunityEvents": {
+    "back": "Events",
+    "backToEvent": "The event",
+    "newTitle": "Create an event",
+    "newDescription": "A run, a workshop, a networking dinner: invite the members of the Hub.",
+    "editTitle": "Edit the event",
+    "create": "Create",
+    "viewsLabel": "Events to show",
+    "views": {
+      "upcoming": "Upcoming",
+      "mine": "My events"
+    },
+    "filtersLabel": "Filters",
+    "when": {
+      "all": "Any date",
+      "week": "This week",
+      "weekend": "This weekend",
+      "month": "This month"
+    },
+    "where": {
+      "all": "Anywhere",
+      "near": "Near me",
+      "online": "Online"
+    },
+    "topics": {
+      "general": "General",
+      "physical": "Physical",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financial"
+    },
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "next": "Your next event",
+    "online": "Online",
+    "cancelled": "Cancelled",
+    "ended": "Over",
+    "full": "Full",
+    "hosting": "You’re hosting",
+    "mine": {
+      "going": "Going",
+      "interested": "Interested"
+    },
+    "going": "{count, plural, =0 {Be the first to go} one {# person is going} other {# people are going}}",
+    "friendGoing": "{name} is going{others, plural, =0 {} one { with # other person} other { with # other people}}",
+    "friendsGoing": "{names}: your contacts are going",
+    "empty": {
+      "title": "No upcoming events",
+      "description": "Start the first one: a run, a workshop, a dinner. Hub members can say “Going”.",
+      "filteredTitle": "Nothing for these filters",
+      "filteredDescription": "Try another date, place or topic.",
+      "mineTitle": "No events yet",
+      "mineDescription": "The ones you host and the ones you’re going to will show up here."
+    },
+    "more": "See more",
+    "previous": "See previous",
+    "hostedBy": "Hosted by <strong>{name}</strong>",
+    "hiddenNotice": "This event was reported: it is hidden from other members until the Get iT team decides.",
+    "joinLink": "Join the meeting",
+    "linkHint": "The link shows once you answer “Going” or “Interested”.",
+    "openMap": "See on the map",
+    "counts": "{going, plural, =0 {Nobody going yet} one {# going} other {# going}} · {interested, plural, =0 {no one interested} one {# interested} other {# interested}}",
+    "spots": "{count, plural, =0 {No spots left} one {# spot left} other {# spots left}}",
+    "about": "About",
+    "attendees": {
+      "title": "Attendees ({count, number})",
+      "empty": "Nobody has answered yet. Share the link to spread the word."
+    },
+    "rsvp": {
+      "going": "Going",
+      "goingOn": "You’re going",
+      "interested": "Interested",
+      "undoHint": "Tap your answer again to remove it."
+    },
+    "calendar": {
+      "add": "Add to my calendar",
+      "added": "Added to your calendar.",
+      "see": "See"
+    },
+    "share": {
+      "label": "Share",
+      "copied": "Link copied"
+    },
+    "report": "Report",
+    "reported": "Reported",
+    "host": {
+      "edit": "Edit",
+      "cancel": "Cancel the event",
+      "delete": "Delete",
+      "keep": "Keep it",
+      "cancelTitle": "Cancel this event?",
+      "cancelDescription": "It stays visible, marked “Cancelled”, and the people who answered will be notified.",
+      "cancelConfirm": "Cancel the event",
+      "deleteTitle": "Delete this event?",
+      "deleteDescription": "It disappears for everyone, with its photo. If it was upcoming, the people who answered are notified.",
+      "deleteConfirm": "Delete"
+    },
+    "form": {
+      "addCover": "Add a cover photo",
+      "coverHint": "Optional · landscape",
+      "removeCover": "Remove the photo",
+      "title": "Title",
+      "titlePlaceholder": "E.g. 5 km run at La Fontaine Park",
+      "format": "Where it happens",
+      "formats": {
+        "in_person": "In person",
+        "online": "Online"
+      },
+      "location": "Place",
+      "locationPlaceholder": "Address or place name",
+      "region": "Region",
+      "noRegion": "Choose a region",
+      "regionHint": "So members in your region find it with “Near me”.",
+      "onlineUrl": "Meeting link",
+      "onlineHint": "Zoom, Google Meet, Teams… The link is only shown to people who answer.",
+      "start": "Start",
+      "startDate": "Start date",
+      "startTimeAt": "Start time: {time}",
+      "addEnd": "Add an end time",
+      "end": "End",
+      "endDate": "End date",
+      "endTimeAt": "End time: {time}",
+      "timeZoneHint": "In your time zone; each member sees it in theirs.",
+      "topic": "Topic",
+      "description": "Description",
+      "descriptionPlaceholder": "The plan, who it’s for, what to bring…",
+      "length": "{count, number}/{max, number}",
+      "capacity": "Number of spots",
+      "capacityPlaceholder": "No limit",
+      "checkFields": "Check the fields in red.",
+      "publish": "Publish the event",
+      "save": "Save"
+    },
+    "errors": {
+      "titleRequired": "Give it a title of at least 3 characters.",
+      "titleTooLong": "The title is too long (100 characters at most).",
+      "descriptionTooLong": "The description is too long (2,000 characters at most).",
+      "locationRequired": "Tell people where it happens.",
+      "locationTooLong": "The place is too long (200 characters at most).",
+      "urlInvalid": "Paste a link that starts with https://",
+      "dateInvalid": "Choose a valid date and time.",
+      "inPast": "This date has already passed.",
+      "tooFar": "Events can be planned at most one year ahead.",
+      "endBeforeStart": "The end must come after the start.",
+      "tooLong": "An event lasts 14 days at most.",
+      "capacityInvalid": "Between 2 and 10,000 spots, or leave it empty.",
+      "eventLimit": "You created 5 events in the last 24 hours. Try again tomorrow.",
+      "upcomingLimit": "You’re already hosting 20 upcoming events.",
+      "full": "It’s full: no spots left for this event.",
+      "cancelled": "This event is cancelled.",
+      "ended": "This event is over.",
+      "notMember": "Join the Hub (username and rules) to take part in events.",
+      "suspended": "Your account is suspended: you can read, but not take part for now.",
+      "coverInvalid": "The photo couldn’t be uploaded. Try another one.",
+      "notFound": "This event is no longer available.",
+      "unexpected": "Something went wrong. Try again in a moment."
     }
   }
 }

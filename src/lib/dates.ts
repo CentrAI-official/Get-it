@@ -79,3 +79,50 @@ export function daysBetween(from: string, to: string): number {
     (toDbDate(to).getTime() - toDbDate(from).getTime()) / 86_400_000,
   );
 }
+
+/** Décalage (ms) entre l'heure affichée dans `timeZone` et l'heure UTC, à cet instant. */
+function zoneOffset(instant: number, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const read = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value ?? 0);
+  const shown = Date.UTC(
+    read("year"),
+    read("month") - 1,
+    read("day"),
+    read("hour") % 24,
+    read("minute"),
+    read("second"),
+  );
+  return shown - instant;
+}
+
+/**
+ * Instant d'un jour et d'une heure tels qu'affichés dans `timeZone`
+ * (« 2026-11-14 », 19 h à Montréal → l'instant UTC), changement d'heure compris.
+ */
+export function zonedInstant(
+  day: string,
+  minute: number,
+  timeZone: string,
+): Date {
+  const [year = 0, month = 1, date = 1] = day.split("-").map(Number);
+  const wall = Date.UTC(
+    year,
+    month - 1,
+    date,
+    Math.floor(minute / 60),
+    minute % 60,
+  );
+  // Deux passes : le décalage peut changer autour de l'heure cherchée
+  const first = wall - zoneOffset(wall, timeZone);
+  return new Date(wall - zoneOffset(first, timeZone));
+}

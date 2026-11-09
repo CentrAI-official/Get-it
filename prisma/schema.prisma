@@ -124,6 +124,8 @@ model Profile {
   tasks                Task[]
   habits               Habit[]
   calendarEvents       CalendarEvent[]
+  hostedEvents         CommunityEvent[]
+  eventAttendance      CommunityEventAttendee[]
   budgetRecurring      BudgetRecurring[]
   budgetEntries        BudgetEntry[]
   workoutSessions      WorkoutSession[]
@@ -153,36 +155,36 @@ model Profile {
   postReactions        PostReaction[]
   postSaves            PostSave[]
   stories              Story[]
-  storyViews           StoryView[]             @relation("StoryViewer")
-  storyPollVotes       StoryPollVote[]         @relation("StoryPollVoter")
-  storyAnswers         StoryAnswer[]           @relation("StoryAnswerer")
-  musicTracksAdded     MusicTrack[]            @relation("MusicTrackAdder")
+  storyViews           StoryView[]              @relation("StoryViewer")
+  storyPollVotes       StoryPollVote[]          @relation("StoryPollVoter")
+  storyAnswers         StoryAnswer[]            @relation("StoryAnswerer")
+  musicTracksAdded     MusicTrack[]             @relation("MusicTrackAdder")
   videoViews           PostVideoView[]
-  notifications        Notification[]          @relation("NotificationRecipient")
-  notificationsSent    Notification[]          @relation("NotificationActor")
+  notifications        Notification[]           @relation("NotificationRecipient")
+  notificationsSent    Notification[]           @relation("NotificationActor")
   pushSubscriptions    PushSubscription[]
-  ownedGroups          Group[]                 @relation("GroupOwner")
-  groupMemberships     GroupMember[]           @relation("GroupMembership")
-  groupInvitesSent     GroupMember[]           @relation("GroupInviter")
-  reportsMade          ContentReport[]         @relation("ReportReporter")
-  reportsReceived      ContentReport[]         @relation("ReportedUser")
-  reportsResolved      ContentReport[]         @relation("ReportResolver")
-  blocking             UserBlock[]             @relation("Blocker")
-  blockedBy            UserBlock[]             @relation("Blocked")
-  conversationsStarted Conversation[]          @relation("ConversationCreator")
+  ownedGroups          Group[]                  @relation("GroupOwner")
+  groupMemberships     GroupMember[]            @relation("GroupMembership")
+  groupInvitesSent     GroupMember[]            @relation("GroupInviter")
+  reportsMade          ContentReport[]          @relation("ReportReporter")
+  reportsReceived      ContentReport[]          @relation("ReportedUser")
+  reportsResolved      ContentReport[]          @relation("ReportResolver")
+  blocking             UserBlock[]              @relation("Blocker")
+  blockedBy            UserBlock[]              @relation("Blocked")
+  conversationsStarted Conversation[]           @relation("ConversationCreator")
   conversationMembers  ConversationMember[]
   messagesSent         Message[]
   messageReactions     MessageReaction[]
   mediaUploads         MediaUpload[]
-  contactsRequested    Contact[]               @relation("ContactRequester")
-  contactsReceived     Contact[]               @relation("ContactAddressee")
-  following            Follow[]                @relation("Follower")
-  followers            Follow[]                @relation("Followed")
-  pactsProposed        Pact[]                  @relation("PactProposer")
-  pactsEnded           Pact[]                  @relation("PactEnder")
+  contactsRequested    Contact[]                @relation("ContactRequester")
+  contactsReceived     Contact[]                @relation("ContactAddressee")
+  following            Follow[]                 @relation("Follower")
+  followers            Follow[]                 @relation("Followed")
+  pactsProposed        Pact[]                   @relation("PactProposer")
+  pactsEnded           Pact[]                   @relation("PactEnder")
   pactMembers          PactMember[]
-  listings             Listing[]               @relation("ListingSeller")
-  listingsReviewed     Listing[]               @relation("ListingReviewer")
+  listings             Listing[]                @relation("ListingSeller")
+  listingsReviewed     Listing[]                @relation("ListingReviewer")
   listingFavorites     ListingFavorite[]
   developmentPlans     DevelopmentPlan[]
   rankedEvaluations    RankedEvaluation[]
@@ -191,8 +193,8 @@ model Profile {
   analyticsEvents      AnalyticsEvent[]
   feedback             Feedback[]
   appErrors            AppError[]
-  adminAuditEntries    AdminAuditEntry[]       @relation("AuditAdmin")
-  adminAuditTargets    AdminAuditEntry[]       @relation("AuditTarget")
+  adminAuditEntries    AdminAuditEntry[]        @relation("AuditAdmin")
+  adminAuditTargets    AdminAuditEntry[]        @relation("AuditTarget")
 
   @@map("profiles")
 }
@@ -408,8 +410,8 @@ model CalendarEvent {
   startsOn    DateTime    @map("starts_on") @db.Date
   /// Minutes depuis minuit (0 à 1439).
   startMinute Int         @map("start_minute") @db.SmallInt
-  endsOn      DateTime    @map("ends_on") @db.Date
-  endMinute   Int         @map("end_minute") @db.SmallInt
+  endsOn      DateTime?   @map("ends_on") @db.Date
+  endMinute   Int?        @map("end_minute") @db.SmallInt
   repeat      EventRepeat @default(none)
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -1106,6 +1108,7 @@ model ContentReport {
   reportedUserId String?      @map("reported_user_id") @db.Uuid
   messageId      String?      @map("message_id") @db.Uuid
   storyId        String?      @map("story_id") @db.Uuid
+  eventId        String?      @map("event_id") @db.Uuid
   reason         ReportReason
   details        String?
   status         ReportStatus @default(open)
@@ -1113,19 +1116,21 @@ model ContentReport {
   resolvedAt     DateTime?    @map("resolved_at") @db.Timestamptz(3)
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  reporter     Profile      @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  post         Post?        @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment      PostComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reportedUser Profile?     @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
-  message      Message?     @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  story        Story?       @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  resolvedBy   Profile?     @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  reporter     Profile         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  post         Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      PostComment?    @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reportedUser Profile?        @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  message      Message?        @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  story        Story?          @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  event        CommunityEvent? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  resolvedBy   Profile?        @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   @@unique([reporterId, postId])
   @@unique([reporterId, commentId])
   @@unique([reporterId, reportedUserId])
   @@unique([reporterId, messageId])
   @@unique([reporterId, storyId])
+  @@unique([reporterId, eventId])
   @@index([status, createdAt])
   @@map("content_reports")
 }
@@ -1393,6 +1398,8 @@ model PostMedia {
   durationMs Int?      @map("duration_ms")
   sizeBytes  Int       @map("size_bytes")
   position   Int       @db.SmallInt
+  /// Textes et emoji posés sur le média (src/features/stories/studio.ts, postOverlaysSchema).
+  overlays   Json?
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
@@ -1550,6 +1557,8 @@ model DevelopmentPlan {
   /// Période du plan dans le calendrier : la semaine type s'y répète.
   startsOn  DateTime        @map("starts_on") @db.Date
   endsOn    DateTime        @map("ends_on") @db.Date
+  /// Langue dans laquelle Get iT AI l'a écrit (« fr », « en ») ; null : plans d'avant le 2026-11-08.
+  locale    String?
   createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -1852,6 +1861,12 @@ enum NotificationKind {
   plan_change_accepted
   /// Le client a refusé la modification (cloche de la page).
   plan_change_declined
+  /// Quelqu'un va à mon événement (regroupé par événement).
+  event_rsvp
+  /// La date ou le lieu d'un événement où je vais a changé.
+  event_update
+  /// Un événement où je vais est annulé.
+  event_cancelled
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.
@@ -2068,4 +2083,70 @@ model LibraryItem {
 
   @@index([kind, pillar, status])
   @@map("library_items")
+}
+
+enum CommunityEventFormat {
+  in_person
+  online
+}
+
+enum EventAttendance {
+  going
+  interested
+}
+
+/// Événement de la Communauté (décision du fondateur, 2026-11-08) : une
+/// rencontre proposée par un membre du Centre, en personne ou en ligne.
+/// Limites dans src/features/community-events/rules.ts.
+model CommunityEvent {
+  id          String               @id @default(uuid(7)) @db.Uuid
+  hostId      String               @map("host_id") @db.Uuid
+  title       String
+  description String               @default("")
+  /// Un pilier, ou null : général.
+  topic       Pillar?
+  format      CommunityEventFormat
+  /// Adresse ou nom du lieu (en personne).
+  location    String?
+  /// Région du Québec (clés du Marketplace), pour « Près de moi ».
+  region      String?
+  /// Lien de la rencontre en ligne : seulement pour l'hôte et les inscrits.
+  onlineUrl   String?              @map("online_url")
+  startsAt    DateTime             @map("starts_at") @db.Timestamptz(3)
+  endsAt      DateTime?            @map("ends_at") @db.Timestamptz(3)
+  /// Fuseau de l'hôte à la création (les heures tapées).
+  timeZone    String               @map("time_zone")
+  capacity    Int?
+  coverPath   String?              @map("cover_path")
+  coverWidth  Int?                 @map("cover_width")
+  coverHeight Int?                 @map("cover_height")
+  /// Masqué à 3 signalements, retiré par la modération.
+  status      ContentStatus        @default(visible)
+  cancelledAt DateTime?            @map("cancelled_at") @db.Timestamptz(3)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  host      Profile                  @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  attendees CommunityEventAttendee[]
+  reports   ContentReport[]
+
+  @@index([startsAt])
+  @@index([hostId, startsAt])
+  @@map("community_events")
+}
+
+/// « J'y vais » ou « Intéressé » : une ligne par personne et par événement.
+model CommunityEventAttendee {
+  eventId   String          @map("event_id") @db.Uuid
+  userId    String          @map("user_id") @db.Uuid
+  status    EventAttendance
+  createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  event   CommunityEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profile Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+  @@index([userId])
+  @@map("community_event_attendees")
 }

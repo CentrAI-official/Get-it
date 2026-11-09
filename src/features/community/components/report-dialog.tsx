@@ -24,7 +24,7 @@ import {
 
 type ReportDialogProps = {
   target: {
-    type: "post" | "comment" | "user" | "message" | "story";
+    type: "post" | "comment" | "user" | "message" | "story" | "event";
     id: string;
   } | null;
   onClose: () => void;

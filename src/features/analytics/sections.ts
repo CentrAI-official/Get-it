@@ -63,6 +63,13 @@ export const ROUTE_RULES = [
   { pattern: "/groups/[id]", section: "community.group", target: "uuid" },
   { pattern: "/groups/[id]/edit", section: "community.group", target: "uuid" },
   { pattern: "/events", section: "community.events" },
+  { pattern: "/events/new", section: "community.events" },
+  { pattern: "/events/[id]", section: "community.event", target: "uuid" },
+  {
+    pattern: "/events/[id]/edit",
+    section: "community.event",
+    target: "uuid",
+  },
   { pattern: "/moderation", section: "community.moderation" },
   { pattern: "/messages", section: "messages.inbox" },
   { pattern: "/messages/contacts", section: "messages.contacts" },

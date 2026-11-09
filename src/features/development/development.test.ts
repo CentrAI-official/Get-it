@@ -4,6 +4,8 @@ import fr from "../../../messages/fr.json";
 import {
   DEVELOPMENT_PLAN_LIMITS,
   normalizeDevelopmentPlan,
+  planLanguage,
+  samePlanShape,
   storedPlanSchema,
   withoutAdded,
   type AiDevelopmentPlan,
@@ -156,7 +158,8 @@ describe("parseAnswers", () => {
 
   it("demande le montant des dettes seulement s'il y en a", () => {
     const base = {
-      career: "employee",
+      career: "full_time",
+      weeklyHours: 40,
       income: 55000,
       mainGoal: "Acheter une maison",
       monthlyExpenses: 2800,
@@ -173,6 +176,31 @@ describe("parseAnswers", () => {
       ok: false,
       fields: { debtAmount: "required" },
     });
+  });
+
+  it("demande les heures de travail, sauf sans emploi ou à la retraite", () => {
+    const base = {
+      income: 12000,
+      mainGoal: "Finir mes études sans dettes",
+      monthlyExpenses: 900,
+      savings: 500,
+      belt: 2,
+      hasDebt: false,
+      business: "none",
+    };
+    expect(
+      parseAnswers("financial", { ...base, career: "student" }, TODAY),
+    ).toEqual({ ok: false, fields: { weeklyHours: "required" } });
+    expect(
+      parseAnswers(
+        "financial",
+        { ...base, career: "student", weeklyHours: 12 },
+        TODAY,
+      ).ok,
+    ).toBe(true);
+    expect(
+      parseAnswers("financial", { ...base, career: "unemployed" }, TODAY).ok,
+    ).toBe(true);
   });
 });
 
@@ -369,5 +397,71 @@ describe("textes du questionnaire", () => {
         }
       }
     }
+  });
+});
+
+describe("langue d'un plan", () => {
+  const base = storedPlanSchema.parse({
+    title: "Remise en forme",
+    summary: "Trois séances par semaine pour reprendre le dessus.",
+    highlights: [],
+    schedule: [
+      {
+        weekday: 1,
+        moment: "morning",
+        time: 420,
+        title: "Haut du corps",
+        items: [{ name: "Pompes", detail: "3 × 10", ref: null }],
+      },
+    ],
+    sections: [
+      {
+        title: "Le sommeil",
+        items: [
+          {
+            title: "Couche-toi tôt",
+            detail: "Dors 8 heures chaque nuit et garde la même heure.",
+          },
+        ],
+      },
+    ],
+    goal: null,
+    habits: [],
+    tasks: [],
+    caution: "",
+  });
+
+  it("garde la langue enregistrée, sinon la devine d'après les mots", () => {
+    expect(planLanguage(base, "en")).toBe("en");
+    expect(planLanguage(base, null)).toBe("fr");
+    const english = {
+      ...base,
+      summary: "Three sessions each week to get back on track with your body.",
+      sections: [
+        {
+          title: "Sleep",
+          items: [
+            {
+              title: "Go to bed early",
+              detail: "Sleep 8 hours and keep the same time each day.",
+            },
+          ],
+        },
+      ],
+    };
+    expect(planLanguage(english, null)).toBe("en");
+  });
+
+  it("une traduction garde la forme du plan", () => {
+    const translated = {
+      ...base,
+      schedule: base.schedule.map((day) => ({
+        ...day,
+        title: "Upper body",
+        items: day.items.map((item) => ({ ...item, name: "Push-ups" })),
+      })),
+    };
+    expect(samePlanShape(base, translated)).toBe(true);
+    expect(samePlanShape(base, { ...translated, schedule: [] })).toBe(false);
   });
 });

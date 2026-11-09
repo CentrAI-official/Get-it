@@ -19,6 +19,9 @@ export const NOTIFICATION_KINDS = [
   "plan_change",
   "plan_change_accepted",
   "plan_change_declined",
+  "event_rsvp",
+  "event_update",
+  "event_cancelled",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -32,7 +35,12 @@ export const NOTIFICATION_SUBJECT_MAX = 120;
 
 /** Clé de texte d'une notification (espace « Notifications.items »). */
 export type NotificationTextKey =
-  NotificationKind | "groupMessage" | "messages" | "likes" | "comments";
+  | NotificationKind
+  | "groupMessage"
+  | "messages"
+  | "likes"
+  | "comments"
+  | "eventRsvps";
 
 /**
  * Texte d'une notification : la clé et ses valeurs. Plusieurs messages d'une
@@ -51,5 +59,6 @@ export function notificationText(
   if (kind === "message" && count > 1) return { key: "messages", values };
   if (kind === "like" && count > 1) return { key: "likes", values };
   if (kind === "comment" && count > 1) return { key: "comments", values };
+  if (kind === "event_rsvp" && count > 1) return { key: "eventRsvps", values };
   return { key: kind, values };
 }

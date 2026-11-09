@@ -2,6 +2,7 @@ import { Users } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/avatar";
+import { BackLink } from "@/components/back-link";
 import { EmptyState } from "@/components/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JoinCommunityCard } from "@/features/community/components/join-community-card";
@@ -125,5 +126,25 @@ export function FollowListSkeleton() {
         <Skeleton key={row} className="h-14 w-full" />
       ))}
     </div>
+  );
+}
+
+/**
+ * Retour des listes d'abonnés et d'abonnements : vers mon Profil (privé) quand
+ * c'est ma liste, sinon vers le profil public du membre. Lit la session.
+ */
+export async function FollowBackLink({ username }: { username: string }) {
+  const viewer = await getCurrentProfile();
+  const [member, t] = await Promise.all([
+    getCommunityMember(viewer.id),
+    getTranslations("Follows"),
+  ]);
+  const mine = member?.username ?? null;
+  const own = mine !== null && mine.toLowerCase() === username.toLowerCase();
+  return (
+    <BackLink
+      href={own ? "/profile" : `/community/members/${username}`}
+      label={t("backToProfile")}
+    />
   );
 }

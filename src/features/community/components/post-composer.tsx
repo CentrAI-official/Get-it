@@ -23,8 +23,10 @@ import {
   POST_MAX_LENGTH,
   type CommunityFormState,
 } from "../rules";
+import type { PostOverlay } from "@/features/stories/studio";
 import { useMediaUploads } from "../use-media-uploads";
 import { MediaPicker } from "./media-picker";
+import { PostMediaEditor } from "./post-media-editor";
 import { ProgressShare } from "./progress-share";
 
 type PostComposerProps = {
@@ -135,11 +137,11 @@ export function PostComposer({
           closeLabel={t("close")}
           className="max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain sm:max-w-lg"
           onOpenAutoFocus={(event) => {
-            // Le curseur va directement dans le texte
-            const field = contentRef.current?.querySelector("textarea");
-            if (tab !== "post" || !field) return;
+            // Le clavier ne s'ouvre pas tout seul (décision du fondateur,
+            // 2026-11-08) : on peut d'abord choisir ses photos ; le focus reste
+            // sur la fenêtre, et le texte s'écrit quand on touche le champ
             event.preventDefault();
-            field.focus();
+            contentRef.current?.focus({ preventScroll: true });
           }}
         >
           <div className="flex flex-col gap-1 pr-8">
@@ -209,6 +211,9 @@ function PostForm({
   const [pillar, setPillar] = useState<Pillar | null>(null);
   const [length, setLength] = useState(0);
   const media = useMediaUploads();
+  // Textes posés sur chaque média (par média choisi), et celui qu'on modifie
+  const [overlays, setOverlays] = useState<Record<string, PostOverlay[]>>({});
+  const [editing, setEditing] = useState<string | null>(null);
   const [state, formAction, pending] = useActionState(
     createPostAction,
     initialCommunityState,
@@ -217,9 +222,28 @@ function PostForm({
     formRef.current?.reset();
     setPillar(null);
     setLength(0);
+    setOverlays({});
     media.reset();
     onDone();
   });
+  // Les médias envoyés, chacun avec ses textes (même ordre que le payload)
+  const sent = media.items.filter(
+    (item) => item.status === "done" && item.uploadId,
+  );
+  const payload = JSON.stringify(
+    (JSON.parse(media.payload) as Record<string, unknown>[]).map(
+      (entry, index) => {
+        const list = overlays[sent[index]?.id ?? ""] ?? [];
+        return list.length > 0 ? { ...entry, overlays: list } : entry;
+      },
+    ),
+  );
+  const edited = new Set(
+    Object.entries(overlays)
+      .filter(([, list]) => list.length > 0)
+      .map(([key]) => key),
+  );
+  const editedItem = media.items.find((item) => item.id === editing) ?? null;
 
   return (
     <form
@@ -235,7 +259,7 @@ function PostForm({
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="pillar" value={pillar ?? ""} />
-      <input type="hidden" name="media" value={media.payload} />
+      <input type="hidden" name="media" value={payload} />
       <input type="hidden" name="groupId" value={groupId ?? ""} />
       <div
         role="radiogroup"
@@ -291,10 +315,27 @@ function PostForm({
         <MediaPicker
           items={media.items}
           onAdd={media.add}
-          onRemove={media.remove}
+          onRemove={(removed) => {
+            media.remove(removed);
+            setOverlays((all) =>
+              Object.fromEntries(
+                Object.entries(all).filter(([key]) => key !== removed),
+              ),
+            );
+          }}
           disabled={pending}
+          onEdit={setEditing}
+          edited={edited}
         />
       ) : null}
+      <PostMediaEditor
+        item={editedItem}
+        initial={editing ? (overlays[editing] ?? []) : []}
+        onSave={(list) => {
+          if (editing) setOverlays((all) => ({ ...all, [editing]: list }));
+        }}
+        onClose={() => setEditing(null)}
+      />
       {media.error ? (
         <p role="alert" className="text-sm text-destructive">
           {tErrors(media.error)}

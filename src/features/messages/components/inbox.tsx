@@ -114,8 +114,13 @@ export function Inbox({
   return (
     <div className="flex flex-col gap-4">
       <PactCarousel pacts={pacts} nowMinute={nowMinute} timeZone={timeZone} />
-      <div className="flex flex-wrap items-center gap-2">
-        <div role="tablist" aria-label={t("tabsLabel")} className="flex gap-2">
+      {/* Le filtre « En ligne » se range sous les onglets, aligné sur « Discussions » */}
+      <div className="flex flex-col items-start gap-2.5">
+        <div
+          role="tablist"
+          aria-label={t("tabsLabel")}
+          className="flex flex-wrap gap-2"
+        >
           {TABS.map((value) => (
             <button
               key={value}
@@ -146,7 +151,7 @@ export function Inbox({
             setTab("chats");
           }}
           className={cn(
-            "ml-auto flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+            "flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
             onlineOnly
               ? "border-primary bg-primary/15 text-foreground"
               : "border-foreground/10 bg-foreground/[0.03] text-muted-foreground hover:text-foreground",

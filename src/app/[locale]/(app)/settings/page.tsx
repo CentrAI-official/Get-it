@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { BackLink } from "@/components/back-link";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   Card,
@@ -55,10 +56,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function SettingsPage() {
   const t = useTranslations("App.settings");
+  const tNav = useTranslations("App.nav");
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHeader title={t("title")} description={t("question")} />
+      <div className="flex flex-col gap-6">
+        <BackLink href="/profile" label={tNav("profile")} />
+        <PageHeader title={t("title")} description={t("question")} />
+      </div>
       <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>{t("account.title")}</CardTitle>

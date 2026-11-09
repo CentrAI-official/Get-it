@@ -11,6 +11,7 @@ import {
   type UploadRequest,
 } from "@/features/community/media";
 import type { CommunityError } from "@/features/community/rules";
+import { readPostOverlays, type PostOverlay } from "@/features/stories/studio";
 import { db } from "@/server/db";
 import {
   createUploadUrl,
@@ -31,6 +32,8 @@ export type FeedMedia = {
   width: number;
   height: number;
   durationMs: number | null;
+  /** Textes et emoji posés dessus (publications seulement). */
+  overlays?: PostOverlay[];
 };
 
 export type UploadSlot = { uploadId: string; url: string };
@@ -200,6 +203,7 @@ export async function mediaForPosts(postIds: string[]) {
       width: true,
       height: true,
       durationMs: true,
+      overlays: true,
     },
   });
   if (rows.length === 0) return byPost;
@@ -218,6 +222,7 @@ export async function mediaForPosts(postIds: string[]) {
       width: row.width,
       height: row.height,
       durationMs: row.durationMs,
+      overlays: readPostOverlays(row.overlays),
     });
     byPost.set(row.postId, list);
   }

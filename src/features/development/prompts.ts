@@ -14,6 +14,12 @@ const LANGUAGE: Record<AiLocale, string> = {
   en: "English.",
 };
 
+/** Nom de la langue dans une consigne de traduction. */
+const LANGUAGE_NAME: Record<AiLocale, string> = {
+  fr: "French as spoken in Québec",
+  en: "English",
+};
+
 const KIND_GUIDANCE: Record<DevelopmentKind, string> = {
   physical: `This is a training plan. Nutrition has its own separate plan: do not include nutrition advice.
 - schedule: one entry per training day of a typical week, matching the sessions per week wanted, the session length and the available equipment; omit rest days. Each item is one exercise or block: name, then detail always in this exact order so the workout log can read it: sets × reps or sets × duration, then rest, then a short cue (for example "4 × 8-10, rest 90 s, controlled descent", "3 × 40 s, rest 45 s", "3 × 8 per leg, rest 60 s"). Translate "rest" and "per leg" into their language; keep the × and the numbers. Include a warm-up item, with its duration only (for example "5 min"). Prefer exercises from the catalogue when one fits (same movement, available equipment).
@@ -35,6 +41,7 @@ const KIND_GUIDANCE: Record<DevelopmentKind, string> = {
 - sections: 3 to 5 (for example a step-by-step exposure ladder from easy to harder, conversation techniques, where to meet people in the contexts they chose, how to keep relationships going).
 - highlights: time per week, main focus, first challenge.`,
   financial: `This is a personal finance plan for someone in Canada (Québec). Use their real numbers.
+- Fit the plan to their employment situation (career) and weekly work hours (weeklyHours): a full-time worker can plan around a steady pay; a part-time worker or student around smaller or irregular income (for a student, mention student aid such as the Québec Aide financière aux études as a general concept, and keeping debt low during school); someone not working around protecting their savings and essential costs while they look for work; a self-employed person or employer around irregular income and setting aside money for taxes. Never assume more income or hours than they gave.
 - sections: 3 to 5, including a monthly budget split based on their income and expenses (show the amounts), an emergency fund target, a debt repayment order when they have debts (explain avalanche or snowball), and the steps and timeline toward their goal. You may mention registered accounts such as the TFSA (CELI), RRSP (REER) and FHSA (CELIAPP) as general concepts, without recommending specific products or investments.
 - schedule: a simple money routine (for example a weekly expense check and a monthly review), or empty. When they can save, include the savings transfer as an item with its amount in the name (for example "Transfer $50 to your savings"): the app offers to add it to their budget.
 - highlights: savings per month, emergency fund target, time to reach the goal.
@@ -129,6 +136,25 @@ export function revisionInstructions(
   return `${developmentInstructions(kind, locale)}
 
 This time the user already has a plan and asks for changes. Apply exactly the changes they request and keep everything else as it is: same structure, same days, same exercises and same advice wherever the request doesn't affect them. Return the complete updated plan in the same format. For goal, habits and tasks, only propose items that are not already in the app (listed in the request), or none. If the request asks for something unsafe or unrelated to the plan, keep the plan unchanged and say so briefly in the summary.`;
+}
+
+/**
+ * Consignes d'une traduction (bouton « Traduire ce plan », décision du
+ * fondateur 2026-11-08) : le même plan, mot pour mot, dans l'autre langue.
+ */
+export function translationInstructions(
+  kind: DevelopmentKind,
+  locale: AiLocale,
+): string {
+  return `${developmentInstructions(kind, locale)}
+
+This time the user already has a plan and only wants it in ${LANGUAGE_NAME[locale]}. Translate every text of the current plan and change nothing else: the same sections, the same schedule days, moments, times and items in the same order, the same catalogue codes in ref, the same numbers and amounts, and the same goal, habits and tasks (translated, never new ones). Set crisis to false.`;
+}
+
+/** La demande de traduction : seulement le plan actuel. */
+export function translationPrompt(plan: unknown): string {
+  return `Current plan (JSON):
+${JSON.stringify(plan)}`;
 }
 
 export type RevisionRequest = DevelopmentRequest & {

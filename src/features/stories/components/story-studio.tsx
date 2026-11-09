@@ -36,6 +36,7 @@ import {
   useTransition,
   type KeyboardEvent,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,8 +89,9 @@ import {
   textStyle,
 } from "./story-overlays";
 
-type TextOverlay = Extract<StoryOverlay, { kind: "text" }>;
-type Draft = Omit<TextOverlay, "x" | "y" | "scale" | "rotation">;
+export type TextOverlay = Extract<StoryOverlay, { kind: "text" }>;
+/** Texte en cours d'écriture (sa place est choisie à l'enregistrement). */
+export type Draft = Omit<TextOverlay, "x" | "y" | "scale" | "rotation">;
 type ChosenMusic = { track: MusicTrackItem; startMs: number };
 type Panel = "text" | "stickers" | "music" | null;
 /** Un élément à poser : tout sauf sa place (le studio la choisit). */
@@ -100,7 +102,7 @@ type NewOverlay = StoryOverlay extends infer Item
   : never;
 
 // Pas crypto.randomUUID : indisponible hors HTTPS (essai sur le Wi-Fi local)
-const newId = () =>
+export const newId = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
@@ -492,19 +494,24 @@ type Gesture = {
 /**
  * Le cadre du studio : chaque élément se déplace au doigt (ou aux flèches),
  * s'agrandit et tourne à deux doigts (ou avec + et −, [ et ]), et se jette
- * dans la corbeille (ou avec Suppr). Toucher un texte le modifie.
+ * dans la corbeille (ou avec Suppr). Toucher un texte le modifie. Aussi pour
+ * les photos et vidéos d'une publication (`aspect` : la proportion du média,
+ * qui remplit alors tout le cadre ; sans lui, le cadre 9:16 d'une story).
  */
-function EditableFrame({
+export function EditableFrame<Overlay extends StoryOverlay>({
   item,
   overlays,
-  music,
+  music = null,
+  aspect,
   onChange,
   onEditText,
 }: {
   item: { kind: "image" | "video"; previewUrl: string };
-  overlays: StoryOverlay[];
-  music: ChosenMusic | null;
-  onChange: (update: (items: StoryOverlay[]) => StoryOverlay[]) => void;
+  overlays: Overlay[];
+  music?: ChosenMusic | null;
+  /** Largeur sur hauteur du média (publication). */
+  aspect?: number;
+  onChange: (update: (items: Overlay[]) => Overlay[]) => void;
   onEditText: (item: TextOverlay) => void;
 }) {
   const tStudio = useTranslations("Community.stories.studio");
@@ -517,7 +524,7 @@ function EditableFrame({
   const [overTrash, setOverTrash] = useState(false);
   const [now] = useState(() => new Date());
 
-  const update = (id: string, change: (item: StoryOverlay) => StoryOverlay) =>
+  const update = (id: string, change: (item: Overlay) => Overlay) =>
     onChange((items) =>
       items.map((item) => (item.id === id ? change(item) : item)),
     );
@@ -620,7 +627,7 @@ function EditableFrame({
 
   function keys(event: KeyboardEvent<HTMLDivElement>, overlay: StoryOverlay) {
     const step = event.shiftKey ? 0.08 : 0.02;
-    const changes: Record<string, (item: StoryOverlay) => StoryOverlay> = {
+    const changes: Record<string, (item: Overlay) => Overlay> = {
       ArrowLeft: (item) => ({ ...item, x: clamp(item.x - step, 0, 1) }),
       ArrowRight: (item) => ({ ...item, x: clamp(item.x + step, 0, 1) }),
       ArrowUp: (item) => ({ ...item, y: clamp(item.y - step, 0, 1) }),
@@ -662,57 +669,75 @@ function EditableFrame({
         ? overlay.emoji
         : tStudio(`stickerTypes.${overlay.kind}`);
 
-  return (
-    <div ref={frameRef} style={{ width: FRAME_WIDTH }}>
+  const layer = (children: ReactNode) =>
+    aspect ? (
+      <MediaFrame item={item} aspect={aspect}>
+        {children}
+      </MediaFrame>
+    ) : (
       <StoryFrame
         kind={item.kind}
         src={item.previewUrl}
         videoProps={{ muted: true, autoPlay: true, loop: true }}
       >
-        <div className="absolute inset-0 touch-none overflow-hidden">
-          {overlays.map((overlay) => (
-            <div
-              key={overlay.id}
-              role="button"
-              tabIndex={0}
-              aria-label={tStudio("itemLabel", { label: describe(overlay) })}
-              className={cn(
-                "absolute cursor-grab touch-none rounded-lg outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/70 active:cursor-grabbing",
-                dragging === overlay.id && overTrash && "opacity-50",
-              )}
-              style={overlayStyle(overlay)}
-              onPointerDown={(event) => begin(event, overlay)}
-              onPointerMove={move}
-              onPointerUp={(event) => end(event, overlay)}
-              onPointerCancel={(event) => end(event, overlay)}
-              onKeyDown={(event) => keys(event, overlay)}
-            >
-              <OverlayContent
-                item={overlay}
-                context={{
-                  createdAt: now,
-                  music: music
-                    ? { title: music.track.title, artist: music.track.artist }
-                    : null,
-                  editing: true,
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        {dragging ? (
-          <div
-            ref={trashRef}
-            aria-hidden="true"
-            className={cn(
-              "absolute bottom-4 left-1/2 flex size-14 -translate-x-1/2 items-center justify-center rounded-full border-2 border-foreground/70 bg-background/60 text-foreground transition-transform",
-              overTrash && "scale-125 border-destructive bg-destructive",
-            )}
-          >
-            <Trash2 className="size-6" />
-          </div>
-        ) : null}
+        {children}
       </StoryFrame>
+    );
+
+  return (
+    <div
+      ref={frameRef}
+      style={{
+        width: aspect ? `min(100cqw, calc(100cqh * ${aspect}))` : FRAME_WIDTH,
+      }}
+    >
+      {layer(
+        <>
+          <div className="absolute inset-0 touch-none overflow-hidden">
+            {overlays.map((overlay) => (
+              <div
+                key={overlay.id}
+                role="button"
+                tabIndex={0}
+                aria-label={tStudio("itemLabel", { label: describe(overlay) })}
+                className={cn(
+                  "absolute cursor-grab touch-none rounded-lg outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/70 active:cursor-grabbing",
+                  dragging === overlay.id && overTrash && "opacity-50",
+                )}
+                style={overlayStyle(overlay)}
+                onPointerDown={(event) => begin(event, overlay)}
+                onPointerMove={move}
+                onPointerUp={(event) => end(event, overlay)}
+                onPointerCancel={(event) => end(event, overlay)}
+                onKeyDown={(event) => keys(event, overlay)}
+              >
+                <OverlayContent
+                  item={overlay}
+                  context={{
+                    createdAt: now,
+                    music: music
+                      ? { title: music.track.title, artist: music.track.artist }
+                      : null,
+                    editing: true,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          {dragging ? (
+            <div
+              ref={trashRef}
+              aria-hidden="true"
+              className={cn(
+                "absolute bottom-4 left-1/2 flex size-14 -translate-x-1/2 items-center justify-center rounded-full border-2 border-foreground/70 bg-background/60 text-foreground transition-transform",
+                overTrash && "scale-125 border-destructive bg-destructive",
+              )}
+            >
+              <Trash2 className="size-6" />
+            </div>
+          ) : null}
+        </>,
+      )}
       {overlays.length > 0 ? (
         <p className="sr-only">{tStudio("keyboardHelp")}</p>
       ) : null}
@@ -720,8 +745,45 @@ function EditableFrame({
   );
 }
 
+/** Un média de publication en entier, à sa proportion (les textes au même cadre que dans le fil). */
+function MediaFrame({
+  item,
+  aspect,
+  children,
+}: {
+  item: { kind: "image" | "video"; previewUrl: string };
+  aspect: number;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      className="[container-type:inline-size] relative overflow-hidden rounded-2xl bg-neutral-900"
+      style={{ aspectRatio: aspect }}
+    >
+      {item.kind === "image" ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={item.previewUrl}
+          alt=""
+          className="absolute inset-0 size-full object-cover"
+        />
+      ) : (
+        <video
+          src={item.previewUrl}
+          muted
+          autoPlay
+          loop
+          playsInline
+          className="absolute inset-0 size-full object-cover"
+        />
+      )}
+      {children}
+    </div>
+  );
+}
+
 /** Éditeur de texte plein écran : police, couleur, taille, fond et alignement. */
-function TextPanel({
+export function TextPanel({
   draft,
   onChange,
   onDone,
@@ -887,6 +949,52 @@ type StickerForm =
   | "question"
   | null;
 
+/** Les emoji par catégorie (sans service externe). */
+export function EmojiGrid({ onPick }: { onPick: (emoji: string) => void }) {
+  const tStudio = useTranslations("Community.stories.studio");
+  const [category, setCategory] = useState<EmojiCategory>("smileys");
+  return (
+    <>
+      <div
+        role="tablist"
+        aria-label={tStudio("emoji")}
+        className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto px-4"
+      >
+        {EMOJI_CATEGORIES.map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={category === value}
+            onClick={() => setCategory(value)}
+            className={cn(
+              "h-9 shrink-0 rounded-full px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+              category === value
+                ? "bg-foreground/20 font-semibold"
+                : "text-muted-foreground",
+            )}
+          >
+            {tStudio(`emojiCategories.${value}`)}
+          </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-8 gap-1">
+        {STORY_EMOJI[category].map((emoji) => (
+          <button
+            key={emoji}
+            type="button"
+            aria-label={emoji}
+            onClick={() => onPick(emoji)}
+            className="flex aspect-square items-center justify-center rounded-lg text-2xl outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
 /** Les stickers Get iT et les emoji, dans un panneau qui monte du bas. */
 function StickerPanel({
   onClose,
@@ -899,7 +1007,6 @@ function StickerPanel({
   const tPillars = useTranslations("Pillars");
   const id = useId();
   const [form, setForm] = useState<StickerForm>(null);
-  const [category, setCategory] = useState<EmojiCategory>("smileys");
   const [value, setValue] = useState("");
   const [options, setOptions] = useState<[string, string]>(["", ""]);
   const [data, setData] = useState<Awaited<
@@ -980,42 +1087,7 @@ function StickerPanel({
               </button>
             ))}
           </div>
-          <div
-            role="tablist"
-            aria-label={tStudio("emoji")}
-            className="-mx-4 flex [scrollbar-width:none] gap-1 overflow-x-auto px-4"
-          >
-            {EMOJI_CATEGORIES.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={category === value}
-                onClick={() => setCategory(value)}
-                className={cn(
-                  "h-9 shrink-0 rounded-full px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
-                  category === value
-                    ? "bg-foreground/20 font-semibold"
-                    : "text-muted-foreground",
-                )}
-              >
-                {tStudio(`emojiCategories.${value}`)}
-              </button>
-            ))}
-          </div>
-          <div className="grid grid-cols-8 gap-1">
-            {STORY_EMOJI[category].map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                aria-label={emoji}
-                onClick={() => onAdd({ kind: "emoji", emoji })}
-                className="flex aspect-square items-center justify-center rounded-lg text-2xl outline-none hover:bg-foreground/10 focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
+          <EmojiGrid onPick={(emoji) => onAdd({ kind: "emoji", emoji })} />
         </>
       ) : form === "location" || form === "hashtag" || form === "question" ? (
         <form

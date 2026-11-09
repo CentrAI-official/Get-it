@@ -111,7 +111,15 @@ export async function createPost(
       });
       if (rows.length === 0) return;
       await tx.postMedia.createMany({
-        data: rows.map((row) => ({ ...row, postId: post.id })),
+        data: rows.map((row) => {
+          // Textes posés sur ce média (revalidés avec le reste des médias)
+          const overlays = input.media[row.position]?.overlays ?? [];
+          return {
+            ...row,
+            postId: post.id,
+            ...(overlays.length > 0 ? { overlays } : {}),
+          };
+        }),
       });
       const { count } = await tx.mediaUpload.updateMany({
         where: { id: { in: uploadIds }, userId, usedAt: null },

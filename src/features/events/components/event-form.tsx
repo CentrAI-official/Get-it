@@ -5,6 +5,9 @@ import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useActionState, useId, useState, useTransition } from "react";
 import { TimeWheel } from "@/components/time-wheel";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PlaceField } from "@/features/places/components/place-field";
+import { mapsUrl } from "@/features/places/rules";
 import {
   addDays,
   clockDate,
@@ -56,8 +59,9 @@ const DATE_FIELD = cn(FIELD, "flex-1");
 const TIME_FIELD = cn(FIELD, "w-28 shrink-0");
 
 /**
- * Page « Ajouter un événement » : titre, lieu, début, fin et répétition, tout
- * sur une page. Changer le début déplace la fin : la durée reste la même.
+ * Page « Ajouter un événement » : titre, lieu (adresses proposées), début, fin
+ * (ou « Pas de fin ») et répétition, tout sur une page. Changer le début
+ * déplace la fin : la durée reste la même.
  */
 export function EventForm({ event, defaults }: EventFormProps) {
   const t = useTranslations("Events");
@@ -73,9 +77,10 @@ export function EventForm({ event, defaults }: EventFormProps) {
   const start = event
     ? { day: event.startsOn, time: formatClock(event.startMinute) }
     : { day: defaults.day, time: formatClock(defaults.minute) };
-  const end = event
-    ? { day: event.endsOn, time: formatClock(event.endMinute) }
-    : fromAbsolute((toAbsolute(start.day, start.time) ?? 0) + 60);
+  const end =
+    event && event.endsOn !== null && event.endMinute !== null
+      ? { day: event.endsOn, time: formatClock(event.endMinute) }
+      : fromAbsolute((toAbsolute(start.day, start.time) ?? 0) + 60);
 
   const [title, setTitle] = useState(event?.title ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
@@ -83,6 +88,8 @@ export function EventForm({ event, defaults }: EventFormProps) {
   const [startTime, setStartTime] = useState(start.time);
   const [endDate, setEndDate] = useState(end.day);
   const [endTime, setEndTime] = useState(end.time);
+  // Pas de fin : seulement un début (décision du fondateur, 2026-11-08)
+  const [noEnd, setNoEnd] = useState(event !== null && event.endsOn === null);
   const [repeat, setRepeat] = useState<EventRepeat>(event?.repeat ?? "none");
   // Roulette ouverte sous le début ou la fin (une seule à la fois)
   const [wheel, setWheel] = useState<"start" | "end" | null>(null);
@@ -101,7 +108,7 @@ export function EventForm({ event, defaults }: EventFormProps) {
     const before = toAbsolute(startDate, startTime);
     const after = toAbsolute(day, time);
     const finish = toAbsolute(endDate, endTime);
-    if (before !== null && after !== null && finish !== null) {
+    if (!noEnd && before !== null && after !== null && finish !== null) {
       const next = fromAbsolute(finish + after - before);
       setEndDate(next.day);
       setEndTime(next.time);
@@ -123,7 +130,8 @@ export function EventForm({ event, defaults }: EventFormProps) {
       <form action={formAction} className="flex flex-col gap-5" noValidate>
         <input type="hidden" name="locale" value={locale} />
 
-        <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        {/* Sans overflow-hidden : les adresses proposées débordent sous le lieu */}
+        <div className="rounded-2xl border border-border bg-card">
           <label
             htmlFor={`${id}-title`}
             className="flex min-h-13 items-center gap-3 border-b border-border px-4"
@@ -154,16 +162,15 @@ export function EventForm({ event, defaults }: EventFormProps) {
             <span className="w-14 shrink-0 text-sm font-medium text-muted-foreground">
               {t("location")}
             </span>
-            <input
+            <PlaceField
               id={`${id}-location`}
               name="location"
               value={location}
-              onChange={(change) => setLocation(change.target.value)}
+              onChange={setLocation}
               maxLength={EVENT_LOCATION_MAX}
-              autoComplete="off"
               placeholder={t("locationPlaceholder")}
-              aria-invalid={fieldError("location") ? true : undefined}
-              className="h-12 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground/70"
+              invalid={Boolean(fieldError("location"))}
+              inputClassName="h-12 w-full bg-transparent text-base outline-none placeholder:text-muted-foreground/70"
             />
             <MapPin
               aria-hidden="true"
@@ -184,9 +191,22 @@ export function EventForm({ event, defaults }: EventFormProps) {
             {errorText("location")}
           </p>
         ) : null}
+        {location.trim().length >= 3 ? (
+          // L'appli de cartes ne s'ouvre qu'au toucher
+          <a
+            href={mapsUrl(location.trim())}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="-mt-3 flex w-fit items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            <MapPin aria-hidden="true" className="size-4 text-primary" />
+            {t("openMap")}
+          </a>
+        ) : null}
 
         <div className="flex flex-col gap-2">
           <div className="overflow-hidden rounded-2xl border border-border bg-card">
+            {noEnd ? <input type="hidden" name="noEnd" value="on" /> : null}
             <div
               role="group"
               aria-labelledby={`${id}-start`}
@@ -239,40 +259,67 @@ export function EventForm({ event, defaults }: EventFormProps) {
               aria-labelledby={`${id}-end`}
               className="flex flex-col gap-2 px-4 py-3"
             >
-              <span
-                id={`${id}-end`}
-                className="text-sm font-medium text-muted-foreground"
-              >
-                {t("end")}
-              </span>
-              <span className="flex gap-2">
-                <input
-                  type="date"
-                  name="endDate"
-                  aria-label={t("endDate")}
-                  value={endDate}
-                  min={startDate}
-                  onChange={(change) => setEndDate(change.target.value)}
-                  required
-                  aria-invalid={fieldError("endDate") ? true : undefined}
-                  className={DATE_FIELD}
-                />
-                <input type="hidden" name="endTime" value={endTime} />
-                <button
-                  type="button"
-                  aria-label={t("endTimeAt", { time: clock(endTime) })}
-                  aria-expanded={wheel === "end"}
-                  onClick={() => setWheel(wheel === "end" ? null : "end")}
-                  className={cn(
-                    TIME_FIELD,
-                    "text-left tabular-nums",
-                    wheel === "end" && "border-primary text-primary",
-                  )}
+              <span className="flex items-center justify-between gap-3">
+                <span
+                  id={`${id}-end`}
+                  className="text-sm font-medium text-muted-foreground"
                 >
-                  {clock(endTime)}
-                </button>
+                  {t("end")}
+                </span>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={noEnd}
+                    onCheckedChange={(value) => {
+                      const checked = value === true;
+                      setNoEnd(checked);
+                      if (checked && wheel === "end") setWheel(null);
+                      if (!checked) {
+                        // La fin revient une heure après le début
+                        const next = fromAbsolute(
+                          (toAbsolute(startDate, startTime) ?? 0) + 60,
+                        );
+                        setEndDate(next.day);
+                        setEndTime(next.time);
+                      }
+                    }}
+                  />
+                  {t("noEnd")}
+                </label>
               </span>
-              {wheel === "end" ? (
+              {noEnd ? (
+                <p className="text-sm text-muted-foreground">
+                  {t("noEndHint")}
+                </p>
+              ) : (
+                <span className="flex gap-2">
+                  <input
+                    type="date"
+                    name="endDate"
+                    aria-label={t("endDate")}
+                    value={endDate}
+                    min={startDate}
+                    onChange={(change) => setEndDate(change.target.value)}
+                    required
+                    aria-invalid={fieldError("endDate") ? true : undefined}
+                    className={DATE_FIELD}
+                  />
+                  <input type="hidden" name="endTime" value={endTime} />
+                  <button
+                    type="button"
+                    aria-label={t("endTimeAt", { time: clock(endTime) })}
+                    aria-expanded={wheel === "end"}
+                    onClick={() => setWheel(wheel === "end" ? null : "end")}
+                    className={cn(
+                      TIME_FIELD,
+                      "text-left tabular-nums",
+                      wheel === "end" && "border-primary text-primary",
+                    )}
+                  >
+                    {clock(endTime)}
+                  </button>
+                </span>
+              )}
+              {wheel === "end" && !noEnd ? (
                 <TimeWheel
                   value={endTime}
                   onChange={setEndTime}

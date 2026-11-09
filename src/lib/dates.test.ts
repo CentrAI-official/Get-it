@@ -6,6 +6,7 @@ import {
   lastDays,
   toCalendarDay,
   toDbDate,
+  zonedInstant,
 } from "./dates";
 
 describe("jours du calendrier", () => {
@@ -42,5 +43,21 @@ describe("arithmétique des jours", () => {
       "2026-10-07",
       "2026-10-08",
     ]);
+  });
+});
+
+describe("zonedInstant", () => {
+  it("l'heure affichée dans un fuseau donne le bon instant, changement d'heure compris", () => {
+    // 14 novembre 2026, 19 h à Montréal (heure normale, UTC-5)
+    expect(
+      zonedInstant("2026-11-14", 19 * 60, "America/Toronto").toISOString(),
+    ).toBe("2026-11-15T00:00:00.000Z");
+    // 1er juillet, 9 h 30 (heure avancée, UTC-4)
+    expect(
+      zonedInstant("2026-07-01", 9 * 60 + 30, "America/Toronto").toISOString(),
+    ).toBe("2026-07-01T13:30:00.000Z");
+    expect(zonedInstant("2026-07-01", 0, "UTC").toISOString()).toBe(
+      "2026-07-01T00:00:00.000Z",
+    );
   });
 });

@@ -108,7 +108,8 @@ function ReportedCard({ item }: { item: ReportedItem }) {
       <div className="flex flex-wrap gap-2">
         {item.target.type === "post" ||
         item.target.type === "comment" ||
-        item.target.type === "story" ? (
+        item.target.type === "story" ||
+        item.target.type === "event" ? (
           <>
             <Button
               size="sm"

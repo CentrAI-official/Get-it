@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { BackLink } from "@/components/back-link";
 import { PageHeader } from "@/components/layout/page-header";
 import {
   GroupsPanel,
@@ -18,9 +19,11 @@ export default function GroupsPage({
   searchParams,
 }: PageProps<"/[locale]/groups">) {
   const t = useTranslations("App.groups");
+  const tNav = useTranslations("App.nav");
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <BackLink href="/community" label={tNav("community")} />
       <PageHeader title={t("title")} description={t("question")} />
       <Suspense fallback={<GroupsSkeleton />}>
         <GroupsPanel searchParams={searchParams} />

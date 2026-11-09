@@ -3,6 +3,7 @@ import { Suspense, ViewTransition } from "react";
 import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
+import { NavigationMemory } from "@/components/layout/navigation-memory";
 import { PullToRefresh } from "@/components/layout/pull-to-refresh";
 import { ActivityTracker } from "@/features/analytics/components/activity-tracker";
 import { WeekQuestion } from "@/features/feedback/components/week-question";
@@ -62,6 +63,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       {/* Temps actif par page (dashboard de l'équipe) ; usePathname suspend */}
       <Suspense fallback={null}>
         <ActivityTracker />
+      </Suspense>
+      {/* Pages vues : « Retour » revient à la page d'avant s'il y en a une */}
+      <Suspense fallback={null}>
+        <NavigationMemory />
       </Suspense>
       {/* Thème choisi sur un autre appareil */}
       <Suspense fallback={null}>

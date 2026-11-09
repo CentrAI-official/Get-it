@@ -1,8 +1,8 @@
 "use client";
 
-import { Check, ChevronRight, Flame } from "lucide-react";
+import { Check, ChevronDown, Flame, MessageCircle } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { Avatar } from "@/components/avatar";
 import { Link } from "@/i18n/navigation";
 import { clockDate, minuteOfDay } from "@/lib/dates";
@@ -28,7 +28,9 @@ const share = (minute: number) =>
 /**
  * Pactes en cours, en haut de la Messagerie : « Pacte en cours » et le jour
  * (x/y) sont au-dessus des cartes, qu'on fait glisser d'un pacte à l'autre.
- * Chaque carte montre à quelle heure chacun a fait sa part aujourd'hui.
+ * Les cartes sont repliées sur leur titre (décision du fondateur, 2026-11-08) :
+ * toucher le titre les déplie, et chacune montre alors à quelle heure chacun a
+ * fait sa part aujourd'hui.
  */
 export function PactCarousel({
   pacts,
@@ -38,6 +40,8 @@ export function PactCarousel({
   const t = useTranslations("Messages.pacts.carousel");
   const list = useRef<HTMLUListElement>(null);
   const [index, setIndex] = useState(0);
+  // Dépliées ou non : toutes ensemble, pour que les cartes gardent la même hauteur
+  const [expanded, setExpanded] = useState(false);
   const [choosing, setChoosing] = useState<{
     pact: InboxPact;
     nowMinute: number;
@@ -54,29 +58,27 @@ export function PactCarousel({
     <section aria-label={t("label")} className="flex flex-col gap-2.5">
       <div className="flex items-end justify-between gap-3">
         <h2 className="caps-label text-muted-foreground">{t("label")}</h2>
-        {active.dayIndex > 0 ? (
-          <p
-            aria-label={t("dayLabel", {
-              day: active.dayIndex,
-              days: active.days,
-            })}
-            className="flex items-baseline gap-1.5"
+        {/* « Jour 4/7 » et « Commence demain » ont la même taille : rien ne bouge d'un pacte à l'autre */}
+        <p
+          aria-label={
+            active.dayIndex > 0
+              ? t("dayLabel", { day: active.dayIndex, days: active.days })
+              : t("startsTomorrow")
+          }
+          className="flex items-baseline gap-1.5"
+        >
+          <span aria-hidden="true" className="text-sm text-muted-foreground">
+            {active.dayIndex > 0 ? t("dayWord") : t("startsWord")}
+          </span>
+          <span
+            aria-hidden="true"
+            className="font-display text-[1.75rem] leading-none text-primary uppercase tabular-nums"
           >
-            <span aria-hidden="true" className="text-sm text-muted-foreground">
-              {t("dayWord")}
-            </span>
-            <span
-              aria-hidden="true"
-              className="font-display text-[1.75rem] leading-none text-primary tabular-nums"
-            >
-              {active.dayIndex}/{active.days}
-            </span>
-          </p>
-        ) : (
-          <p className="text-sm font-semibold text-primary">
-            {t("startsTomorrow")}
-          </p>
-        )}
+            {active.dayIndex > 0
+              ? `${active.dayIndex}/${active.days}`
+              : t("tomorrowWord")}
+          </span>
+        </p>
       </div>
 
       <ul
@@ -96,6 +98,8 @@ export function PactCarousel({
           >
             <PactSlide
               pact={pact}
+              expanded={expanded}
+              onToggle={() => setExpanded(!expanded)}
               nowMinute={nowMinute}
               onDoPart={() =>
                 setChoosing({
@@ -153,13 +157,19 @@ export function PactCarousel({
 
 function PactSlide({
   pact,
+  expanded,
+  onToggle,
   nowMinute,
   onDoPart,
 }: {
   pact: InboxPact;
+  /** Repliée : seulement le titre (et le lien vers la discussion). */
+  expanded: boolean;
+  onToggle: () => void;
   nowMinute: number;
   onDoPart: () => void;
 }) {
+  const detailsId = useId();
   const t = useTranslations("Messages.pacts.carousel");
   const tBanner = useTranslations("Messages.pacts.banner");
   const format = useFormatter();
@@ -174,115 +184,135 @@ function PactSlide({
 
   return (
     <article className="flex h-full flex-col gap-3 rounded-[22px] border border-primary/30 bg-card p-3.5">
-      <Link
-        href={`/messages/${pact.conversationId}`}
-        aria-label={t("open", { title: pact.title, name })}
-        className="flex items-center gap-2.5 rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        <Avatar
-          name={name}
-          url={pact.partner.avatarUrl}
-          className="size-9 text-sm"
-        />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="truncate font-bold">{pact.title}</span>
-          <span className="truncate text-xs text-muted-foreground">
-            {t("with", { name })}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={detailsId}
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <Avatar
+            name={name}
+            url={pact.partner.avatarUrl}
+            className="size-9 text-sm"
+          />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="truncate font-bold">{pact.title}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {t("with", { name })}
+            </span>
           </span>
-        </span>
-        <ChevronRight
-          aria-hidden="true"
-          className="size-4 shrink-0 text-muted-foreground"
-        />
-      </Link>
-
-      {started ? (
-        <>
-          <div
+          <ChevronDown
             aria-hidden="true"
-            className="grid gap-1"
-            style={{
-              gridTemplateColumns: `repeat(${pact.days}, minmax(0, 1fr))`,
-            }}
-          >
-            {pact.cells.map((cell) => (
-              <span
-                key={cell.day}
-                className={cn(
-                  "h-2 rounded-full",
-                  cell.me && cell.them
-                    ? "bg-primary"
-                    : cell.state === "future"
-                      ? "bg-foreground/8"
-                      : cell.me || cell.them
-                        ? "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--primary)_50%,transparent)_50%,color-mix(in_oklab,var(--foreground)_12%,transparent)_50%)]"
-                        : "bg-foreground/12",
-                )}
-              />
-            ))}
-          </div>
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none",
+              expanded && "rotate-180",
+            )}
+          />
+        </button>
+        <Link
+          href={`/messages/${pact.conversationId}`}
+          aria-label={t("open", { title: pact.title, name })}
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <MessageCircle aria-hidden="true" className="size-4.5" />
+        </Link>
+      </div>
 
-          <div className="flex flex-col gap-2">
-            <PartTrack
-              label={name}
-              minute={pact.themToday ? pact.themTodayMinute : null}
-              nowMinute={nowMinute}
-            />
-            <PartTrack
-              label={tBanner("you")}
-              minute={pact.meToday ? pact.myTodayMinute : null}
-              nowMinute={nowMinute}
-            />
+      <div
+        id={detailsId}
+        hidden={!expanded}
+        className="flex flex-1 flex-col gap-3"
+      >
+        {started ? (
+          <>
             <div
               aria-hidden="true"
-              className="relative ml-[4.125rem] h-3.5 text-[10px] text-muted-foreground"
+              className="grid gap-1"
+              style={{
+                gridTemplateColumns: `repeat(${pact.days}, minmax(0, 1fr))`,
+              }}
             >
-              <span className="absolute left-0">{hour(DAY_START)}</span>
-              <span className="absolute left-1/2 -translate-x-1/2">
-                {hour(14 * 60)}
-              </span>
-              <span className="absolute right-0">{hour(DAY_END)}</span>
+              {pact.cells.map((cell) => (
+                <span
+                  key={cell.day}
+                  className={cn(
+                    "h-2 rounded-full",
+                    cell.me && cell.them
+                      ? "bg-primary"
+                      : cell.state === "future"
+                        ? "bg-foreground/8"
+                        : cell.me || cell.them
+                          ? "bg-[linear-gradient(90deg,color-mix(in_oklab,var(--primary)_50%,transparent)_50%,color-mix(in_oklab,var(--foreground)_12%,transparent)_50%)]"
+                          : "bg-foreground/12",
+                  )}
+                />
+              ))}
             </div>
-          </div>
-        </>
-      ) : null}
 
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
-        {started ? (
-          <span className="flex items-center gap-1.5 text-[0.8rem]">
-            <Flame aria-hidden="true" className="size-4 text-primary" />
-            {tBanner.rich("streak", {
-              count: pact.streak,
-              strong: (chunks) => (
-                <strong className="tabular-nums">{chunks}</strong>
-              ),
-            })}
-          </span>
-        ) : (
-          <span className="text-[0.8rem] text-muted-foreground">
-            {tBanner("startsTomorrow")}
-          </span>
-        )}
-        {!started ? null : pact.meToday && pact.themToday ? (
-          <span className="text-[0.8rem] font-semibold text-primary">
-            {t("bothDone")}
-          </span>
-        ) : !pact.meToday && !pact.myHabitMissing ? (
-          <button
-            type="button"
-            onClick={onDoPart}
-            className="h-9 rounded-full bg-primary px-3.5 text-[0.8rem] font-bold text-primary-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            {tBanner("doMyPart")}
-          </button>
-        ) : !pact.themToday ? (
-          <Link
-            href={`/messages/${pact.conversationId}`}
-            className="flex h-9 items-center rounded-full border border-foreground/15 px-3.5 text-[0.8rem] font-semibold outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            {tBanner("encourage", { name })}
-          </Link>
+            <div className="flex flex-col gap-2">
+              <PartTrack
+                label={name}
+                minute={pact.themToday ? pact.themTodayMinute : null}
+                nowMinute={nowMinute}
+              />
+              <PartTrack
+                label={tBanner("you")}
+                minute={pact.meToday ? pact.myTodayMinute : null}
+                nowMinute={nowMinute}
+              />
+              <div
+                aria-hidden="true"
+                className="relative ml-[4.125rem] h-3.5 text-[10px] text-muted-foreground"
+              >
+                <span className="absolute left-0">{hour(DAY_START)}</span>
+                <span className="absolute left-1/2 -translate-x-1/2">
+                  {hour(14 * 60)}
+                </span>
+                <span className="absolute right-0">{hour(DAY_END)}</span>
+              </div>
+            </div>
+          </>
         ) : null}
+
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-2">
+          {started ? (
+            <span className="flex items-center gap-1.5 text-[0.8rem]">
+              <Flame aria-hidden="true" className="size-4 text-primary" />
+              {tBanner.rich("streak", {
+                count: pact.streak,
+                strong: (chunks) => (
+                  <strong className="tabular-nums">{chunks}</strong>
+                ),
+              })}
+            </span>
+          ) : (
+            <span className="text-[0.8rem] text-muted-foreground">
+              {tBanner("startsTomorrow")}
+            </span>
+          )}
+          {!started ? null : pact.meToday && pact.themToday ? (
+            <span className="text-[0.8rem] font-semibold text-primary">
+              {t("bothDone")}
+            </span>
+          ) : !pact.meToday && !pact.myHabitMissing ? (
+            <button
+              type="button"
+              onClick={onDoPart}
+              className="h-9 rounded-full bg-primary px-3.5 text-[0.8rem] font-bold text-primary-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {tBanner("doMyPart")}
+            </button>
+          ) : !pact.themToday ? (
+            <Link
+              href={`/messages/${pact.conversationId}`}
+              className="flex h-9 items-center rounded-full border border-foreground/15 px-3.5 text-[0.8rem] font-semibold outline-none hover:bg-foreground/5 focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {tBanner("encourage", { name })}
+            </Link>
+          ) : null}
+        </div>
       </div>
     </article>
   );

@@ -33,14 +33,17 @@ import {
   type CalendarData,
   type CalendarPlan,
 } from "../calendar";
-import type { DevelopmentPlan } from "../plan";
+import type { DevelopmentPlan, PlanLanguage } from "../plan";
 import type { DevelopmentKind } from "../questionnaires";
 import { PlanToday } from "./plan-today";
 import { RevisePlan } from "./revise-plan";
+import { TranslatePlan } from "./translate-plan";
 
 type PlanViewProps = {
   kind: DevelopmentKind;
   plan: DevelopmentPlan;
+  /** Langue du plan : « Traduire ce plan » si ce n'est pas celle de l'application. */
+  language: PlanLanguage;
   updatedAt: string;
   /** Calendrier de ce plan (mois en cours). */
   calendar: CalendarData;
@@ -61,6 +64,7 @@ type PlanViewProps = {
 export function PlanView({
   kind,
   plan,
+  language,
   updatedAt,
   calendar,
   workouts,
@@ -87,6 +91,7 @@ export function PlanView({
 
   return (
     <article className="flex max-w-2xl flex-col gap-8">
+      <TranslatePlan kind={kind} language={language} />
       <PlanToday
         kind={kind}
         plan={planEntry}

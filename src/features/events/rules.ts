@@ -5,7 +5,7 @@ import { fieldErrorsFrom } from "@/lib/form-errors";
 
 // Calendrier personnel : les événements de la personne (job, souper, cuisiner
 // les lunchs…), privés et sans XP. Limites alignées sur la contrainte de la
-// migration 20261103120000_calendar_events (un test le vérifie). Fonctions pures.
+// migration 20261124120000_corrections (un test le vérifie). Fonctions pures.
 
 /** Doit rester aligné avec l'enum EventRepeat de prisma/schema.prisma. */
 export const EVENT_REPEATS = [
@@ -20,9 +20,14 @@ export const EVENT_REPEATS = [
 export type EventRepeat = (typeof EVENT_REPEATS)[number];
 
 export const EVENT_TITLE_MAX = 120;
-export const EVENT_LOCATION_MAX = 120;
-/** Un événement finit au plus 14 jours après son début. */
-export const EVENT_MAX_DAYS = 14;
+/** Une adresse complète proposée (nom, rue, ville, province) y tient. */
+export const EVENT_LOCATION_MAX = 200;
+/**
+ * Un événement finit au plus un an après son début (décision du fondateur,
+ * 2026-11-08 : plus de 14 jours, ex. des vacances ou une session d'études) ;
+ * il peut aussi n'avoir pas de fin.
+ */
+export const EVENT_MAX_DAYS = 366;
 /** Événements gardés au plus par personne. */
 export const MAX_EVENTS = 500;
 
@@ -53,8 +58,9 @@ export type CalendarEvent = {
   startsOn: string;
   /** Minutes depuis minuit (0 à 1439). */
   startMinute: number;
-  endsOn: string;
-  endMinute: number;
+  /** Null : pas de fin (seulement une heure de début). */
+  endsOn: string | null;
+  endMinute: number | null;
   repeat: EventRepeat;
 };
 
@@ -63,6 +69,9 @@ const clockSchema = z
   .string(error("dateInvalid"))
   .regex(/^([01]\d|2[0-3]):[0-5]\d$/, error("dateInvalid"));
 
+/** Un champ vide (fin cachée par « Pas de fin ») compte comme absent. */
+const emptyAsMissing = (value: unknown) => (value === "" ? undefined : value);
+
 const EVENT_FIELDS = [
   "title",
   "location",
@@ -70,6 +79,7 @@ const EVENT_FIELDS = [
   "startTime",
   "endDate",
   "endTime",
+  "noEnd",
   "repeat",
 ] as const;
 export type EventField = (typeof EVENT_FIELDS)[number];
@@ -91,11 +101,28 @@ export const eventFormSchema = z
       .transform((value) => value || null),
     startDate: z.iso.date(error("dateInvalid")),
     startTime: clockSchema,
-    endDate: z.iso.date(error("dateInvalid")),
-    endTime: clockSchema,
+    /** « on » : pas de fin (la date et l'heure de fin sont ignorées). */
+    noEnd: z
+      .literal("on")
+      .optional()
+      .transform((value) => value === "on"),
+    endDate: z.preprocess(
+      emptyAsMissing,
+      z.iso.date(error("dateInvalid")).optional(),
+    ),
+    endTime: z.preprocess(emptyAsMissing, clockSchema.optional()),
     repeat: z.enum(EVENT_REPEATS, error("dateInvalid")),
   })
   .superRefine((input, context) => {
+    if (input.noEnd) return;
+    if (!input.endDate || !input.endTime) {
+      context.addIssue({
+        code: "custom",
+        path: [input.endDate ? "endTime" : "endDate"],
+        message: "dateInvalid",
+      });
+      return;
+    }
     const days = daysBetween(input.startDate, input.endDate);
     const start = parseClock(input.startTime) ?? 0;
     const end = parseClock(input.endTime) ?? 0;
@@ -119,8 +146,8 @@ export const eventFormSchema = z
     location: input.location,
     startsOn: input.startDate,
     startMinute: parseClock(input.startTime) ?? 0,
-    endsOn: input.endDate,
-    endMinute: parseClock(input.endTime) ?? 0,
+    endsOn: input.noEnd ? null : (input.endDate ?? null),
+    endMinute: input.noEnd ? null : (parseClock(input.endTime ?? "") ?? null),
     repeat: input.repeat,
   }));
 export type EventInput = z.output<typeof eventFormSchema>;
@@ -154,7 +181,7 @@ export function occursOn(
   }
 }
 
-/** Nombre de jours entre le début et la fin d'un événement (0 : le même jour). */
+/** Nombre de jours entre le début et la fin d'un événement (0 : le même jour ou sans fin). */
 export function eventSpan(event: Pick<CalendarEvent, "startsOn" | "endsOn">) {
-  return daysBetween(event.startsOn, event.endsOn);
+  return event.endsOn === null ? 0 : daysBetween(event.startsOn, event.endsOn);
 }

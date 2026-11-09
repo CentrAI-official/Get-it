@@ -46,6 +46,7 @@ export async function reportContent(
         reportedUserId: target.type === "user" ? target.id : null,
         messageId: target.type === "message" ? target.id : null,
         storyId: target.type === "story" ? target.id : null,
+        eventId: target.type === "event" ? target.id : null,
         reason: input.reason,
         details: input.details || null,
       },
@@ -79,6 +80,17 @@ export async function reportContent(
           data: { status: "hidden" },
         });
       }
+    }
+  }
+  if (target.type === "event") {
+    const reports = await db.contentReport.count({
+      where: { eventId: target.id, status: "open" },
+    });
+    if (reports >= AUTO_HIDE_REPORTS) {
+      await db.communityEvent.updateMany({
+        where: { id: target.id, status: "visible" },
+        data: { status: "hidden" },
+      });
     }
   }
   if (target.type === "story") {
@@ -133,6 +145,13 @@ async function ownerOf(target: ModerationTarget, viewerId: string) {
           select: { userId: true },
         })
       )?.userId;
+    case "event":
+      return (
+        await db.communityEvent.findUnique({
+          where: { id: target.id },
+          select: { hostId: true },
+        })
+      )?.hostId;
     case "user":
       return (
         await db.profile.findUnique({
@@ -150,7 +169,7 @@ export async function canModerate(userId: string) {
 }
 
 export type ModerationTarget = {
-  type: "post" | "comment" | "user" | "message" | "story";
+  type: "post" | "comment" | "user" | "message" | "story" | "event";
   id: string;
 };
 
@@ -236,6 +255,22 @@ export async function listOpenReports(moderatorId: string) {
           },
         },
       },
+      event: {
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          status: true,
+          host: {
+            select: {
+              id: true,
+              displayName: true,
+              username: true,
+              suspendedUntil: true,
+            },
+          },
+        },
+      },
       story: {
         select: {
           id: true,
@@ -274,6 +309,7 @@ export async function listOpenReports(moderatorId: string) {
     const source = report.post ?? report.comment;
     const message = report.message;
     const story = report.story;
+    const event = report.event;
     if (story) stories.set(story.id, story);
     const type = report.post
       ? "post"
@@ -283,14 +319,21 @@ export async function listOpenReports(moderatorId: string) {
           ? "message"
           : story
             ? "story"
-            : "user";
+            : event
+              ? "event"
+              : "user";
     const author =
       source?.profile ??
       message?.sender ??
       story?.profile ??
+      event?.host ??
       report.reportedUser;
     const id =
-      source?.id ?? message?.id ?? story?.id ?? report.reportedUser?.id;
+      source?.id ??
+      message?.id ??
+      story?.id ??
+      event?.id ??
+      report.reportedUser?.id;
     if (!author || !id) continue;
     const key = `${type}:${id}`;
     const item =
@@ -303,10 +346,13 @@ export async function listOpenReports(moderatorId: string) {
             ? message.body || null
             : story
               ? story.caption || null
-              : null,
+              : event
+                ? [event.title, event.description].filter(Boolean).join("\n\n")
+                : null,
         status:
           source?.status ??
           story?.status ??
+          event?.status ??
           (message ? (message.deletedAt ? "removed" : "visible") : null),
         author: {
           id: author.id,
@@ -407,7 +453,9 @@ export async function moderate(
           ? { messageId: target.id }
           : target.type === "story"
             ? { storyId: target.id }
-            : { reportedUserId: target.id };
+            : target.type === "event"
+              ? { eventId: target.id }
+              : { reportedUserId: target.id };
   const close = (status: "resolved" | "dismissed") =>
     db.contentReport.updateMany({
       where: { ...reportsWhere, status: "open" },
@@ -461,8 +509,28 @@ export async function moderate(
     ]);
     return true;
   }
+  if (
+    target.type === "event" &&
+    (decision === "remove" || decision === "restore")
+  ) {
+    // Un événement retiré n'est plus montré à personne, sauf son hôte qui le voit « retiré »
+    await db.$transaction([
+      db.communityEvent.updateMany({
+        where: { id: target.id },
+        data: { status: decision === "remove" ? "removed" : "visible" },
+      }),
+      close(decision === "remove" ? "resolved" : "dismissed"),
+    ]);
+    return true;
+  }
   if (decision === "remove" || decision === "restore") {
-    if (target.type === "user" || target.type === "message") return false;
+    if (
+      target.type === "user" ||
+      target.type === "message" ||
+      target.type === "event"
+    ) {
+      return false;
+    }
     const status = decision === "remove" ? "removed" : "visible";
     await db.$transaction([
       target.type === "post"

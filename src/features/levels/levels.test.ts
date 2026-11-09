@@ -7,6 +7,7 @@ import {
   LEVEL_FACTORS,
   measureAnswersSchema,
   measureAvailableAt,
+  measureCorrectableUntil,
   measureRequestSchema,
 } from "./factors";
 import {
@@ -30,8 +31,57 @@ const people: LevelPerson[] = [
 describe("valeur d'une mesure", () => {
   it("développé couché : 1RM estimé divisé par le poids du corps", () => {
     expect(
-      factorValue("bench", { weightKg: 80, benchKg: 80, benchReps: 6 }).value,
+      factorValue("bench", {
+        weightUnit: "kg",
+        bodyWeight: 80,
+        benchLoad: 80,
+        benchReps: 6,
+      }).value,
     ).toBe(1.2);
+  });
+
+  it("développé couché en livres : le même calcul qu'en kilogrammes", () => {
+    // 111 kg soulevés une fois, 87 kg de poids (le cas du collègue du fondateur)
+    const kg = factorValue("bench", {
+      weightUnit: "kg",
+      bodyWeight: 87,
+      benchLoad: 111,
+      benchReps: 1,
+    });
+    const lb = factorValue("bench", {
+      weightUnit: "lb",
+      bodyWeight: 191.8,
+      benchLoad: 244.7,
+      benchReps: 1,
+    });
+    expect(kg.value).toBe(1.28);
+    expect(lb.value).toBe(kg.value);
+    expect(lb.details).toMatchObject({ weightUnit: "lb", weightKg: 87 });
+  });
+
+  it("poids du corps : limites en kilogrammes, quelle que soit l'unité", () => {
+    const schema = measureAnswersSchema(["bench"]);
+    const answers = { benchLoad: 100, benchReps: 5 };
+    expect(
+      schema.safeParse({ ...answers, weightUnit: "lb", bodyWeight: 190 })
+        .success,
+    ).toBe(true);
+    // 400 kg : hors limites ; 400 lb (181 kg) : possible
+    expect(
+      schema.safeParse({ ...answers, weightUnit: "kg", bodyWeight: 400 })
+        .success,
+    ).toBe(false);
+    expect(
+      schema.safeParse({ ...answers, weightUnit: "lb", bodyWeight: 400 })
+        .success,
+    ).toBe(true);
+  });
+
+  it("la correction d'une mesure reste possible 48 heures", () => {
+    const at = new Date("2026-11-08T10:00:00Z");
+    expect(measureCorrectableUntil(at).toISOString()).toBe(
+      "2026-11-10T10:00:00.000Z",
+    );
   });
 
   it("flexion : négative quand il manque des centimètres", () => {
@@ -162,12 +212,21 @@ describe("formulaires de mesure", () => {
     const schema = measureAnswersSchema(["hourly", "savings"]);
     expect(
       schema.safeParse({
+        employment: "student",
         netIncome: "50000",
         weeklyHours: "40",
         monthlyExpenses: "3000",
       }).success,
     ).toBe(true);
     expect(schema.safeParse({ netIncome: "50000" }).success).toBe(false);
+    // La situation d'emploi est demandée avec le revenu par heure
+    expect(
+      schema.safeParse({
+        netIncome: "50000",
+        weeklyHours: "40",
+        monthlyExpenses: "3000",
+      }).success,
+    ).toBe(false);
   });
 
   it("des mesures d'un seul pilier à la fois", () => {

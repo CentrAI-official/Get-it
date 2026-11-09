@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { REACH_SIDES } from "@/features/ranked/questionnaire";
 import { oneRepMax, savingsRate } from "@/features/ranked/scoring";
+import { WEIGHT_UNITS, type WeightUnit } from "@/features/workouts/rules";
 
 // Les mesures qui donnent un niveau (décision du fondateur, 2026-11-01) : six
 // tests physiques et trois mesures financières. Chacune est enregistrée à part
@@ -53,6 +54,41 @@ export function measureAvailableAt(factor: LevelFactor, lastAt: Date | null) {
   return new Date(lastAt.getTime() + days * 86_400_000);
 }
 
+/**
+ * Une faute de saisie (kg au lieu de lb, un zéro de trop) se corrige pendant
+ * 48 heures (décision du fondateur, 2026-11-08) : la correction remplace la
+ * dernière mesure, à la même date ; ensuite, il faut attendre le délai.
+ */
+export const MEASURE_CORRECTION_HOURS = 48;
+
+/** Fin de la correction possible d'une mesure faite à `measuredAt`. */
+export function measureCorrectableUntil(measuredAt: Date) {
+  return new Date(measuredAt.getTime() + MEASURE_CORRECTION_HOURS * 3_600_000);
+}
+
+/**
+ * Situation d'emploi (décision du fondateur, 2026-11-08) : demandée avec le
+ * revenu, gardée avec la mesure. Le calcul ne change pas : sans heures de
+ * travail, le revenu est ramené à un temps plein.
+ */
+export const EMPLOYMENT_STATUSES = [
+  "full_time",
+  "part_time",
+  "self_employed",
+  "student",
+  "unemployed",
+  "retired",
+] as const;
+export type EmploymentStatus = (typeof EMPLOYMENT_STATUSES)[number];
+
+const POUND_KG = 0.45359237;
+/** Une valeur dans l'unité choisie → kilogrammes. */
+export const toKilograms = (value: number, unit: WeightUnit) =>
+  unit === "kg" ? value : value * POUND_KG;
+/** Kilogrammes → valeur dans l'unité choisie. */
+export const fromKilograms = (kg: number, unit: WeightUnit) =>
+  unit === "kg" ? kg : kg / POUND_KG;
+
 const integer = (min: number, max: number) =>
   z.coerce.number().int().min(min).max(max);
 
@@ -64,11 +100,15 @@ export const MEASURE_FIELDS = {
   reachCm: integer(0, 60),
   squats: integer(0, 150),
   jumpCm: integer(20, 400),
-  weightKg: integer(30, 300),
-  /** Charge soulevée, au demi-kilo près. */
-  benchKg: z.coerce.number().min(1).max(500).multipleOf(0.5),
+  /** Unité du poids du corps et de la charge (préférence du carnet d'entraînement). */
+  weightUnit: z.enum(WEIGHT_UNITS),
+  /** Poids du corps dans l'unité choisie : 30 à 300 kg (vérifié après conversion). */
+  bodyWeight: z.coerce.number().min(30).max(700),
+  /** Charge soulevée dans l'unité choisie, au demi près : 500 kg au plus. */
+  benchLoad: z.coerce.number().min(1).max(1200).multipleOf(0.5),
   /** Répétitions faites avec cette charge (au plus 10 pour une estimation fiable). */
   benchReps: integer(1, 10),
+  employment: z.enum(EMPLOYMENT_STATUSES),
   netIncome: integer(0, 1_000_000_000),
   weeklyHours: integer(0, 100),
   assets: integer(0, 100_000_000_000),
@@ -84,8 +124,8 @@ export const FACTOR_FIELDS: Record<LevelFactor, readonly MeasureField[]> = {
   reach: ["reachSide", "reachCm"],
   squats: ["squats"],
   jump: ["jumpCm"],
-  bench: ["weightKg", "benchKg", "benchReps"],
-  hourly: ["netIncome", "weeklyHours"],
+  bench: ["weightUnit", "bodyWeight", "benchLoad", "benchReps"],
+  hourly: ["employment", "netIncome", "weeklyHours"],
   netWorth: ["assets", "debts"],
   savings: ["netIncome", "monthlyExpenses"],
 };
@@ -97,11 +137,33 @@ export function fieldsOf(factors: readonly LevelFactor[]): MeasureField[] {
 
 /** Validation des réponses d'un formulaire de mesures. */
 export function measureAnswersSchema(factors: readonly LevelFactor[]) {
-  return z.object(
-    Object.fromEntries(
-      fieldsOf(factors).map((field) => [field, MEASURE_FIELDS[field]]),
-    ) as { [K in MeasureField]: (typeof MEASURE_FIELDS)[K] },
-  );
+  const fields = fieldsOf(factors);
+  return z
+    .object(
+      Object.fromEntries(
+        fields.map((field) => [field, MEASURE_FIELDS[field]]),
+      ) as { [K in MeasureField]: (typeof MEASURE_FIELDS)[K] },
+    )
+    .superRefine((answers, context) => {
+      if (!fields.includes("bodyWeight")) return;
+      // Les limites valent en kilogrammes, quelle que soit l'unité choisie
+      const unit = answers.weightUnit;
+      const weight = toKilograms(answers.bodyWeight, unit);
+      if (weight < 30 || weight > 300) {
+        context.addIssue({
+          code: "custom",
+          path: ["bodyWeight"],
+          message: "range",
+        });
+      }
+      if (toKilograms(answers.benchLoad, unit) > 500) {
+        context.addIssue({
+          code: "custom",
+          path: ["benchLoad"],
+          message: "range",
+        });
+      }
+    });
 }
 export type MeasureAnswers = {
   [K in MeasureField]: z.infer<(typeof MEASURE_FIELDS)[K]>;
@@ -114,6 +176,8 @@ export const measureRequestSchema = z
     answers: z.record(z.string(), z.unknown()),
     /** Accord (Loi 25) : obligatoire pour la première mesure d'un pilier. */
     consent: z.boolean(),
+    /** Corriger la dernière mesure (faute de saisie, dans les 48 h). */
+    correct: z.boolean().optional(),
   })
   .refine(
     ({ factors }) =>
@@ -127,6 +191,8 @@ export type MeasuredValue = {
   /** Ce qui a été répondu, gardé pour l'historique (jamais montré aux autres). */
   details: Record<string, number | string>;
 };
+
+const round1 = (value: number) => Math.round(value * 10) / 10;
 
 /** Heures par semaine d'un revenu sans heures de travail : un temps plein. */
 const FULL_TIME_HOURS = 40;
@@ -156,21 +222,31 @@ export function factorValue(
       return { value: a.squats, details: { squats: a.squats } };
     case "jump":
       return { value: a.jumpCm, details: { jumpCm: a.jumpCm } };
-    case "bench":
+    case "bench": {
+      // Le calcul se fait en kilogrammes ; ce qui a été tapé est gardé tel quel
+      const weightKg = round1(toKilograms(a.bodyWeight, a.weightUnit));
+      const benchKg = round1(toKilograms(a.benchLoad, a.weightUnit));
       return {
         value:
-          Math.round((oneRepMax(a.benchKg, a.benchReps) / a.weightKg) * 100) /
-          100,
+          Math.round((oneRepMax(benchKg, a.benchReps) / weightKg) * 100) / 100,
         details: {
-          weightKg: a.weightKg,
-          benchKg: a.benchKg,
+          weightUnit: a.weightUnit,
+          bodyWeight: a.bodyWeight,
+          benchLoad: a.benchLoad,
+          weightKg,
+          benchKg,
           benchReps: a.benchReps,
         },
       };
+    }
     case "hourly":
       return {
         value: a.netIncome / ((a.weeklyHours || FULL_TIME_HOURS) * 52),
-        details: { netIncome: a.netIncome, weeklyHours: a.weeklyHours },
+        details: {
+          employment: a.employment,
+          netIncome: a.netIncome,
+          weeklyHours: a.weeklyHours,
+        },
       };
     case "netWorth":
       return {

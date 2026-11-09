@@ -3,6 +3,7 @@ import { useTranslations } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { BackLink } from "@/components/back-link";
 import { PageHeader } from "@/components/layout/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ModerationQueue } from "@/features/community/components/moderation-queue";
@@ -16,9 +17,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function ModerationPage() {
   const t = useTranslations("Community.moderation");
+  const tNav = useTranslations("App.nav");
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <BackLink href="/community" label={tNav("community")} />
       <PageHeader title={t("title")} description={t("description")} />
       <Suspense fallback={<Skeleton className="h-64 rounded-3xl" />}>
         <Reports />

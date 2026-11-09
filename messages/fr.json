@@ -15,7 +15,8 @@
       "period": "Avant ou après midi",
       "am": "a.m.",
       "pm": "p.m."
-    }
+    },
+    "back": "Retour"
   },
   "LocaleSwitcher": {
     "label": "Langue",
@@ -200,9 +201,7 @@
     },
     "events": {
       "title": "Événements",
-      "question": "Où rencontrer des gens qui avancent comme moi?",
-      "soonTitle": "Les événements arrivent bientôt",
-      "soonDescription": "Réseautage, compétitions, ateliers et rencontres : tu pourras bientôt découvrir les événements de la communauté et proposer les tiens."
+      "question": "Où rencontrer des gens qui avancent comme moi?"
     },
     "marketplace": {
       "gear": {
@@ -1202,13 +1201,14 @@
       "message": "Envoyer un message",
       "share": "Partager",
       "save": "Enregistrer",
-      "savedNotice": "Publication enregistrée. Retrouve-la dans Profil › Publications.",
       "unsavedNotice": "Publication retirée de tes enregistrements.",
       "sharedLabel": "a partagé",
       "inGroup": "dans {group}",
       "removeFromGroup": "Retirer du groupe",
       "pageLabel": "Page pro",
-      "messagePage": "Écrire à la page"
+      "messagePage": "Écrire à la page",
+      "savedToast": "Publication enregistrée",
+      "savedToastLink": "Voir mes enregistrements"
     },
     "share": {
       "title": "Partager",
@@ -1271,7 +1271,8 @@
         "comment": "Signaler le commentaire",
         "user": "Signaler cette personne",
         "message": "Signaler le message",
-        "story": "Signaler la story"
+        "story": "Signaler la story",
+        "event": "Signaler l’événement"
       },
       "description": "Dis-nous ce qui ne va pas. Ton signalement reste anonyme.",
       "reasonLabel": "Raison du signalement",
@@ -1298,7 +1299,8 @@
         "comment": "Commentaire",
         "user": "Personne",
         "message": "Message privé",
-        "story": "Story"
+        "story": "Story",
+        "event": "Événement"
       },
       "count": "{count, plural, one {# signalement} other {# signalements}}",
       "status": {
@@ -1370,7 +1372,16 @@
       "previous": "Photo précédente",
       "next": "Photo suivante",
       "limitsPhotos": "Jusqu’à 4 photos. La position GPS des photos est retirée.",
-      "views": "{count, plural, one {{formatted} vue} other {{formatted} vues}}"
+      "views": "{count, plural, one {{formatted} vue} other {{formatted} vues}}",
+      "writeOn": "Écrire sur ce média",
+      "editor": {
+        "title": "Écrire sur le média",
+        "description": "Ajoute des textes et des emoji n’importe où sur ta photo ou ta vidéo. Déplace-les au doigt, agrandis-les et tourne-les à deux doigts.",
+        "close": "Fermer sans enregistrer",
+        "hint": "Touche Aa pour écrire, ou le sourire pour un emoji.",
+        "clear": "Tout effacer",
+        "done": "Terminé"
+      }
     },
     "profile": {
       "back": "Communauté",
@@ -1646,7 +1657,9 @@
         "with": "avec {name}",
         "open": "{title}, avec {name} : ouvrir la discussion",
         "goTo": "Voir le pacte {n, number} sur {total, number}",
-        "bothDone": "Tous les deux, c’est fait!"
+        "bothDone": "Tous les deux, c’est fait!",
+        "startsWord": "Commence",
+        "tomorrowWord": "demain"
       },
       "part": {
         "title": "J’ai fait ma part",
@@ -2422,7 +2435,7 @@
         "routine": "Ton rythme"
       },
       "financial": {
-        "career": "Ta carrière",
+        "career": "Ton emploi",
         "goal": "Ton objectif",
         "situation": "Ta situation",
         "business": "Entreprise"
@@ -2668,16 +2681,6 @@
         }
       },
       "financial": {
-        "career": {
-          "label": "Ta situation",
-          "options": {
-            "employee": "Employé",
-            "employer": "Employeur",
-            "self_employed": "À mon compte",
-            "student": "Étudiant",
-            "between_jobs": "Entre deux emplois"
-          }
-        },
         "income": {
           "label": "Ton revenu annuel avant impôts"
         },
@@ -2730,6 +2733,23 @@
             "has_business": "J’ai déjà une entreprise",
             "wants_business": "Je veux en créer une"
           }
+        },
+        "career": {
+          "label": "Ta situation d’emploi",
+          "hint": "Si tu étudies et travailles à côté, choisis « Aux études » : tes heures de travail sont demandées juste après.",
+          "options": {
+            "full_time": "Emploi à temps plein",
+            "part_time": "Emploi à temps partiel",
+            "self_employed": "À mon compte",
+            "employer": "Employeur (j’ai une entreprise avec des employés)",
+            "student": "Aux études",
+            "unemployed": "Sans emploi",
+            "retired": "À la retraite"
+          }
+        },
+        "weeklyHours": {
+          "label": "Combien d’heures travailles-tu par semaine?",
+          "hint": "En moyenne, pour gagner ton revenu (emploi, entreprise, à-côtés). Aux études sans emploi : 0."
         }
       },
       "business": {
@@ -2896,6 +2916,17 @@
         "description": "Il sera construit avec les recettes du catalogue, selon tes objectifs et tes allergies. En attendant, découvre les recettes.",
         "action": "Voir les recettes"
       }
+    },
+    "translate": {
+      "label": "Langue du plan",
+      "notice": "Ce plan a été écrit en {language}.",
+      "action": "Traduire en {language}",
+      "translating": "Traduction en cours…",
+      "hint": "Get iT AI récrit le même plan dans l’autre langue : une demande sur tes 20 du jour.",
+      "languages": {
+        "fr": "français",
+        "en": "anglais"
+      }
     }
   },
   "Events": {
@@ -2905,7 +2936,7 @@
     "title": "Titre",
     "titlePlaceholder": "Job, souper, cuisiner les lunchs…",
     "location": "Lieu",
-    "locationPlaceholder": "Ajouter un lieu",
+    "locationPlaceholder": "Adresse ou nom du lieu",
     "start": "Début",
     "end": "Fin",
     "startDate": "Date de début",
@@ -2937,16 +2968,19 @@
     "errors": {
       "titleRequired": "Donne un titre à l’événement.",
       "titleTooLong": "Le titre est trop long (120 caractères au plus).",
-      "locationTooLong": "Le lieu est trop long (120 caractères au plus).",
+      "locationTooLong": "Le lieu est trop long (200 caractères au plus).",
       "dateInvalid": "Choisis une date et une heure valides.",
       "endBeforeStart": "La fin doit venir après le début.",
-      "tooLong": "Un événement dure 14 jours au plus.",
+      "tooLong": "Un événement dure un an au plus.",
       "eventLimit": "Tu as atteint 500 événements. Supprimes-en un pour en ajouter un autre.",
       "notFound": "Cet événement n’existe plus.",
       "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     },
     "startTimeAt": "Heure de début : {time}",
-    "endTimeAt": "Heure de fin : {time}"
+    "endTimeAt": "Heure de fin : {time}",
+    "noEnd": "Pas de fin",
+    "noEndHint": "L’événement apparaît à son heure de début, sans heure de fin.",
+    "openMap": "Voir sur la carte"
   },
   "NotFound": {
     "title": "Page introuvable",
@@ -3132,7 +3166,10 @@
       "WV": "Virginie-Occidentale",
       "WI": "Wisconsin",
       "WY": "Wyoming"
-    }
+    },
+    "label": "Adresses proposées",
+    "searching": "Recherche d’adresses…",
+    "attribution": "Adresses : © les contributeurs d’OpenStreetMap"
   },
   "Details": {
     "birthDate": "Date de naissance",
@@ -3328,7 +3365,11 @@
       "client_accepted": "{name} a accepté le suivi",
       "plan_change": "{name} propose une modification de « {subject} »",
       "plan_change_accepted": "{name} a accepté ta modification de « {subject} »",
-      "plan_change_declined": "{name} a refusé ta modification de « {subject} »"
+      "plan_change_declined": "{name} a refusé ta modification de « {subject} »",
+      "event_rsvp": "{name} va à ton événement « {subject} »",
+      "eventRsvps": "{name} et {others, plural, one {# autre personne vont} other {# autres personnes vont}} à ton événement « {subject} »",
+      "event_update": "{name} a changé la date ou le lieu de « {subject} »",
+      "event_cancelled": "{name} a annulé l’événement « {subject} »"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -3666,7 +3707,8 @@
         "events": "Événements",
         "moderation": "Modération",
         "storyViewer": "Visionneuse des stories",
-        "storyStudio": "Studio des stories"
+        "storyStudio": "Studio des stories",
+        "event": "Un événement"
       },
       "messages": {
         "inbox": "Boîte",
@@ -3949,7 +3991,8 @@
       "saved": "Mesure enregistrée.",
       "level": "Niveau du pilier : {level, number}",
       "levelChanged": "Niveau du pilier : {from, number} → {to, number}",
-      "close": "Fermer"
+      "close": "Fermer",
+      "correctDescription": "Une faute de frappe ou d’unité? Corrige ta dernière mesure : elle est remplacée, à la même date, et ton niveau est recalculé."
     },
     "goalBadge": "Objectif de niveau · niveau {level, number}",
     "goalHint": "Calculé d’après les gens de ton âge ; il se termine tout seul quand ta mesure l’atteint.",
@@ -3974,14 +4017,20 @@
       "notice": "Ton niveau est calculé automatiquement à partir de tes réponses et de données publiques, jamais par l’IA. Tu peux refaire une mesure pour la corriger, ou tout effacer.",
       "consent": "J’accepte que ces renseignements, dont des renseignements financiers et de santé, servent à calculer mes niveaux. Ils restent privés : seuls mes niveaux se montrent, et seulement si je passe en Ranked.",
       "submit": "Calculer mon niveau",
-      "submitting": "Calcul en cours…"
+      "submitting": "Calcul en cours…",
+      "unitLabel": "Unité des poids",
+      "converted": "= {value} {unit}",
+      "weightError": "Vérifie ce chiffre et l’unité (kg ou lb).",
+      "benchPreview": "Ton maximum sur une répétition est estimé à {max}, soit {ratio} fois ton poids.",
+      "submitCorrect": "Corriger ma mesure"
     },
     "errors": {
       "invalid": "Certaines réponses manquent ou sont hors limites.",
       "detailsMissing": "Remplis d’abord ta date de naissance, ton sexe et ta région dans Réglages.",
       "consentRequired": "Coche la case d’accord pour calculer ton niveau.",
       "tooSoon": "Tu as fait cette mesure récemment : un test physique se refait après 7 jours, une mesure financière après un mois.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "tooLateToCorrect": "Une mesure se corrige seulement dans les 48 heures. Refais le test quand ce sera possible."
     },
     "erase": {
       "open": "Effacer mes mesures",
@@ -4006,7 +4055,7 @@
       "reachShort": "Arriver à {cm} cm de tes orteils en flexion assise",
       "squats": "Faire {count} squats en 60 secondes",
       "jump": "Sauter {cm} cm sans élan",
-      "bench": "Soulever {kg} kg au développé couché ({ratio} × ton poids)",
+      "bench": "Soulever {load} au développé couché ({ratio} × ton poids)",
       "benchRatio": "Soulever {ratio} fois ton poids au développé couché",
       "hourly": "Gagner {amount} nets de l’heure",
       "netWorth": "Atteindre une valeur nette de {amount}",
@@ -4041,19 +4090,11 @@
       },
       "jumpCm": {
         "label": "Puissance : jusqu’où sautes-tu sans élan?",
-        "hint": "Debout, pieds joints derrière une ligne, saute le plus loin possible vers l’avant avec les deux pieds, sans courir avant. Mesure de la ligne jusqu’au talon le plus proche. Garde le meilleur de 3 essais."
-      },
-      "weightKg": {
-        "label": "Ton poids",
-        "hint": "En kilogrammes. Exemple : 170 lb ≈ 77 kg. Il sert à rapporter ta force à ton poids."
-      },
-      "benchKg": {
-        "label": "Développé couché : quelle charge soulèves-tu?",
-        "hint": "La charge totale (barre comprise) que tu soulèves de 1 à 10 fois d’affilée avec une bonne technique, avec un partenaire qui assure ou sur un appareil. Ne cherche pas ton maximum seul."
+        "hint": "Debout, pieds joints derrière une ligne, saute le plus loin possible vers l’avant avec les deux pieds, sans courir avant. Mesure de la ligne jusqu’au talon le plus proche, en centimètres : 100 cm = 1 m (exemple : 1,85 m = 185 cm). Garde le meilleur de 3 essais."
       },
       "benchReps": {
-        "label": "Combien de fois d’affilée?",
-        "hint": "De 1 à 10. Ton maximum sur une répétition est estimé d’après ta série."
+        "label": "Combien de répétitions as-tu faites d’affilée avec cette charge?",
+        "hint": "De 1 à 10. Plus de 10 : refais le test avec une charge plus lourde. Ton maximum sur une répétition est estimé d’après ta série."
       },
       "netIncome": {
         "label": "Ton revenu net par année",
@@ -4061,7 +4102,15 @@
       },
       "weeklyHours": {
         "label": "Tes heures de travail par semaine",
-        "hint": "Combien d’heures tu travailles en moyenne pour gagner ce revenu (emploi, entreprise, à-côtés), sans les trajets. Pour un même revenu, moins d’heures donne un meilleur niveau. Sans travail rémunéré, inscris 0 : ton revenu est ramené à 40 h par semaine."
+        "hint": "Combien d’heures tu travailles en moyenne pour gagner ce revenu (emploi, entreprise, à-côtés), sans les trajets. Pour un même revenu, moins d’heures donne un meilleur niveau. Sans travail rémunéré, inscris 0 : ton revenu est ramené à 40 h par semaine.",
+        "byStatus": {
+          "full_time": "Temps plein : en général de 35 à 40 heures.",
+          "part_time": "Temps partiel : tes heures habituelles, par exemple 20.",
+          "self_employed": "À ton compte : les heures que tu travailles vraiment, en moyenne.",
+          "student": "Aux études : seulement tes heures de travail payé (0 si tu ne travailles pas).",
+          "unemployed": "Sans emploi : inscris 0.",
+          "retired": "À la retraite : inscris 0, ou tes heures si tu travailles encore un peu."
+        }
       },
       "assets": {
         "label": "Tes actifs",
@@ -4074,9 +4123,40 @@
       "monthlyExpenses": {
         "label": "Tes dépenses par mois",
         "hint": "Ce que tu dépenses en moyenne chaque mois pour vivre (logement, épicerie, transport, factures, sorties), sans compter ton épargne ni tes placements."
+      },
+      "bodyWeight": {
+        "label": "Ton poids",
+        "hint": "Ton poids du corps sur une balance. Choisis bien l’unité : kg ou lb (170 lb ≈ 77 kg). Il sert à rapporter ta force à ton poids."
+      },
+      "benchLoad": {
+        "label": "Développé couché : quelle charge as-tu soulevée?",
+        "hint": "La charge totale : la barre (20 kg ou 45 lb) plus les poids des deux côtés."
+      },
+      "benchSteps": {
+        "title": "Comment faire le test du développé couché",
+        "warmUp": "Échauffe-toi : une série de 10 avec la barre seule, puis une série de 5 avec une charge légère.",
+        "choose": "Choisis une charge lourde que tu peux soulever entre 1 et 10 fois avec une bonne technique.",
+        "lift": "Couché sur le banc, pieds au sol, descends la barre jusqu’à toucher ta poitrine, puis pousse jusqu’à tendre les bras. Ne rebondis pas sur la poitrine.",
+        "count": "Fais le plus de répétitions possible d’affilée, sans pause, et arrête quand la technique lâche.",
+        "write": "Inscris ton poids, la charge totale et le nombre de répétitions. Get iT estime ton maximum sur une répétition et le compare à ton poids.",
+        "example": "Exemple : 87 kg de poids, 100 kg soulevés 3 fois → environ 110 kg sur une répétition, 1,26 fois ton poids.",
+        "safety": "Toujours avec un partenaire qui assure ou sur un appareil guidé. Ne cherche pas ton maximum seul."
+      },
+      "employment": {
+        "label": "Quelle est ta situation d’emploi?",
+        "hint": "Choisis ce qui te décrit le mieux en ce moment. Si tu étudies et travailles à côté, choisis « Aux études » et inscris tes heures de travail plus bas.",
+        "options": {
+          "full_time": "Temps plein",
+          "part_time": "Temps partiel",
+          "self_employed": "À mon compte",
+          "student": "Aux études",
+          "unemployed": "Sans emploi",
+          "retired": "À la retraite"
+        }
       }
     },
-    "remeasure": "Mettre à jour"
+    "remeasure": "Mettre à jour",
+    "correct": "Corriger"
   },
   "Library": {
     "search": {
@@ -5370,6 +5450,164 @@
         "sessionInvalid": "Chaque séance a besoin d’un titre et d’au moins un élément.",
         "unexpected": "Ça n’a pas fonctionné. Réessaie."
       }
+    }
+  },
+  "CommunityEvents": {
+    "back": "Événements",
+    "backToEvent": "L’événement",
+    "newTitle": "Créer un événement",
+    "newDescription": "Une course, un atelier, un souper réseautage : propose une rencontre aux membres du Centre.",
+    "editTitle": "Modifier l’événement",
+    "create": "Créer",
+    "viewsLabel": "Événements à voir",
+    "views": {
+      "upcoming": "À venir",
+      "mine": "Mes événements"
+    },
+    "filtersLabel": "Filtres",
+    "when": {
+      "all": "Toutes les dates",
+      "week": "Cette semaine",
+      "weekend": "Cette fin de semaine",
+      "month": "Ce mois-ci"
+    },
+    "where": {
+      "all": "Partout",
+      "near": "Près de moi",
+      "online": "En ligne"
+    },
+    "topics": {
+      "general": "Général",
+      "physical": "Physique",
+      "mental": "Mental",
+      "social": "Social",
+      "financial": "Financier"
+    },
+    "today": "Aujourd’hui",
+    "tomorrow": "Demain",
+    "next": "Ton prochain événement",
+    "online": "En ligne",
+    "cancelled": "Annulé",
+    "ended": "Terminé",
+    "full": "Complet",
+    "hosting": "Tu organises",
+    "mine": {
+      "going": "J’y vais",
+      "interested": "Intéressé"
+    },
+    "going": "{count, plural, =0 {Sois le premier à y aller} one {# personne y va} other {# personnes y vont}}",
+    "friendGoing": "{name} y va{others, plural, =0 {} one { avec # autre personne} other { avec # autres personnes}}",
+    "friendsGoing": "{names} : tes contacts y vont",
+    "empty": {
+      "title": "Aucun événement à venir",
+      "description": "Lance le premier : une course, un atelier, un souper. Les membres du Centre pourront dire « J’y vais ».",
+      "filteredTitle": "Rien pour ces filtres",
+      "filteredDescription": "Essaie une autre date, un autre lieu ou un autre sujet.",
+      "mineTitle": "Pas encore d’événement",
+      "mineDescription": "Ceux que tu organises et ceux où tu vas apparaîtront ici."
+    },
+    "more": "Voir plus",
+    "previous": "Voir les précédents",
+    "hostedBy": "Organisé par <strong>{name}</strong>",
+    "hiddenNotice": "Cet événement a été signalé : il est caché aux autres membres en attendant la décision de l’équipe Get iT.",
+    "joinLink": "Rejoindre la rencontre",
+    "linkHint": "Le lien s’affiche quand tu réponds « J’y vais » ou « Intéressé ».",
+    "openMap": "Voir sur la carte",
+    "counts": "{going, plural, =0 {Personne n’y va encore} one {# y va} other {# y vont}} · {interested, plural, =0 {aucun intéressé} one {# intéressé} other {# intéressés}}",
+    "spots": "{count, plural, =0 {Plus de place} one {# place restante} other {# places restantes}}",
+    "about": "À propos",
+    "attendees": {
+      "title": "Inscrits ({count, number})",
+      "empty": "Personne n’a encore répondu. Partage le lien pour faire connaître ton événement."
+    },
+    "rsvp": {
+      "going": "J’y vais",
+      "goingOn": "Tu y vas",
+      "interested": "Intéressé",
+      "undoHint": "Touche de nouveau ta réponse pour la retirer."
+    },
+    "calendar": {
+      "add": "Ajouter à mon calendrier",
+      "added": "Ajouté à ton calendrier.",
+      "see": "Voir"
+    },
+    "share": {
+      "label": "Partager",
+      "copied": "Lien copié"
+    },
+    "report": "Signaler",
+    "reported": "Signalé",
+    "host": {
+      "edit": "Modifier",
+      "cancel": "Annuler l’événement",
+      "delete": "Supprimer",
+      "keep": "Garder",
+      "cancelTitle": "Annuler cet événement?",
+      "cancelDescription": "Il restera visible, marqué « Annulé », et les personnes inscrites seront prévenues.",
+      "cancelConfirm": "Annuler l’événement",
+      "deleteTitle": "Supprimer cet événement?",
+      "deleteDescription": "Il disparaît pour tout le monde, avec sa photo. S’il était à venir, les personnes inscrites sont prévenues.",
+      "deleteConfirm": "Supprimer"
+    },
+    "form": {
+      "addCover": "Ajouter une photo de couverture",
+      "coverHint": "Facultatif · format paysage",
+      "removeCover": "Retirer la photo",
+      "title": "Titre",
+      "titlePlaceholder": "Ex. : Course de 5 km au parc La Fontaine",
+      "format": "Où ça se passe",
+      "formats": {
+        "in_person": "En personne",
+        "online": "En ligne"
+      },
+      "location": "Lieu",
+      "locationPlaceholder": "Adresse ou nom du lieu",
+      "region": "Région",
+      "noRegion": "Choisir une région",
+      "regionHint": "Pour que les membres de ta région le trouvent avec « Près de moi ».",
+      "onlineUrl": "Lien de la rencontre",
+      "onlineHint": "Zoom, Google Meet, Teams… Le lien n’est montré qu’aux personnes qui répondent.",
+      "start": "Début",
+      "startDate": "Date de début",
+      "startTimeAt": "Heure de début : {time}",
+      "addEnd": "Ajouter une heure de fin",
+      "end": "Fin",
+      "endDate": "Date de fin",
+      "endTimeAt": "Heure de fin : {time}",
+      "timeZoneHint": "À ton heure ; chaque membre la voit à la sienne.",
+      "topic": "Sujet",
+      "description": "Description",
+      "descriptionPlaceholder": "Le programme, à qui ça s’adresse, quoi apporter…",
+      "length": "{count, number}/{max, number}",
+      "capacity": "Nombre de places",
+      "capacityPlaceholder": "Sans limite",
+      "checkFields": "Vérifie les champs en rouge.",
+      "publish": "Publier l’événement",
+      "save": "Enregistrer"
+    },
+    "errors": {
+      "titleRequired": "Donne un titre d’au moins 3 caractères.",
+      "titleTooLong": "Le titre est trop long (100 caractères au plus).",
+      "descriptionTooLong": "La description est trop longue (2 000 caractères au plus).",
+      "locationRequired": "Indique le lieu de la rencontre.",
+      "locationTooLong": "Le lieu est trop long (200 caractères au plus).",
+      "urlInvalid": "Colle un lien qui commence par https://",
+      "dateInvalid": "Choisis une date et une heure valides.",
+      "inPast": "Cette date est déjà passée.",
+      "tooFar": "Un événement se prévoit au plus un an d’avance.",
+      "endBeforeStart": "La fin doit venir après le début.",
+      "tooLong": "Un événement dure 14 jours au plus.",
+      "capacityInvalid": "Entre 2 et 10 000 places, ou laisse vide.",
+      "eventLimit": "Tu as créé 5 événements dans les dernières 24 heures. Réessaie demain.",
+      "upcomingLimit": "Tu organises déjà 20 événements à venir.",
+      "full": "C’est complet : plus de place pour cet événement.",
+      "cancelled": "Cet événement est annulé.",
+      "ended": "Cet événement est terminé.",
+      "notMember": "Rejoins le Centre (nom d’utilisateur et règles) pour participer aux événements.",
+      "suspended": "Ton compte est suspendu : tu peux lire, mais pas participer pour l’instant.",
+      "coverInvalid": "La photo n’a pas pu être envoyée. Réessaie avec une autre.",
+      "notFound": "Cet événement n’est plus disponible.",
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
     }
   }
 }

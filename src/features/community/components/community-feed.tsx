@@ -2,13 +2,14 @@
 
 import { LoaderCircle, MessagesSquare } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useCallback, useState, useTransition } from "react";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import type { FeedCursor, FeedPost } from "@/server/community/feed";
 import { loadMorePostsAction, loadMoreSavedAction } from "../actions";
 import { PostCard } from "./post-card";
 import { ReportDialog } from "./report-dialog";
+import { SavedToast } from "./saved-toast";
 
 type CommunityFeedProps = {
   initialPosts: FeedPost[];
@@ -61,6 +62,9 @@ export function CommunityFeed({
     id: string;
   } | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  // « Enregistrer » : message en haut de l'écran, avec le lien vers les enregistrements
+  const [savedNotice, setSavedNotice] = useState<boolean | null>(null);
+  const dismissSaved = useCallback(() => setSavedNotice(null), []);
 
   function loadMore() {
     if (!cursor) return;
@@ -118,6 +122,7 @@ export function CommunityFeed({
             onRemoved={removed}
             onReport={setReportTarget}
             onNotice={setNotice}
+            onSaved={setSavedNotice}
             inGroup={Boolean(groupId)}
             groupManager={groupManager}
             asPage={asPage}
@@ -139,6 +144,7 @@ export function CommunityFeed({
       ) : posts.length > 0 && !single ? (
         <p className="text-center text-sm text-muted-foreground">{t("end")}</p>
       ) : null}
+      <SavedToast saved={savedNotice} onDismiss={dismissSaved} />
       <ReportDialog
         target={reportTarget}
         onClose={() => setReportTarget(null)}

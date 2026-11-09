@@ -5,6 +5,7 @@ import {
   CircleAlert,
   ImagePlus,
   LoaderCircle,
+  Type,
   Video,
   X,
 } from "lucide-react";
@@ -22,6 +23,9 @@ type MediaPickerProps = {
   photosOnly?: boolean;
   /** Sans les boutons ni les limites : seulement les fichiers choisis (Messagerie). */
   controls?: boolean;
+  /** Écrire sur un média envoyé (publications) ; ceux qui ont déjà du texte sont marqués. */
+  onEdit?: (id: string) => void;
+  edited?: ReadonlySet<string>;
 };
 
 const pick =
@@ -38,6 +42,8 @@ export function MediaPicker({
   disabled,
   photosOnly = false,
   controls = true,
+  onEdit,
+  edited,
 }: MediaPickerProps) {
   const t = useTranslations("Community.media");
   const tErrors = useTranslations("Community.errors");
@@ -100,6 +106,22 @@ export function MediaPicker({
                   aria-hidden="true"
                   className="absolute bottom-1.5 left-1.5 size-4 drop-shadow"
                 />
+              ) : null}
+              {onEdit && item.status === "done" && item.width && item.height ? (
+                <button
+                  type="button"
+                  onClick={() => onEdit(item.id)}
+                  aria-label={t("writeOn")}
+                  aria-pressed={edited?.has(item.id) ?? false}
+                  className={cn(
+                    "absolute right-1 bottom-1 flex size-8 items-center justify-center rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                    edited?.has(item.id)
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-black/70 text-white",
+                  )}
+                >
+                  <Type aria-hidden="true" className="size-4" />
+                </button>
               ) : null}
               <button
                 type="button"

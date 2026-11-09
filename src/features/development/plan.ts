@@ -332,3 +332,53 @@ export const developmentSelectionSchema = z.object({
 });
 
 export type DevelopmentSelection = z.infer<typeof developmentSelectionSchema>;
+
+/** Langues d'un plan (celles de l'application). */
+export type PlanLanguage = "fr" | "en";
+
+const FRENCH_WORDS =
+  /\b(le|la|les|des|du|une|et|pour|avec|ton|ta|tes|dans|sur|est|ou|chaque|semaine|jour)\b/gi;
+const ENGLISH_WORDS =
+  /\b(the|and|your|with|for|of|to|each|week|day|is|on|in|you)\b/gi;
+
+/**
+ * Langue d'un plan : celle enregistrée à sa création ou à sa dernière
+ * modification, sinon (plans d'avant le 2026-11-08) devinée d'après ses mots.
+ */
+export function planLanguage(
+  plan: DevelopmentPlan,
+  stored: string | null,
+): PlanLanguage {
+  if (stored === "fr" || stored === "en") return stored;
+  const text = [
+    plan.title,
+    plan.summary,
+    ...plan.sections.flatMap((section) => [
+      section.title,
+      ...section.items.map((item) => `${item.title} ${item.detail}`),
+    ]),
+    ...plan.schedule.map((day) => day.title),
+  ].join(" ");
+  const french = text.match(FRENCH_WORDS)?.length ?? 0;
+  const english = text.match(ENGLISH_WORDS)?.length ?? 0;
+  return english > french ? "en" : "fr";
+}
+
+/**
+ * Une traduction garde la forme du plan : les mêmes jours, le même nombre
+ * d'éléments par jour, les mêmes fiches du catalogue et les mêmes repères.
+ */
+export function samePlanShape(a: DevelopmentPlan, b: DevelopmentPlan) {
+  const shape = (plan: DevelopmentPlan) =>
+    JSON.stringify([
+      plan.schedule.map((day) => [
+        day.weekday,
+        day.items.map((item) => item.ref ?? null),
+      ]),
+      plan.sections.map((section) => section.items.length),
+      plan.goal !== null,
+      plan.habits.length,
+      plan.tasks.length,
+    ]);
+  return shape(a) === shape(b);
+}

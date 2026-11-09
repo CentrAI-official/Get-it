@@ -8,6 +8,7 @@ import {
   type WeightUnit,
 } from "../rules";
 import { ExerciseChart } from "./exercise-chart-loader";
+import { WeightUnitSwitch } from "./weight-unit-switch";
 
 /**
  * Dans la fiche d'un exercice : mon record, ma courbe et mes dernières séances.
@@ -60,9 +61,13 @@ export async function ExerciseHistory({
       aria-labelledby="exercise-history"
       className="flex flex-col gap-5 border-t border-foreground/8 pt-6"
     >
-      <h2 id="exercise-history" className="caps-label text-muted-foreground">
-        {t("title")}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="exercise-history" className="caps-label text-muted-foreground">
+          {t("title")}
+        </h2>
+        {/* kg ou lb : seulement quand l'exercice a des poids */}
+        {progress.metric === "weight" ? <WeightUnitSwitch unit={unit} /> : null}
+      </div>
       <div className="flex items-center gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
           <Trophy aria-hidden="true" className="size-5" />

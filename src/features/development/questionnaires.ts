@@ -355,18 +355,39 @@ export const QUESTIONNAIRES: Record<DevelopmentKind, readonly Section[]> = {
     {
       id: "career",
       fields: [
+        // Situation d'emploi (décision du fondateur, 2026-11-08) : le plan suit
+        // la réalité d'un temps partiel, des études ou d'une période sans emploi
         {
           id: "career",
           type: "choice",
           required: true,
           other: true,
           options: [
-            "employee",
-            "employer",
+            "full_time",
+            "part_time",
             "self_employed",
+            "employer",
             "student",
-            "between_jobs",
+            "unemployed",
+            "retired",
           ],
+        },
+        {
+          id: "weeklyHours",
+          type: "number",
+          min: 0,
+          max: 100,
+          required: true,
+          showIf: {
+            field: "career",
+            in: [
+              "full_time",
+              "part_time",
+              "self_employed",
+              "employer",
+              "student",
+            ],
+          },
         },
         { id: "income", type: "money", max: 10_000_000, required: true },
       ],

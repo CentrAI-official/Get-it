@@ -28,14 +28,14 @@ function toEvent(row: {
   location: string | null;
   startsOn: Date;
   startMinute: number;
-  endsOn: Date;
-  endMinute: number;
+  endsOn: Date | null;
+  endMinute: number | null;
   repeat: CalendarEvent["repeat"];
 }): CalendarEvent {
   return {
     ...row,
     startsOn: fromDbDate(row.startsOn),
-    endsOn: fromDbDate(row.endsOn),
+    endsOn: row.endsOn ? fromDbDate(row.endsOn) : null,
   };
 }
 
@@ -46,7 +46,7 @@ function toEventData(input: EventInput) {
     location: input.location,
     startsOn: toDbDate(input.startsOn),
     startMinute: input.startMinute,
-    endsOn: toDbDate(input.endsOn),
+    endsOn: input.endsOn ? toDbDate(input.endsOn) : null,
     endMinute: input.endMinute,
     repeat: input.repeat,
   };

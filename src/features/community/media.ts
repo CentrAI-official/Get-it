@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { postOverlaysSchema } from "@/features/stories/studio";
 
 // Photos et vidéos des publications (validées avec le fondateur) : 4 photos ou
 // 1 vidéo de 60 secondes au plus. Les mêmes limites sont garanties en base
@@ -98,6 +99,8 @@ export const postMediaSchema = z
         .max(MAX_VIDEO_SECONDS * 1000 + 1000, { error: "videoTooLong" })
         .optional(),
       posterUploadId: z.uuid().optional(),
+      /** Textes et emoji posés dessus (publications seulement). */
+      overlays: postOverlaysSchema.optional(),
     }),
   )
   .max(MAX_PHOTOS, { error: "mediaTooMany" });

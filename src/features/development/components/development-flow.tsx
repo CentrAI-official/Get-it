@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { PlanLogPage } from "@/features/plan-logs/rules";
 import type { WorkoutPageData } from "@/features/workouts/rules";
 import type { CalendarData } from "../calendar";
-import type { DevelopmentPlan } from "../plan";
+import type { DevelopmentPlan, PlanLanguage } from "../plan";
 import type { Answers, DevelopmentKind } from "../questionnaires";
 import { CrisisResources } from "./crisis-resources";
 import { PlanView } from "./plan-view";
@@ -13,6 +13,8 @@ import { Questionnaire } from "./questionnaire";
 type DevelopmentFlowProps = {
   kind: DevelopmentKind;
   plan: DevelopmentPlan | null;
+  /** Langue du plan enregistré. */
+  language: PlanLanguage | null;
   answers: Answers | null;
   updatedAt: string | null;
   /** Calendrier du plan (mois en cours). */
@@ -28,6 +30,7 @@ type DevelopmentFlowProps = {
 export function DevelopmentFlow({
   kind,
   plan,
+  language,
   answers,
   updatedAt,
   calendar,
@@ -47,6 +50,7 @@ export function DevelopmentFlow({
       <PlanView
         kind={kind}
         plan={plan}
+        language={language ?? "fr"}
         updatedAt={updatedAt}
         calendar={calendar}
         workouts={workouts}

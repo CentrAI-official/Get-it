@@ -1,16 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useFormatter, useTranslations } from "next-intl";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import type { FeedMedia } from "@/server/community/media";
+import { MediaOverlays, hasOverlays } from "./media-overlays";
+import { PhotoViewer } from "./photo-viewer";
 
 /** La vidéo en cours de lecture : une seule à la fois dans l'application. */
 let playing: HTMLVideoElement | null = null;
@@ -47,6 +43,7 @@ function PostVideo({
   const format = useFormatter();
   const ref = useRef<HTMLVideoElement>(null);
   const counted = useRef(false);
+  const written = hasOverlays(video);
 
   // Next garde la page précédente cachée dans le DOM (Activity) au lieu de la
   // retirer : sans ce nettoyage, le son continuerait dans une autre catégorie.
@@ -99,18 +96,32 @@ function PostVideo({
         }
       }}
       className={cn(
-        "max-h-[70dvh] w-full rounded-2xl bg-black object-contain",
-        className,
+        written
+          ? "absolute inset-0 size-full bg-black object-cover"
+          : "max-h-[70dvh] w-full rounded-2xl bg-black object-contain",
+        !written && className,
       )}
-      style={{ aspectRatio: `${video.width} / ${video.height}` }}
+      style={
+        written
+          ? undefined
+          : { aspectRatio: `${video.width} / ${video.height}` }
+      }
     >
       <track kind="captions" />
     </video>
   );
-  if (views === undefined) return player;
+  const framed = written ? (
+    <MediaFrame media={video} className={className}>
+      {player}
+      <MediaOverlays media={video} fit="fill" />
+    </MediaFrame>
+  ) : (
+    player
+  );
+  if (views === undefined) return framed;
   return (
     <div className="relative">
-      {player}
+      {framed}
       <span className="dark pointer-events-none absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-xs font-semibold backdrop-blur-sm">
         <Eye aria-hidden="true" className="size-3.5" />
         {t("views", {
@@ -194,8 +205,6 @@ export function PostMedia({
   }
   if (images.length === 0) return null;
 
-  const current = open === null ? undefined : images[open];
-
   return (
     <>
       <ul
@@ -216,83 +225,82 @@ export function PostMedia({
               aria-label={t("open", { index: index + 1, total: images.length })}
               className="block size-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={image.url}
-                alt=""
-                loading="lazy"
-                width={image.width}
-                height={image.height}
-                className={cn(
-                  "size-full bg-foreground/5 object-cover",
-                  images.length === 1
-                    ? "max-h-[70dvh] object-contain"
-                    : "aspect-square",
-                  images.length === 3 && index === 0 && "aspect-auto h-full",
-                )}
-              />
+              {images.length === 1 && hasOverlays(image) ? (
+                <MediaFrame media={image}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt=""
+                    loading="lazy"
+                    className="absolute inset-0 size-full object-cover"
+                  />
+                  <MediaOverlays media={image} fit="fill" />
+                </MediaFrame>
+              ) : (
+                <span className="relative block size-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.url}
+                    alt=""
+                    loading="lazy"
+                    width={image.width}
+                    height={image.height}
+                    className={cn(
+                      "size-full bg-foreground/5 object-cover",
+                      images.length === 1
+                        ? "max-h-[70dvh] object-contain"
+                        : "aspect-square",
+                      images.length === 3 &&
+                        index === 0 &&
+                        "aspect-auto h-full",
+                    )}
+                  />
+                  {images.length > 1 ? (
+                    <MediaOverlays media={image} fit="cover" />
+                  ) : null}
+                </span>
+              )}
             </button>
           </li>
         ))}
       </ul>
 
-      <Dialog
-        open={open !== null}
-        onOpenChange={(value) => !value && setOpen(null)}
-      >
-        <DialogContent
-          closeLabel={t("close")}
-          className="dark flex h-[calc(100dvh-2rem)] max-w-[calc(100%-1rem)] flex-col items-center justify-center gap-3 border-0 bg-black/95 p-2 sm:max-w-4xl"
-        >
-          <DialogTitle className="sr-only">
-            {t("open", { index: (open ?? 0) + 1, total: images.length })}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            {t("viewer")}
-          </DialogDescription>
-          {current ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={current.url}
-              alt=""
-              className="max-h-full max-w-full flex-1 object-contain"
-            />
-          ) : null}
-          {images.length > 1 ? (
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                aria-label={t("previous")}
-                onClick={() =>
-                  setOpen((index) =>
-                    index === null
-                      ? 0
-                      : (index - 1 + images.length) % images.length,
-                  )
-                }
-                className="flex size-11 items-center justify-center rounded-full bg-foreground/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <ChevronLeft aria-hidden="true" />
-              </button>
-              <span className="text-sm tabular-nums">
-                {(open ?? 0) + 1}/{images.length}
-              </span>
-              <button
-                type="button"
-                aria-label={t("next")}
-                onClick={() =>
-                  setOpen((index) =>
-                    index === null ? 0 : (index + 1) % images.length,
-                  )
-                }
-                className="flex size-11 items-center justify-center rounded-full bg-foreground/10 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                <ChevronRight aria-hidden="true" />
-              </button>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+      <PhotoViewer
+        images={images}
+        index={open}
+        onIndex={setOpen}
+        onClose={() => setOpen(null)}
+        overlay={(image) => <MediaOverlays media={image} fit="fill" />}
+      />
     </>
+  );
+}
+
+/**
+ * Cadre d'un média à sa proportion, qui tient dans 70 % de la hauteur de
+ * l'écran : les textes posés dessus tombent au même endroit que dans l'éditeur.
+ */
+function MediaFrame({
+  media,
+  className,
+  children,
+}: {
+  media: FeedMedia;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <span
+      className={cn(
+        "relative mx-auto block overflow-hidden rounded-2xl bg-black",
+        className,
+      )}
+      style={{
+        aspectRatio: `${media.width} / ${media.height}`,
+        width: `min(100%, calc(70dvh * ${media.width / media.height}))`,
+      }}
+    >
+      {children}
+    </span>
   );
 }

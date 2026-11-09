@@ -1,16 +1,21 @@
 import "server-only";
 import {
   DAILY_DEVELOPMENT_PLANS,
+  planLanguage,
+  samePlanShape,
   storedPlanSchema,
   withoutAdded,
   type DevelopmentPlan,
   type DevelopmentSelection,
+  type PlanLanguage,
 } from "@/features/development/plan";
 import {
   developmentInstructions,
   developmentPrompt,
   revisionInstructions,
   revisionPrompt,
+  translationInstructions,
+  translationPrompt,
 } from "@/features/development/prompts";
 import {
   KIND_PILLAR,
@@ -62,6 +67,8 @@ export type StoredDevelopmentPlan = {
   answers: Answers;
   plan: DevelopmentPlan;
   updatedAt: string;
+  /** Langue dans laquelle Get iT AI l'a écrit (« Traduire ce plan » si elle diffère). */
+  language: PlanLanguage;
 };
 
 /** Plans existants (accueil de « Mon développement »). */
@@ -92,7 +99,7 @@ export async function getPlan(
 ): Promise<StoredDevelopmentPlan | null> {
   const row = await db.developmentPlan.findUnique({
     where: { userId_kind: { userId, kind } },
-    select: { answers: true, plan: true, updatedAt: true },
+    select: { answers: true, plan: true, updatedAt: true, locale: true },
   });
   if (!row) return null;
   const plan = storedPlanSchema.safeParse(row.plan);
@@ -102,6 +109,7 @@ export async function getPlan(
     answers: row.answers as Answers,
     plan: plan.data,
     updatedAt: row.updatedAt.toISOString(),
+    language: planLanguage(plan.data, row.locale),
   };
 }
 
@@ -193,9 +201,10 @@ export async function generatePlan(
       kind,
       answers: parsed.answers,
       plan,
+      locale: profile.locale,
       ...dates,
     },
-    update: { answers: parsed.answers, plan, ...dates },
+    update: { answers: parsed.answers, plan, locale: profile.locale, ...dates },
   });
   return { ok: true };
 }
@@ -631,7 +640,84 @@ export async function revisePlan(
     where: { id: row.id },
     data: {
       plan: withoutAdded(resolvePlanRefs(result.plan, catalogue.codes), added),
+      // Les consignes sont dans la langue de la personne : le plan aussi
+      locale: profile.locale,
     },
+  });
+  return { ok: true };
+}
+
+/**
+ * « Traduire ce plan » (décision du fondateur, 2026-11-08) : Get iT AI récrit le
+ * même plan dans la langue choisie. Compte dans les 20 demandes du jour, comme
+ * une modification. La forme du plan doit rester la même (jours, éléments,
+ * fiches du catalogue) ; l'heure et le moment choisis sont gardés.
+ */
+export async function translatePlan(
+  userId: string,
+  kind: DevelopmentKind,
+  locale: PlanLanguage,
+): Promise<{ ok: true } | { ok: false; error: DevelopmentError }> {
+  const provider = getAiProvider();
+  if (!provider) return { ok: false, error: "notConfigured" };
+  const profile = await getAiProfile(userId);
+  if (!profile) return { ok: false, error: "notFound" };
+  if (!profile.consented) return { ok: false, error: "consentRequired" };
+  const row = await db.developmentPlan.findUnique({
+    where: { userId_kind: { userId, kind } },
+    select: { id: true, answers: true, plan: true, locale: true },
+  });
+  const current = row ? storedPlanSchema.safeParse(row.plan) : null;
+  if (!row || !current?.success) return { ok: false, error: "notFound" };
+  // Déjà dans cette langue : rien à faire (double clic, autre onglet)
+  if (planLanguage(current.data, row.locale) === locale) return { ok: true };
+
+  const reservation = await reserveAiRequest(
+    userId,
+    "development_revision",
+    profile.timeZone,
+  );
+  if (!reservation) return { ok: false, error: "limitReached" };
+  const catalogue = await planCatalogue(kind, row.answers as Answers);
+  const result = await provider
+    .generateDevelopmentPlan({
+      system: translationInstructions(kind, locale),
+      prompt: translationPrompt(refsToCodes(current.data, catalogue.codes)),
+    })
+    .catch(async (error: unknown) => {
+      await releaseAiRequest(reservation.id).catch(() => {});
+      throw error;
+    });
+  await recordAiUsage(reservation.id, result.usage);
+
+  if (result.refused) return { ok: false, error: "refused" };
+  if (!result.plan) return { ok: false, error: "unexpected" };
+  const translated = resolvePlanRefs(result.plan, catalogue.codes);
+  if (!samePlanShape(current.data, translated)) {
+    return { ok: false, error: "unexpected" };
+  }
+  // Ce que la personne a choisi (heure, moment, fiches) ne change pas
+  const plan: DevelopmentPlan = {
+    ...translated,
+    schedule: translated.schedule.map((day, index) => {
+      const before = current.data.schedule[index];
+      return before
+        ? {
+            ...day,
+            weekday: before.weekday,
+            moment: before.moment,
+            time: before.time,
+            items: day.items.map((item, position) => ({
+              ...item,
+              ref: before.items[position]?.ref ?? null,
+            })),
+          }
+        : day;
+    }),
+  };
+  await db.developmentPlan.update({
+    where: { id: row.id },
+    data: { plan, locale },
   });
   return { ok: true };
 }

@@ -6,6 +6,7 @@ import {
   LEVEL_PILLARS,
   measureAnswersSchema,
   measureAvailableAt,
+  measureCorrectableUntil,
   PILLAR_FACTORS,
   type LevelFactor,
   type LevelPillar,
@@ -20,6 +21,7 @@ import {
   type LevelPerson,
 } from "@/features/levels/scale";
 import { ageOn } from "@/features/profile/details";
+import { WEIGHT_UNITS, type WeightUnit } from "@/features/workouts/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
@@ -43,6 +45,8 @@ export type FactorState = {
   measuredAt: string | null;
   /** Quand la mesure pourra être refaite ; null : tout de suite. */
   availableAt: string | null;
+  /** Jusqu'à quand la dernière mesure peut être corrigée (48 h) ; null : plus maintenant. */
+  correctableUntil: string | null;
 };
 
 export type PillarState = {
@@ -63,6 +67,8 @@ export type LevelState = {
   rankedAt: string | null;
   /** Poids du corps de la dernière mesure du développé couché. */
   weightKg: number | null;
+  /** Unité des poids choisie (carnet d'entraînement ou Ranked). */
+  weightUnit: WeightUnit;
 };
 
 /** Résumé des niveaux d'une personne (fiche du Profil, coach, classement). */
@@ -74,6 +80,7 @@ export type Levels = {
 };
 
 type LatestMeasure = {
+  id: string;
   factor: string;
   value: number;
   measuredAt: Date;
@@ -87,6 +94,7 @@ async function latestMeasures(client: Tx | typeof db, userIds: string[]) {
     orderBy: [{ userId: "asc" }, { factor: "asc" }, { measuredAt: "desc" }],
     distinct: ["userId", "factor"],
     select: {
+      id: true,
       userId: true,
       factor: true,
       value: true,
@@ -117,6 +125,7 @@ function buildState(
   person: LevelPerson | null,
   measures: Map<LevelFactor, LatestMeasure>,
   rankedAt: Date | null,
+  weightUnit: WeightUnit = "kg",
 ): LevelState {
   const pillars = Object.fromEntries(
     LEVEL_PILLARS.map((pillar): [LevelPillar, PillarState] => {
@@ -126,6 +135,9 @@ function buildState(
           factor,
           measure?.measuredAt ?? null,
         );
+        const correctable = measure
+          ? measureCorrectableUntil(measure.measuredAt)
+          : null;
         return {
           factor,
           value: measure?.value ?? null,
@@ -137,6 +149,10 @@ function buildState(
           availableAt:
             availableAt && availableAt.getTime() > Date.now()
               ? availableAt.toISOString()
+              : null,
+          correctableUntil:
+            correctable && correctable.getTime() > Date.now()
+              ? correctable.toISOString()
               : null,
         };
       });
@@ -160,24 +176,33 @@ function buildState(
     total: totalLevel(pillars.physical.level, pillars.financial.level),
     rankedAt: rankedAt?.toISOString() ?? null,
     weightKg: weightOf(measures.get("bench")),
+    weightUnit,
   };
 }
+
+const unitOf = (value: string | null | undefined): WeightUnit =>
+  WEIGHT_UNITS.find((unit) => unit === value) ?? "kg";
 
 /** Niveaux, mesures et prochains objectifs de la personne elle-même. */
 export async function getLevelState(userId: string): Promise<LevelState> {
   const timeZone = await getUserTimeZone(userId);
-  const [person, measures, profile] = await Promise.all([
+  const [person, measures, profile, settings] = await Promise.all([
     getRankedPerson(userId, timeZone),
     latestMeasures(db, [userId]),
     db.profile.findUnique({
       where: { id: userId },
       select: { rankedAt: true },
     }),
+    db.userSettings.findUnique({
+      where: { userId },
+      select: { weightUnit: true },
+    }),
   ]);
   return buildState(
     person,
     measures.get(userId) ?? new Map(),
     profile?.rankedAt ?? null,
+    unitOf(settings?.weightUnit),
   );
 }
 
@@ -279,6 +304,7 @@ export const LEVEL_ERRORS = [
   "detailsMissing",
   "consentRequired",
   "tooSoon",
+  "tooLateToCorrect",
   "unexpected",
 ] as const;
 export type LevelError = (typeof LEVEL_ERRORS)[number];
@@ -296,6 +322,7 @@ export type RecordResult =
  * Enregistre une ou plusieurs mesures d'un même pilier (première évaluation,
  * ou une mesure refaite), puis met à jour les objectifs de niveau dans la
  * même transaction. La première mesure d'un pilier demande l'accord (Loi 25).
+ * `correct` : remplace la dernière mesure (faute de saisie), dans les 48 h.
  */
 export async function recordMeasurements(
   userId: string,
@@ -303,6 +330,7 @@ export async function recordMeasurements(
     factors: LevelFactor[];
     answers: Record<string, unknown>;
     consent: boolean;
+    correct?: boolean;
   },
 ): Promise<RecordResult> {
   const parsed = measureAnswersSchema(input.factors).safeParse(input.answers);
@@ -319,34 +347,65 @@ export async function recordMeasurements(
   if (!measured && !input.consent) {
     return { ok: false, error: "consentRequired" };
   }
-  const tooSoon = input.factors.some(
-    (factor) =>
-      (before.pillars[pillar].factors.find((state) => state.factor === factor)
-        ?.availableAt ?? null) !== null,
+  const states = input.factors.map((factor) =>
+    before.pillars[pillar].factors.find((state) => state.factor === factor),
   );
-  if (tooSoon) return { ok: false, error: "tooSoon" };
+  if (input.correct) {
+    // Corriger : seulement une mesure faite il y a moins de 48 h
+    if (states.some((state) => !state?.correctableUntil)) {
+      return { ok: false, error: "tooLateToCorrect" };
+    }
+  } else if (states.some((state) => (state?.availableAt ?? null) !== null)) {
+    return { ok: false, error: "tooSoon" };
+  }
 
   const settings = await db.userSettings.findUnique({
     where: { userId },
-    select: { locale: true },
+    select: { locale: true, weightUnit: true },
   });
   const locale = settings?.locale ?? "fr";
+  // L'unité choisie pour le développé couché devient celle du carnet
+  const weightUnit =
+    "weightUnit" in parsed.data && parsed.data.weightUnit
+      ? parsed.data.weightUnit
+      : unitOf(settings?.weightUnit);
   const [t, format] = await Promise.all([
     getTranslations({ locale, namespace: "Levels.goals" }),
     getFormatter({ locale }),
   ]);
 
   const after = await db.$transaction(async (tx) => {
-    await tx.measurement.createMany({
-      data: input.factors.map((factor) => {
+    if (input.correct) {
+      // La dernière mesure de chaque facteur est remplacée, à la même date
+      const latest = (await latestMeasures(tx, [userId])).get(userId);
+      for (const factor of input.factors) {
+        const measure = latest?.get(factor);
+        if (!measure) continue;
         const { value, details } = factorValue(factor, parsed.data);
-        return { userId, factor, value, details };
-      }),
-    });
+        await tx.measurement.update({
+          where: { id: measure.id },
+          data: { value, details },
+        });
+      }
+    } else {
+      await tx.measurement.createMany({
+        data: input.factors.map((factor) => {
+          const { value, details } = factorValue(factor, parsed.data);
+          return { userId, factor, value, details };
+        }),
+      });
+    }
+    if (weightUnit !== unitOf(settings?.weightUnit)) {
+      await tx.userSettings.updateMany({
+        where: { userId },
+        data: { weightUnit },
+      });
+    }
     const state = buildState(
       person,
       (await latestMeasures(tx, [userId])).get(userId) ?? new Map(),
       null,
+      weightUnit,
     );
     await syncLevelGoals(tx, userId, state, (factor, target) =>
       levelGoalTitle(
@@ -354,7 +413,12 @@ export async function recordMeasurements(
         format,
         factor,
         target,
-        { country: person.country, sex: person.sex, weightKg: state.weightKg },
+        {
+          country: person.country,
+          sex: person.sex,
+          weightKg: state.weightKg,
+          weightUnit,
+        },
       ),
     );
     return state.pillars[pillar].level;
@@ -376,7 +440,13 @@ async function syncLevelGoals(
 ) {
   const active = await tx.goal.findMany({
     where: { userId, kind: "level", status: "active" },
-    select: { id: true, levelFactor: true, levelTarget: true, level: true },
+    select: {
+      id: true,
+      levelFactor: true,
+      levelTarget: true,
+      level: true,
+      title: true,
+    },
   });
   const levels = new Map(
     LEVEL_PILLARS.flatMap((pillar) =>
@@ -402,13 +472,19 @@ async function syncLevelGoals(
         data: { status: "completed", completedAt: now },
       });
     } else if (next) {
-      if (next.target !== goal.levelTarget || next.level !== goal.level) {
+      // Le titre suit aussi l'unité des poids (kg ou lb)
+      const wantedTitle = title(factor, next.target);
+      if (
+        next.target !== goal.levelTarget ||
+        next.level !== goal.level ||
+        wantedTitle !== goal.title
+      ) {
         await tx.goal.update({
           where: { id: goal.id },
           data: {
             levelTarget: next.target,
             level: next.level,
-            title: title(factor, next.target),
+            title: wantedTitle,
           },
         });
       }
