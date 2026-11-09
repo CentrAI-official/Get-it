@@ -5,7 +5,10 @@ import {
   COMMUNITY_EVENT_LIMITS,
   communityEventFieldErrors,
   communityEventFormSchema,
+  eventCommentSchema,
+  needsReminder,
   parseEventFilters,
+  reminderDue,
   safeUrl,
   spotsLeft,
   whenRange,
@@ -174,5 +177,51 @@ describe("alignement avec la migration", () => {
     expect(sql).toContain(
       'ALTER TABLE "community_event_attendees" ENABLE ROW LEVEL SECURITY',
     );
+  });
+
+  it("la discussion a la même limite que la base, avec le RLS", () => {
+    const sql = readFileSync(
+      join(
+        process.cwd(),
+        "prisma/migrations/20261126120000_events_lot2/migration.sql",
+      ),
+      "utf8",
+    );
+    expect(sql).toContain(
+      `char_length("body") BETWEEN 1 AND ${COMMUNITY_EVENT_LIMITS.comment}`,
+    );
+    expect(sql).toContain(
+      'ALTER TABLE "community_event_comments" ENABLE ROW LEVEL SECURITY',
+    );
+    // Au nom d'une page ou dans un groupe, jamais les deux
+    expect(sql).toContain('CHECK ("page_id" IS NULL OR "group_id" IS NULL)');
+  });
+});
+
+describe("discussion et rappel", () => {
+  it("un message : ni vide, ni trop long", () => {
+    expect(eventCommentSchema.parse("  On covoiture?  ")).toBe("On covoiture?");
+    expect(eventCommentSchema.safeParse("   ").success).toBe(false);
+    expect(
+      eventCommentSchema.safeParse(
+        "x".repeat(COMMUNITY_EVENT_LIMITS.comment + 1),
+      ).success,
+    ).toBe(false);
+  });
+
+  it("le rappel est dû dans les 24 heures avant le début, jamais après", () => {
+    const now = new Date("2026-11-10T12:00:00Z");
+    const inHours = (hours: number) =>
+      new Date(now.getTime() + hours * 3_600_000);
+    expect(reminderDue(inHours(23), now)).toBe(true);
+    expect(reminderDue(inHours(24), now)).toBe(true);
+    expect(reminderDue(inHours(25), now)).toBe(false);
+    expect(reminderDue(inHours(-1), now)).toBe(false);
+  });
+
+  it("créé à moins de 24 h du début : pas de rappel à prévoir", () => {
+    const now = new Date("2026-11-10T12:00:00Z");
+    expect(needsReminder(new Date("2026-11-12T12:00:00Z"), now)).toBe(true);
+    expect(needsReminder(new Date("2026-11-11T11:00:00Z"), now)).toBe(false);
   });
 });

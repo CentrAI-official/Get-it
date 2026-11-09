@@ -22,6 +22,8 @@ export const NOTIFICATION_KINDS = [
   "event_rsvp",
   "event_update",
   "event_cancelled",
+  "event_comment",
+  "event_reminder",
 ] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
@@ -40,7 +42,8 @@ export type NotificationTextKey =
   | "messages"
   | "likes"
   | "comments"
-  | "eventRsvps";
+  | "eventRsvps"
+  | "eventComments";
 
 /**
  * Texte d'une notification : la clé et ses valeurs. Plusieurs messages d'une
@@ -60,5 +63,8 @@ export function notificationText(
   if (kind === "like" && count > 1) return { key: "likes", values };
   if (kind === "comment" && count > 1) return { key: "comments", values };
   if (kind === "event_rsvp" && count > 1) return { key: "eventRsvps", values };
+  if (kind === "event_comment" && count > 1) {
+    return { key: "eventComments", values };
+  }
   return { key: kind, values };
 }

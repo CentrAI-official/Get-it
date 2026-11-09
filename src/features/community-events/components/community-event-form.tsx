@@ -1,6 +1,13 @@
 "use client";
 
-import { ImagePlus, LoaderCircle, MapPin, Video, X } from "lucide-react";
+import {
+  ImagePlus,
+  LoaderCircle,
+  MapPin,
+  UsersRound,
+  Video,
+  X,
+} from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useActionState, useId, useState } from "react";
 import { TimeWheel } from "@/components/time-wheel";
@@ -8,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PILLARS, type Pillar } from "@/config/pillars";
 import { useMediaUploads } from "@/features/community/use-media-uploads";
+import { currentIdentity } from "@/features/identity/client";
 import { IN_PERSON_REGIONS } from "@/features/marketplace/rules";
 import { PlaceField } from "@/features/places/components/place-field";
 import { clockDate, formatClock, parseClock } from "@/lib/dates";
@@ -40,11 +48,14 @@ const chipOff = "border-border bg-card text-foreground hover:bg-foreground/5";
 export function CommunityEventForm({
   event,
   defaults,
+  owner = null,
 }: {
   /** L'événement à modifier, ou null pour en créer un. */
   event: EditableEvent | null;
   /** Pour un nouvel événement : demain à 18 h, et ma région. */
   defaults: { day: string; minute: number; region: string | null };
+  /** Au nom de ma page pro, ou dans un groupe (création seulement). */
+  owner?: { page: string } | { group: { id: string; name: string } } | null;
 }) {
   const t = useTranslations("CommunityEvents.form");
   const tErrors = useTranslations("CommunityEvents.errors");
@@ -116,13 +127,43 @@ export function CommunityEventForm({
         ? "remove"
         : "[]";
   const preview = upload?.previewUrl ?? keptCover;
+  const ownerLabel =
+    owner && "page" in owner
+      ? t("asPage", { page: owner.page })
+      : owner && "group" in owner
+        ? t("inGroup", { group: owner.group.name })
+        : event?.pageName
+          ? t("asPage", { page: event.pageName })
+          : event?.group
+            ? t("inGroup", { group: event.group.name })
+            : null;
 
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-6">
+    <form
+      action={(formData) => {
+        // Au nom du compte sous lequel l'écran a été chargé (revérifié par le serveur)
+        formData.set("identity", currentIdentity());
+        formAction(formData);
+      }}
+      noValidate
+      className="flex flex-col gap-6"
+    >
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="cover" value={cover} />
       <input type="hidden" name="format" value={eventFormat} />
       <input type="hidden" name="topic" value={topic ?? ""} />
+      {owner && "group" in owner ? (
+        <input type="hidden" name="groupId" value={owner.group.id} />
+      ) : null}
+      {ownerLabel ? (
+        <p className="flex items-center gap-2 rounded-2xl bg-primary/[0.07] px-4 py-3 text-sm font-medium">
+          <UsersRound
+            aria-hidden="true"
+            className="size-4 shrink-0 text-primary"
+          />
+          {ownerLabel}
+        </p>
+      ) : null}
 
       {/* Photo de couverture, au format 16:9 */}
       <div className="flex flex-col gap-2">

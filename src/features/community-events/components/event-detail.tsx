@@ -14,9 +14,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { pillarIcons } from "@/config/pillars";
 import { JoinCommunityCard } from "@/features/community/components/join-community-card";
 import { recordIdSchema } from "@/features/goals/schemas";
+import { PageLogo } from "@/features/pages/components/page-logo";
 import { mapsUrl } from "@/features/places/rules";
+import { Link } from "@/i18n/navigation";
 import { getCommunityMember } from "@/server/community/members";
 import { getCommunityEvent } from "@/server/community-events/service";
+import { getActingPage } from "@/server/pages/identity";
+import { avatarUrl } from "@/server/profile/avatar";
 import { getCurrentProfile } from "@/server/profile/service";
 import { safeUrl } from "../rules";
 import {
@@ -26,11 +30,14 @@ import {
   ReportEventButton,
   ShareEventButton,
 } from "./event-controls";
+import { EventDiscussion } from "./event-discussion";
 
 /**
  * La page d'un événement : la photo, la date en grand, l'hôte, « J'y vais »,
- * quand et où, la description, qui y va ; pour l'hôte, les inscrits et ses
- * actions. Lit la session : à placer dans un <Suspense>.
+ * quand et où, la description, qui y va, la discussion ; pour l'hôte, les
+ * inscrits et ses actions. Sur sa page pro, on ne répond pas (une page ne va
+ * pas aux événements) et on écrit au nom de la page. Lit la session : à placer
+ * dans un <Suspense>.
  */
 export async function EventDetailView({ eventId }: { eventId: string }) {
   const id = recordIdSchema.safeParse(eventId);
@@ -38,12 +45,16 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinCommunityCard />;
-  const event = await getCommunityEvent(profile.id, id.data);
+  const [event, acting] = await Promise.all([
+    getCommunityEvent(profile.id, id.data),
+    getActingPage(profile.id),
+  ]);
   if (!event) notFound();
-  const [t, tRegions, format] = await Promise.all([
+  const [t, tRegions, format, actingLogo] = await Promise.all([
     getTranslations("CommunityEvents"),
     getTranslations("Marketplace.regions"),
     getFormatter(),
+    acting ? avatarUrl(acting.logoPath) : null,
   ]);
   const timeZone = profile.timeZone;
   const start = new Date(event.startsAt);
@@ -118,13 +129,22 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
           </h1>
           <ProfileLink
             username={event.host.username}
+            pageHandle={event.host.pageHandle}
             className="flex w-fit items-center gap-2 rounded-full text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
-            <Avatar
-              name={event.host.name}
-              url={event.host.avatarUrl}
-              className="size-6 text-[11px]"
-            />
+            {event.host.pageHandle ? (
+              <PageLogo
+                name={event.host.name}
+                url={event.host.avatarUrl}
+                className="size-6 text-[11px]"
+              />
+            ) : (
+              <Avatar
+                name={event.host.name}
+                url={event.host.avatarUrl}
+                className="size-6 text-[11px]"
+              />
+            )}
             <span className="text-muted-foreground">
               {t.rich("hostedBy", {
                 name: event.host.name,
@@ -136,6 +156,14 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
               })}
             </span>
           </ProfileLink>
+          {event.group ? (
+            <Link
+              href={`/groups/${event.group.id}`}
+              className="w-fit text-sm text-muted-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              {t("inGroup", { group: event.group.name })}
+            </Link>
+          ) : null}
         </div>
       </header>
 
@@ -148,7 +176,7 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
 
       {event.hosting ? (
         <HostActions eventId={event.id} cancelled={event.cancelled} />
-      ) : open ? (
+      ) : open && !acting ? (
         <AttendanceButtons
           eventId={event.id}
           initial={event.mine}
@@ -164,7 +192,7 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
           />
           <span className="flex min-w-0 flex-col gap-1">
             <span className="font-medium first-letter:uppercase">{when}</span>
-            {open && (event.hosting || event.mine) ? (
+            {open && !acting && (event.hosting || event.mine) ? (
               <CalendarButton eventId={event.id} />
             ) : null}
           </span>
@@ -196,7 +224,7 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
                   </a>
                 ) : (
                   <span className="text-sm text-muted-foreground">
-                    {t("linkHint")}
+                    {acting ? t("linkHintPage") : t("linkHint")}
                   </span>
                 )}
               </>
@@ -320,6 +348,14 @@ export async function EventDetailView({ eventId }: { eventId: string }) {
           )}
         </section>
       ) : null}
+
+      <EventDiscussion
+        eventId={event.id}
+        comments={event.comments}
+        now={event.loadedAt}
+        canWrite={!member.suspendedUntil && !event.hidden}
+        asPage={acting ? { name: acting.name, logoUrl: actingLogo } : null}
+      />
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-foreground/8 pt-5">
         <ShareEventButton title={event.title} />

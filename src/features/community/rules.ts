@@ -126,6 +126,7 @@ export const reportSchema = z.object({
     z.object({ type: z.literal("message"), id: z.uuid() }),
     z.object({ type: z.literal("story"), id: z.uuid() }),
     z.object({ type: z.literal("event"), id: z.uuid() }),
+    z.object({ type: z.literal("eventComment"), id: z.uuid() }),
   ]),
   reason: z.enum(REPORT_REASONS),
   details: z.string().trim().max(REPORT_DETAILS_MAX_LENGTH).optional(),

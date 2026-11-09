@@ -6,24 +6,45 @@ import { addDays, toCalendarDay } from "@/lib/dates";
 import { getCommunityMember } from "@/server/community/members";
 import { getEventForEdit } from "@/server/community-events/service";
 import { db } from "@/server/db";
+import { getGroup } from "@/server/groups/service";
+import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CommunityEventForm } from "./community-event-form";
 
 // Pages du formulaire. Chaque chargeur lit la session : à placer dans un <Suspense>.
 
-/** Créer un événement : demain à 18 h, dans ma région. */
-export async function NewCommunityEventLoader() {
+/**
+ * Créer un événement : demain à 18 h, dans ma région. Sur ma page pro, au nom
+ * de la page ; depuis un groupe dont je suis membre (`groupId`), dans ce groupe.
+ */
+export async function NewCommunityEventLoader({
+  groupId,
+}: {
+  groupId?: string;
+}) {
   const profile = await getCurrentProfile();
   const member = await getCommunityMember(profile.id);
   if (!member?.joined) return <JoinCommunityCard />;
-  const details = await db.profile.findUnique({
-    where: { id: profile.id },
-    select: { qcRegion: true },
-  });
+  const group = recordIdSchema.safeParse(groupId);
+  const [details, acting, inGroup] = await Promise.all([
+    db.profile.findUnique({
+      where: { id: profile.id },
+      select: { qcRegion: true },
+    }),
+    getActingPage(profile.id),
+    group.success ? getGroup(profile.id, group.data) : null,
+  ]);
+  // Une page ne crée pas dans un groupe ; seulement un groupe dont on est membre
+  const owner = acting
+    ? { page: acting.name }
+    : inGroup?.status === "active"
+      ? { group: { id: inGroup.id, name: inGroup.name } }
+      : null;
   const today = toCalendarDay(new Date(), profile.timeZone);
   return (
     <CommunityEventForm
       event={null}
+      owner={owner}
       defaults={{
         day: addDays(today, 1),
         minute: 18 * 60,

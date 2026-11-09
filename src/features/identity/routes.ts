@@ -18,7 +18,6 @@ const PAGE_RULES: readonly Rule[] = [
   { from: "/habits", to: "/pro" },
   { from: "/pro/new", to: "/pro" },
   { from: "/groups", to: "/community" },
-  { from: "/events", to: "/community" },
   { from: "/coach", to: "/community" },
   { from: "/messages/new", to: "/messages" },
   { from: "/messages/contacts", to: "/messages" },

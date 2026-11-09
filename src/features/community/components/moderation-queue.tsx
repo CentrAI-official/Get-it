@@ -109,7 +109,8 @@ function ReportedCard({ item }: { item: ReportedItem }) {
         {item.target.type === "post" ||
         item.target.type === "comment" ||
         item.target.type === "story" ||
-        item.target.type === "event" ? (
+        item.target.type === "event" ||
+        item.target.type === "eventComment" ? (
           <>
             <Button
               size="sm"

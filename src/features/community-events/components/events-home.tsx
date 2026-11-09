@@ -14,6 +14,7 @@ import {
   listCommunityEvents,
   type EventCard,
 } from "@/server/community-events/service";
+import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import {
   EVENT_WHEN,
@@ -58,8 +59,10 @@ export async function EventsHome({
   const params = await searchParams;
   const filters = parseEventFilters(params);
   const pageNumber = Math.max(1, Number(params.page ?? 1) || 1);
+  // Sur ma page pro : « Mes événements » sont ceux de la page
+  const acting = await getActingPage(profile.id);
   const [data, t] = await Promise.all([
-    listCommunityEvents(profile.id, filters, pageNumber),
+    listCommunityEvents(profile.id, filters, pageNumber, acting?.id ?? null),
     getTranslations("CommunityEvents"),
   ]);
   const timeZone = profile.timeZone;
@@ -384,6 +387,13 @@ async function EventRow({
         <span className="font-semibold text-pretty break-words group-hover:underline">
           {event.title}
         </span>
+        {event.host.pageHandle || event.group ? (
+          <span className="truncate text-xs text-muted-foreground">
+            {event.host.pageHandle
+              ? t("byPage", { page: event.host.name })
+              : t("inGroup", { group: event.group?.name ?? "" })}
+          </span>
+        ) : null}
         <Place event={event} />
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
           {event.friends.length > 0 ? (

@@ -10,17 +10,21 @@ import { toCalendarDay } from "@/lib/dates";
 import { requireUser } from "@/server/auth/session";
 import {
   addCommunityEventToCalendar,
+  addEventComment,
   cancelCommunityEvent,
   createCommunityEvent,
   deleteCommunityEvent,
+  deleteEventComment,
   setEventAttendance,
   updateCommunityEvent,
 } from "@/server/community-events/service";
+import { actingFor } from "@/server/pages/identity";
 import { getUserTimeZone } from "@/server/profile/service";
 import {
   EVENT_ATTENDANCE,
   communityEventFieldErrors,
   communityEventFormSchema,
+  eventCommentSchema,
   type CommunityEventError,
   type CommunityEventField,
 } from "./rules";
@@ -85,10 +89,22 @@ export async function saveCommunityEventAction(
       if (!result.ok) return { status: "error", error: result.error };
       target = id.data;
     } else {
+      // Au nom du compte actif (sa page en mode page, retrouvée par la session),
+      // ou dans un groupe (l'appartenance est revérifiée par le service)
+      const acting = await actingFor(
+        user.id,
+        read(formData, "identity") || null,
+      );
+      if (!acting.ok) return { status: "error", error: "notAsPage" };
+      const group = recordIdSchema.safeParse(read(formData, "groupId"));
       const result = await createCommunityEvent(
         user.id,
         parsed.data,
         cover === "keep" || cover === "remove" ? [] : cover,
+        {
+          pageId: acting.pageId,
+          groupId: group.success ? group.data : null,
+        },
       );
       if (!result.ok) return { status: "error", error: result.error };
       target = result.id;
@@ -125,6 +141,9 @@ export async function setAttendanceAction(
   const id = recordIdSchema.safeParse(eventId);
   const value = z.enum(EVENT_ATTENDANCE).nullable().safeParse(status);
   if (!id.success || !value.success) return { ok: false, error: "notFound" };
+  // Une page ne va pas aux événements : seulement le compte personnel
+  const acting = await actingFor(user.id, null);
+  if (!acting.ok || acting.pageId) return { ok: false, error: "notAsPage" };
   return guarded(() => setEventAttendance(user.id, id.data, value.data));
 }
 
@@ -169,4 +188,43 @@ export async function deleteEventAction(
     return { ok: false, error: "unexpected" };
   }
   return redirect({ href: "/events", locale: lang.data });
+}
+
+/** Écrit dans la discussion, au nom du compte sous lequel l'écran a été chargé. */
+export async function addEventCommentAction(
+  eventId: unknown,
+  body: unknown,
+  identity: unknown,
+): Promise<EventActionResult> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(eventId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  const text = eventCommentSchema.safeParse(body);
+  if (!text.success) {
+    const message = text.error.issues[0]?.message;
+    return {
+      ok: false,
+      error:
+        message === "commentTooLong" ? "commentTooLong" : "commentRequired",
+    };
+  }
+  const acting = await actingFor(user.id, identity);
+  if (!acting.ok) return { ok: false, error: "notAsPage" };
+  return guarded(() =>
+    addEventComment(user.id, id.data, text.data, acting.pageId),
+  );
+}
+
+/** Retire un message de la discussion (le sien, ou tous pour l'hôte). */
+export async function deleteEventCommentAction(
+  commentId: unknown,
+): Promise<EventActionResult> {
+  const user = await requireUser();
+  const id = recordIdSchema.safeParse(commentId);
+  if (!id.success) return { ok: false, error: "notFound" };
+  return guarded(async () =>
+    (await deleteEventComment(user.id, id.data))
+      ? { ok: true }
+      : { ok: false, error: "notFound" },
+  );
 }

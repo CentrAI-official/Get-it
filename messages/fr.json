@@ -1272,7 +1272,8 @@
         "user": "Signaler cette personne",
         "message": "Signaler le message",
         "story": "Signaler la story",
-        "event": "Signaler l’événement"
+        "event": "Signaler l’événement",
+        "eventComment": "Signaler le message"
       },
       "description": "Dis-nous ce qui ne va pas. Ton signalement reste anonyme.",
       "reasonLabel": "Raison du signalement",
@@ -1300,7 +1301,8 @@
         "user": "Personne",
         "message": "Message privé",
         "story": "Story",
-        "event": "Événement"
+        "event": "Événement",
+        "eventComment": "Message d’un événement"
       },
       "count": "{count, plural, one {# signalement} other {# signalements}}",
       "status": {
@@ -3369,7 +3371,10 @@
       "event_rsvp": "{name} va à ton événement « {subject} »",
       "eventRsvps": "{name} et {others, plural, one {# autre personne vont} other {# autres personnes vont}} à ton événement « {subject} »",
       "event_update": "{name} a changé la date ou le lieu de « {subject} »",
-      "event_cancelled": "{name} a annulé l’événement « {subject} »"
+      "event_cancelled": "{name} a annulé l’événement « {subject} »",
+      "event_comment": "{name} a écrit dans la discussion de « {subject} »",
+      "eventComments": "{name} et {others, plural, one {# autre personne ont} other {# autres personnes ont}} écrit dans la discussion de « {subject} »",
+      "event_reminder": "Rappel : « {subject} » commence dans moins de 24 heures"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -5583,7 +5588,9 @@
       "capacityPlaceholder": "Sans limite",
       "checkFields": "Vérifie les champs en rouge.",
       "publish": "Publier l’événement",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "asPage": "Au nom de ta page {page} : on voit la page, jamais ton nom.",
+      "inGroup": "Dans le groupe {group}"
     },
     "errors": {
       "titleRequired": "Donne un titre d’au moins 3 caractères.",
@@ -5607,7 +5614,32 @@
       "suspended": "Ton compte est suspendu : tu peux lire, mais pas participer pour l’instant.",
       "coverInvalid": "La photo n’a pas pu être envoyée. Réessaie avec une autre.",
       "notFound": "Cet événement n’est plus disponible.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
-    }
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "commentRequired": "Écris ton message.",
+      "commentTooLong": "Le message est trop long (1 000 caractères au plus).",
+      "commentLimit": "Tu as écrit 50 messages dans les dernières 24 heures. Réessaie demain.",
+      "groupJoinRequired": "Rejoins le groupe pour y créer un événement.",
+      "notAsPage": "Tu as changé de compte dans un autre onglet. Recharge la page."
+    },
+    "inGroup": "dans {group}",
+    "byPage": "par {page}",
+    "discussion": {
+      "title": "Discussion ({count, number})",
+      "empty": "Pas encore de message. Une question, un covoiturage? Écris ici.",
+      "label": "Ton message",
+      "placeholder": "Écris à l’organisateur et aux autres…",
+      "placeholderPage": "Écris au nom de {page}…",
+      "send": "Envoyer",
+      "delete": "Retirer ce message",
+      "report": "Signaler ce message",
+      "hidden": "Signalé : caché aux autres en attendant la modération."
+    },
+    "upcoming": {
+      "title": "Événements à venir",
+      "create": "Créer un événement",
+      "empty": "Aucun événement prévu pour l’instant.",
+      "going": "{count, plural, =0 {personne n’y va encore} one {# y va} other {# y vont}}"
+    },
+    "linkHintPage": "Le lien est montré aux membres qui répondent à l’événement."
   }
 }

@@ -28,6 +28,18 @@ export const COMMUNITY_EVENT_LIMITS = {
   upcoming: 20,
   /** Événements montrés par page de l'annuaire. */
   page: 30,
+  /** Un message de la discussion. */
+  comment: 1000,
+  /** Messages de discussion par personne en 24 h. */
+  commentsPerDay: 50,
+  /** Messages montrés sous un événement (les plus récents). */
+  commentsShown: 100,
+  /** Le rappel part aux inscrits ce nombre d'heures avant le début. */
+  reminderHours: 24,
+  /** Événements traités par passage de la tâche planifiée. */
+  remindersPerRun: 200,
+  /** Événements à venir montrés sur une page pro ou dans un groupe. */
+  shownOnPage: 3,
 } as const;
 
 export const EVENT_FORMATS = ["in_person", "online"] as const;
@@ -63,6 +75,11 @@ export const COMMUNITY_EVENT_ERRORS = [
   "notMember",
   "suspended",
   "coverInvalid",
+  "commentRequired",
+  "commentTooLong",
+  "commentLimit",
+  "groupJoinRequired",
+  "notAsPage",
   "notFound",
   "unexpected",
 ] as const;
@@ -215,6 +232,31 @@ export type CommunityEventInput = z.output<
 
 export function communityEventFieldErrors(error: z.ZodError) {
   return fieldErrorsFrom(error, FIELDS, isEventError, "unexpected");
+}
+
+/** Un message de la discussion, revalidé par le serveur. */
+export const eventCommentSchema = z
+  .string(error("commentRequired"))
+  .trim()
+  .min(1, error("commentRequired"))
+  .max(COMMUNITY_EVENT_LIMITS.comment, error("commentTooLong"));
+
+/**
+ * Le rappel est dû : l'événement commence dans les prochaines 24 heures. Un
+ * événement créé ou déplacé à moins de 24 h de son début n'en reçoit pas (les
+ * inscrits viennent de le voir) : voir `needsReminder`.
+ */
+export function reminderDue(startsAt: Date, now: Date) {
+  const ms = startsAt.getTime() - now.getTime();
+  return ms > 0 && ms <= COMMUNITY_EVENT_LIMITS.reminderHours * 3_600_000;
+}
+
+/** Un rappel restera à envoyer : le début est à plus de 24 heures. */
+export function needsReminder(startsAt: Date, now: Date) {
+  return (
+    startsAt.getTime() - now.getTime() >
+    COMMUNITY_EVENT_LIMITS.reminderHours * 3_600_000
+  );
 }
 
 export type EventFilters = {

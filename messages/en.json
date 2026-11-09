@@ -1272,7 +1272,8 @@
         "user": "Report this person",
         "message": "Report message",
         "story": "Report the story",
-        "event": "Report the event"
+        "event": "Report the event",
+        "eventComment": "Report the message"
       },
       "description": "Tell us what’s wrong. Your report stays anonymous.",
       "reasonLabel": "Reason for the report",
@@ -1300,7 +1301,8 @@
         "user": "Person",
         "message": "Private message",
         "story": "Story",
-        "event": "Event"
+        "event": "Event",
+        "eventComment": "Event message"
       },
       "count": "{count, plural, one {# report} other {# reports}}",
       "status": {
@@ -3369,7 +3371,10 @@
       "event_rsvp": "{name} is going to your event “{subject}”",
       "eventRsvps": "{name} and {others, plural, one {# other person are} other {# other people are}} going to your event “{subject}”",
       "event_update": "{name} changed the date or place of “{subject}”",
-      "event_cancelled": "{name} cancelled the event “{subject}”"
+      "event_cancelled": "{name} cancelled the event “{subject}”",
+      "event_comment": "{name} wrote in the discussion of “{subject}”",
+      "eventComments": "{name} and {others, plural, one {# other person} other {# other people}} wrote in the discussion of “{subject}”",
+      "event_reminder": "Reminder: “{subject}” starts in less than 24 hours"
     },
     "push": {
       "title": "Notifications on this device",
@@ -5583,7 +5588,9 @@
       "capacityPlaceholder": "No limit",
       "checkFields": "Check the fields in red.",
       "publish": "Publish the event",
-      "save": "Save"
+      "save": "Save",
+      "asPage": "As your page {page}: people see the page, never your name.",
+      "inGroup": "In the group {group}"
     },
     "errors": {
       "titleRequired": "Give it a title of at least 3 characters.",
@@ -5607,7 +5614,32 @@
       "suspended": "Your account is suspended: you can read, but not take part for now.",
       "coverInvalid": "The photo couldn’t be uploaded. Try another one.",
       "notFound": "This event is no longer available.",
-      "unexpected": "Something went wrong. Try again in a moment."
-    }
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "commentRequired": "Write your message.",
+      "commentTooLong": "The message is too long (1,000 characters at most).",
+      "commentLimit": "You wrote 50 messages in the last 24 hours. Try again tomorrow.",
+      "groupJoinRequired": "Join the group to create an event in it.",
+      "notAsPage": "You switched accounts in another tab. Reload the page."
+    },
+    "inGroup": "in {group}",
+    "byPage": "by {page}",
+    "discussion": {
+      "title": "Discussion ({count, number})",
+      "empty": "No messages yet. A question, a carpool? Write here.",
+      "label": "Your message",
+      "placeholder": "Write to the host and the others…",
+      "placeholderPage": "Write as {page}…",
+      "send": "Send",
+      "delete": "Remove this message",
+      "report": "Report this message",
+      "hidden": "Reported: hidden from others until it is reviewed."
+    },
+    "upcoming": {
+      "title": "Upcoming events",
+      "create": "Create an event",
+      "empty": "No events planned yet.",
+      "going": "{count, plural, =0 {nobody going yet} one {# going} other {# going}}"
+    },
+    "linkHintPage": "The link is shown to members who answer the event."
   }
 }

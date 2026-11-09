@@ -64,6 +64,16 @@ const serverEnvSchema = z.object({
     (value) => (value === "" ? undefined : value),
     z.string().min(20).max(200).optional(),
   ),
+  // Tâches planifiées de Vercel (Cron, ex. rappel des événements) : Vercel envoie
+  // « Authorization: Bearer <CRON_SECRET> ». Serveur seulement. Facultatif : sans
+  // lui, les tâches planifiées sont refusées.
+  CRON_SECRET: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .min(16, { error: "doit contenir au moins 16 caractères" })
+      .optional(),
+  ),
   // « fake » : réponses factices pour les tests de bout en bout, sans appel payant
   AI_PROVIDER: z.preprocess(
     (value) => (value === "" ? undefined : value),

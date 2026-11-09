@@ -14,7 +14,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("newTitle") };
 }
 
-export default function NewCommunityEventPage() {
+export default function NewCommunityEventPage({
+  searchParams,
+}: PageProps<"/[locale]/events/new">) {
   const t = useTranslations("CommunityEvents");
 
   return (
@@ -22,7 +24,12 @@ export default function NewCommunityEventPage() {
       <BackLink href="/events" label={t("back")} />
       <PageHeader title={t("newTitle")} description={t("newDescription")} />
       <Suspense fallback={<CommunityEventFormSkeleton />}>
-        <NewCommunityEventLoader />
+        {/* Depuis un groupe : connu seulement à la requête */}
+        {searchParams.then(({ groupe }) => (
+          <NewCommunityEventLoader
+            groupId={typeof groupe === "string" ? groupe : undefined}
+          />
+        ))}
       </Suspense>
     </div>
   );

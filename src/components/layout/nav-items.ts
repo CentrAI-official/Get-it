@@ -113,12 +113,8 @@ export const topActions = {
     icon: UsersRound,
     identity: "personal",
   },
-  events: {
-    key: "events",
-    href: "/events",
-    icon: CalendarDays,
-    identity: "personal",
-  },
+  // Aussi sur sa page pro : une page organise des événements (2026-11-08)
+  events: { key: "events", href: "/events", icon: CalendarDays },
   // Get iT AI est le coach personnel : il lit les données du compte, pas celles de la page
   coach: { key: "coach", href: "/coach", icon: Sparkles, identity: "personal" },
   contacts: {

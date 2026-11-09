@@ -1,4 +1,5 @@
 import { Globe, Pencil, Store } from "lucide-react";
+import { UpcomingEvents } from "@/features/community-events/components/upcoming-events";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -115,6 +116,14 @@ export async function PublicPageLoader({ handle }: { handle: string }) {
           </ul>
         )}
       </section>
+
+      {/* Ses prochains événements ; sur sa page, « Créer un événement » */}
+      <UpcomingEvents
+        viewerId={viewer.id}
+        owner={{ pageId: page.id }}
+        createHref={page.mine && acting ? "/events/new" : null}
+        timeZone={viewer.timeZone}
+      />
 
       <section
         aria-labelledby="page-posts"

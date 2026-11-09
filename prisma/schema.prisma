@@ -126,6 +126,7 @@ model Profile {
   calendarEvents       CalendarEvent[]
   hostedEvents         CommunityEvent[]
   eventAttendance      CommunityEventAttendee[]
+  eventComments        CommunityEventComment[]
   budgetRecurring      BudgetRecurring[]
   budgetEntries        BudgetEntry[]
   workoutSessions      WorkoutSession[]
@@ -990,9 +991,10 @@ model Group {
   createdAt   DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  owner        Profile       @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  owner        Profile          @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   members      GroupMember[]
   posts        Post[]
+  events       CommunityEvent[]
   conversation Conversation?
 
   @@index([visibility, createdAt])
@@ -1109,6 +1111,7 @@ model ContentReport {
   messageId      String?      @map("message_id") @db.Uuid
   storyId        String?      @map("story_id") @db.Uuid
   eventId        String?      @map("event_id") @db.Uuid
+  eventCommentId String?      @map("event_comment_id") @db.Uuid
   reason         ReportReason
   details        String?
   status         ReportStatus @default(open)
@@ -1116,14 +1119,15 @@ model ContentReport {
   resolvedAt     DateTime?    @map("resolved_at") @db.Timestamptz(3)
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
 
-  reporter     Profile         @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
-  post         Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
-  comment      PostComment?    @relation(fields: [commentId], references: [id], onDelete: Cascade)
-  reportedUser Profile?        @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
-  message      Message?        @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  story        Story?          @relation(fields: [storyId], references: [id], onDelete: Cascade)
-  event        CommunityEvent? @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  resolvedBy   Profile?        @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  reporter     Profile                @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  post         Post?                  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment      PostComment?           @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  reportedUser Profile?               @relation("ReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  message      Message?               @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  story        Story?                 @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  event        CommunityEvent?        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventComment CommunityEventComment? @relation(fields: [eventCommentId], references: [id], onDelete: Cascade)
+  resolvedBy   Profile?               @relation("ReportResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
 
   @@unique([reporterId, postId])
   @@unique([reporterId, commentId])
@@ -1131,6 +1135,7 @@ model ContentReport {
   @@unique([reporterId, messageId])
   @@unique([reporterId, storyId])
   @@unique([reporterId, eventId])
+  @@unique([reporterId, eventCommentId])
   @@index([status, createdAt])
   @@map("content_reports")
 }
@@ -1593,13 +1598,15 @@ model Page {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  owner             Profile            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner             Profile                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   listings          Listing[]
   posts             Post[]
   comments          PostComment[]
+  events            CommunityEvent[]
+  eventComments     CommunityEventComment[]
   conversations     Conversation[]
-  notifications     Notification[]     @relation("NotificationActorPage")
-  pageNotifications Notification[]     @relation("NotificationPage")
+  notifications     Notification[]          @relation("NotificationActorPage")
+  pageNotifications Notification[]          @relation("NotificationPage")
   clients           PageClient[]
   clientNotes       ClientNote[]
   planProposals     PlanProposal[]
@@ -1867,6 +1874,10 @@ enum NotificationKind {
   event_update
   /// Un événement où je vais est annulé.
   event_cancelled
+  /// Un message dans la discussion de mon événement (regroupé par événement).
+  event_comment
+  /// Rappel aux inscrits, 24 h avant le début.
+  event_reminder
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.
@@ -2123,15 +2134,27 @@ model CommunityEvent {
   /// Masqué à 3 signalements, retiré par la modération.
   status      ContentStatus        @default(visible)
   cancelledAt DateTime?            @map("cancelled_at") @db.Timestamptz(3)
+  /// Au nom de cette page pro : on montre la page, jamais la personne.
+  pageId      String?              @map("page_id") @db.Uuid
+  /// Dans ce groupe (public : tout le monde le voit ; privé : ses membres).
+  groupId     String?              @map("group_id") @db.Uuid
+  /// Rappel envoyé aux inscrits (24 h avant) ; null : pas encore.
+  remindedAt  DateTime?            @map("reminded_at") @db.Timestamptz(3)
   createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   host      Profile                  @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  page      Page?                    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  group     Group?                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
   attendees CommunityEventAttendee[]
+  comments  CommunityEventComment[]
   reports   ContentReport[]
 
   @@index([startsAt])
   @@index([hostId, startsAt])
+  @@index([pageId, startsAt])
+  @@index([groupId, startsAt])
+  @@index([remindedAt, startsAt])
   @@map("community_events")
 }
 
@@ -2149,4 +2172,25 @@ model CommunityEventAttendee {
   @@id([eventId, userId])
   @@index([userId])
   @@map("community_event_attendees")
+}
+
+/// La discussion d'un événement : questions, covoiturage… Signalable comme un
+/// commentaire ; au nom de la page pro quand on la gère.
+model CommunityEventComment {
+  id        String        @id @default(uuid(7)) @db.Uuid
+  eventId   String        @map("event_id") @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  pageId    String?       @map("page_id") @db.Uuid
+  body      String
+  status    ContentStatus @default(visible)
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  event   CommunityEvent  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  profile Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page    Page?           @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  reports ContentReport[]
+
+  @@index([eventId, createdAt])
+  @@index([userId, createdAt])
+  @@map("community_event_comments")
 }

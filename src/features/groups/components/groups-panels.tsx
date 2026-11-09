@@ -1,4 +1,5 @@
 import { ChevronRight, MessagesSquare, Search, UsersRound } from "lucide-react";
+import { UpcomingEvents } from "@/features/community-events/components/upcoming-events";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
@@ -332,6 +333,18 @@ export async function GroupPageLoader({ groupId }: { groupId: string }) {
           ) : null}
         </div>
       </header>
+
+      {/* Les prochains événements du groupe ; ses membres en créent */}
+      <UpcomingEvents
+        viewerId={profile.id}
+        owner={{ groupId: group.id }}
+        createHref={
+          active && !member.suspendedUntil
+            ? `/events/new?groupe=${group.id}`
+            : null
+        }
+        timeZone={profile.timeZone}
+      />
 
       {group.visibility === "public" ? (
         <section
