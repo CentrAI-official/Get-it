@@ -610,6 +610,13 @@ function ToAssign({
                 ? t("assignedHint")
                 : t("overAssignedHint")}
           </span>
+          {plan.minimumsReserveCents > 0 ? (
+            <span className="text-xs text-pretty text-muted-foreground">
+              {t("minimumsNote", {
+                amount: money(plan.minimumsReserveCents),
+              })}
+            </span>
+          ) : null}
         </span>
         {left === 0 ? (
           <Check aria-hidden="true" className="size-5 shrink-0 text-primary" />

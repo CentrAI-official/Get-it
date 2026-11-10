@@ -17,8 +17,7 @@ import { rollupMonths } from "@/features/budget/plan";
 import { monthStart, occurrencesIn, upcomingIn } from "@/features/budget/rules";
 import { addDays } from "@/lib/dates";
 import { db } from "@/server/db";
-import { loadDeltas } from "./accounts";
-import { getBudget, monthlyRows, type BudgetPage } from "./service";
+import { getBudget, loadDeltas, monthlyRows, type BudgetPage } from "./service";
 
 // Le plan d'argent de Financier › Budget : calculé par Get iT à chaque visite,
 // à partir du budget de la personne (jamais envoyé à Get iT AI). La logique est

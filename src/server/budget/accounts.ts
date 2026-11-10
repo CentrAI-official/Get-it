@@ -5,7 +5,6 @@ import {
   MAX_ACCOUNTS,
   netWorthOf,
   netWorthSeries,
-  type AccountDelta,
   type AccountInput,
   type BudgetAccountRow,
 } from "@/features/budget/accounts";
@@ -14,31 +13,12 @@ import { monthsUntil } from "@/features/budget/reports";
 import { BALANCE_MAX_CENTS, type BudgetError } from "@/features/budget/rules";
 import { toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
-import { getBudgetBase, loadGoalRows } from "./service";
+import { getBudgetBase, loadDeltas, loadGoalRows } from "./service";
 
 // Les comptes, la valeur nette, les objectifs d'épargne et les dettes. Chaque
 // fonction reçoit l'userId de la session.
 
 type Result = { ok: true } | { ok: false; error: BudgetError };
-
-/** Ce qui a bougé dans chaque compte, mois par mois, depuis son ouverture. */
-export async function loadDeltas(userId: string): Promise<AccountDelta[]> {
-  return db.$queryRaw<AccountDelta[]>`
-    SELECT a.id::text AS "accountId",
-           to_char(e.occurred_on, 'YYYY-MM') AS month,
-           SUM(CASE
-             WHEN e.to_account_id = a.id THEN e.amount_cents
-             WHEN e.kind IN ('income', 'refund', 'adjustment') THEN e.amount_cents
-             ELSE -e.amount_cents
-           END)::float8 AS cents
-    FROM budget_accounts a
-    JOIN budget_entries e
-      ON (e.account_id = a.id OR e.to_account_id = a.id)
-     AND e.occurred_on >= a.opened_on
-    WHERE a.user_id = ${userId}::uuid
-      AND e.user_id = ${userId}::uuid
-    GROUP BY 1, 2`;
-}
 
 export type AccountLine = BudgetAccountRow & { balanceCents: number };
 

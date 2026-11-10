@@ -1,5 +1,11 @@
 import "server-only";
-import type { AccountType, BudgetAccountRow } from "@/features/budget/accounts";
+import {
+  balanceOf,
+  isDebtType,
+  type AccountDelta,
+  type AccountType,
+  type BudgetAccountRow,
+} from "@/features/budget/accounts";
 import {
   categoryList,
   isBuiltInCategory,
@@ -246,6 +252,40 @@ export async function getBudgetBase(userId: string): Promise<BudgetBase> {
   };
 }
 
+/** Ce qui a bougé dans chaque compte, mois par mois, depuis son ouverture. */
+export async function loadDeltas(userId: string): Promise<AccountDelta[]> {
+  return db.$queryRaw<AccountDelta[]>`
+    SELECT a.id::text AS "accountId",
+           to_char(e.occurred_on, 'YYYY-MM') AS month,
+           SUM(CASE
+             WHEN e.to_account_id = a.id THEN e.amount_cents
+             WHEN e.kind IN ('income', 'refund', 'adjustment') THEN e.amount_cents
+             ELSE -e.amount_cents
+           END)::float8 AS cents
+    FROM budget_accounts a
+    JOIN budget_entries e
+      ON (e.account_id = a.id OR e.to_account_id = a.id)
+     AND e.occurred_on >= a.opened_on
+    WHERE a.user_id = ${userId}::uuid
+      AND e.user_id = ${userId}::uuid
+    GROUP BY 1, 2`;
+}
+
+/** Les paiements minimums des dettes qui ont encore un solde. */
+export function debtMinimums(
+  accounts: readonly BudgetAccountRow[],
+  deltas: readonly AccountDelta[],
+) {
+  return accounts
+    .filter(
+      (account) =>
+        isDebtType(account.type) &&
+        (account.minimumCents ?? 0) > 0 &&
+        balanceOf(account, deltas) < 0,
+    )
+    .reduce((sum, account) => sum + (account.minimumCents ?? 0), 0);
+}
+
 /** Les transactions additionnées par mois, entre deux jours. */
 export async function monthlyRows(
   userId: string,
@@ -354,20 +394,26 @@ export async function getBudget(
   const { start, end } = periodOf(input.view, input.day ?? today);
   const month = monthStart(start);
 
-  const [entryRows, anyEntry, plans, rollovers, goalRows] = await Promise.all([
-    db.budgetEntry.findMany({
-      where: {
-        userId,
-        occurredOn: { gte: toDbDate(start), lte: toDbDate(end) },
-      },
-      orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
-      select: entrySelect,
-    }),
-    db.budgetEntry.findFirst({ where: { userId }, select: { id: true } }),
-    loadPlans(userId),
-    loadRollovers(userId),
-    loadGoalRows(userId),
-  ]);
+  // Les soldes des dettes : seulement s'il y a un minimum à payer
+  const owesMinimum = base.accounts.some(
+    (account) => isDebtType(account.type) && (account.minimumCents ?? 0) > 0,
+  );
+  const [entryRows, anyEntry, plans, rollovers, goalRows, deltas] =
+    await Promise.all([
+      db.budgetEntry.findMany({
+        where: {
+          userId,
+          occurredOn: { gte: toDbDate(start), lte: toDbDate(end) },
+        },
+        orderBy: [{ occurredOn: "desc" }, { createdAt: "desc" }],
+        select: entrySelect,
+      }),
+      db.budgetEntry.findFirst({ where: { userId }, select: { id: true } }),
+      loadPlans(userId),
+      loadRollovers(userId),
+      loadGoalRows(userId),
+      owesMinimum ? loadDeltas(userId) : Promise.resolve([]),
+    ]);
 
   // Le plan du mois, avec le report depuis le mois le plus ancien qui en a un
   const monthEnd = periodOf("month", month).end;
@@ -383,6 +429,7 @@ export async function getBudget(
     upcoming: upcomingIn(rules, month, monthEnd, today),
     rollovers,
     types,
+    minimumsCents: debtMinimums(base.accounts, deltas),
   });
 
   return {
@@ -415,13 +462,14 @@ export async function getBudget(
       group.lines.some((line) => line.explicit),
     )
       ? []
-      : suggestPlan(
-          monthPlan.expectedIncomeCents,
-          monthPlan.groups.map((group) => ({
+      : suggestPlan(monthPlan.expectedIncomeCents, [
+          ...monthPlan.groups.map((group) => ({
             group: group.group,
             cents: group.plannedCents,
           })),
-        ),
+          // Les minimums des dettes font partie des 20 % d'épargne et de dettes
+          { group: "savings", cents: monthPlan.minimumsReserveCents },
+        ]),
     annual: annualToPrepare(rules, plans, month),
     goalsMonthlyCents: goalRows.reduce(
       (sum, goal) => sum + (goalProgress(goal, today).monthlyCents ?? 0),

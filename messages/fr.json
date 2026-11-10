@@ -4768,7 +4768,8 @@
       "groupTotal": "{used} sur {planned}",
       "goalsNeed": "Tes objectifs d’épargne demandent {amount} par mois.",
       "addLine": "Ajouter une catégorie au plan",
-      "reached": "Prévu du mois atteint"
+      "reached": "Prévu du mois atteint",
+      "minimumsNote": "Après {amount} de paiements minimums de tes dettes."
     },
     "setup": {
       "start": "Faire mon budget",

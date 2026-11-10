@@ -152,6 +152,37 @@ describe("plan du mois", () => {
       "needs",
       "savings",
     ]);
+    expect(plan.minimumsReserveCents).toBe(0);
+  });
+
+  it("« À répartir » retire les minimums des dettes que la catégorie Dettes ne prévoit pas", () => {
+    const base = {
+      month: "2026-11-01",
+      categories,
+      plans,
+      rollups,
+      rollovers: new Map<string, string>(),
+      types: NO_TYPES,
+    };
+    const plan = buildMonthPlan({
+      ...base,
+      upcoming: [],
+      minimumsCents: 34000,
+    });
+    expect(plan.minimumsReserveCents).toBe(34000);
+    expect(plan.toAssignCents).toBe(300000 - 230000 - 34000);
+    // Un paiement fixe de 25 000 sur un prêt est déjà dans Dettes : il reste 9 000
+    const paid = buildMonthPlan({
+      ...base,
+      plans: [
+        ...plans,
+        { category: "debt", month: "2026-11-01", amountCents: 25000 },
+      ],
+      upcoming: [],
+      minimumsCents: 34000,
+    });
+    expect(paid.minimumsReserveCents).toBe(9000);
+    expect(paid.toAssignCents).toBe(300000 - 255000 - 9000);
   });
 
   it("le report : ce qui reste s'ajoute, un dépassement retranche", () => {

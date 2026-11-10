@@ -149,8 +149,18 @@ export type MonthPlan = {
   plannedCents: number;
   /** Revenus reçus et à venir ce mois-ci. */
   expectedIncomeCents: number;
-  /** Ce qui n'a pas encore de job : revenus prévus moins montants prévus. */
+  /**
+   * Ce qui n'a pas encore de job : revenus prévus, moins montants prévus, moins
+   * les minimums des dettes que le plan ne prévoit pas encore.
+   */
   toAssignCents: number;
+  /**
+   * Les paiements minimums des dettes au-delà de la catégorie Dettes : le
+   * paiement d'une carte de crédit n'y compte pas (ses achats ont déjà compté),
+   * mais l'argent doit être là (décision du fondateur, 2026-11-10 : « À répartir »
+   * et le plan d'argent disent la même chose).
+   */
+  minimumsReserveCents: number;
   /** L'épargne prévue pas encore mise de côté : elle n'est pas à dépenser. */
   reserveCents: number;
 };
@@ -164,6 +174,7 @@ export function buildMonthPlan({
   upcoming,
   rollovers,
   types,
+  minimumsCents = 0,
 }: {
   month: string;
   categories: readonly CategoryInfo[];
@@ -173,6 +184,8 @@ export function buildMonthPlan({
   /** Catégorie → mois où son report commence. */
   rollovers: ReadonlyMap<string, string>;
   types: AccountTypes;
+  /** Les paiements minimums des dettes qui ont encore un solde. */
+  minimumsCents?: number;
 }): MonthPlan {
   const rollup = rollups.get(month.slice(0, 7));
   const upcomingBy = new Map<string, number>();
@@ -226,6 +239,9 @@ export function buildMonthPlan({
   const plannedCents = lines.reduce((sum, line) => sum + line.plannedCents, 0);
   const expectedIncomeCents = (rollup?.incomeCents ?? 0) + upcomingIncome;
   const savings = lines.find((line) => line.key === "savings");
+  const debtPlanned =
+    lines.find((line) => line.key === "debt")?.plannedCents ?? 0;
+  const minimumsReserveCents = Math.max(0, minimumsCents - debtPlanned);
   return {
     groups: BUDGET_GROUPS.map((group) => {
       const inGroup = lines.filter((line) => line.group === group);
@@ -241,7 +257,8 @@ export function buildMonthPlan({
     }).filter((entry) => entry.lines.length > 0),
     plannedCents,
     expectedIncomeCents,
-    toAssignCents: expectedIncomeCents - plannedCents,
+    toAssignCents: expectedIncomeCents - plannedCents - minimumsReserveCents,
+    minimumsReserveCents,
     reserveCents: savings
       ? Math.max(
           0,
