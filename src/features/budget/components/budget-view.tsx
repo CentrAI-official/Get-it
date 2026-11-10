@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, type PageTransition } from "@/i18n/navigation";
 import { toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+import { getMoneyView } from "@/server/budget/money";
 import { getBudget } from "@/server/budget/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { displayMoney, formatMoney } from "../format";
@@ -21,6 +22,7 @@ import { BudgetProvider } from "./budget-context";
 import { BudgetActions, EntryList, EraseBudgetButton } from "./budget-lists";
 import { BudgetSetupButton } from "./budget-setup";
 import { CategoryIcon } from "./category-icon";
+import { MoneyPlanSection } from "./money-plan-section";
 import { BarSwatch, MonthBar } from "./month-bar";
 import { PlanSection } from "./plan-section";
 
@@ -95,6 +97,9 @@ export async function BudgetLoader({
   }
 
   const current = today >= start && today <= end;
+  // Le plan d'argent se calcule sur le mois en cours seulement
+  const moneyView =
+    view === "month" && current ? await getMoneyView(profile.id, budget) : null;
   const income = summary.incomeCents + summary.upcomingIncomeCents;
   // L'épargne faite, à venir et prévue : la barre s'additionne jusqu'aux revenus
   const saved =
@@ -265,6 +270,14 @@ export async function BudgetLoader({
         </section>
 
         <BudgetActions />
+
+        {moneyView ? (
+          <MoneyPlanSection
+            money={moneyView}
+            today={today}
+            currency={currency}
+          />
+        ) : null}
 
         {budget.plan ? (
           <PlanSection

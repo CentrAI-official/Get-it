@@ -302,6 +302,7 @@ describe("comptes", () => {
       openedOn: "2026-11-04",
       rateBp: 1999,
       minimumCents: 5000,
+      paymentDay: null,
     });
     // Un compte chèques à découvert reste négatif ; pas de taux hors des dettes
     expect(

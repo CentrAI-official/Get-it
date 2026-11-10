@@ -30,6 +30,7 @@ import {
   saveRecurringAction,
   type BudgetFormState,
 } from "../actions";
+import { isDebtType, type BudgetAccountRow } from "../accounts";
 import { BUDGET_GROUPS } from "../categories";
 import { amountField } from "../format";
 import {
@@ -55,7 +56,7 @@ const chipOff =
   "border-foreground/10 text-muted-foreground hover:text-foreground";
 
 /** Un choix parmi des pastilles, gardé dans un champ caché. */
-function Chips<Value extends string>({
+export function Chips<Value extends string>({
   name,
   legend,
   values,
@@ -156,14 +157,18 @@ function CategoryField({
   );
 }
 
-/** Un compte parmi ceux de la personne ; `optional` permet de n'en choisir aucun. */
-function AccountField({
+/**
+ * Un compte parmi ceux de la personne ; `optional` permet de n'en choisir aucun,
+ * `only` garde certains comptes (ceux d'où part un paiement).
+ */
+export function AccountField({
   name,
   legend,
   value,
   onChange,
   optional,
   exclude,
+  only,
   error,
 }: {
   name: string;
@@ -172,6 +177,7 @@ function AccountField({
   onChange: (value: string | null) => void;
   optional: boolean;
   exclude?: string | null;
+  only?: (account: BudgetAccountRow) => boolean;
   error?: string | null;
 }) {
   const t = useTranslations("Budget");
@@ -197,7 +203,9 @@ function AccountField({
           </button>
         ) : null}
         {accounts
-          .filter((account) => account.id !== exclude)
+          .filter(
+            (account) => account.id !== exclude && (only?.(account) ?? true),
+          )
           .map((account) => (
             <button
               key={account.id}
@@ -376,6 +384,19 @@ function EntryForm({
     entry?.toAccountId ?? null,
   );
   const [goalId, setGoalId] = useState<string | null>(entry?.goalId ?? null);
+  // Ajout seulement : la transaction revient selon une fréquence
+  const [repeat, setRepeat] = useState<BudgetFrequency | "never">("never");
+  // Une dépense « Dettes » peut payer une dette précise : c'est alors un virement
+  const [debtId, setDebtId] = useState<string | null>(null);
+  const nameOf = useCategoryName();
+  const debts = accounts.filter((account) => isDebtType(account.type));
+  const canPayDebt =
+    kind === "expense" &&
+    !refund &&
+    category === "debt" &&
+    debts.length > 0 &&
+    accounts.some((account) => !isDebtType(account.type));
+  const payingDebt = canPayDebt && debtId !== null;
   const [state, formAction, pending] = useActionState<
     BudgetFormState<EntryField>,
     FormData
@@ -395,6 +416,15 @@ function EntryForm({
     errorText(state.fieldErrors?.[field]);
   const savingGoal =
     kind === "expense" && category === "savings" && goals.length > 0;
+  const canRepeat = entry === null && !refund && !(savingGoal && goalId);
+  // Le nom du montant fixe : la note, sinon la dette, la catégorie ou le type
+  const repeatLabel =
+    note.trim() ||
+    (payingDebt
+      ? (debts.find((debt) => debt.id === debtId)?.name ?? "")
+      : kind === "expense" && category
+        ? nameOf(category)
+        : t(`kinds.${kind}`));
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
@@ -411,7 +441,13 @@ function EntryForm({
         <input
           type="hidden"
           name="kind"
-          value={kind === "expense" && refund ? "refund" : kind}
+          value={
+            payingDebt
+              ? "transfer"
+              : kind === "expense" && refund
+                ? "refund"
+                : kind
+          }
         />
         <AmountField
           id={id}
@@ -429,7 +465,9 @@ function EntryForm({
             <label className="flex min-h-11 items-start gap-3 text-sm">
               <Checkbox
                 checked={refund}
-                onCheckedChange={(value) => setRefund(value === true)}
+                // Au clic seulement : React remet le formulaire à zéro après un
+                // envoi refusé, et la case ne doit pas se décocher
+                onClick={() => setRefund((value) => !value)}
                 className="mt-0.5"
               />
               <span className="flex flex-col">
@@ -439,6 +477,51 @@ function EntryForm({
                 </span>
               </span>
             </label>
+            {canPayDebt ? (
+              <FieldSet>
+                <FieldLegend variant="label">{t("form.whichDebt")}</FieldLegend>
+                <div
+                  role="radiogroup"
+                  aria-label={t("form.whichDebt")}
+                  className="flex flex-wrap gap-2"
+                >
+                  {debts.map((debt) => (
+                    <button
+                      key={debt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={debtId === debt.id}
+                      onClick={() => {
+                        setDebtId(debt.id);
+                        // Le paiement part d'un compte de tous les jours
+                        const from = accounts.find(
+                          (account) => account.id === accountId,
+                        );
+                        if (from && isDebtType(from.type)) setAccountId(null);
+                      }}
+                      className={cn(
+                        chip,
+                        debtId === debt.id ? chipOn : chipOff,
+                      )}
+                    >
+                      {debt.name}
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    role="radio"
+                    aria-checked={debtId === null}
+                    onClick={() => setDebtId(null)}
+                    className={cn(chip, debtId === null ? chipOn : chipOff)}
+                  >
+                    {t("form.otherDebt")}
+                  </button>
+                </div>
+                {payingDebt ? (
+                  <FieldDescription>{t("form.debtHint")}</FieldDescription>
+                ) : null}
+              </FieldSet>
+            ) : null}
           </>
         ) : null}
         {savingGoal ? (
@@ -474,7 +557,20 @@ function EntryForm({
             </div>
           </FieldSet>
         ) : null}
-        {kind === "transfer" ? (
+        {payingDebt ? (
+          <>
+            <input type="hidden" name="toAccountId" value={debtId ?? ""} />
+            <AccountField
+              name="accountId"
+              legend={t("form.paidFrom")}
+              value={accountId}
+              onChange={setAccountId}
+              optional={false}
+              only={(account) => !isDebtType(account.type)}
+              error={fieldError("accountId")}
+            />
+          </>
+        ) : kind === "transfer" ? (
           <>
             <AccountField
               name="accountId"
@@ -540,6 +636,26 @@ function EntryForm({
             <FieldError>{fieldError("note")}</FieldError>
           ) : null}
         </Field>
+        {canRepeat ? (
+          <div className="flex flex-col gap-2">
+            <Chips
+              name="repeat"
+              legend={t("form.repeat")}
+              values={["never", ...BUDGET_FREQUENCIES] as const}
+              value={repeat}
+              onChange={setRepeat}
+              label={(value) =>
+                value === "never"
+                  ? t("form.repeatNever")
+                  : t(`frequencies.${value}`)
+              }
+            />
+            <input type="hidden" name="label" value={repeatLabel} />
+            {repeat !== "never" ? (
+              <FieldDescription>{t("form.repeatHint")}</FieldDescription>
+            ) : null}
+          </div>
+        ) : null}
       </FieldGroup>
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">

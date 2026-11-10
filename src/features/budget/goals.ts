@@ -8,8 +8,16 @@ import { isBudgetError, parseAmount, type BudgetError } from "./rules";
 
 export const GOAL_NAME_MAX = 40;
 export const MAX_GOALS = 20;
-/** Le fonds d'urgence : de 3 à 6 mois de dépenses (Agence de la consommation en matière financière du Canada). */
-export const EMERGENCY_MONTHS = 3;
+/**
+ * Le fonds d'urgence : 6 mois de dépenses, de quoi vivre sans paie le temps de
+ * retrouver un emploi (décision du fondateur, 2026-11-10 ; l'Agence de la
+ * consommation en matière financière du Canada conseille de 3 à 6 mois).
+ */
+export const EMERGENCY_MONTHS = 6;
+
+/** Un objectif particulier : le fonds d'urgence (un seul par personne). */
+export const GOAL_KINDS = ["emergency"] as const;
+export type GoalKind = (typeof GOAL_KINDS)[number];
 
 export type BudgetGoalRow = {
   id: string;
@@ -81,6 +89,8 @@ export const goalFormSchema = z
       .optional()
       .transform((value) => value || null),
     starting: z.string().optional().default(""),
+    /** Créé depuis « Fonds d'urgence » : le plan d'argent le suit. */
+    emergency: z.literal("1").optional(),
   })
   .transform((input, context) => {
     const target = parseAmount(input.target);
@@ -104,6 +114,7 @@ export const goalFormSchema = z
       targetCents: target ?? 0,
       targetOn: input.targetOn,
       startingCents: starting ?? 0,
+      kind: input.emergency ? ("emergency" as const) : null,
     };
   });
 export type GoalInput = z.output<typeof goalFormSchema>;

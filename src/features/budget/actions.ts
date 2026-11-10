@@ -10,6 +10,7 @@ import {
   saveRecurring,
 } from "@/server/budget/service";
 import {
+  BUDGET_FREQUENCIES,
   entryFieldErrors,
   entryFormSchema,
   recurringFieldErrors,
@@ -35,6 +36,63 @@ function idOf(value: string | null) {
   return parsed.success ? parsed.data : undefined;
 }
 
+/** Les champs d'un montant fixe, dans le formulaire d'une transaction. */
+const REPEAT_FIELDS: Partial<Record<RecurringField, EntryField>> = {
+  kind: "kind",
+  label: "note",
+  amount: "amount",
+  category: "category",
+  startsOn: "date",
+  accountId: "accountId",
+  toAccountId: "toAccountId",
+};
+
+/**
+ * Une transaction qui revient (« Répéter », décision du fondateur, 2026-11-10) :
+ * elle devient un montant fixe qui commence à sa date ; Get iT l'inscrit à chaque
+ * date, celle-ci comprise.
+ */
+async function saveRepeating(
+  userId: string,
+  frequency: (typeof BUDGET_FREQUENCIES)[number],
+  formData: FormData,
+): Promise<BudgetFormState<EntryField>> {
+  const text = (name: string) => {
+    const value = formData.get(name);
+    return typeof value === "string" ? value : "";
+  };
+  const parsed = recurringFormSchema.safeParse({
+    kind: text("kind"),
+    label: text("label"),
+    amount: text("amount"),
+    category: text("category"),
+    frequency,
+    startsOn: text("date"),
+    endsOn: "",
+    accountId: text("accountId"),
+    toAccountId: text("toAccountId"),
+  });
+  if (!parsed.success) {
+    const fieldErrors: Partial<Record<EntryField, BudgetError>> = {};
+    for (const [field, key] of Object.entries(
+      recurringFieldErrors(parsed.error),
+    )) {
+      const target = REPEAT_FIELDS[field as RecurringField];
+      if (target && key) fieldErrors[target] = key;
+    }
+    return { status: "error", fieldErrors };
+  }
+  try {
+    const result = await saveRecurring(userId, null, parsed.data);
+    if (!result.ok) return { status: "error", error: result.error };
+  } catch (error) {
+    console.error("Enregistrement du montant fixe impossible", error);
+    return { status: "error", error: "unexpected" };
+  }
+  revalidateBudget();
+  return { status: "saved" };
+}
+
 /** Ajoute (`entryId` null) ou modifie une transaction. */
 export async function saveEntryAction(
   entryId: string | null,
@@ -44,6 +102,13 @@ export async function saveEntryAction(
   const user = await requireUser();
   const id = idOf(entryId);
   if (id === undefined) return { status: "error", error: "notFound" };
+  const repeat = BUDGET_FREQUENCIES.find(
+    (value) => value === formData.get("repeat"),
+  );
+  // Seulement à l'ajout : un remboursement ne revient pas
+  if (repeat && id === null && formData.get("kind") !== "refund") {
+    return saveRepeating(user.id, repeat, formData);
+  }
   const parsed = entryFormSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
     return { status: "error", fieldErrors: entryFieldErrors(parsed.error) };

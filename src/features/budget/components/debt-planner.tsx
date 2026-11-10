@@ -25,7 +25,14 @@ function monthAfter(today: string, months: number) {
  * chaque mois. Tout est calculé dans le téléphone, à partir des soldes, des taux et
  * des minimums des comptes.
  */
-export function DebtPlanner({ debts }: { debts: Debt[] }) {
+export function DebtPlanner({
+  debts,
+  suggestedCents,
+}: {
+  debts: Debt[];
+  /** Ce qui reste chaque mois d'après le plan d'argent ; null s'il n'y en a pas. */
+  suggestedCents: number | null;
+}) {
   const t = useTranslations("Budget.debts");
   const format = useFormatter();
   const locale = useLocale();
@@ -33,7 +40,11 @@ export function DebtPlanner({ debts }: { debts: Debt[] }) {
   const { currency, today } = useBudget();
   const money = (cents: number) => formatMoney(format, cents, currency);
   const [strategy, setStrategy] = useState<DebtStrategy>("avalanche");
-  const [extra, setExtra] = useState("100");
+  const [extra, setExtra] = useState(
+    suggestedCents
+      ? amountText(Math.round(suggestedCents / 100), locale)
+      : "100",
+  );
   const extraCents = parseAmount(extra) ?? 0;
   const plan = simulatePayoff(debts, extraCents, strategy);
   const minimum = simulatePayoff(debts, 0, null);
@@ -100,6 +111,11 @@ export function DebtPlanner({ debts }: { debts: Debt[] }) {
             className="h-11 w-24 rounded-lg border border-input bg-transparent px-2 text-right tabular-nums outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           />
         </div>
+        {suggestedCents ? (
+          <p className="text-xs text-pretty text-muted-foreground">
+            {t("fromPlan")}
+          </p>
+        ) : null}
       </div>
 
       {plan.finished ? (
@@ -128,6 +144,14 @@ export function DebtPlanner({ debts }: { debts: Debt[] }) {
               })}
             </span>
           ) : null}
+          <span className="text-sm text-pretty text-muted-foreground">
+            {t("after", {
+              amount: money(
+                debts.reduce((sum, debt) => sum + debt.minimumCents, 0) +
+                  extraCents,
+              ),
+            })}
+          </span>
         </div>
       ) : (
         <p role="alert" className="text-sm font-medium">

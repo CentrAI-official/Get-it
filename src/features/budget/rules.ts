@@ -49,6 +49,7 @@ export const MAX_ENTRIES_PER_DAY = 200;
 export const BUDGET_ERRORS = [
   "amountInvalid",
   "rateInvalid",
+  "dayInvalid",
   "accountRequired",
   "sameAccount",
   "accountLimit",

@@ -9,7 +9,6 @@ import {
   type AccountInput,
   type BudgetAccountRow,
 } from "@/features/budget/accounts";
-import type { Debt } from "@/features/budget/debts";
 import { MAX_GOALS, type GoalInput } from "@/features/budget/goals";
 import { monthsUntil } from "@/features/budget/reports";
 import { BALANCE_MAX_CENTS, type BudgetError } from "@/features/budget/rules";
@@ -23,7 +22,7 @@ import { getBudgetBase, loadGoalRows } from "./service";
 type Result = { ok: true } | { ok: false; error: BudgetError };
 
 /** Ce qui a bougé dans chaque compte, mois par mois, depuis son ouverture. */
-async function loadDeltas(userId: string): Promise<AccountDelta[]> {
+export async function loadDeltas(userId: string): Promise<AccountDelta[]> {
   return db.$queryRaw<AccountDelta[]>`
     SELECT a.id::text AS "accountId",
            to_char(e.occurred_on, 'YYYY-MM') AS month,
@@ -74,6 +73,7 @@ const accountData = (input: AccountInput) => ({
   openedOn: toDbDate(input.openedOn),
   rateBp: input.rateBp,
   minimumCents: input.minimumCents,
+  paymentDay: input.paymentDay,
 });
 
 /** Ajoute (`accountId` null) ou modifie un compte. */
@@ -81,18 +81,23 @@ export async function saveAccount(
   userId: string,
   accountId: string | null,
   input: AccountInput,
-): Promise<Result> {
+): Promise<{ ok: true; id: string } | { ok: false; error: BudgetError }> {
   if (accountId) {
     const { count } = await db.budgetAccount.updateMany({
       where: { id: accountId, userId },
       data: accountData(input),
     });
-    return count > 0 ? { ok: true } : { ok: false, error: "notFound" };
+    return count > 0
+      ? { ok: true, id: accountId }
+      : { ok: false, error: "notFound" };
   }
   const count = await db.budgetAccount.count({ where: { userId } });
   if (count >= MAX_ACCOUNTS) return { ok: false, error: "accountLimit" };
-  await db.budgetAccount.create({ data: { userId, ...accountData(input) } });
-  return { ok: true };
+  const { id } = await db.budgetAccount.create({
+    data: { userId, ...accountData(input) },
+    select: { id: true },
+  });
+  return { ok: true, id };
 }
 
 /**
@@ -168,53 +173,9 @@ export async function deleteAccount(userId: string, accountId: string) {
   });
 }
 
-export type GoalsPage = Awaited<ReturnType<typeof getBudgetBase>> & {
-  goalRows: Awaited<ReturnType<typeof loadGoalRows>>;
-  /** Les dettes avec leur solde ; celles sans taux ou minimum sont à compléter. */
-  debts: Debt[];
-  incompleteDebts: { id: string; name: string }[];
-  /** Les essentiels d'un mois, pour proposer un fonds d'urgence. */
-  monthlyNeedsCents: number;
-};
-
-export async function getGoalsPage(userId: string): Promise<GoalsPage> {
-  const base = await getBudgetBase(userId);
-  const [goalRows, deltas, needs] = await Promise.all([
-    loadGoalRows(userId),
-    loadDeltas(userId),
-    db.$queryRaw<{ cents: number }[]>`
-      SELECT COALESCE(SUM(amount_cents), 0)::float8 / 3 AS cents
-      FROM budget_entries
-      WHERE user_id = ${userId}::uuid
-        AND kind = 'expense'
-        AND occurred_on >= ${toDbDate(base.today)}::date - 92
-        AND category IN ('housing', 'utilities', 'phone', 'groceries', 'transport', 'insurance', 'health', 'children', 'fees', 'taxes')`,
-  ]);
-  const debts: Debt[] = [];
-  const incompleteDebts: { id: string; name: string }[] = [];
-  for (const account of base.accounts) {
-    if (!isDebtType(account.type)) continue;
-    const balance = -balanceOf(account, deltas);
-    if (balance <= 0) continue;
-    if (account.rateBp === null || !account.minimumCents) {
-      incompleteDebts.push({ id: account.id, name: account.name });
-    } else {
-      debts.push({
-        id: account.id,
-        name: account.name,
-        balanceCents: balance,
-        rateBp: account.rateBp,
-        minimumCents: account.minimumCents,
-      });
-    }
-  }
-  return {
-    ...base,
-    goalRows,
-    debts,
-    incompleteDebts,
-    monthlyNeedsCents: Math.round(needs[0]?.cents ?? 0),
-  };
+/** Les objectifs d'épargne ; les dettes et le fonds d'urgence viennent du plan d'argent (`getMoneyView`). */
+export async function loadGoals(userId: string) {
+  return loadGoalRows(userId);
 }
 
 const goalData = (input: GoalInput) => ({
@@ -237,9 +198,21 @@ export async function saveGoal(
     });
     return count > 0 ? { ok: true } : { ok: false, error: "notFound" };
   }
-  const count = await db.budgetGoal.count({ where: { userId } });
+  const [count, emergency] = await Promise.all([
+    db.budgetGoal.count({ where: { userId } }),
+    input.kind
+      ? db.budgetGoal.count({ where: { userId, kind: input.kind } })
+      : 0,
+  ]);
   if (count >= MAX_GOALS) return { ok: false, error: "goalLimit" };
-  await db.budgetGoal.create({ data: { userId, ...goalData(input) } });
+  // Un seul fonds d'urgence : un deuxième reste un objectif comme les autres
+  await db.budgetGoal.create({
+    data: {
+      userId,
+      ...goalData(input),
+      kind: emergency === 0 ? input.kind : null,
+    },
+  });
   return { ok: true };
 }
 

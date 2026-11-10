@@ -1,9 +1,13 @@
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { DevelopmentSection } from "@/features/development/components/development-section";
+import { BudgetSwipe } from "./budget-swipe";
 import { BudgetTabs, type BudgetTabKey } from "./budget-tabs";
 
-/** Une page du budget : l'en-tête de Financier, puis les onglets du budget. */
+/**
+ * Une page du budget : l'en-tête de Financier, puis les onglets du budget. Le
+ * contenu se glisse vers l'onglet suivant ou celui d'avant.
+ */
 export function BudgetSection({
   current,
   children,
@@ -26,7 +30,7 @@ export function BudgetSection({
           reports: t("reports"),
         }}
       />
-      {children}
+      <BudgetSwipe current={current}>{children}</BudgetSwipe>
     </DevelopmentSection>
   );
 }

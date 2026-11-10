@@ -1,10 +1,13 @@
 import { PiggyBank } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getGoalsPage } from "@/server/budget/accounts";
+import { loadGoals } from "@/server/budget/accounts";
+import { getMoneyView } from "@/server/budget/money";
+import { getBudget } from "@/server/budget/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { EMERGENCY_MONTHS, goalProgress } from "../goals";
 import { formatMoney } from "../format";
+import { AccountAddButton } from "./account-dialogs";
 import { BudgetProvider } from "./budget-context";
 import { DebtPlanner } from "./debt-planner";
 import { GoalAddButton, GoalRow } from "./goal-dialogs";
@@ -16,7 +19,11 @@ export async function GoalsLoader() {
     getTranslations("Budget.goals"),
     getFormatter(),
   ]);
-  const page = await getGoalsPage(profile.id);
+  const page = await getBudget(profile.id, { view: "month", day: null });
+  const [goalRows, plan] = await Promise.all([
+    loadGoals(profile.id),
+    getMoneyView(profile.id, page),
+  ]);
   const money = (cents: number) => formatMoney(format, cents, page.currency);
   const context = {
     categories: page.categories,
@@ -25,14 +32,15 @@ export async function GoalsLoader() {
     today: page.today,
     currency: page.currency,
   };
-  const goals = page.goalRows.map((goal) => ({
+  const goals = goalRows.map((goal) => ({
     goal,
     progress: goalProgress(goal, page.today),
   }));
+  // Le fonds d'urgence du plan : proposé tant qu'il n'existe pas
   const emergencyCents =
-    page.monthlyNeedsCents > 0
-      ? Math.ceil((page.monthlyNeedsCents * EMERGENCY_MONTHS) / 10_000) * 10_000
-      : null;
+    plan.emergencyGoalId === null && plan.fundCents > 0 ? plan.fundCents : null;
+  const surplusCents =
+    plan.plan && plan.basis.surplusCents > 0 ? plan.basis.surplusCents : null;
 
   return (
     <BudgetProvider value={context}>
@@ -80,22 +88,23 @@ export async function GoalsLoader() {
           <h2 id="debts-title" className="caps-label text-muted-foreground">
             {t("debtsTitle")}
           </h2>
-          {page.debts.length > 0 ? (
-            <DebtPlanner debts={page.debts} />
+          {plan.debts.length > 0 ? (
+            <DebtPlanner debts={plan.debts} suggestedCents={surplusCents} />
           ) : (
             <p className="text-sm text-pretty text-muted-foreground">
-              {page.incompleteDebts.length > 0
+              {plan.incomplete.length > 0
                 ? t("debtsIncomplete")
                 : t("debtsEmpty")}
             </p>
           )}
-          {page.incompleteDebts.length > 0 && page.debts.length > 0 ? (
+          {plan.incomplete.length > 0 && plan.debts.length > 0 ? (
             <p className="text-xs text-muted-foreground">
               {t("debtsMissing", {
-                names: page.incompleteDebts.map((debt) => debt.name).join(", "),
+                names: plan.incomplete.map((debt) => debt.name).join(", "),
               })}
             </p>
           ) : null}
+          <AccountAddButton debt />
         </section>
       </div>
     </BudgetProvider>

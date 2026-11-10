@@ -4640,7 +4640,14 @@
       "to": "To",
       "account": "Account",
       "transferHint": "A transfer moves your money without spending it. Into savings or an investment, it counts as saved.",
-      "editHint": "Changes apply to the next payments: the past stays as it is."
+      "editHint": "Changes apply to the next payments: the past stays as it is.",
+      "repeat": "Repeat",
+      "repeatNever": "Once",
+      "repeatHint": "Get iT will add it on each date, starting with this one. You’ll find it in Bills.",
+      "whichDebt": "Which debt?",
+      "otherDebt": "Other",
+      "paidFrom": "Paid from",
+      "debtHint": "The payment lowers this debt’s balance. A credit card doesn’t count twice: its purchases are already in your budget."
     },
     "errors": {
       "amountInvalid": "Enter a valid amount (e.g. 12.50).",
@@ -4660,7 +4667,8 @@
       "accountLimit": "You already have 30 accounts.",
       "goalLimit": "You already have 20 goals.",
       "categoryLimit": "You already have 30 categories of your own.",
-      "importLimit": "You imported a lot of rows today. Try again tomorrow."
+      "importLimit": "You imported a lot of rows today. Try again tomorrow.",
+      "dayInvalid": "Choose a day between 1 and 31."
     },
     "erase": {
       "button": "Erase my budget",
@@ -4928,12 +4936,21 @@
       "save": "Save",
       "deleteTitle": "Delete “{name}”?",
       "deleteText": "Its expenses and income stay in your budget, without an account. Its balance corrections and transfers are removed.",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "paymentDay": "Payment day",
+      "paymentDayHint": "The day of the month the payment is due, 1 to 31.",
+      "autoPay": "Add the minimum payment every month",
+      "autoPayHint": "A recurring transfer from your account on the payment day: it counts in your month and in your plan.",
+      "autoPayNeeds": "Add the minimum payment and the payment day to add it every month.",
+      "autoPayDone": "A recurring payment already goes to this debt: change it in Bills.",
+      "payFrom": "Paid from",
+      "dueShort": "due on the {day, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+      "addDebt": "Add a debt"
     },
     "goals": {
       "title": "Savings goals",
       "empty": "A trip, a down payment, an emergency fund: give your savings a purpose and watch them grow.",
-      "emergencyHint": "An emergency fund of {months, number} months of your essential spending, that’s {amount}. The Financial Consumer Agency of Canada suggests 3 to 6 months.",
+      "emergencyHint": "An emergency fund of {months, number} months of your essential expenses and minimum payments, or {amount}: enough to live without a paycheque while you find a new job.",
       "saved": "{saved} of {target}",
       "done": "Reached!",
       "late": "Date passed",
@@ -4976,7 +4993,9 @@
       "saves": "{amount} less interest than with minimums only, {months, plural, =0 {by the same date} one {and # month sooner} other {and # months sooner}}.",
       "never": "With these payments, your debts don’t go down: interest takes everything. Add an amount each month.",
       "debtLine": "{amount} · {rate, number}%",
-      "estimate": "An estimate: the rate stays the same and nothing is added to your debts. For a tailored plan, talk to a financial planner."
+      "estimate": "An estimate: the rate stays the same and nothing is added to your debts. For a tailored plan, talk to a financial planner.",
+      "fromPlan": "Suggested by your money plan: what’s left each month after your expenses and minimums.",
+      "after": "Then {amount} a month goes to your emergency fund, then to your investments."
     },
     "reports": {
       "rangeLabel": "Period",
@@ -4997,7 +5016,55 @@
       "below": "−{delta, number}% vs your average",
       "biggestTitle": "Your biggest expenses"
     },
-    "incomeLine": "Planned income: {amount}"
+    "incomeLine": "Planned income: {amount}",
+    "money": {
+      "title": "Your money plan",
+      "by": "Calculated by Get iT from your budget, without AI: nothing is sent to Get iT AI.",
+      "cashOk": "Your payments for the next 31 days are covered: your balance never drops below {amount}.",
+      "cashShort": "On {date}, you’d be {amount} short for “{label}”. Keep that money in your account or move this payment.",
+      "cashNoAccount": "Add your chequing account and its balance in Accounts: Get iT will check the money is there on each payment date.",
+      "noIncome": "Add your pay in Bills (Fixed income): Get iT will build your plan to clear your debts and grow your savings.",
+      "noSpending": "Add your expenses or set up your budget: your plan needs to know what goes out each month.",
+      "short": "Your expenses and minimum payments are {amount} a month more than your income. Cut an expense: your plan appears as soon as there’s money left.",
+      "thisMonth": "This month",
+      "move": {
+        "cushion": "into your safety cushion",
+        "debts": "extra on {name}",
+        "fund": "into your emergency fund",
+        "invest": "into your investments or savings"
+      },
+      "steps": {
+        "cushion": {
+          "title": "A one-month cushion",
+          "text": "{amount} for the unexpected, before anything else."
+        },
+        "debts": {
+          "title": "Your debts, most expensive first",
+          "text": "{count, plural, one {# debt} other {# debts}}, {amount}. First {name}, at {rate, number}%.",
+          "none": "No debt: this step is skipped."
+        },
+        "fund": {
+          "title": "A six-month emergency fund",
+          "text": "{amount}: enough to live six months without a paycheque."
+        },
+        "invest": {
+          "title": "Invest the rest",
+          "text": "{amount} a month, including the payments of cleared debts (TFSA, RRSP, savings)."
+        }
+      },
+      "status": {
+        "done": "Done",
+        "by": "By {date}",
+        "from": "From {date}",
+        "never": "Not with this surplus",
+        "now": "You are here"
+      },
+      "saved": "{saved} saved of {target}",
+      "basis": "Income {income} · spending {spending} · minimums {minimums} · {surplus} left each month",
+      "incomplete": "Missing a rate or minimum, not in your plan yet: {names}.",
+      "seeGoals": "See my debts and emergency fund",
+      "estimate": "An estimate: rates and amounts stay the same. For a tailored plan, talk to a financial advisor."
+    }
   },
   "Workouts": {
     "close": "Close",

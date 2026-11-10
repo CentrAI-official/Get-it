@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -53,14 +54,16 @@ import {
 import { amountField, formatMoney } from "../format";
 import { ACCOUNT_ICONS } from "../icons";
 import type { BudgetError } from "../rules";
-import { AmountField } from "./budget-dialogs";
+import { AccountField as AccountPicker, AmountField } from "./budget-dialogs";
 import { useBudget } from "./budget-context";
 
-/** Ajouter un compte. */
+/** Ajouter un compte ; « Ajouter une dette » ouvre la fenêtre sur une carte de crédit. */
 export function AccountAddButton({
   variant = "outline",
+  debt = false,
 }: {
   variant?: "default" | "outline";
+  debt?: boolean;
 }) {
   const t = useTranslations("Budget.accounts");
   const [open, setOpen] = useState(false);
@@ -72,10 +75,15 @@ export function AccountAddButton({
         onClick={() => setOpen(true)}
       >
         <Plus aria-hidden="true" />
-        {t("add")}
+        {t(debt ? "addDebt" : "add")}
       </Button>
       {open ? (
-        <AccountDialog account={null} onClose={() => setOpen(false)} />
+        <AccountDialog
+          account={null}
+          initialType={debt ? "credit" : "chequing"}
+          paid={false}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
     </>
   );
@@ -85,9 +93,12 @@ export function AccountAddButton({
 export function AccountRow({
   line,
   debt,
+  paid,
 }: {
   line: BudgetAccountRow & { balanceCents: number };
   debt: boolean;
+  /** Un paiement fixe va déjà à cette dette. */
+  paid: boolean;
 }) {
   const t = useTranslations("Budget.accounts");
   const format = useFormatter();
@@ -108,9 +119,18 @@ export function AccountRow({
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-semibold">{line.name}</span>
-          {debt && line.rateBp !== null ? (
+          {debt && (line.rateBp !== null || line.paymentDay !== null) ? (
             <span className="text-xs text-muted-foreground">
-              {t("rateShort", { rate: line.rateBp / 100 })}
+              {[
+                line.rateBp !== null
+                  ? t("rateShort", { rate: line.rateBp / 100 })
+                  : null,
+                line.paymentDay !== null
+                  ? t("dueShort", { day: line.paymentDay })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           ) : null}
         </span>
@@ -119,7 +139,12 @@ export function AccountRow({
         </span>
       </button>
       {open ? (
-        <AccountDialog account={line} onClose={() => setOpen(false)} />
+        <AccountDialog
+          account={line}
+          initialType={line.type}
+          paid={paid}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
     </li>
   );
@@ -133,9 +158,14 @@ function useErrorText() {
 /** Ajouter ou modifier un compte, et mettre son solde à jour. */
 function AccountDialog({
   account,
+  initialType,
+  paid,
   onClose,
 }: {
   account: (BudgetAccountRow & { balanceCents: number }) | null;
+  initialType: AccountType;
+  /** Un paiement fixe va déjà à cette dette : on ne l'inscrit pas deux fois. */
+  paid: boolean;
   onClose: () => void;
 }) {
   const t = useTranslations("Budget.accounts");
@@ -143,8 +173,8 @@ function AccountDialog({
   const locale = useLocale();
   const id = useId();
   const errorText = useErrorText();
-  const { today } = useBudget();
-  const [type, setType] = useState<AccountType>(account?.type ?? "chequing");
+  const { today, accounts } = useBudget();
+  const [type, setType] = useState<AccountType>(initialType);
   const [name, setName] = useState(account?.name ?? "");
   const [balance, setBalance] = useState(
     account ? signedField(account.openingCents, account.type, locale) : "",
@@ -158,6 +188,11 @@ function AccountDialog({
   const [minimum, setMinimum] = useState(
     account?.minimumCents ? amountField(account.minimumCents, locale) : "",
   );
+  const [paymentDay, setPaymentDay] = useState(
+    account?.paymentDay ? String(account.paymentDay) : "",
+  );
+  const [autoPay, setAutoPay] = useState(false);
+  const [payFrom, setPayFrom] = useState<string | null>(null);
   const [current, setCurrent] = useState(
     account ? signedField(account.balanceCents, account.type, locale) : "",
   );
@@ -182,6 +217,14 @@ function AccountDialog({
   const debt = isDebtType(type);
   const fieldError = (field: AccountField) =>
     errorText(state.fieldErrors?.[field]);
+  // Le paiement minimum part d'un compte de tous les jours, jamais d'une autre dette
+  const canAutoPay =
+    debt &&
+    !paid &&
+    accounts.some(
+      (entry) => entry.id !== account?.id && !isDebtType(entry.type),
+    );
+  const autoPayReady = minimum.trim() !== "" && paymentDay.trim() !== "";
 
   return (
     <>
@@ -331,6 +374,67 @@ function AccountDialog({
                     <FieldError>{fieldError("minimum")}</FieldError>
                   ) : null}
                 </Field>
+              </div>
+            ) : null}
+            {debt ? (
+              <Field data-invalid={fieldError("paymentDay") ? true : undefined}>
+                <FieldLabel htmlFor={`${id}-day`}>{t("paymentDay")}</FieldLabel>
+                <Input
+                  id={`${id}-day`}
+                  name="paymentDay"
+                  value={paymentDay}
+                  onChange={(event) => setPaymentDay(event.target.value)}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="15"
+                  maxLength={2}
+                  aria-invalid={fieldError("paymentDay") ? true : undefined}
+                  className="h-11 w-24"
+                />
+                <FieldDescription>{t("paymentDayHint")}</FieldDescription>
+                {fieldError("paymentDay") ? (
+                  <FieldError>{fieldError("paymentDay")}</FieldError>
+                ) : null}
+              </Field>
+            ) : null}
+            {debt && paid ? (
+              <p className="text-xs text-pretty text-muted-foreground">
+                {t("autoPayDone")}
+              </p>
+            ) : null}
+            {canAutoPay ? (
+              <div className="flex flex-col gap-3">
+                <label className="flex min-h-11 items-start gap-3 text-sm">
+                  <Checkbox
+                    checked={autoPay && autoPayReady}
+                    disabled={!autoPayReady}
+                    // Au clic seulement : React remet le formulaire à zéro après
+                    // un envoi refusé, et la case ne doit pas se décocher
+                    onClick={() => setAutoPay((value) => !value)}
+                    className="mt-0.5"
+                  />
+                  <span className="flex flex-col">
+                    <span className="font-medium">{t("autoPay")}</span>
+                    <span className="text-xs text-pretty text-muted-foreground">
+                      {t(autoPayReady ? "autoPayHint" : "autoPayNeeds")}
+                    </span>
+                  </span>
+                </label>
+                {autoPay && autoPayReady ? (
+                  <>
+                    <input type="hidden" name="autoPay" value="on" />
+                    <AccountPicker
+                      name="payFrom"
+                      legend={t("payFrom")}
+                      value={payFrom}
+                      onChange={setPayFrom}
+                      optional={false}
+                      exclude={account?.id ?? null}
+                      only={(entry) => !isDebtType(entry.type)}
+                      error={fieldError("payFrom")}
+                    />
+                  </>
+                ) : null}
               </div>
             ) : null}
             {state.error ? (

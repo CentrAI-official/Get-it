@@ -18,7 +18,11 @@ import {
   setRollover,
   setupBudget,
 } from "@/server/budget/plans";
-import { getBudgetBase, saveEntry } from "@/server/budget/service";
+import {
+  getBudgetBase,
+  saveEntry,
+  saveRecurring,
+} from "@/server/budget/service";
 import {
   exportEntries,
   getImportHistory,
@@ -27,6 +31,7 @@ import {
 import {
   accountFieldErrors,
   accountFormSchema,
+  isDebtType,
   type AccountField,
 } from "./accounts";
 import {
@@ -37,6 +42,7 @@ import {
 } from "./categories";
 import { goalFieldErrors, goalFormSchema, type GoalField } from "./goals";
 import { importSchema } from "./import";
+import { monthlyStartFor } from "./money-plan";
 import { parseAmount, parseSignedAmount, type BudgetError } from "./rules";
 import { revalidateBudget } from "./revalidate";
 import { setupSchema } from "./setup";
@@ -199,7 +205,16 @@ function idOf(value: string | null) {
   return parsed.success ? parsed.data : undefined;
 }
 
-/** Ajoute (`accountId` null) ou modifie un compte. */
+const autoPaySchema = z.object({
+  autoPay: z.literal("on").optional(),
+  payFrom: z.union([z.uuid(), z.literal("")]).optional(),
+});
+
+/**
+ * Ajoute (`accountId` null) ou modifie un compte. Pour une dette, « Inscrire le
+ * paiement minimum chaque mois » crée un virement fixe depuis le compte choisi,
+ * le jour du paiement (un seul par dette).
+ */
 export async function saveAccountAction(
   accountId: string | null,
   _previous: FormResult<AccountField>,
@@ -208,11 +223,48 @@ export async function saveAccountAction(
   const user = await requireUser();
   const id = idOf(accountId);
   if (id === undefined) return { status: "error", error: "notFound" };
-  const parsed = accountFormSchema.safeParse(Object.fromEntries(formData));
+  const { autoPay, payFrom, ...fields } = Object.fromEntries(formData);
+  const parsed = accountFormSchema.safeParse(fields);
   if (!parsed.success) {
     return { status: "error", fieldErrors: accountFieldErrors(parsed.error) };
   }
-  const result = await guarded(() => saveAccount(user.id, id, parsed.data));
+  const extra = autoPaySchema.safeParse({ autoPay, payFrom });
+  const input = parsed.data;
+  const minimum = input.minimumCents;
+  const day = input.paymentDay;
+  const wantsAutoPay =
+    extra.success &&
+    extra.data.autoPay === "on" &&
+    isDebtType(input.type) &&
+    minimum !== null &&
+    minimum > 0 &&
+    day !== null;
+  const from = extra.success ? extra.data.payFrom || null : null;
+  if (wantsAutoPay && (!from || from === id)) {
+    return { status: "error", fieldErrors: { payFrom: "accountRequired" } };
+  }
+  const result = await guarded(async () => {
+    const saved = await saveAccount(user.id, id, input);
+    if (!saved.ok) return saved;
+    if (wantsAutoPay && from) {
+      const { today, rules } = await getBudgetBase(user.id);
+      if (!rules.some((rule) => rule.toAccountId === saved.id)) {
+        const paid = await saveRecurring(user.id, null, {
+          kind: "transfer",
+          label: input.name,
+          category: null,
+          amountCents: minimum,
+          frequency: "monthly",
+          startsOn: monthlyStartFor(today, day),
+          endsOn: null,
+          accountId: from,
+          toAccountId: saved.id,
+        });
+        if (!paid.ok) return paid;
+      }
+    }
+    return { ok: true };
+  });
   return result.ok
     ? { status: "saved" }
     : { status: "error", error: result.error };

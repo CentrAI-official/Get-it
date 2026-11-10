@@ -114,13 +114,14 @@ export function GoalAddButton({
   const [open, setOpen] = useState<null | {
     name: string;
     target: string;
+    emergency: boolean;
   }>(null);
   return (
     <div className="flex flex-wrap gap-2">
       <Button
         variant="outline"
         className="h-11"
-        onClick={() => setOpen({ name: "", target: "" })}
+        onClick={() => setOpen({ name: "", target: "", emergency: false })}
       >
         <Plus aria-hidden="true" />
         {t("add")}
@@ -134,6 +135,7 @@ export function GoalAddButton({
             setOpen({
               name: t("emergencyName"),
               target: amountField(emergency.cents, locale),
+              emergency: true,
             })
           }
         >
@@ -146,7 +148,7 @@ export function GoalAddButton({
           goal={null}
           progress={null}
           initial={open}
-          hint={open.name && emergency ? emergency.hint : null}
+          hint={open.emergency && emergency ? emergency.hint : null}
           onClose={() => setOpen(null)}
         />
       ) : null}
@@ -163,7 +165,7 @@ function GoalDialog({
 }: {
   goal: BudgetGoalRow | null;
   progress: Progress | null;
-  initial?: { name: string; target: string };
+  initial?: { name: string; target: string; emergency: boolean };
   hint?: string | null;
   onClose: () => void;
 }) {
@@ -249,6 +251,10 @@ function GoalDialog({
         ) : null}
 
         <form action={formAction} noValidate className="flex flex-col gap-5">
+          {/* Le fonds d'urgence que suit le plan d'argent */}
+          {!goal && initial?.emergency ? (
+            <input type="hidden" name="emergency" value="1" />
+          ) : null}
           <Field data-invalid={fieldError("name") ? true : undefined}>
             <FieldLabel htmlFor={`${id}-name`}>{t("name")}</FieldLabel>
             <Input

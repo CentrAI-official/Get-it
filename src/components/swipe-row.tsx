@@ -64,6 +64,9 @@ export function SwipeRow({ actions, children, className }: SwipeRowProps) {
   return (
     <div
       ref={root}
+      // Le glissement de la ligne passe avant celui de la page (onglets du
+      // budget) : vers la droite, ou dans les deux sens quand elle est ouverte
+      data-no-page-swipe={open ? "" : "right"}
       onKeyDown={(event) => {
         if (event.key === "Escape" && open) setOffset(0);
       }}

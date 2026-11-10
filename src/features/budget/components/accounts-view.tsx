@@ -112,6 +112,9 @@ export async function AccountsLoader() {
                       key={line.id}
                       line={line}
                       debt={isDebtType(line.type)}
+                      paid={page.rules.some(
+                        (rule) => rule.toAccountId === line.id,
+                      )}
                     />
                   ))}
                 </ul>

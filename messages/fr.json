@@ -4640,7 +4640,14 @@
       "to": "Vers",
       "account": "Compte",
       "transferHint": "Un virement déplace ton argent sans le dépenser. Vers l’épargne ou un placement, il compte comme mis de côté.",
-      "editHint": "Les changements valent pour les prochains paiements : le passé reste tel quel."
+      "editHint": "Les changements valent pour les prochains paiements : le passé reste tel quel.",
+      "repeat": "Répéter",
+      "repeatNever": "Une fois",
+      "repeatHint": "Get iT l’inscrira à chaque date, à partir de celle-ci. Tu la retrouves dans Factures.",
+      "whichDebt": "Quelle dette?",
+      "otherDebt": "Autre",
+      "paidFrom": "Payé depuis",
+      "debtHint": "Le paiement baisse le solde de cette dette. Une carte de crédit ne compte pas deux fois : ses achats sont déjà dans ton budget."
     },
     "errors": {
       "amountInvalid": "Entre un montant valide (ex. 12,50).",
@@ -4660,7 +4667,8 @@
       "accountLimit": "Tu as déjà 30 comptes.",
       "goalLimit": "Tu as déjà 20 objectifs.",
       "categoryLimit": "Tu as déjà 30 catégories à toi.",
-      "importLimit": "Tu as importé beaucoup de lignes aujourd’hui. Réessaie demain."
+      "importLimit": "Tu as importé beaucoup de lignes aujourd’hui. Réessaie demain.",
+      "dayInvalid": "Choisis un jour entre 1 et 31."
     },
     "erase": {
       "button": "Effacer mon budget",
@@ -4928,12 +4936,21 @@
       "save": "Enregistrer",
       "deleteTitle": "Supprimer « {name} »?",
       "deleteText": "Ses dépenses et ses revenus restent dans ton budget, sans compte. Ses corrections de solde et ses virements disparaissent.",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "paymentDay": "Jour du paiement",
+      "paymentDayHint": "Le jour du mois où le paiement est dû, de 1 à 31.",
+      "autoPay": "Inscrire le paiement minimum chaque mois",
+      "autoPayHint": "Un virement fixe depuis ton compte, le jour du paiement : il compte dans ton mois et dans ton plan.",
+      "autoPayNeeds": "Ajoute le paiement minimum et le jour du paiement pour l’inscrire chaque mois.",
+      "autoPayDone": "Un paiement fixe va déjà à cette dette : il se modifie dans Factures.",
+      "payFrom": "Payé depuis",
+      "dueShort": "paiement le {day, number}",
+      "addDebt": "Ajouter une dette"
     },
     "goals": {
       "title": "Objectifs d’épargne",
       "empty": "Un voyage, une mise de fonds, un fonds d’urgence : donne un but à ton épargne et vois-la avancer.",
-      "emergencyHint": "Un fonds d’urgence de {months, number} mois de tes dépenses essentielles, soit {amount}. L’Agence de la consommation en matière financière du Canada conseille de 3 à 6 mois.",
+      "emergencyHint": "Un fonds d’urgence de {months, number} mois de tes dépenses essentielles et de tes paiements minimums, soit {amount} : de quoi vivre sans paie le temps de retrouver un emploi.",
       "saved": "{saved} sur {target}",
       "done": "Atteint!",
       "late": "Date passée",
@@ -4976,7 +4993,9 @@
       "saves": "{amount} d’intérêts en moins qu’avec les minimums seulement, {months, plural, =0 {à la même date} one {et # mois plus tôt} other {et # mois plus tôt}}.",
       "never": "Avec ces paiements, tes dettes ne baissent pas : les intérêts prennent tout. Ajoute un montant chaque mois.",
       "debtLine": "{amount} · {rate, number} %",
-      "estimate": "Une estimation : le taux reste le même et rien ne s’ajoute à tes dettes. Pour un plan sur mesure, parles-en à un conseiller financier."
+      "estimate": "Une estimation : le taux reste le même et rien ne s’ajoute à tes dettes. Pour un plan sur mesure, parles-en à un conseiller financier.",
+      "fromPlan": "Proposé par ton plan d’argent : ce qui reste chaque mois après tes dépenses et tes minimums.",
+      "after": "Ensuite, {amount} par mois vont à ton fonds d’urgence, puis à tes placements."
     },
     "reports": {
       "rangeLabel": "Période",
@@ -4997,7 +5016,55 @@
       "below": "−{delta, number} % par rapport à ta moyenne",
       "biggestTitle": "Tes plus grosses dépenses"
     },
-    "incomeLine": "Revenus prévus : {amount}"
+    "incomeLine": "Revenus prévus : {amount}",
+    "money": {
+      "title": "Ton plan d’argent",
+      "by": "Calculé par Get iT d’après ton budget, sans IA : rien n’est envoyé à Get iT AI.",
+      "cashOk": "Tes paiements des 31 prochains jours sont couverts : ton solde ne descend pas sous {amount}.",
+      "cashShort": "Le {date}, il manquerait {amount} pour « {label} ». Garde cet argent dans ton compte ou déplace ce paiement.",
+      "cashNoAccount": "Ajoute ton compte chèques et son solde dans Comptes : Get iT vérifiera que l’argent est là à la date de chaque paiement.",
+      "noIncome": "Ajoute ta paie dans Factures (Revenu fixe) : Get iT bâtira ton plan pour finir tes dettes et faire grandir ton épargne.",
+      "noSpending": "Ajoute tes dépenses ou fais ton budget : ton plan a besoin de savoir ce qui sort chaque mois.",
+      "short": "Tes dépenses et tes paiements minimums dépassent tes revenus de {amount} par mois. Réduis une dépense : ton plan s’affichera dès qu’il restera de l’argent.",
+      "thisMonth": "Ce mois-ci",
+      "move": {
+        "cushion": "dans ton coussin d’urgence",
+        "debts": "de plus sur {name}",
+        "fund": "dans ton fonds d’urgence",
+        "invest": "dans tes placements ou ton épargne"
+      },
+      "steps": {
+        "cushion": {
+          "title": "Un coussin d’un mois",
+          "text": "{amount} pour les imprévus, avant tout le reste."
+        },
+        "debts": {
+          "title": "Tes dettes, la plus chère d’abord",
+          "text": "{count, plural, one {# dette} other {# dettes}}, {amount}. D’abord {name}, à {rate, number} %.",
+          "none": "Aucune dette : cette étape est sautée."
+        },
+        "fund": {
+          "title": "Un fonds d’urgence de 6 mois",
+          "text": "{amount} : de quoi vivre 6 mois sans paie."
+        },
+        "invest": {
+          "title": "Placer ce qui reste",
+          "text": "{amount} par mois, avec les paiements des dettes finies (CELI, REER, épargne)."
+        }
+      },
+      "status": {
+        "done": "Fait",
+        "by": "D’ici {date}",
+        "from": "À partir de {date}",
+        "never": "Pas avec ce surplus",
+        "now": "Tu es ici"
+      },
+      "saved": "{saved} de côté sur {target}",
+      "basis": "Revenus {income} · dépenses {spending} · minimums {minimums} · il reste {surplus} par mois",
+      "incomplete": "Sans taux ou sans minimum, pas encore dans ton plan : {names}.",
+      "seeGoals": "Voir mes dettes et mon fonds d’urgence",
+      "estimate": "Une estimation : les taux et les montants restent les mêmes. Pour un plan sur mesure, parles-en à un conseiller financier."
+    }
   },
   "Workouts": {
     "close": "Fermer",

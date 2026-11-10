@@ -38,6 +38,8 @@ export type BudgetAccountRow = {
   openedOn: string;
   rateBp: number | null;
   minimumCents: number | null;
+  /** Le jour du mois où le paiement d'une dette est dû (1 à 31). */
+  paymentDay: number | null;
 };
 
 /** Ce qui a changé dans un compte pendant un mois (« AAAA-MM »). */
@@ -126,6 +128,18 @@ function optionalPositive(value: string) {
 
 const error = (key: BudgetError) => ({ error: key });
 
+/** Le jour du paiement d'une dette : de 1 à 31 (un 31 tombe le 30 d'un mois court). */
+export const PAYMENT_DAY_MAX = 31;
+
+/** Jour tapé (« 15 ») ; null s'il est vide, undefined s'il est invalide. */
+export function parsePaymentDay(value: string): number | null | undefined {
+  const text = value.trim();
+  if (!text) return null;
+  if (!/^\d{1,2}$/.test(text)) return undefined;
+  const day = Number(text);
+  return day >= 1 && day <= PAYMENT_DAY_MAX ? day : undefined;
+}
+
 const ACCOUNT_FIELDS = [
   "name",
   "type",
@@ -133,6 +147,8 @@ const ACCOUNT_FIELDS = [
   "date",
   "rate",
   "minimum",
+  "paymentDay",
+  "payFrom",
 ] as const;
 export type AccountField = (typeof ACCOUNT_FIELDS)[number];
 
@@ -149,6 +165,7 @@ export const accountFormSchema = z
     date: z.iso.date(error("dateInvalid")),
     rate: z.string().optional().default(""),
     minimum: z.string().optional().default(""),
+    paymentDay: z.string().optional().default(""),
   })
   .transform((input, context) => {
     const balance = parseSignedAmount(input.balance);
@@ -179,6 +196,14 @@ export const accountFormSchema = z
         message: "amountInvalid",
       });
     }
+    const paymentDay = debt ? parsePaymentDay(input.paymentDay) : null;
+    if (paymentDay === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["paymentDay"],
+        message: "dayInvalid",
+      });
+    }
     return {
       name: input.name,
       type: input.type,
@@ -186,6 +211,7 @@ export const accountFormSchema = z
       openedOn: input.date,
       rateBp,
       minimumCents: minimum ?? null,
+      paymentDay: paymentDay ?? null,
     };
   });
 export type AccountInput = z.output<typeof accountFormSchema>;

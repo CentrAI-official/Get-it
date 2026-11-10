@@ -80,6 +80,7 @@ const accountSelect = {
   openedOn: true,
   rateBp: true,
   minimumCents: true,
+  paymentDay: true,
 } as const;
 
 // Les colonnes texte sont bornées par les contraintes de la migration
@@ -133,6 +134,7 @@ function toAccount(row: {
   openedOn: Date;
   rateBp: number | null;
   minimumCents: number | null;
+  paymentDay: number | null;
 }): BudgetAccountRow {
   return {
     ...row,
@@ -191,7 +193,7 @@ export type BudgetBase = {
   today: string;
   categories: CategoryInfo[];
   accounts: BudgetAccountRow[];
-  goals: { id: string; name: string }[];
+  goals: { id: string; name: string; kind: string | null }[];
   rules: BudgetRecurringRow[];
   types: AccountTypes;
 };
@@ -217,7 +219,7 @@ export async function getBudgetBase(userId: string): Promise<BudgetBase> {
       db.budgetGoal.findMany({
         where: { userId },
         orderBy: { createdAt: "asc" },
-        select: { id: true, name: true },
+        select: { id: true, name: true, kind: true },
       }),
       db.budgetRecurring.findMany({
         where: { userId },
@@ -299,6 +301,7 @@ export async function loadGoalRows(userId: string) {
         targetCents: true,
         targetOn: true,
         startingCents: true,
+        kind: true,
       },
     }),
     db.budgetEntry.groupBy({
@@ -317,7 +320,7 @@ export async function loadGoalRows(userId: string) {
   }));
 }
 
-export type BudgetPage = Omit<BudgetBase, "types" | "rules"> & {
+export type BudgetPage = BudgetBase & {
   view: BudgetView;
   /** Premier et dernier jour de la période affichée. */
   start: string;
@@ -388,6 +391,8 @@ export async function getBudget(
     categories,
     accounts: base.accounts,
     goals: base.goals,
+    rules,
+    types,
     view: input.view,
     start,
     end,

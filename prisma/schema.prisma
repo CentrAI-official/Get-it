@@ -598,6 +598,8 @@ model BudgetAccount {
   /// Taux annuel d'une dette, en centièmes de pour cent (19,99 % = 1999).
   rateBp       Int?      @map("rate_bp")
   minimumCents Int?      @map("minimum_cents")
+  /// Le jour du mois où le paiement d'une dette est dû (1 à 31).
+  paymentDay   Int?      @map("payment_day") @db.SmallInt
   archivedAt   DateTime? @map("archived_at") @db.Timestamptz(3)
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
@@ -621,6 +623,9 @@ model BudgetGoal {
   targetOn      DateTime? @map("target_on") @db.Date
   /// Déjà mis de côté avant de commencer.
   startingCents Int       @default(0) @map("starting_cents")
+  /// « emergency » : le fonds d'urgence que suit le plan d'argent (un seul par
+  /// personne, index unique partiel dans la migration).
+  kind          String?
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
