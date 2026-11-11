@@ -22,9 +22,11 @@ import { BudgetProvider } from "./budget-context";
 import { BudgetActions, EntryList, EraseBudgetButton } from "./budget-lists";
 import { BudgetSetupButton } from "./budget-setup";
 import { CategoryIcon } from "./category-icon";
+import { FixedPaymentsSection } from "./fixed-payments";
 import { MoneyPlanSection } from "./money-plan-section";
 import { BarSwatch, MonthBar } from "./month-bar";
 import { PlanSection } from "./plan-section";
+import { ProgressSection } from "./progress-section";
 
 const BUDGET_PATH = "/services/financial/budget";
 
@@ -44,8 +46,8 @@ const RECENT_ENTRIES = 5;
 
 /**
  * Financier › Budget : la période choisie (jour, semaine ou mois), ce qui reste à
- * dépenser, la barre du mois, le plan par catégorie, ce qui s'en vient et les
- * dernières transactions.
+ * dépenser, la barre du mois, les paiements fixes à cocher, les dettes et
+ * l'épargne, le plan par catégorie et les dernières transactions.
  */
 export async function BudgetLoader({
   searchParams,
@@ -271,6 +273,22 @@ export async function BudgetLoader({
 
         <BudgetActions />
 
+        {view === "month" ? (
+          <FixedPaymentsSection
+            fixed={budget.fixed}
+            leftover={budget.leftover}
+            pays={current ? budget.pays : []}
+          />
+        ) : null}
+
+        {view === "month" && current ? (
+          <ProgressSection
+            debts={budget.progress.debts}
+            goals={budget.progress.goals}
+            currency={currency}
+          />
+        ) : null}
+
         {moneyView ? (
           <MoneyPlanSection
             money={moneyView}
@@ -334,72 +352,6 @@ export async function BudgetLoader({
                   </li>
                 );
               })}
-            </ul>
-          </section>
-        ) : null}
-
-        {budget.nextUp.length > 0 ? (
-          <section
-            aria-labelledby="budget-next"
-            className="flex flex-col gap-1 border-t border-foreground/8 pt-6"
-          >
-            <div className="flex items-baseline justify-between gap-3">
-              <h2 id="budget-next" className="caps-label text-muted-foreground">
-                {t("nextUp")}
-              </h2>
-              <Link
-                href="/services/financial/budget/bills"
-                className="flex min-h-10 items-center text-sm font-semibold text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
-              >
-                {t("seeBills")}
-              </Link>
-            </div>
-            <ul className="flex flex-col">
-              {budget.nextUp.map((item) => (
-                <li
-                  key={`${item.recurringId}-${item.day}`}
-                  className="flex items-center gap-3 border-b border-foreground/8 py-2.5 last:border-b-0"
-                >
-                  {/* Le jour en grand, son mois dessous, comme une page de calendrier */}
-                  <span className="flex w-12 shrink-0 flex-col items-center">
-                    <span className="font-display text-2xl leading-none tracking-wide text-primary tabular-nums">
-                      {format.dateTime(toDbDate(item.day), {
-                        day: "numeric",
-                        timeZone: "UTC",
-                      })}
-                    </span>
-                    <span className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-                      {format.dateTime(toDbDate(item.day), {
-                        month: "short",
-                        timeZone: "UTC",
-                      })}
-                    </span>
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm font-semibold">
-                      {item.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground first-letter:uppercase">
-                      {format.dateTime(toDbDate(item.day), {
-                        weekday: "long",
-                        timeZone: "UTC",
-                      })}
-                    </span>
-                  </span>
-                  <span className="shrink-0 text-sm font-semibold tabular-nums">
-                    {formatMoney(
-                      format,
-                      item.amountCents,
-                      currency,
-                      item.kind === "income"
-                        ? "income"
-                        : item.kind === "expense"
-                          ? "expense"
-                          : undefined,
-                    )}
-                  </span>
-                </li>
-              ))}
             </ul>
           </section>
         ) : null}

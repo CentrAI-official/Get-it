@@ -13,6 +13,7 @@ import {
   nextOccurrence,
   parseDay,
 } from "../rules";
+import { BillReminders } from "./bill-reminders";
 import { BillsCalendar } from "./bills-calendar";
 import { BudgetProvider } from "./budget-context";
 import { RecurringAddButton, RecurringList } from "./budget-lists";
@@ -89,6 +90,7 @@ export async function BillsLoader({
                 {t("bills.paid", { amount: money(paidCents) })}
               </p>
             </section>
+            <BillReminders enabled={page.reminders} />
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-lg font-semibold first-letter:uppercase">
                 {format.dateTime(toDbDate(month), {

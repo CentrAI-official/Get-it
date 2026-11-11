@@ -10,10 +10,8 @@ import {
   BUDGET_FREQUENCIES,
   BALANCE_MAX_CENTS,
   budgetEffect,
-  dueOccurrences,
   ENTRY_KINDS,
   parseSignedAmount,
-  upcomingIn,
   BUDGET_LABEL_MAX,
   BUDGET_NOTE_MAX,
   entryFieldErrors,
@@ -239,78 +237,6 @@ describe("transactions", () => {
       budgetEffect(move("transfer", { toAccountId: "loan" }), types),
     ).toMatchObject({ spent: 5000, category: "debt" });
     expect(budgetEffect(move("adjustment"), types).income).toBe(0);
-  });
-});
-
-describe("montants fixes inscrits", () => {
-  const rent = {
-    frequency: "monthly" as const,
-    startsOn: "2026-09-01",
-    endsOn: null,
-    postedThrough: null,
-  };
-
-  it("inscrit les paiements passés, puis seulement les nouveaux", () => {
-    const first = dueOccurrences(rent, "2026-11-04", 100);
-    expect(first).toEqual({
-      days: ["2026-09-01", "2026-10-01", "2026-11-01"],
-      postedThrough: "2026-11-04",
-    });
-    expect(
-      dueOccurrences(
-        { ...rent, postedThrough: "2026-11-04" },
-        "2026-11-30",
-        100,
-      ).days,
-    ).toEqual([]);
-    expect(
-      dueOccurrences(
-        { ...rent, postedThrough: "2026-11-04" },
-        "2026-12-01",
-        100,
-      ).days,
-    ).toEqual(["2026-12-01"]);
-  });
-
-  it("pas plus de 13 mois en arrière, et le reste à la prochaine fois", () => {
-    const old = { ...rent, startsOn: "2020-01-01" };
-    expect(dueOccurrences(old, "2026-11-04", 100).days[0]).toBe("2025-10-01");
-    const daily = { ...rent, frequency: "daily" as const };
-    const part = dueOccurrences(daily, "2026-11-04", 10);
-    expect(part.days).toHaveLength(10);
-    expect(part.postedThrough).toBe("2026-09-10");
-  });
-
-  it("ce qui s'en vient : seulement après aujourd'hui, par date", () => {
-    const rules = [
-      {
-        ...rent,
-        id: "loyer",
-        kind: "expense" as const,
-        label: "Loyer",
-        category: "housing",
-        amountCents: 120000,
-        accountId: null,
-        toAccountId: null,
-      },
-      {
-        ...rent,
-        id: "paie",
-        kind: "income" as const,
-        label: "Paie",
-        category: null,
-        amountCents: 150000,
-        frequency: "biweekly" as const,
-        startsOn: "2026-10-30",
-        accountId: null,
-        toAccountId: null,
-      },
-    ];
-    expect(
-      upcomingIn(rules, "2026-11-01", "2026-11-30", "2026-11-04").map(
-        (item) => `${item.recurringId} ${item.day}`,
-      ),
-    ).toEqual(["paie 2026-11-13", "paie 2026-11-27"]);
   });
 });
 

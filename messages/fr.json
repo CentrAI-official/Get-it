@@ -3374,7 +3374,9 @@
       "event_cancelled": "{name} a annulé l’événement « {subject} »",
       "event_comment": "{name} a écrit dans la discussion de « {subject} »",
       "eventComments": "{name} et {others, plural, one {# autre personne ont} other {# autres personnes ont}} écrit dans la discussion de « {subject} »",
-      "event_reminder": "Rappel : « {subject} » commence dans moins de 24 heures"
+      "event_reminder": "Rappel : « {subject} » commence dans moins de 24 heures",
+      "bill_due": "Demain : {subject}",
+      "billsDue": "Demain : {subject} et {others, plural, one {# autre paiement} other {# autres paiements}}"
     },
     "push": {
       "title": "Notifications sur cet appareil",
@@ -4606,7 +4608,7 @@
         "transfer": "Date d’un virement"
       },
       "endsOn": "Jusqu’au",
-      "startsOnHint": "Les suivants tombent selon la fréquence. Une date passée inscrit aussi les paiements passés (13 mois au plus).",
+      "startsOnHint": "Les suivants tombent selon la fréquence. Chaque paiement se coche quand il est fait, et une paie se confirme au montant reçu.",
       "add": "Ajouter",
       "save": "Enregistrer",
       "delete": "Supprimer",
@@ -4643,7 +4645,7 @@
       "editHint": "Les changements valent pour les prochains paiements : le passé reste tel quel.",
       "repeat": "Répéter",
       "repeatNever": "Une fois",
-      "repeatHint": "Get iT l’inscrira à chaque date, à partir de celle-ci. Tu la retrouves dans Factures.",
+      "repeatHint": "Celle-ci est inscrite ; les suivantes se cochent à leur date. Tu la retrouves dans Factures.",
       "whichDebt": "Quelle dette?",
       "otherDebt": "Autre",
       "paidFrom": "Payé depuis",
@@ -4689,14 +4691,12 @@
     "addTransfer": "Virement entre comptes",
     "spentHero": "Dépensé",
     "barLabel": "Revenus prévus {income} : {spent} dépensés, {upcoming} à venir, {saved} mis de côté.",
-    "nextUp": "À venir",
-    "seeBills": "Factures",
     "recent": "Dernières transactions",
     "seeAll": "Tout voir",
     "noAccount": "Aucun compte",
     "transferRoute": "{from} → {to}",
     "refundOf": "Remboursement · {category}",
-    "automatic": "Paiement fixe inscrit tout seul",
+    "automatic": "Vient d’un paiement fixe",
     "deleteFixedKeep": "Supprimer",
     "deleteFixedAll": "Effacer aussi le passé",
     "groups": {
@@ -4769,7 +4769,9 @@
       "goalsNeed": "Tes objectifs d’épargne demandent {amount} par mois.",
       "addLine": "Ajouter une catégorie au plan",
       "reached": "Prévu du mois atteint",
-      "minimumsNote": "Après {amount} de paiements minimums de tes dettes."
+      "minimumsNote": "Après {amount} de paiements minimums de tes dettes.",
+      "toPay": "{amount} à payer",
+      "allPaid": "Payé"
     },
     "setup": {
       "start": "Faire mon budget",
@@ -4789,7 +4791,7 @@
       "billAmount": "Montant : {bill}",
       "billDay": "Jour du mois : {bill}",
       "dayPlaceholder": "jour",
-      "billsHint": "Ils s’inscriront tout seuls dans tes transactions, chaque mois.",
+      "billsHint": "Tu les coches quand ils sont payés, et Get iT te les rappelle la veille.",
       "bills": {
         "rent": "Loyer ou hypothèque",
         "electricity": "Électricité",
@@ -4879,7 +4881,7 @@
     },
     "bills": {
       "emptyTitle": "Aucune facture pour l’instant",
-      "emptyText": "Ajoute ton loyer, tes abonnements et tes autres paiements fixes : ils apparaîtront ici et dans tes transactions, à leur date.",
+      "emptyText": "Ajoute ton loyer, tes abonnements et tes autres paiements fixes : ils apparaîtront ici, à cocher quand ils sont payés.",
       "left": "Encore à payer ce mois-ci",
       "paid": "{amount} déjà payés",
       "subscriptions": "{count, plural, one {# abonnement} other {# abonnements}} : {amount} par mois",
@@ -4890,7 +4892,10 @@
       "nothing": "Rien ce jour-là.",
       "received": "Reçu le {date}",
       "paidOn": "Payé le {date}",
-      "dueOn": "Prévu le {date}"
+      "dueOn": "Prévu le {date}",
+      "reminders": "Me rappeler la veille",
+      "remindersHint": "À 9 h, la veille de chaque paiement fixe pas encore coché. La notification montre seulement le nom du paiement, jamais le montant.",
+      "remindersError": "Le réglage n’a pas été enregistré. Réessaie."
     },
     "accounts": {
       "netWorth": "Valeur nette",
@@ -4940,9 +4945,9 @@
       "cancel": "Annuler",
       "paymentDay": "Jour du paiement",
       "paymentDayHint": "Le jour du mois où le paiement est dû, de 1 à 31.",
-      "autoPay": "Inscrire le paiement minimum chaque mois",
-      "autoPayHint": "Un virement fixe depuis ton compte, le jour du paiement : il compte dans ton mois et dans ton plan.",
-      "autoPayNeeds": "Ajoute le paiement minimum et le jour du paiement pour l’inscrire chaque mois.",
+      "autoPay": "Ajouter le paiement minimum à mes paiements fixes",
+      "autoPayHint": "Un virement fixe depuis ton compte, le jour du paiement : tu le coches quand il est fait, avec un rappel la veille.",
+      "autoPayNeeds": "Ajoute le paiement minimum et le jour du paiement pour l’ajouter à tes paiements fixes.",
       "autoPayDone": "Un paiement fixe va déjà à cette dette : il se modifie dans Factures.",
       "payFrom": "Payé depuis",
       "dueShort": "paiement le {day, number}",
@@ -5065,6 +5070,60 @@
       "incomplete": "Sans taux ou sans minimum, pas encore dans ton plan : {names}.",
       "seeGoals": "Voir mes dettes et mon fonds d’urgence",
       "estimate": "Une estimation : les taux et les montants restent les mêmes. Pour un plan sur mesure, parles-en à un conseiller financier."
+    },
+    "fixedPayments": {
+      "title": "Paiements fixes",
+      "count": "{count, plural, one {{paid, number} sur # payé} other {{paid, number} sur # payés}}",
+      "left": "Reste {amount} à payer ce mois-ci",
+      "allPaid": "Tout est payé ce mois-ci",
+      "hint": "Coche chaque paiement quand il est fait. Get iT te le rappelle la veille.",
+      "lastMonth": "Pas coché le mois passé",
+      "paysTitle": "Paies à confirmer",
+      "paid": "Payé",
+      "skipped": "Pas ce mois-ci",
+      "due": "Pas encore coché",
+      "today": "Aujourd’hui",
+      "tomorrow": "Demain",
+      "inDays": "Dans {days, plural, one {# jour} other {# jours}}",
+      "planned": "Prévu {amount}",
+      "checkLabel": "Payé : {label}, {date}",
+      "error": "Le paiement n’a pas été enregistré. Réessaie.",
+      "confirm": "Confirmer",
+      "dialog": {
+        "description": "Prévu le {date}",
+        "amount": "Montant payé",
+        "amountHint": "Pour ce paiement seulement : les prochains restent à {amount}.",
+        "paid": "Payé",
+        "save": "Enregistrer",
+        "skip": "Pas ce mois-ci",
+        "reopen": "Remettre à payer"
+      }
+    },
+    "payCheck": {
+      "title": "{label} du {date}",
+      "question": "As-tu reçu {amount}?",
+      "amount": "Montant reçu",
+      "hint": "Pour cette paie seulement : les prochaines restent à {amount}.",
+      "yes": "Oui, je l’ai reçue",
+      "save": "Enregistrer {amount}",
+      "notReceived": "Pas reçue",
+      "later": "Plus tard",
+      "position": "{index, number} sur {count, number}",
+      "close": "Fermer"
+    },
+    "progress": {
+      "title": "Dettes et épargne",
+      "owed": "Reste {amount}",
+      "repaid": "{percent, number} % remboursé",
+      "paidOff": "Remboursée",
+      "minimum": "Minimum {amount} le {day, number}",
+      "minimumOnly": "Minimum {amount} par mois",
+      "goal": "{saved} sur {target}",
+      "percent": "{percent, number} %",
+      "reached": "Atteint",
+      "empty": "Ajoute tes dettes (carte de crédit, prêt) et tes objectifs d’épargne : tu verras ici où tu en es.",
+      "addDebt": "Ajouter une dette",
+      "addGoal": "Ajouter un objectif"
     }
   },
   "Workouts": {

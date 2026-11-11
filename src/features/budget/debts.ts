@@ -25,6 +25,22 @@ export type PayoffResult = {
   finished: boolean;
 };
 
+/**
+ * La part remboursée d'une dette depuis son ajout dans Get iT, de 0 à 1 (la barre
+ * « Dettes et épargne ») ; null si elle ne devait rien au départ (une carte de
+ * crédit ouverte à 0 $ : rien à quoi se comparer).
+ */
+export function repaidShare(
+  openingOwedCents: number,
+  owedCents: number,
+): number | null {
+  if (openingOwedCents <= 0) return null;
+  return Math.min(
+    1,
+    Math.max(0, (openingOwedCents - owedCents) / openingOwedCents),
+  );
+}
+
 /** Après 50 ans, on arrête de compter : les paiements ne suffisent pas. */
 const MAX_MONTHS = 600;
 

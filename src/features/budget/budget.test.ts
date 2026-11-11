@@ -208,6 +208,7 @@ describe("plan du mois", () => {
       explicit: true,
       spentCents: 40000,
       upcomingCents: 0,
+      fixedCents: 0,
       carryCents: 0,
       availableCents: 20000,
       rollover: false,
@@ -267,6 +268,7 @@ describe("plan du mois", () => {
       accountId: null,
       toAccountId: null,
       postedThrough: null,
+      createdOn: "2026-03-01",
     };
     expect(annualToPrepare([insurance], [], "2026-11-01")).toEqual([
       { rule: insurance, monthlyCents: 10000 },

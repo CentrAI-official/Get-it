@@ -33,7 +33,12 @@ import {
 } from "../categories";
 import { amountField, formatMoney } from "../format";
 import { CUSTOM_ICON_MAP } from "../icons";
-import { lineStatus, type MonthPlan, type PlanLine } from "../plan";
+import {
+  isFixedOnly,
+  lineStatus,
+  type MonthPlan,
+  type PlanLine,
+} from "../plan";
 import type { BudgetError, BudgetRecurringRow } from "../rules";
 import { useBudget, useCategoryName } from "./budget-context";
 import { CategoryIcon } from "./category-icon";
@@ -99,6 +104,47 @@ function PlanRow({
   const budget = line.plannedCents + line.carryCents;
   const savings = line.key === "savings";
   const over = status === "over";
+
+  // Seulement des paiements fixes : pas de barre, ils se cochent plus haut
+  if (isFixedOnly(line) && !over) {
+    return (
+      <li className="border-b border-foreground/8 last:border-b-0">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="flex w-full items-center gap-3 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground/6">
+            <CategoryIcon
+              category={line.key}
+              categories={categories}
+              className="size-[18px] text-muted-foreground"
+            />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="flex items-baseline justify-between gap-3">
+              <span className="truncate text-sm font-semibold">
+                {nameOf(line.key)}
+              </span>
+              <span className="shrink-0 text-sm font-semibold tabular-nums">
+                {money(line.plannedCents)}
+              </span>
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {line.upcomingCents > 0 ? (
+                t("toPay", { amount: money(line.upcomingCents) })
+              ) : (
+                <span className="flex items-center gap-1 font-medium text-primary">
+                  <Check aria-hidden="true" className="size-3.5" />
+                  {t("allPaid")}
+                </span>
+              )}
+            </span>
+          </span>
+        </button>
+      </li>
+    );
+  }
 
   return (
     <li className="border-b border-foreground/8 last:border-b-0">

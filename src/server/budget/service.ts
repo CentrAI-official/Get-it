@@ -11,6 +11,16 @@ import {
   isBuiltInCategory,
   type CategoryInfo,
 } from "@/features/budget/categories";
+import {
+  checkWindowStart,
+  fixedPayments,
+  outstandingIn,
+  paysToConfirm,
+  settledKeys,
+  type FixedLog,
+  type FixedPayment,
+} from "@/features/budget/checklist";
+import { repaidShare } from "@/features/budget/debts";
 import { goalProgress } from "@/features/budget/goals";
 import {
   annualToPrepare,
@@ -24,13 +34,11 @@ import {
 } from "@/features/budget/plan";
 import {
   currencyOf,
-  dueOccurrences,
   MAX_ENTRIES_PER_DAY,
   MAX_RECURRING,
   monthStart,
   periodOf,
   summarizeBudget,
-  upcomingIn,
   type AccountTypes,
   type BudgetEntryRow,
   type BudgetError,
@@ -51,7 +59,7 @@ import { db } from "@/server/db";
 // l'userId de la session et filtre dessus ; rien n'est montré aux autres
 // membres ni envoyé à Get iT AI. Effacé avec le compte (onDelete: Cascade).
 
-const recurringSelect = {
+export const recurringSelect = {
   id: true,
   kind: true,
   label: true,
@@ -63,6 +71,7 @@ const recurringSelect = {
   accountId: true,
   toAccountId: true,
   postedThrough: true,
+  createdAt: true,
 } as const;
 
 export const entrySelect = {
@@ -90,7 +99,10 @@ const accountSelect = {
 } as const;
 
 // Les colonnes texte sont bornées par les contraintes de la migration
-function toRecurring(row: {
+export function toRecurring({
+  createdAt,
+  ...row
+}: {
   id: string;
   kind: string;
   label: string;
@@ -102,6 +114,7 @@ function toRecurring(row: {
   accountId: string | null;
   toAccountId: string | null;
   postedThrough: Date | null;
+  createdAt: Date;
 }): BudgetRecurringRow {
   return {
     ...row,
@@ -110,6 +123,7 @@ function toRecurring(row: {
     startsOn: fromDbDate(row.startsOn),
     endsOn: row.endsOn ? fromDbDate(row.endsOn) : null,
     postedThrough: row.postedThrough ? fromDbDate(row.postedThrough) : null,
+    createdOn: createdAt.toISOString().slice(0, 10),
   };
 }
 
@@ -149,48 +163,43 @@ function toAccount(row: {
   };
 }
 
-/** Inscrit au plus ce nombre de paiements fixes d'un coup ; le reste, à la prochaine visite. */
-const POST_BATCH = 2000;
-
 /**
- * Les montants fixes dont la date est arrivée deviennent de vraies transactions,
- * à l'ouverture du budget (pas de tâche planifiée). L'index unique (montant fixe,
- * date) évite les doublons si deux pages s'ouvrent en même temps.
+ * Les paiements fixes réglés depuis `from` (jusqu'à `to`) : ceux qui sont payés
+ * (leur transaction, retrouvée par sa date prévue) et ceux qui n'ont pas eu lieu.
  */
-async function postDueRecurring(
+export async function loadFixedLog(
   userId: string,
-  rules: BudgetRecurringRow[],
-  today: string,
-) {
-  let budget = POST_BATCH;
-  for (const rule of rules) {
-    if (budget <= 0) break;
-    if (rule.postedThrough !== null && rule.postedThrough >= today) continue;
-    const { days, postedThrough } = dueOccurrences(rule, today, budget);
-    budget -= days.length;
-    await db.$transaction([
-      db.budgetEntry.createMany({
-        data: days.map((day) => ({
-          userId,
-          kind: rule.kind,
-          category: rule.category,
-          amountCents: rule.amountCents,
-          note: rule.label,
-          occurredOn: toDbDate(day),
-          accountId: rule.accountId,
-          toAccountId: rule.toAccountId,
-          recurringId: rule.id,
-          recurringOn: toDbDate(day),
-        })),
-        skipDuplicates: true,
-      }),
-      db.budgetRecurring.updateMany({
-        where: { id: rule.id, userId },
-        data: { postedThrough: toDbDate(postedThrough) },
-      }),
-    ]);
-    rule.postedThrough = postedThrough;
-  }
+  from: string,
+  to?: string,
+): Promise<FixedLog> {
+  const range = { gte: toDbDate(from), ...(to ? { lte: toDbDate(to) } : {}) };
+  const [paid, skipped] = await Promise.all([
+    db.budgetEntry.findMany({
+      where: { userId, recurringId: { not: null }, recurringOn: range },
+      select: { recurringId: true, recurringOn: true, amountCents: true },
+    }),
+    db.budgetSkip.findMany({
+      where: { userId, occurredOn: range },
+      select: { recurringId: true, occurredOn: true },
+    }),
+  ]);
+  return {
+    paid: paid.flatMap((row) =>
+      row.recurringId && row.recurringOn
+        ? [
+            {
+              recurringId: row.recurringId,
+              day: fromDbDate(row.recurringOn),
+              amountCents: row.amountCents,
+            },
+          ]
+        : [],
+    ),
+    skipped: skipped.map((row) => ({
+      recurringId: row.recurringId,
+      day: fromDbDate(row.occurredOn),
+    })),
+  };
 }
 
 /** Ce qu'il faut à toutes les pages du budget. */
@@ -202,11 +211,23 @@ export type BudgetBase = {
   goals: { id: string; name: string; kind: string | null }[];
   rules: BudgetRecurringRow[];
   types: AccountTypes;
+  /** Les paiements fixes réglés depuis `logFrom` (payés ou « pas ce mois-ci »). */
+  log: FixedLog;
+  logFrom: string;
+  /** Leurs clés : ce qui n'y est pas reste à régler. */
+  settled: ReadonlySet<string>;
 };
 
-/** La base de chaque page : les montants fixes échus y sont inscrits d'abord. */
+/**
+ * La base de chaque page. Plus rien ne s'inscrit tout seul (décision du
+ * fondateur, 2026-11-10) : les paiements fixes se cochent, les paies se confirment.
+ */
 export async function getBudgetBase(userId: string): Promise<BudgetBase> {
-  const [profile, customRows, accountRows, goalRows, ruleRows] =
+  // Le 1er du mois d'avant, quel que soit le fuseau (la veille en UTC suffit)
+  const logFrom = checkWindowStart(
+    addDays(new Date().toISOString().slice(0, 10), -1),
+  );
+  const [profile, customRows, accountRows, goalRows, ruleRows, log] =
     await Promise.all([
       db.profile.findUnique({
         where: { id: userId },
@@ -233,13 +254,12 @@ export async function getBudgetBase(userId: string): Promise<BudgetBase> {
         take: MAX_RECURRING,
         select: recurringSelect,
       }),
+      loadFixedLog(userId, logFrom),
     ]);
   const today = toCalendarDay(
     new Date(),
     profile?.settings?.timeZone ?? "America/Toronto",
   );
-  const rules = ruleRows.map(toRecurring);
-  await postDueRecurring(userId, rules, today);
   const accounts = accountRows.map(toAccount);
   return {
     currency: currencyOf(profile?.country ?? null),
@@ -247,8 +267,11 @@ export async function getBudgetBase(userId: string): Promise<BudgetBase> {
     categories: categoryList(customRows),
     accounts,
     goals: goalRows,
-    rules,
+    rules: ruleRows.map(toRecurring),
     types: new Map(accounts.map((account) => [account.id, account.type])),
+    log,
+    logFrom,
+    settled: settledKeys(log),
   };
 }
 
@@ -372,8 +395,14 @@ export type BudgetPage = BudgetBase & {
   elapsed: number;
   /** Les transactions de la période, les plus récentes d'abord. */
   entries: BudgetEntryRow[];
-  /** Les prochains paiements fixes. */
-  nextUp: UpcomingItem[];
+  /** Les dépenses et virements fixes du mois, à cocher (vue Mois seulement). */
+  fixed: FixedPayment[];
+  /** Ceux du mois d'avant pas encore cochés (mois en cours seulement). */
+  leftover: FixedPayment[];
+  /** Les paies arrivées qui attendent d'être confirmées. */
+  pays: UpcomingItem[];
+  /** « Dettes et épargne » : où en est chaque dette et chaque objectif. */
+  progress: { debts: DebtBar[]; goals: GoalBar[] };
   /** Une première répartition, tant que rien n'a été choisi pour ce mois. */
   suggestion: { category: string; cents: number }[];
   /** Les dépenses annuelles pas encore préparées. */
@@ -384,21 +413,83 @@ export type BudgetPage = BudgetBase & {
   empty: boolean;
 };
 
+/** Une dette, pour sa barre : ce qui reste et la part remboursée depuis son ajout. */
+export type DebtBar = {
+  id: string;
+  name: string;
+  owedCents: number;
+  /** De 0 à 1 ; null si elle ne devait rien au départ. */
+  share: number | null;
+  minimumCents: number | null;
+  paymentDay: number | null;
+};
+
+/** Un objectif d'épargne, pour sa barre. */
+export type GoalBar = {
+  id: string;
+  name: string;
+  savedCents: number;
+  targetCents: number;
+  percent: number;
+  emergency: boolean;
+};
+
+/** Les barres « Dettes et épargne » : les dettes qui restent (ou finies), puis les objectifs. */
+function progressBars(
+  accounts: readonly BudgetAccountRow[],
+  deltas: readonly AccountDelta[],
+  goals: Awaited<ReturnType<typeof loadGoalRows>>,
+  today: string,
+): { debts: DebtBar[]; goals: GoalBar[] } {
+  const debts: DebtBar[] = [];
+  for (const account of accounts) {
+    if (!isDebtType(account.type)) continue;
+    const owedCents = Math.max(0, -balanceOf(account, deltas));
+    const share = repaidShare(-account.openingCents, owedCents);
+    // Une dette à 0 $ depuis le début n'a rien à montrer ; une dette finie, oui
+    if (owedCents === 0 && share === null) continue;
+    debts.push({
+      id: account.id,
+      name: account.name,
+      owedCents,
+      share,
+      minimumCents: account.minimumCents,
+      paymentDay: account.paymentDay,
+    });
+  }
+  return {
+    debts: debts.sort((a, b) => b.owedCents - a.owedCents),
+    goals: goals
+      .map((goal) => {
+        const progress = goalProgress(goal, today);
+        return {
+          id: goal.id,
+          name: goal.name,
+          savedCents: progress.savedCents,
+          targetCents: goal.targetCents,
+          percent: progress.percent,
+          emergency: goal.kind === "emergency",
+        };
+      })
+      // Le fonds d'urgence d'abord
+      .sort((a, b) => Number(b.emergency) - Number(a.emergency)),
+  };
+}
+
 /** Le budget d'une période (jour, semaine ou mois) qui contient `day`. */
 export async function getBudget(
   userId: string,
   input: { view: BudgetView; day: string | null },
 ): Promise<BudgetPage> {
   const base = await getBudgetBase(userId);
-  const { today, types, rules, categories } = base;
+  const { today, types, rules, categories, settled } = base;
   const { start, end } = periodOf(input.view, input.day ?? today);
   const month = monthStart(start);
+  const outflows = rules.filter((rule) => rule.kind !== "income");
 
-  // Les soldes des dettes : seulement s'il y a un minimum à payer
-  const owesMinimum = base.accounts.some(
-    (account) => isDebtType(account.type) && (account.minimumCents ?? 0) > 0,
-  );
-  const [entryRows, anyEntry, plans, rollovers, goalRows, deltas] =
+  // Les soldes des dettes : pour leurs minimums et leurs barres
+  const hasDebt = base.accounts.some((account) => isDebtType(account.type));
+  const [entryRows, anyEntry, plans, rollovers, goalRows, deltas, oldLog] =
     await Promise.all([
       db.budgetEntry.findMany({
         where: {
@@ -412,7 +503,11 @@ export async function getBudget(
       loadPlans(userId),
       loadRollovers(userId),
       loadGoalRows(userId),
-      owesMinimum ? loadDeltas(userId) : Promise.resolve([]),
+      hasDebt ? loadDeltas(userId) : Promise.resolve([]),
+      // Un mois plus ancien : ses paiements réglés ne sont pas dans la base
+      input.view === "month" && start < base.logFrom
+        ? loadFixedLog(userId, start, end)
+        : Promise.resolve(null),
     ]);
 
   // Le plan du mois, avec le report depuis le mois le plus ancien qui en a un
@@ -426,26 +521,21 @@ export async function getBudget(
     categories,
     plans,
     rollups: rollupMonths(await monthlyRows(userId, earliest, monthEnd), types),
-    upcoming: upcomingIn(rules, month, monthEnd, today),
+    upcoming: outstandingIn(rules, settled, month, monthEnd, today),
     rollovers,
     types,
     minimumsCents: debtMinimums(base.accounts, deltas),
   });
+  const current = today >= start && today <= end;
 
   return {
-    currency: base.currency,
-    today,
-    categories,
-    accounts: base.accounts,
-    goals: base.goals,
-    rules,
-    types,
+    ...base,
     view: input.view,
     start,
     end,
     summary: summarizeBudget({
       entries: entryRows.map(toEntry),
-      upcoming: upcomingIn(rules, start, end, today),
+      upcoming: outstandingIn(rules, settled, start, end, today),
       types,
       start,
       end,
@@ -457,7 +547,22 @@ export async function getBudget(
     plan: input.view === "month" ? monthPlan : null,
     elapsed: monthElapsed(month, today),
     entries: entryRows.map(toEntry),
-    nextUp: upcomingIn(rules, today, addDays(today, 62), today).slice(0, 4),
+    fixed:
+      input.view === "month"
+        ? fixedPayments(outflows, oldLog ?? base.log, start, end, today)
+        : [],
+    leftover:
+      input.view === "month" && current
+        ? fixedPayments(
+            outflows,
+            base.log,
+            checkWindowStart(today),
+            addDays(start, -1),
+            today,
+          ).filter((item) => item.state === "due")
+        : [],
+    pays: paysToConfirm(rules, settled, today),
+    progress: progressBars(base.accounts, deltas, goalRows, today),
     suggestion: monthPlan.groups.some((group) =>
       group.lines.some((line) => line.explicit),
     )
@@ -585,13 +690,14 @@ export async function deleteEntry(userId: string, entryId: string) {
 
 /**
  * Ajoute (`recurringId` null) ou modifie un montant fixe. Le passé ne change pas :
- * seulement ce qui s'en vient. Si rien n'est encore inscrit, il repart à zéro (une
- * date corrigée juste après l'ajout compte alors pour le passé).
+ * seulement ce qui s'en vient. À l'ajout, `paidFirst` inscrit aussi son premier
+ * paiement comme fait (« Répéter » d'une transaction qu'on vient d'entrer).
  */
 export async function saveRecurring(
   userId: string,
   recurringId: string | null,
   input: RecurringInput,
+  { paidFirst = false }: { paidFirst?: boolean } = {},
 ): Promise<Result> {
   if (!(await ownsReferences(userId, input))) {
     return { ok: false, error: "notFound" };
@@ -611,8 +717,26 @@ export async function saveRecurring(
   }
   const count = await db.budgetRecurring.count({ where: { userId } });
   if (count >= MAX_RECURRING) return { ok: false, error: "recurringLimit" };
-  await db.budgetRecurring.create({
-    data: { userId, ...recurringData(input) },
+  await db.$transaction(async (tx) => {
+    const rule = await tx.budgetRecurring.create({
+      data: { userId, ...recurringData(input) },
+      select: { id: true },
+    });
+    if (!paidFirst) return;
+    await tx.budgetEntry.create({
+      data: {
+        userId,
+        kind: input.kind,
+        category: input.category,
+        amountCents: input.amountCents,
+        note: input.label,
+        occurredOn: toDbDate(input.startsOn),
+        accountId: input.accountId,
+        toAccountId: input.toAccountId,
+        recurringId: rule.id,
+        recurringOn: toDbDate(input.startsOn),
+      },
+    });
   });
   return { ok: true };
 }
@@ -638,6 +762,7 @@ export async function deleteRecurring(
 export async function eraseBudget(userId: string) {
   await db.$transaction([
     db.budgetEntry.deleteMany({ where: { userId } }),
+    db.budgetSkip.deleteMany({ where: { userId } }),
     db.budgetRecurring.deleteMany({ where: { userId } }),
     db.budgetPlan.deleteMany({ where: { userId } }),
     db.budgetCategorySetting.deleteMany({ where: { userId } }),

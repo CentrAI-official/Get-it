@@ -101,8 +101,10 @@ export type BudgetRecurringRow = {
   endsOn: string | null;
   accountId: string | null;
   toAccountId: string | null;
-  /** Dernier jour déjà inscrit dans les transactions. */
+  /** Dernier jour inscrit tout seul par l'ancien système : ce qui précède est réglé. */
   postedThrough: string | null;
+  /** Le jour où il a été ajouté (fuseau UTC suffit : on n'en garde que le mois). */
+  createdOn: string;
 };
 
 /** Le type de chaque compte, pour savoir ce qu'un virement change au budget. */
@@ -543,7 +545,10 @@ export function monthlyEquivalent(
   return Math.round((rule.amountCents * perYear) / 12);
 }
 
-/** Un paiement fixe encore à venir (rien n'est inscrit avant sa date). */
+/**
+ * Un paiement fixe pas encore réglé : à venir, ou arrivé sans être coché (une
+ * paie pas encore confirmée). Voir `outstandingIn` dans checklist.ts.
+ */
 export type UpcomingItem = MoneyMove & {
   recurringId: string;
   label: string;
@@ -552,71 +557,16 @@ export type UpcomingItem = MoneyMove & {
   frequency: BudgetFrequency;
 };
 
-/** Les paiements fixes à venir entre `from` et `to`, après aujourd'hui, par date. */
-export function upcomingIn(
-  rules: readonly BudgetRecurringRow[],
-  from: string,
-  to: string,
-  today: string,
-): UpcomingItem[] {
-  const tomorrow = addDays(today, 1);
-  return rules
-    .flatMap((rule) =>
-      occurrencesIn(rule, from > tomorrow ? from : tomorrow, to).map((day) => ({
-        kind: rule.kind,
-        category: rule.category,
-        amountCents: rule.amountCents,
-        accountId: rule.accountId,
-        toAccountId: rule.toAccountId,
-        recurringId: rule.id,
-        label: rule.label,
-        day,
-        frequency: rule.frequency,
-      })),
-    )
-    .sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
-}
-
-/** Combien de jours en arrière inscrire un montant fixe ajouté avec une date passée. */
-export const BACKFILL_DAYS = 400;
-
-/**
- * Les dates d'un montant fixe à inscrire dans les transactions, jusqu'à aujourd'hui
- * (au plus `limit`, le reste à la prochaine fois), et jusqu'où il sera alors inscrit.
- * Une fois inscrit, un paiement vit sa vie : le changer ou le supprimer ne le refait
- * pas, et changer le montant fixe ne réécrit pas le passé.
- */
-export function dueOccurrences(
-  rule: Pick<
-    BudgetRecurringRow,
-    "frequency" | "startsOn" | "endsOn" | "postedThrough"
-  >,
-  today: string,
-  limit: number,
-): { days: string[]; postedThrough: string } {
-  const earliest = addDays(today, -BACKFILL_DAYS);
-  const from = rule.postedThrough
-    ? addDays(rule.postedThrough, 1)
-    : rule.startsOn > earliest
-      ? rule.startsOn
-      : earliest;
-  const days = occurrencesIn(rule, from, today, limit);
-  return {
-    days,
-    postedThrough: days.length >= limit ? (days.at(-1) ?? today) : today,
-  };
-}
-
 export type BudgetSummary = {
   /** Revenus reçus pendant la période. */
   incomeCents: number;
-  /** Revenus fixes encore à venir. */
+  /** Revenus fixes encore à venir ou à confirmer. */
   upcomingIncomeCents: number;
   /** Dépenses déjà sorties (remboursements retirés), fixes comprises. */
   spentCents: number;
   /** Dont celles qui viennent d'un montant fixe. */
   fixedSpentCents: number;
-  /** Dépenses fixes encore à venir. */
+  /** Dépenses fixes encore à venir ou pas encore cochées. */
   upcomingCents: number;
   /** Mis de côté (l'épargne n'est pas une dépense). */
   savedCents: number;

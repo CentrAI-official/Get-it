@@ -20,11 +20,11 @@ import {
   budgetEffect,
   monthStart,
   periodOf,
-  upcomingIn,
   type BudgetEntryRow,
   type BudgetError,
   type UpcomingItem,
 } from "@/features/budget/rules";
+import { outstandingIn } from "@/features/budget/checklist";
 import { fromDbDate, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
 import { entrySelect, getBudgetBase, monthlyRows, toEntry } from "./service";
@@ -225,16 +225,16 @@ export type BillDay = {
   amountCents: number;
   kind: UpcomingItem["kind"] | BudgetEntryRow["kind"];
   category: string | null;
-  /** Déjà inscrit dans les transactions. */
+  /** Déjà inscrit dans les transactions (coché, ou une paie confirmée). */
   paid: boolean;
 };
 
 export type BillsPage = Awaited<ReturnType<typeof getBudgetBase>> & {
   month: string;
-  /** Tout ce qui tombe ce mois-là : payé ou à venir. */
+  /** Tout ce qui tombe ce mois-là : payé, pas encore coché ou à venir. */
   bills: BillDay[];
-  /** À venir dans les 30 prochains jours. */
-  next30: UpcomingItem[];
+  /** Le rappel la veille de chaque paiement fixe est activé. */
+  reminders: boolean;
 };
 
 /** Les paiements fixes d'un mois, pour le calendrier des factures. */
@@ -245,21 +245,33 @@ export async function getBills(
   const base = await getBudgetBase(userId);
   const month = monthStart(day ?? base.today);
   const { start, end } = periodOf("month", month);
-  const posted = await db.budgetEntry.findMany({
-    where: {
-      userId,
-      recurringId: { not: null },
-      occurredOn: { gte: toDbDate(start), lte: toDbDate(end) },
-    },
-    select: {
-      occurredOn: true,
-      note: true,
-      amountCents: true,
-      kind: true,
-      category: true,
-    },
-  });
-  const upcoming = upcomingIn(base.rules, start, end, base.today);
+  const [posted, settings] = await Promise.all([
+    db.budgetEntry.findMany({
+      where: {
+        userId,
+        recurringId: { not: null },
+        occurredOn: { gte: toDbDate(start), lte: toDbDate(end) },
+      },
+      select: {
+        occurredOn: true,
+        note: true,
+        amountCents: true,
+        kind: true,
+        category: true,
+      },
+    }),
+    db.userSettings.findUnique({
+      where: { userId },
+      select: { billReminders: true },
+    }),
+  ]);
+  const upcoming = outstandingIn(
+    base.rules,
+    base.settled,
+    start,
+    end,
+    base.today,
+  );
   const bills: BillDay[] = [
     ...posted.map((row) => ({
       day: fromDbDate(row.occurredOn),
@@ -278,18 +290,11 @@ export async function getBills(
       paid: false,
     })),
   ].sort((a, b) => (a.day < b.day ? -1 : a.day > b.day ? 1 : 0));
-  const horizon = new Date(`${base.today}T00:00:00Z`);
-  horizon.setUTCDate(horizon.getUTCDate() + 30);
   return {
     ...base,
     month,
     bills,
-    next30: upcomingIn(
-      base.rules,
-      base.today,
-      horizon.toISOString().slice(0, 10),
-      base.today,
-    ),
+    reminders: settings?.billReminders ?? true,
   };
 }
 

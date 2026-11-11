@@ -23,7 +23,8 @@ export type NotifyInput = {
   /** Destinataire. */
   userId: string;
   kind: NotificationKind;
-  actorId: string;
+  /** Null : un rappel de Get iT (un paiement fixe), personne derrière. */
+  actorId: string | null;
   /** Chemin sans la langue (ex. « /messages/<id> »). */
   href: `/${string}`;
   subject?: string;
@@ -40,9 +41,11 @@ export type NotifyInput = {
 
 export async function notify(input: NotifyInput) {
   try {
-    if (input.userId === input.actorId) return;
-    const blocked = await getBlockedIds(input.userId);
-    if (blocked.includes(input.actorId)) return;
+    if (input.actorId !== null) {
+      if (input.userId === input.actorId) return;
+      const blocked = await getBlockedIds(input.userId);
+      if (blocked.includes(input.actorId)) return;
+    }
     const subject = (input.subject ?? "").slice(0, NOTIFICATION_SUBJECT_MAX);
     const existing = input.groupKey
       ? await db.notification.findFirst({
@@ -121,10 +124,12 @@ async function sendPush(
           .then((page) =>
             page ? { displayName: page.name, username: null } : null,
           )
-      : db.profile.findUnique({
-          where: { id: input.actorId },
-          select: { displayName: true, username: true },
-        }),
+      : input.actorId
+        ? db.profile.findUnique({
+            where: { id: input.actorId },
+            select: { displayName: true, username: true },
+          })
+        : null,
     // Pour la page : son nom en titre, on sait tout de suite quel compte est visé
     input.pageId
       ? db.page.findUnique({

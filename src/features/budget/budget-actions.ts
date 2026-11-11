@@ -2,7 +2,10 @@
 
 import { z } from "zod";
 import { recordIdSchema } from "@/features/goals/schemas";
+import { toCalendarDay } from "@/lib/dates";
 import { requireUser } from "@/server/auth/session";
+import { setBillReminders, setFixedPayment } from "@/server/budget/checklist";
+import { getUserTimeZone } from "@/server/profile/service";
 import {
   adjustBalance,
   deleteAccount,
@@ -40,6 +43,7 @@ import {
   CUSTOM_ICONS,
   isCategoryKey,
 } from "./categories";
+import { FIXED_ACTIONS } from "./checklist";
 import { goalFieldErrors, goalFormSchema, type GoalField } from "./goals";
 import { importSchema } from "./import";
 import { monthlyStartFor } from "./money-plan";
@@ -190,6 +194,49 @@ export async function setupBudgetAction(input: unknown): Promise<BudgetResult> {
     const { today } = await getBudgetBase(user.id);
     return setupBudget(user.id, parsed.data, today);
   });
+}
+
+const fixedPaymentSchema = z.strictObject({
+  recurringId: z.uuid(),
+  day: z.iso.date(),
+  action: z.enum(FIXED_ACTIONS),
+  /** Le montant payé ou reçu, pour cette fois seulement ; vide : le prévu. */
+  amount: z.string().max(40).optional(),
+});
+
+/**
+ * Coche un paiement fixe (ou confirme une paie), le dit « pas ce mois-ci », ou le
+ * remet à payer.
+ */
+export async function setFixedPaymentAction(
+  input: unknown,
+): Promise<BudgetResult> {
+  const user = await requireUser();
+  const parsed = fixedPaymentSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "unexpected" };
+  const { amount, ...rest } = parsed.data;
+  const amountCents = amount?.trim() ? parseAmount(amount) : null;
+  if (amountCents === null && amount?.trim()) {
+    return { ok: false, error: "amountInvalid" };
+  }
+  return guarded(async () => {
+    const today = toCalendarDay(new Date(), await getUserTimeZone(user.id));
+    return setFixedPayment(user.id, { ...rest, amountCents }, today);
+  });
+}
+
+/** Le rappel la veille de chaque paiement fixe (Budget › Factures). */
+export async function setBillRemindersAction(enabled: unknown) {
+  const user = await requireUser();
+  if (typeof enabled !== "boolean") return false;
+  try {
+    await setBillReminders(user.id, enabled);
+  } catch (error) {
+    console.error("Réglage des rappels impossible", error);
+    return false;
+  }
+  revalidateBudget();
+  return true;
 }
 
 export type FormResult<Field extends string> = {

@@ -1,6 +1,7 @@
 "use server";
 
 import { recordIdSchema } from "@/features/goals/schemas";
+import { toCalendarDay } from "@/lib/dates";
 import { requireUser } from "@/server/auth/session";
 import {
   deleteEntry,
@@ -9,6 +10,7 @@ import {
   saveEntry,
   saveRecurring,
 } from "@/server/budget/service";
+import { getUserTimeZone } from "@/server/profile/service";
 import {
   BUDGET_FREQUENCIES,
   entryFieldErrors,
@@ -49,8 +51,8 @@ const REPEAT_FIELDS: Partial<Record<RecurringField, EntryField>> = {
 
 /**
  * Une transaction qui revient (« Répéter », décision du fondateur, 2026-11-10) :
- * elle devient un montant fixe qui commence à sa date ; Get iT l'inscrit à chaque
- * date, celle-ci comprise.
+ * elle devient un montant fixe qui commence à sa date. Celle-ci est faite (si elle
+ * est arrivée) ; les suivantes se cochent ou se confirment à leur date.
  */
 async function saveRepeating(
   userId: string,
@@ -83,7 +85,11 @@ async function saveRepeating(
     return { status: "error", fieldErrors };
   }
   try {
-    const result = await saveRecurring(userId, null, parsed.data);
+    // La transaction entrée est faite : son premier paiement est coché d'office
+    const today = toCalendarDay(new Date(), await getUserTimeZone(userId));
+    const result = await saveRecurring(userId, null, parsed.data, {
+      paidFirst: parsed.data.startsOn <= today,
+    });
     if (!result.ok) return { status: "error", error: result.error };
   } catch (error) {
     console.error("Enregistrement du montant fixe impossible", error);

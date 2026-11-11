@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { DevelopmentSection } from "@/features/development/components/development-section";
 import { BudgetSwipe } from "./budget-swipe";
 import { BudgetTabs, type BudgetTabKey } from "./budget-tabs";
+import { PayCheckLoader } from "./pay-check-loader";
 
 /**
  * Une page du budget : l'en-tête de Financier, puis les onglets du budget. Le
@@ -31,6 +32,10 @@ export function BudgetSection({
         }}
       />
       <BudgetSwipe current={current}>{children}</BudgetSwipe>
+      {/* « As-tu reçu ta paie? » : s'ouvre seule le jour de la paie */}
+      <Suspense fallback={null}>
+        <PayCheckLoader />
+      </Suspense>
     </DevelopmentSection>
   );
 }

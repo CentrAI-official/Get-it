@@ -128,8 +128,10 @@ export type PlanLine = {
   explicit: boolean;
   /** Déjà sorti (ou mis de côté pour l'épargne). */
   spentCents: number;
-  /** Paiements fixes encore à venir ce mois-ci. */
+  /** Paiements fixes encore à venir (ou pas encore cochés) ce mois-ci. */
   upcomingCents: number;
+  /** Les paiements fixes du mois : faits et à venir. */
+  fixedCents: number;
   /** Ce que le report amène des mois passés. */
   carryCents: number;
   /** Ce qui reste : prévu + report − sorti − à venir. */
@@ -228,6 +230,7 @@ export function buildMonthPlan({
       explicit: chosen !== null,
       spentCents,
       upcomingCents,
+      fixedCents: fixed,
       carryCents,
       availableCents: plannedCents + carryCents - spentCents - upcomingCents,
       rollover: from !== undefined,
@@ -274,6 +277,19 @@ export function monthElapsed(month: string, today: string) {
   if (today < start) return 0;
   if (today > end) return 1;
   return (daysBetween(start, today) + 1) / (daysBetween(start, end) + 1);
+}
+
+/**
+ * Une catégorie faite seulement de paiements fixes (loyer, téléphone, paiement
+ * d'un prêt) : pas de barre, ses paiements se cochent (décision du fondateur,
+ * 2026-11-10). L'épargne garde sa barre.
+ */
+export function isFixedOnly(line: PlanLine) {
+  return (
+    line.key !== "savings" &&
+    line.fixedCents > 0 &&
+    line.plannedCents <= line.fixedCents
+  );
 }
 
 export type LineStatus = "unplanned" | "over" | "fast" | "reached" | "ok";

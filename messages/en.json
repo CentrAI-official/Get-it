@@ -3374,7 +3374,9 @@
       "event_cancelled": "{name} cancelled the event “{subject}”",
       "event_comment": "{name} wrote in the discussion of “{subject}”",
       "eventComments": "{name} and {others, plural, one {# other person} other {# other people}} wrote in the discussion of “{subject}”",
-      "event_reminder": "Reminder: “{subject}” starts in less than 24 hours"
+      "event_reminder": "Reminder: “{subject}” starts in less than 24 hours",
+      "bill_due": "Tomorrow: {subject}",
+      "billsDue": "Tomorrow: {subject} and {others, plural, one {# other payment} other {# other payments}}"
     },
     "push": {
       "title": "Notifications on this device",
@@ -4606,7 +4608,7 @@
         "transfer": "Date of a transfer"
       },
       "endsOn": "Until",
-      "startsOnHint": "The next ones follow the frequency. A past date also adds the past payments (13 months at most).",
+      "startsOnHint": "The next ones follow the frequency. Check off each payment once it’s made, and confirm each paycheque at the amount received.",
       "add": "Add",
       "save": "Save",
       "delete": "Delete",
@@ -4643,7 +4645,7 @@
       "editHint": "Changes apply to the next payments: the past stays as it is.",
       "repeat": "Repeat",
       "repeatNever": "Once",
-      "repeatHint": "Get iT will add it on each date, starting with this one. You’ll find it in Bills.",
+      "repeatHint": "This one is recorded; the next ones are checked off on their date. You’ll find it in Bills.",
       "whichDebt": "Which debt?",
       "otherDebt": "Other",
       "paidFrom": "Paid from",
@@ -4689,14 +4691,12 @@
     "addTransfer": "Transfer between accounts",
     "spentHero": "Spent",
     "barLabel": "Planned income {income}: {spent} spent, {upcoming} coming up, {saved} saved.",
-    "nextUp": "Coming up",
-    "seeBills": "Bills",
     "recent": "Latest transactions",
     "seeAll": "See all",
     "noAccount": "No account",
     "transferRoute": "{from} → {to}",
     "refundOf": "Refund · {category}",
-    "automatic": "Fixed payment added automatically",
+    "automatic": "From a fixed payment",
     "deleteFixedKeep": "Delete",
     "deleteFixedAll": "Erase the past too",
     "groups": {
@@ -4769,7 +4769,9 @@
       "goalsNeed": "Your savings goals need {amount} per month.",
       "addLine": "Add a category to the plan",
       "reached": "This month’s amount reached",
-      "minimumsNote": "After {amount} of minimum debt payments."
+      "minimumsNote": "After {amount} of minimum debt payments.",
+      "toPay": "{amount} to pay",
+      "allPaid": "Paid"
     },
     "setup": {
       "start": "Make my budget",
@@ -4789,7 +4791,7 @@
       "billAmount": "Amount: {bill}",
       "billDay": "Day of the month: {bill}",
       "dayPlaceholder": "day",
-      "billsHint": "They’ll be added to your transactions on their own, every month.",
+      "billsHint": "Check them off once paid: Get iT reminds you the day before.",
       "bills": {
         "rent": "Rent or mortgage",
         "electricity": "Electricity",
@@ -4879,7 +4881,7 @@
     },
     "bills": {
       "emptyTitle": "No bills yet",
-      "emptyText": "Add your rent, subscriptions and other fixed payments: they’ll show up here and in your transactions, on their date.",
+      "emptyText": "Add your rent, subscriptions and other fixed payments: they’ll show up here, ready to check off once paid.",
       "left": "Still to pay this month",
       "paid": "{amount} already paid",
       "subscriptions": "{count, plural, one {# subscription} other {# subscriptions}}: {amount} per month",
@@ -4890,7 +4892,10 @@
       "nothing": "Nothing that day.",
       "received": "Received {date}",
       "paidOn": "Paid {date}",
-      "dueOn": "Due {date}"
+      "dueOn": "Due {date}",
+      "reminders": "Remind me the day before",
+      "remindersHint": "At 9 a.m. the day before each fixed payment that isn’t checked yet. The notification only shows the payment’s name, never the amount.",
+      "remindersError": "The setting wasn’t saved. Try again."
     },
     "accounts": {
       "netWorth": "Net worth",
@@ -4940,9 +4945,9 @@
       "cancel": "Cancel",
       "paymentDay": "Payment day",
       "paymentDayHint": "The day of the month the payment is due, 1 to 31.",
-      "autoPay": "Add the minimum payment every month",
-      "autoPayHint": "A recurring transfer from your account on the payment day: it counts in your month and in your plan.",
-      "autoPayNeeds": "Add the minimum payment and the payment day to add it every month.",
+      "autoPay": "Add the minimum payment to my fixed payments",
+      "autoPayHint": "A fixed transfer from your account on the payment day: check it off once it’s made, with a reminder the day before.",
+      "autoPayNeeds": "Add the minimum payment and the payment day to add it to your fixed payments.",
       "autoPayDone": "A recurring payment already goes to this debt: change it in Bills.",
       "payFrom": "Paid from",
       "dueShort": "due on the {day, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
@@ -5065,6 +5070,60 @@
       "incomplete": "Missing a rate or minimum, not in your plan yet: {names}.",
       "seeGoals": "See my debts and emergency fund",
       "estimate": "An estimate: rates and amounts stay the same. For a tailored plan, talk to a financial advisor."
+    },
+    "fixedPayments": {
+      "title": "Fixed payments",
+      "count": "{paid, number} of {count, number} paid",
+      "left": "{amount} left to pay this month",
+      "allPaid": "Everything is paid this month",
+      "hint": "Check off each payment once it’s made. Get iT reminds you the day before.",
+      "lastMonth": "Not checked last month",
+      "paysTitle": "Paycheques to confirm",
+      "paid": "Paid",
+      "skipped": "Not this month",
+      "due": "Not checked yet",
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "inDays": "In {days, plural, one {# day} other {# days}}",
+      "planned": "Planned {amount}",
+      "checkLabel": "Paid: {label}, {date}",
+      "error": "The payment wasn’t saved. Try again.",
+      "confirm": "Confirm",
+      "dialog": {
+        "description": "Due {date}",
+        "amount": "Amount paid",
+        "amountHint": "For this payment only: the next ones stay at {amount}.",
+        "paid": "Paid",
+        "save": "Save",
+        "skip": "Not this month",
+        "reopen": "Mark as unpaid"
+      }
+    },
+    "payCheck": {
+      "title": "{label} on {date}",
+      "question": "Did you receive {amount}?",
+      "amount": "Amount received",
+      "hint": "For this paycheque only: the next ones stay at {amount}.",
+      "yes": "Yes, I got it",
+      "save": "Save {amount}",
+      "notReceived": "Didn’t get it",
+      "later": "Later",
+      "position": "{index, number} of {count, number}",
+      "close": "Close"
+    },
+    "progress": {
+      "title": "Debts and savings",
+      "owed": "{amount} left",
+      "repaid": "{percent, number}% repaid",
+      "paidOff": "Paid off",
+      "minimum": "Minimum {amount} on the {day, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
+      "minimumOnly": "Minimum {amount} a month",
+      "goal": "{saved} of {target}",
+      "percent": "{percent, number}%",
+      "reached": "Reached",
+      "empty": "Add your debts (credit card, loan) and your savings goals to see where you stand.",
+      "addDebt": "Add a debt",
+      "addGoal": "Add a goal"
     }
   },
   "Workouts": {

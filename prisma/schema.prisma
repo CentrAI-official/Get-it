@@ -128,6 +128,7 @@ model Profile {
   eventAttendance      CommunityEventAttendee[]
   eventComments        CommunityEventComment[]
   budgetRecurring      BudgetRecurring[]
+  budgetSkips          BudgetSkip[]
   budgetEntries        BudgetEntry[]
   workoutSessions      WorkoutSession[]
   planItemLogs         PlanItemLog[]
@@ -225,6 +226,8 @@ model UserSettings {
   weightUnit               String?         @map("weight_unit")
   /// Dernier jour (fuseau de l'utilisateur) où « Ma journée » s'est ouvert tout seul.
   dayPanelSeenOn           DateTime?       @map("day_panel_seen_on") @db.Date
+  /// Rappel la veille de chaque paiement fixe pas encore coché (Budget › Factures).
+  billReminders            Boolean         @default(true) @map("bill_reminders")
   createdAt                DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -531,8 +534,11 @@ model BudgetRecurring {
   endsOn        DateTime? @map("ends_on") @db.Date
   accountId     String?   @map("account_id") @db.Uuid
   toAccountId   String?   @map("to_account_id") @db.Uuid
-  /// Dernier jour déjà inscrit dans les transactions (src/server/budget/service.ts).
+  /// Dernier jour inscrit tout seul par l'ancien système (avant le 2026-11-10) :
+  /// ce qui précède est réglé. Plus mis à jour (src/features/budget/checklist.ts).
   postedThrough DateTime? @map("posted_through") @db.Date
+  /// Date du dernier paiement rappelé la veille (jamais deux fois).
+  remindedOn    DateTime? @map("reminded_on") @db.Date
   createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -540,9 +546,27 @@ model BudgetRecurring {
   account   BudgetAccount? @relation("RecurringAccount", fields: [accountId], references: [id], onDelete: SetNull)
   toAccount BudgetAccount? @relation("RecurringToAccount", fields: [toAccountId], references: [id], onDelete: SetNull)
   entries   BudgetEntry[]
+  skips     BudgetSkip[]
 
   @@index([userId])
   @@map("budget_recurring")
+}
+
+/// Budget : un paiement fixe qui n'a pas eu lieu (« Pas ce mois-ci », une paie
+/// pas reçue). Payé, il devient une transaction (BudgetEntry.recurringOn).
+model BudgetSkip {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  recurringId String   @map("recurring_id") @db.Uuid
+  occurredOn  DateTime @map("occurred_on") @db.Date
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  profile   Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recurring BudgetRecurring @relation(fields: [recurringId], references: [id], onDelete: Cascade)
+
+  @@unique([recurringId, occurredOn])
+  @@index([userId, occurredOn])
+  @@map("budget_skips")
 }
 
 /// Budget : une transaction. Dépense, revenu, remboursement, virement entre deux
@@ -577,6 +601,7 @@ model BudgetEntry {
   @@unique([recurringId, recurringOn])
   @@unique([userId, importKey])
   @@index([userId, occurredOn])
+  @@index([userId, recurringOn])
   @@index([userId, createdAt])
   @@index([accountId])
   @@index([toAccountId])
@@ -1883,6 +1908,8 @@ enum NotificationKind {
   event_comment
   /// Rappel aux inscrits, 24 h avant le début.
   event_reminder
+  /// Un paiement fixe pas encore coché passe demain (regroupé par jour).
+  bill_due
 }
 
 /// Notification reçue : un lien et un court sujet, jamais le texte d'un message.

@@ -1,6 +1,7 @@
 import "server-only";
 import { balanceOf, isDebtType } from "@/features/budget/accounts";
 import { groupOf } from "@/features/budget/categories";
+import { checkWindowStart, outstandingIn } from "@/features/budget/checklist";
 import type { Debt } from "@/features/budget/debts";
 import {
   cashEffect,
@@ -14,7 +15,7 @@ import {
   type MoneyPlan,
 } from "@/features/budget/money-plan";
 import { rollupMonths } from "@/features/budget/plan";
-import { monthStart, occurrencesIn, upcomingIn } from "@/features/budget/rules";
+import { monthStart, occurrencesIn } from "@/features/budget/rules";
 import { addDays } from "@/lib/dates";
 import { db } from "@/server/db";
 import { getBudget, loadDeltas, monthlyRows, type BudgetPage } from "./service";
@@ -161,14 +162,21 @@ export async function getMoneyView(
         ? "spending"
         : null;
 
-  // L'argent est-il là à la date de chaque paiement?
+  // L'argent est-il là à la date de chaque paiement? Ce qui n'est pas encore
+  // coché (ou une paie pas confirmée) compte aujourd'hui : le solde ne l'a pas vu.
   const spending = accounts.filter((account) => isSpendingType(account.type));
   let cash: MoneyView["cash"] = null;
   if (spending.length > 0) {
     const to = addDays(today, CASH_WINDOW_DAYS);
-    const events: CashEvent[] = upcomingIn(rules, today, to, today)
+    const events: CashEvent[] = outstandingIn(
+      rules,
+      budget.settled,
+      checkWindowStart(today),
+      to,
+      today,
+    )
       .map((item) => ({
-        day: item.day,
+        day: item.day < today ? today : item.day,
         cents: cashEffect(item, types),
         label: item.label,
       }))
