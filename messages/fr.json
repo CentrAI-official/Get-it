@@ -5374,7 +5374,6 @@
   },
   "Clients": {
     "title": "Clients",
-    "question": "Les personnes que ta page accompagne : ce qu’elles te montrent, et tes notes.",
     "sharesNone": "Ne partage aucun plan",
     "sharesList": "Partage : {list}",
     "cancel": "Annuler",
@@ -5385,14 +5384,9 @@
     "home": {
       "emptyTitle": "Aucun client pour l’instant",
       "emptyDescription": "Invite un membre du Centre par son nom d’utilisateur, ou attends les demandes : « Devenir client » est sur ta page.",
-      "requests": "{count, plural, one {Demande} other {Demandes}} ({count, number})",
       "requested": "Demande reçue le {date}",
       "message": "Son mot : « {message} »",
-      "clients": "Tes clients ({count, number})",
-      "since": "Client depuis le {date}",
-      "invited": "Invitations envoyées",
       "invitedOn": "Invitation envoyée le {date}",
-      "former": "Anciens clients",
       "endedOn": "Suivi terminé le {date}"
     },
     "file": {
@@ -5582,6 +5576,68 @@
         "sessionInvalid": "Chaque séance a besoin d’un titre et d’au moins un élément.",
         "unexpected": "Ça n’a pas fonctionné. Réessaie."
       }
+    },
+    "list": {
+      "search": "Chercher un client",
+      "tabsLabel": "Statut des suivis",
+      "tabs": {
+        "active": "En cours",
+        "requests": "Demandes",
+        "invited": "Invitations",
+        "former": "Anciens"
+      },
+      "plan": "Plan : {plan}",
+      "allPlans": "tous",
+      "sort": "Trier : {sort}",
+      "sorts": {
+        "recent": "activité récente",
+        "nudge": "à relancer d’abord",
+        "name": "nom"
+      },
+      "kinds": {
+        "physical": "Entraînement",
+        "nutrition": "Nutrition",
+        "mental": "Mental",
+        "social": "Social",
+        "financial": "Financier"
+      },
+      "noShares": "Aucun plan partagé",
+      "days": "{done, number} {done, plural, one {jour} other {jours}} sur {planned, number}",
+      "flags": {
+        "nudge": "À relancer",
+        "pending": "Proposition en attente",
+        "accepted": "Changement accepté"
+      },
+      "last": {
+        "never": "Rien encore",
+        "minutes": "il y a {count, number} min",
+        "hours": "il y a {count, number} h",
+        "yesterday": "hier",
+        "days": "il y a {count, number} jours"
+      },
+      "asks": "Partagerait : {plans}",
+      "empty": {
+        "active": "Aucun client en cours.",
+        "requests": "Aucune demande en attente.",
+        "invited": "Aucune invitation en attente.",
+        "former": "Aucun ancien client."
+      },
+      "noMatch": "Aucun client ne correspond.",
+      "open": "{count, plural, one {# suivi ouvert} other {# suivis ouverts}} sur {max, number}"
+    },
+    "summary": {
+      "title": "Ces 7 derniers jours",
+      "activeDays": "jours actifs sur 7",
+      "percent": "de ce qui était prévu, fait",
+      "percentValue": "{percent, number} %",
+      "fullDays": "jours où tout est fait",
+      "chartTitle": "Ce qui est fait chaque jour",
+      "chartLabel": "Ce qui est fait chaque jour : {list}.",
+      "dayDone": "{day}, {done, number} sur {planned, number}",
+      "dayNothing": "{day}, rien de prévu",
+      "today": "Auj.",
+      "todayLong": "aujourd’hui",
+      "todayValue": "{done, number}/{planned, number}"
     }
   },
   "CommunityEvents": {

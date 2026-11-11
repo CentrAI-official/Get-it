@@ -26,6 +26,7 @@ import {
   listPageClients,
   myPlanKinds,
   myRelationWith,
+  type ClientActivity,
   type ClientPlanView,
   type PageClientItem,
 } from "@/server/clients/service";
@@ -38,18 +39,17 @@ import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { CLIENT_LIMITS, type ShareableKind } from "../rules";
 import {
-  CancelInvitationButton,
   DeclineInvitationButton,
   DeleteNoteButton,
   EndClientButton,
   InviteClientButton,
   LeaveProButton,
   NoteComposer,
-  RequestAnswerButtons,
   RequestClientButton,
   SharesDialogButton,
   WriteToClientButton,
 } from "./client-forms";
+import { ClientsList, type ClientTab } from "./clients-list";
 
 // Les clients d'une page pro (lot 3). Chaque vue lit la session : à placer
 // dans un <Suspense>.
@@ -75,197 +75,195 @@ async function sharesText(kinds: readonly ShareableKind[]) {
 
 // ——— Sur sa page : la liste des clients ———
 
-/** Clients (mode page, à la place de Mon développement). */
-export async function ClientsHome() {
+/**
+ * Clients (mode page, à la place de Mon développement) : la maquette « Liste
+ * pro » (décision du fondateur, 2026-11-10). `?onglet=demandes` ouvre les demandes.
+ */
+export async function ClientsHome({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const profile = await getCurrentProfile();
   const page = await getActingPage(profile.id);
   if (!page) notFound();
-  const [items, t, format] = await Promise.all([
+  const [{ items, loadedAt }, params, t] = await Promise.all([
     listPageClients(profile.id, page.id),
+    searchParams,
     getTranslations("Clients"),
-    getFormatter(),
   ]);
-  const date = (iso: string) =>
-    format.dateTime(new Date(iso), { day: "numeric", month: "long" });
-  const by = (status: PageClientItem["status"]) =>
-    items.filter((item) => item.status === status);
-  const requests = by("requested");
-  const clients = by("active");
-  const invited = by("invited");
-  const former = by("ended");
-  const shares = new Map(
-    await Promise.all(
-      items.map(
-        async (item) => [item.id, await sharesText(item.sharedKinds)] as const,
-      ),
-    ),
-  );
+  const has = (status: PageClientItem["status"]) =>
+    items.some((item) => item.status === status);
+  // Les demandes d'abord quand on y arrive par la cloche, ou sans client en cours
+  const initialTab: ClientTab =
+    params.onglet === "demandes" || (!has("active") && has("requested"))
+      ? "requests"
+      : "active";
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-4">
-        <PageHeader title={t("title")} description={t("question")} />
-        <div className="flex flex-col gap-2">
-          <InviteClientButton />
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={t("title")}
+        action={
+          <div className="flex flex-col items-end gap-1">
+            <InviteClientButton />
+          </div>
+        }
+      />
       {items.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
           title={t("home.emptyTitle")}
           description={t("home.emptyDescription")}
         />
-      ) : null}
-
-      {requests.length > 0 ? (
-        <section
-          aria-labelledby="clients-requests"
-          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-        >
-          <h2
-            id="clients-requests"
-            className="caps-label text-muted-foreground"
-          >
-            {t("home.requests", { count: requests.length })}
-          </h2>
-          <ul className="flex flex-col">
-            {requests.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-col gap-3 border-b border-foreground/8 py-4"
-              >
-                <PersonLine
-                  item={item}
-                  detail={t("home.requested", { date: date(item.since) })}
-                />
-                {item.message ? (
-                  <p className="text-sm break-words whitespace-pre-line">
-                    {t("home.message", { message: item.message })}
-                  </p>
-                ) : null}
-                <p className="text-sm text-muted-foreground">
-                  {shares.get(item.id)}
-                </p>
-                <RequestAnswerButtons relationId={item.id} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {clients.length > 0 ? (
-        <section
-          aria-labelledby="clients-active"
-          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-        >
-          <h2 id="clients-active" className="caps-label text-muted-foreground">
-            {t("home.clients", { count: clients.length })}
-          </h2>
-          <ul className="flex flex-col">
-            {clients.map((item) => (
-              <li key={item.id} className="border-b border-foreground/8">
-                <Link
-                  href={`/clients/${item.client.id}`}
-                  className="flex min-h-16 items-center gap-3 py-3 outline-none hover:bg-foreground/[0.03] focus-visible:ring-3 focus-visible:ring-ring/50"
-                >
-                  <Avatar
-                    name={item.client.displayName ?? item.client.username ?? ""}
-                    url={item.client.avatarUrl}
-                    className="size-11"
-                  />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate font-semibold">
-                      {item.client.displayName ?? item.client.username}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {t("home.since", { date: date(item.since) })} ·{" "}
-                      {shares.get(item.id)}
-                    </span>
-                  </span>
-                  <ChevronRight
-                    aria-hidden="true"
-                    className="size-4 shrink-0 text-muted-foreground"
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {invited.length > 0 ? (
-        <section
-          aria-labelledby="clients-invited"
-          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-        >
-          <h2 id="clients-invited" className="caps-label text-muted-foreground">
-            {t("home.invited")}
-          </h2>
-          <ul className="flex flex-col">
-            {invited.map((item) => (
-              <li
-                key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 border-b border-foreground/8 py-3"
-              >
-                <PersonLine
-                  item={item}
-                  detail={t("home.invitedOn", { date: date(item.since) })}
-                />
-                <CancelInvitationButton relationId={item.id} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {former.length > 0 ? (
-        <section
-          aria-labelledby="clients-former"
-          className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-        >
-          <h2 id="clients-former" className="caps-label text-muted-foreground">
-            {t("home.former")}
-          </h2>
-          <ul className="flex flex-col">
-            {former.map((item) => (
-              <li key={item.id} className="border-b border-foreground/8">
-                <Link
-                  href={`/clients/${item.client.id}`}
-                  className="flex min-h-14 items-center gap-3 py-2 text-muted-foreground outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50"
-                >
-                  <PersonLine
-                    item={item}
-                    detail={t("home.endedOn", {
-                      date: date(item.endedAt ?? item.since),
-                    })}
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      ) : (
+        <ClientsList
+          items={items}
+          loadedAt={loadedAt}
+          initialTab={initialTab}
+        />
+      )}
     </div>
   );
 }
 
-function PersonLine({
-  item,
-  detail,
-}: {
-  item: PageClientItem;
-  detail: string;
-}) {
-  const name = item.client.displayName ?? item.client.username ?? "";
+/**
+ * Le haut de la fiche : les 7 derniers jours du client, d'après la maquette
+ * « Cette semaine » (décision du fondateur, 2026-11-10) : jours actifs, la part
+ * de ce qui était prévu qui est faite, les jours où tout est fait, puis ce qui
+ * est fait chaque jour.
+ */
+async function ClientSummary({ activity }: { activity: ClientActivity }) {
+  const [t, format] = await Promise.all([
+    getTranslations("Clients.summary"),
+    getFormatter(),
+  ]);
+  const { summary } = activity;
+  const last = summary.days.length - 1;
+  const weekday = (day: string, length: "short" | "long") =>
+    format.dateTime(dayDate(day), { weekday: length, timeZone: "UTC" });
+  const described = summary.days.map((day, index) =>
+    day.planned > 0
+      ? t("dayDone", {
+          day: index === last ? t("todayLong") : weekday(day.day, "long"),
+          done: day.done,
+          planned: day.planned,
+        })
+      : t("dayNothing", {
+          day: index === last ? t("todayLong") : weekday(day.day, "long"),
+        }),
+  );
+  const tiles = [
+    {
+      value: String(summary.activeDays),
+      label: t("activeDays"),
+      accent: false,
+    },
+    {
+      value:
+        summary.percent === null
+          ? "—"
+          : t("percentValue", { percent: summary.percent }),
+      label: t("percent"),
+      accent: summary.percent !== null,
+    },
+    { value: String(summary.fullDays), label: t("fullDays"), accent: false },
+  ];
+
   return (
-    <span className="flex min-w-0 flex-1 items-center gap-3">
-      <Avatar name={name} url={item.client.avatarUrl} className="size-10" />
-      <span className="flex min-w-0 flex-col">
-        <span className="truncate font-semibold text-foreground">{name}</span>
-        <span className="truncate text-xs text-muted-foreground">{detail}</span>
-      </span>
-    </span>
+    <section
+      aria-labelledby="client-summary"
+      className="flex flex-col gap-6 border-t border-foreground/8 pt-6"
+    >
+      <h2 id="client-summary" className="text-sm text-muted-foreground">
+        {t("title")}
+      </h2>
+      <dl className="grid grid-cols-3">
+        {tiles.map((tile, index) => (
+          <div
+            key={tile.label}
+            className={cn(
+              "flex min-w-0 flex-col-reverse justify-end gap-1.5",
+              index === 0 ? "pr-3" : "border-l border-foreground/8 px-3",
+              index === 2 && "pr-0",
+            )}
+          >
+            <dt className="text-xs leading-snug text-pretty text-muted-foreground">
+              {tile.label}
+            </dt>
+            <dd
+              className={cn(
+                "font-display text-5xl leading-none tabular-nums",
+                tile.accent && "text-primary",
+              )}
+            >
+              {tile.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="flex flex-col gap-3 border-t border-foreground/8 pt-6">
+        <h3 className="caps-label text-muted-foreground">{t("chartTitle")}</h3>
+        <div
+          role="img"
+          aria-label={t("chartLabel", { list: described.join(", ") })}
+          className="grid h-[120px] grid-cols-7 items-end gap-2 border-b border-foreground/15"
+        >
+          {summary.days.map((day, index) => {
+            const share =
+              day.planned > 0 ? day.done / day.planned : day.active ? 1 : 0;
+            const today = index === last;
+            return (
+              <div
+                key={day.day}
+                className="flex h-full flex-col items-center justify-end gap-1.5"
+              >
+                {today && day.planned > 0 ? (
+                  <span className="text-xs font-bold tabular-nums">
+                    {t("todayValue", { done: day.done, planned: day.planned })}
+                  </span>
+                ) : null}
+                <span
+                  className={cn(
+                    "block w-full max-w-[26px] rounded-t-[4px]",
+                    share > 0
+                      ? today
+                        ? "bg-primary"
+                        : "bg-primary/40"
+                      : "bg-foreground/15",
+                  )}
+                  // Prévu mais rien de fait : un trait gris ; rien de prévu : rien
+                  style={{
+                    height:
+                      share > 0
+                        ? `${Math.max(4, Math.round(share * 96))}px`
+                        : day.planned > 0
+                          ? "3px"
+                          : "0px",
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
+        <div aria-hidden="true" className="-mt-1 grid grid-cols-7 gap-2">
+          {summary.days.map((day, index) => (
+            <span
+              key={day.day}
+              className={cn(
+                "text-center text-[11px] text-muted-foreground first-letter:uppercase",
+                index === last && "font-bold text-foreground",
+              )}
+            >
+              {index === last
+                ? t("today")
+                : weekday(day.day, "short").replace(/\.$/, "")}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -334,6 +332,12 @@ export async function ClientFileView({ clientId }: { clientId: string }) {
           </div>
         ) : null}
       </header>
+
+      {file.status === "active" &&
+      file.activity &&
+      file.sharedKinds.length > 0 ? (
+        <ClientSummary activity={file.activity} />
+      ) : null}
 
       {file.status === "active" ? (
         <section

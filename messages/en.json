@@ -5374,7 +5374,6 @@
   },
   "Clients": {
     "title": "Clients",
-    "question": "The people your page supports: what they show you, and your notes.",
     "sharesNone": "Shares no plan",
     "sharesList": "Shares: {list}",
     "cancel": "Cancel",
@@ -5385,14 +5384,9 @@
     "home": {
       "emptyTitle": "No clients yet",
       "emptyDescription": "Invite a Hub member by username, or wait for requests: “Become a client” is on your page.",
-      "requests": "{count, plural, one {Request} other {Requests}} ({count, number})",
       "requested": "Request received on {date}",
       "message": "Their note: “{message}”",
-      "clients": "Your clients ({count, number})",
-      "since": "Client since {date}",
-      "invited": "Invitations sent",
       "invitedOn": "Invitation sent on {date}",
-      "former": "Former clients",
       "endedOn": "Follow-up ended on {date}"
     },
     "file": {
@@ -5582,6 +5576,68 @@
         "sessionInvalid": "Each session needs a title and at least one item.",
         "unexpected": "That didn’t work. Try again."
       }
+    },
+    "list": {
+      "search": "Search for a client",
+      "tabsLabel": "Client status",
+      "tabs": {
+        "active": "Active",
+        "requests": "Requests",
+        "invited": "Invitations",
+        "former": "Past"
+      },
+      "plan": "Plan: {plan}",
+      "allPlans": "all",
+      "sort": "Sort: {sort}",
+      "sorts": {
+        "recent": "recent activity",
+        "nudge": "to follow up first",
+        "name": "name"
+      },
+      "kinds": {
+        "physical": "Training",
+        "nutrition": "Nutrition",
+        "mental": "Mental",
+        "social": "Social",
+        "financial": "Financial"
+      },
+      "noShares": "No shared plan",
+      "days": "{done, number} of {planned, number} {planned, plural, one {day} other {days}}",
+      "flags": {
+        "nudge": "Follow up",
+        "pending": "Change pending",
+        "accepted": "Change accepted"
+      },
+      "last": {
+        "never": "Nothing yet",
+        "minutes": "{count, number} min ago",
+        "hours": "{count, number} h ago",
+        "yesterday": "yesterday",
+        "days": "{count, number} days ago"
+      },
+      "asks": "Would share: {plans}",
+      "empty": {
+        "active": "No active clients.",
+        "requests": "No pending requests.",
+        "invited": "No pending invitations.",
+        "former": "No past clients."
+      },
+      "noMatch": "No client matches.",
+      "open": "{count, plural, one {# open follow-up} other {# open follow-ups}} out of {max, number}"
+    },
+    "summary": {
+      "title": "The last 7 days",
+      "activeDays": "active days out of 7",
+      "percent": "of what was planned, done",
+      "percentValue": "{percent, number}%",
+      "fullDays": "days with everything done",
+      "chartTitle": "Done each day",
+      "chartLabel": "Done each day: {list}.",
+      "dayDone": "{day}, {done, number} of {planned, number}",
+      "dayNothing": "{day}, nothing planned",
+      "today": "Today",
+      "todayLong": "today",
+      "todayValue": "{done, number}/{planned, number}"
     }
   },
   "CommunityEvents": {

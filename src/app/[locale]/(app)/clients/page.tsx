@@ -12,11 +12,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Les clients de la page pro (mode page, à la place de Mon développement)
-export default function ClientsPage() {
+export default function ClientsPage({
+  searchParams,
+}: PageProps<"/[locale]/clients">) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <Suspense fallback={<ClientsSkeleton />}>
-        <ClientsHome />
+        <ClientsHome searchParams={searchParams} />
       </Suspense>
     </div>
   );

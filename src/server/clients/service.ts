@@ -1,6 +1,18 @@
 import "server-only";
 import { Prisma } from "@/generated/prisma/client";
 import {
+  ACCEPTED_FLAG_DAYS,
+  ACTIVITY_DAYS,
+  activityDays,
+  clientFlag,
+  combineDay,
+  needsNudge,
+  planDay,
+  summarizeActivity,
+  type ActivitySummary,
+  type ClientFlag,
+} from "@/features/clients/activity";
+import {
   canSeePlan,
   CLIENT_LIMITS,
   orderedShares,
@@ -12,7 +24,7 @@ import {
 import { sessionOn, planWeek, weekOf } from "@/features/development/calendar";
 import { storedPlanSchema } from "@/features/development/plan";
 import type { DayMoment } from "@/config/moments";
-import { fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
+import { addDays, fromDbDate, toCalendarDay, toDbDate } from "@/lib/dates";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { db } from "@/server/db";
 import { notify } from "@/server/notifications/service";
@@ -43,6 +55,14 @@ export type ClientPerson = {
   avatarUrl: string | null;
 };
 
+/** Ce qu'un client a fait de ses plans partagés, les 7 derniers jours. */
+export type ClientActivity = {
+  summary: ActivitySummary;
+  /** La dernière chose faite dans un plan partagé (élément coché, séance terminée). */
+  lastActiveAt: string | null;
+  flag: ClientFlag | null;
+};
+
 /** Un suivi vu par la page. */
 export type PageClientItem = {
   id: string;
@@ -54,6 +74,8 @@ export type PageClientItem = {
   /** Début du suivi, ou de l'invitation ou de la demande. */
   since: string;
   endedAt: string | null;
+  /** Pendant un suivi en cours seulement. */
+  activity: ClientActivity | null;
 };
 
 /** Un suivi vu par le client. */
@@ -108,13 +130,202 @@ async function canTakePart(userId: string): Promise<Result> {
 const consentOf = (shares: Shares, previous: Date | null = null) =>
   shares.kinds.includes("mental") ? (previous ?? new Date()) : null;
 
+/** Les clés d'un regroupement par personne. */
+function groupBy<T>(rows: readonly T[], key: (row: T) => string) {
+  const map = new Map<string, T[]>();
+  for (const row of rows) {
+    const list = map.get(key(row)) ?? [];
+    list.push(row);
+    map.set(key(row), list);
+  }
+  return map;
+}
+
+/**
+ * Ce que chaque client a fait de ses plans partagés (et seulement d'eux), les
+ * 7 derniers jours dans son fuseau, sa dernière activité et le signal de sa
+ * ligne. Les plans visibles sont revérifiés par l'appelant (`canSeePlan`).
+ */
+async function activityOf(
+  pageId: string,
+  clients: readonly { clientId: string; kinds: ShareableKind[]; since: Date }[],
+): Promise<Map<string, ClientActivity>> {
+  const result = new Map<string, ClientActivity>();
+  if (clients.length === 0) return result;
+  const ids = clients.map((client) => client.clientId);
+  const kinds = [...new Set(clients.flatMap((client) => client.kinds))];
+  const checked = kinds.filter((kind) => kind !== "physical");
+  const physical = kinds.includes("physical");
+  const now = new Date();
+  // Le premier des 7 jours, quel que soit le fuseau (un jour de plus en UTC)
+  const from = toDbDate(
+    addDays(now.toISOString().slice(0, 10), -ACTIVITY_DAYS),
+  );
+  const [settings, plans, logs, workouts, lastLogs, lastWorkouts, proposals] =
+    await Promise.all([
+      db.userSettings.findMany({
+        where: { userId: { in: ids } },
+        select: { userId: true, timeZone: true },
+      }),
+      db.developmentPlan.findMany({
+        where: { userId: { in: ids }, kind: { in: kinds } },
+        select: {
+          userId: true,
+          kind: true,
+          plan: true,
+          startsOn: true,
+          endsOn: true,
+        },
+      }),
+      db.planItemLog.findMany({
+        where: {
+          userId: { in: ids },
+          kind: { in: checked },
+          day: { gte: from },
+        },
+        select: { userId: true, kind: true, day: true },
+      }),
+      physical
+        ? db.workoutSession.findMany({
+            where: {
+              userId: { in: ids },
+              finishedAt: { not: null },
+              day: { gte: from },
+            },
+            select: { userId: true, day: true },
+          })
+        : Promise.resolve([]),
+      db.planItemLog.groupBy({
+        by: ["userId", "kind"],
+        where: { userId: { in: ids }, kind: { in: checked } },
+        _max: { createdAt: true },
+      }),
+      physical
+        ? db.workoutSession.groupBy({
+            by: ["userId"],
+            where: { userId: { in: ids }, finishedAt: { not: null } },
+            _max: { finishedAt: true },
+          })
+        : Promise.resolve([]),
+      db.planProposal.findMany({
+        where: {
+          pageId,
+          clientId: { in: ids },
+          OR: [
+            { status: "pending" },
+            {
+              status: "accepted",
+              decidedAt: {
+                gte: new Date(now.getTime() - ACCEPTED_FLAG_DAYS * DAY_MS),
+              },
+            },
+          ],
+        },
+        select: { clientId: true, status: true },
+      }),
+    ]);
+  const zones = new Map(settings.map((row) => [row.userId, row.timeZone]));
+  const plansOf = groupBy(plans, (row) => row.userId);
+  const logsOf = groupBy(logs, (row) => row.userId);
+  const workoutsOf = groupBy(workouts, (row) => row.userId);
+  const lastLogsOf = groupBy(lastLogs, (row) => row.userId);
+  const proposalsOf = groupBy(proposals, (row) => row.clientId);
+  const lastWorkout = new Map(
+    lastWorkouts.map((row) => [row.userId, row._max.finishedAt]),
+  );
+
+  for (const { clientId, kinds: shared, since } of clients) {
+    const timeZone = zones.get(clientId) ?? "America/Toronto";
+    const today = toCalendarDay(now, timeZone);
+    const calendars = new Map(
+      (plansOf.get(clientId) ?? []).flatMap((row) => {
+        const parsed = storedPlanSchema.safeParse(row.plan);
+        return parsed.success && shared.includes(row.kind as ShareableKind)
+          ? [
+              [
+                row.kind,
+                {
+                  id: "",
+                  kind: row.kind,
+                  title: "",
+                  startsOn: fromDbDate(row.startsOn),
+                  endsOn: fromDbDate(row.endsOn),
+                  schedule: parsed.data.schedule,
+                },
+              ] as const,
+            ]
+          : [];
+      }),
+    );
+    const logged = groupBy(
+      (logsOf.get(clientId) ?? []).filter((row) =>
+        shared.includes(row.kind as ShareableKind),
+      ),
+      (row) => `${row.kind}:${fromDbDate(row.day)}`,
+    );
+    const trained = new Set(
+      shared.includes("physical")
+        ? (workoutsOf.get(clientId) ?? []).map((row) => fromDbDate(row.day))
+        : [],
+    );
+    const summary = summarizeActivity(
+      activityDays(today).map((day) =>
+        combineDay(
+          day,
+          shared.map((kind) => {
+            const calendar = calendars.get(kind);
+            return planDay({
+              kind,
+              items: calendar
+                ? (sessionOn(calendar, day)?.items.length ?? 0)
+                : 0,
+              logged: logged.get(`${kind}:${day}`)?.length ?? 0,
+              workout: trained.has(day),
+            });
+          }),
+        ),
+      ),
+    );
+    // La dernière chose faite, dans un plan partagé seulement
+    const times = [
+      ...(lastLogsOf.get(clientId) ?? [])
+        .filter((row) => shared.includes(row.kind as ShareableKind))
+        .map((row) => row._max.createdAt),
+      shared.includes("physical") ? lastWorkout.get(clientId) : null,
+    ].filter((time): time is Date => time instanceof Date);
+    const last = times.length
+      ? new Date(Math.max(...times.map((time) => time.getTime())))
+      : null;
+    const flags = proposalsOf.get(clientId) ?? [];
+    result.set(clientId, {
+      summary,
+      lastActiveAt: last?.toISOString() ?? null,
+      flag: clientFlag({
+        nudge: needsNudge({
+          summary,
+          lastActiveDay: last ? toCalendarDay(last, timeZone) : null,
+          sinceDay: toCalendarDay(since, timeZone),
+          today,
+        }),
+        pendingProposal: flags.some((row) => row.status === "pending"),
+        acceptedRecently: flags.some((row) => row.status === "accepted"),
+      }),
+    });
+  }
+  return result;
+}
+
 // ——— Côté page ———
 
-/** Les suivis de la page : demandes, clients, invitations, puis anciens clients. */
+/**
+ * Les suivis de la page : demandes, clients, invitations, puis anciens clients,
+ * avec ce que chaque client en cours a fait de ses plans partagés. `loadedAt`
+ * sert aux durées (« il y a 2 h »).
+ */
 export async function listPageClients(
   ownerId: string,
   pageId: string,
-): Promise<PageClientItem[]> {
+): Promise<{ items: PageClientItem[]; loadedAt: number }> {
   const blocked = await getBlockedIds(ownerId);
   const rows = await db.pageClient.findMany({
     where: {
@@ -130,6 +341,7 @@ export async function listPageClients(
       initiatedBy: true,
       clientId: true,
       sharedKinds: true,
+      mentalConsentAt: true,
       message: true,
       acceptedAt: true,
       createdAt: true,
@@ -147,14 +359,27 @@ export async function listPageClients(
     seenEnded.add(row.clientId);
     return true;
   });
-  const byId = await people([...new Set(kept.map((row) => row.clientId))]);
+  const active = kept.filter((row) => row.status === "active");
+  const [byId, activity] = await Promise.all([
+    people([...new Set(kept.map((row) => row.clientId))]),
+    activityOf(
+      pageId,
+      active.map((row) => ({
+        clientId: row.clientId,
+        kinds: orderedShares(row.sharedKinds).filter((kind) =>
+          canSeePlan(row, kind),
+        ),
+        since: row.acceptedAt ?? row.createdAt,
+      })),
+    ),
+  ]);
   const order: Record<ClientStatus, number> = {
     requested: 0,
     active: 1,
     invited: 2,
     ended: 3,
   };
-  return kept
+  const items = kept
     .flatMap((row) => {
       const client = byId.get(row.clientId);
       return client
@@ -168,11 +393,16 @@ export async function listPageClients(
               message: row.message,
               since: (row.acceptedAt ?? row.createdAt).toISOString(),
               endedAt: row.endedAt?.toISOString() ?? null,
+              activity:
+                row.status === "active"
+                  ? (activity.get(row.clientId) ?? null)
+                  : null,
             } satisfies PageClientItem,
           ]
         : [];
     })
     .sort((a, b) => order[a.status] - order[b.status]);
+  return { items, loadedAt: Date.now() };
 }
 
 /** Invite un membre du Centre (par son nom d'utilisateur) à devenir client. */
@@ -360,6 +590,8 @@ export type ClientFile = {
   notes: ClientNoteItem[];
   /** Les modifications proposées par la page (lot 4), plus récentes d'abord. */
   proposals: ProposalSummary[];
+  /** Le résumé des 7 derniers jours (suivi en cours seulement). */
+  activity: ClientActivity | null;
 };
 
 /** Les séances terminées du carnet : durée, séries faites, records. */
@@ -547,7 +779,7 @@ export async function getClientFile(
   const visible = orderedShares(relation.sharedKinds).filter((kind) =>
     canSeePlan(relation, kind),
   );
-  const [byId, plans, notes, proposals] = await Promise.all([
+  const [byId, plans, notes, proposals, activity] = await Promise.all([
     people([clientId]),
     sharedPlans(clientId, visible),
     db.clientNote.findMany({
@@ -557,6 +789,15 @@ export async function getClientFile(
       select: { id: true, body: true, createdAt: true },
     }),
     listProposalHistory(pageId, clientId),
+    relation.status === "active"
+      ? activityOf(pageId, [
+          {
+            clientId,
+            kinds: visible,
+            since: relation.acceptedAt ?? relation.createdAt,
+          },
+        ])
+      : Promise.resolve(new Map<string, ClientActivity>()),
   ]);
   const client = byId.get(clientId);
   if (!client) return null;
@@ -575,6 +816,7 @@ export async function getClientFile(
       createdAt: note.createdAt.toISOString(),
     })),
     proposals,
+    activity: activity.get(clientId) ?? null,
   };
 }
 
@@ -757,7 +999,8 @@ export async function requestToBecomeClient(
     pageId,
     kind: "client_request",
     actorId: userId,
-    href: "/clients",
+    // L'onglet « Demandes » de la liste
+    href: "/clients?onglet=demandes",
     groupKey: `client-request:${userId}`,
   });
   return { ok: true };
