@@ -163,6 +163,8 @@ export type MonthPlan = {
    * et le plan d'argent disent la même chose).
    */
   minimumsReserveCents: number;
+  /** Tous les paiements minimums des dettes qui ont encore un solde. */
+  minimumsCents: number;
   /** L'épargne prévue pas encore mise de côté : elle n'est pas à dépenser. */
   reserveCents: number;
 };
@@ -262,6 +264,7 @@ export function buildMonthPlan({
     expectedIncomeCents,
     toAssignCents: expectedIncomeCents - plannedCents - minimumsReserveCents,
     minimumsReserveCents,
+    minimumsCents,
     reserveCents: savings
       ? Math.max(
           0,

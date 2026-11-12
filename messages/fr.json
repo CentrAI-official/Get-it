@@ -4501,27 +4501,6 @@
       "week": "Semaine",
       "month": "Mois"
     },
-    "remaining": {
-      "day": "Reste à dépenser aujourd’hui",
-      "week": "Reste à dépenser cette semaine",
-      "month": "Reste à dépenser ce mois-ci",
-      "other": "Reste pour cette période"
-    },
-    "over": "Tu dépasses tes revenus de {amount}.",
-    "usedLabel": "Part de tes revenus déjà utilisée",
-    "used": "{percent, number} % de tes revenus utilisés",
-    "noIncome": "Aucun revenu prévu : ajoute ton salaire pour voir ce qui te reste.",
-    "totals": {
-      "income": "Revenus",
-      "fixed": "Dépenses fixes",
-      "spent": "Dépensé",
-      "upcoming": "À venir",
-      "saved": "Épargne",
-      "left": "Reste"
-    },
-    "upcoming": "dont {amount} à venir",
-    "perDay": "Tu peux encore dépenser {amount} par jour, pour {days, plural, one {le dernier jour} other {les # jours qui restent}}.",
-    "byCategory": "Dépenses par catégorie",
     "share": "{percent, number} %",
     "entries": "Transactions",
     "noEntries": "Aucune transaction pour cette période.",
@@ -4681,7 +4660,7 @@
     },
     "tabs": {
       "label": "Sections du budget",
-      "month": "Mois",
+      "month": "Enveloppes",
       "transactions": "Transactions",
       "bills": "Factures",
       "accounts": "Comptes",
@@ -4689,8 +4668,6 @@
       "reports": "Rapports"
     },
     "addTransfer": "Virement entre comptes",
-    "spentHero": "Dépensé",
-    "barLabel": "Revenus prévus {income} : {spent} dépensés, {upcoming} à venir, {saved} mis de côté.",
     "recent": "Dernières transactions",
     "seeAll": "Tout voir",
     "noAccount": "Aucun compte",
@@ -4719,15 +4696,6 @@
       "coffee": "Café"
     },
     "plan": {
-      "over": "Dépassé de {amount}",
-      "left": "Reste {amount}",
-      "unplanned": "Pas de montant prévu",
-      "overHint": "Ajuste le montant, ou prends ailleurs",
-      "fast": "Ça va plus vite que le mois",
-      "upcoming": "{amount} à venir",
-      "carry": "{amount} reportés",
-      "of": "sur {amount}",
-      "ofSaved": "sur {amount} prévus",
       "lineDescription": "Le montant prévu chaque mois, et ce qui en reste.",
       "spentLabel": "Sorti",
       "upcomingLabel": "À venir",
@@ -4751,27 +4719,12 @@
       "back": "Retour",
       "createCategory": "Créer",
       "add": "Ajouter",
-      "toAssign": "{amount} à répartir",
-      "toAssignHint": "Donne un rôle à chaque dollar de tes revenus : une catégorie, ou l’épargne.",
-      "assigned": "Chaque dollar a son rôle",
-      "assignedHint": "Tes revenus du mois sont tous prévus.",
-      "overAssigned": "{amount} de plus que tes revenus",
-      "overAssignedHint": "Ton plan prévoit plus que ce qui entre ce mois-ci : réduis une catégorie.",
-      "assign": "Répartir",
-      "suggestion": "Proposer une répartition 50/30/20",
       "suggestionHint": "Un point de départ : 50 % pour les essentiels, 30 % pour les envies, 20 % pour l’épargne, moins tes paiements fixes. Tout se change ensuite.",
-      "suggestionApply": "Appliquer",
       "annualTitle": "À préparer",
       "annualHint": "Tes dépenses annuelles, un peu chaque mois : elles n’arrivent plus d’un coup.",
       "annualAmount": "{amount} par année",
       "annualPrepare": "{amount} par mois",
-      "groupTotal": "{used} sur {planned}",
-      "goalsNeed": "Tes objectifs d’épargne demandent {amount} par mois.",
-      "addLine": "Ajouter une catégorie au plan",
-      "reached": "Prévu du mois atteint",
-      "minimumsNote": "Après {amount} de paiements minimums de tes dettes.",
-      "toPay": "{amount} à payer",
-      "allPaid": "Payé"
+      "goalsNeed": "Tes objectifs d’épargne demandent {amount} par mois."
     },
     "setup": {
       "start": "Faire mon budget",
@@ -5022,7 +4975,6 @@
       "below": "−{delta, number} % par rapport à ta moyenne",
       "biggestTitle": "Tes plus grosses dépenses"
     },
-    "incomeLine": "Revenus prévus : {amount}",
     "money": {
       "title": "Ton plan d’argent",
       "by": "Calculé par Get iT d’après ton budget, sans IA : rien n’est envoyé à Get iT AI.",
@@ -5074,7 +5026,6 @@
     "fixedPayments": {
       "title": "Paiements fixes",
       "count": "{count, plural, one {{paid, number} sur # payé} other {{paid, number} sur # payés}}",
-      "left": "Reste {amount} à payer ce mois-ci",
       "allPaid": "Tout est payé ce mois-ci",
       "hint": "Coche chaque paiement quand il est fait. Get iT te le rappelle la veille.",
       "lastMonth": "Pas coché le mois passé",
@@ -5112,18 +5063,100 @@
       "close": "Fermer"
     },
     "progress": {
-      "title": "Dettes et épargne",
-      "owed": "Reste {amount}",
       "repaid": "{percent, number} % remboursé",
       "paidOff": "Remboursée",
       "minimum": "Minimum {amount} le {day, number}",
       "minimumOnly": "Minimum {amount} par mois",
       "goal": "{saved} sur {target}",
-      "percent": "{percent, number} %",
       "reached": "Atteint",
-      "empty": "Ajoute tes dettes (carte de crédit, prêt) et tes objectifs d’épargne : tu verras ici où tu en es.",
       "addDebt": "Ajouter une dette",
       "addGoal": "Ajouter un objectif"
+    },
+    "envelopes": {
+      "title": "Enveloppes",
+      "unassigned": "<b>{amount}</b> sans enveloppe",
+      "unassignedHint": "Donne un job à chaque dollar.",
+      "assigned": "Chaque dollar a son enveloppe",
+      "assignedHint": "Tes revenus du mois sont tous répartis.",
+      "overAssigned": "<b>{amount}</b> de trop dans tes enveloppes",
+      "overAssignedHint": "Tu prévois plus que ce qui entre ce mois-ci : réduis une enveloppe.",
+      "noIncome": "Pas encore de revenu ce mois-ci",
+      "noIncomeHint": "Ajoute ta paie, puis répartis-la dans tes enveloppes.",
+      "assign": "Répartir",
+      "edit": "Modifier",
+      "minimumsNote": "Après {amount} de paiements minimums de tes dettes.",
+      "left": "restants sur {amount}",
+      "untouched": "pas encore touchée",
+      "over": "de trop, sur {amount}",
+      "overLabel": "Dépassée",
+      "fast": "Va vite",
+      "unplanned": "dépensés, sans montant prévu",
+      "savingsLeft": "à mettre de côté ({saved} sur {budget})",
+      "savingsReached": "mis de côté : c’est fait",
+      "savingsFree": "mis de côté ce mois-ci",
+      "period": {
+        "day": "{amount} aujourd’hui",
+        "week": "{amount} cette semaine",
+        "dayOther": "{amount} ce jour-là",
+        "weekOther": "{amount} cette semaine-là"
+      },
+      "periodNone": {
+        "day": "Rien aujourd’hui",
+        "week": "Rien cette semaine",
+        "dayOther": "Rien ce jour-là",
+        "weekOther": "Rien cette semaine-là"
+      },
+      "spent": {
+        "day": "Dépensé aujourd’hui",
+        "week": "Dépensé cette semaine",
+        "dayOther": "Dépensé ce jour-là",
+        "weekOther": "Dépensé cette semaine-là"
+      },
+      "upcoming": "{amount} à venir",
+      "empty": "Tes enveloppes apparaissent ici. Touche « Répartir » pour donner un montant à tes dépenses de tous les jours.",
+      "spend": "Ajouter une dépense",
+      "putAside": "Mettre de côté",
+      "debtLeft": "restants",
+      "goalLeft": "à mettre de côté",
+      "progressEmpty": "Ajoute tes dettes et tes objectifs d’épargne pour suivre où tu en es.",
+      "fixed": {
+        "open": "{count, plural, one {# à payer} other {# à payer}} · {next}",
+        "none": "Rien ce mois-ci",
+        "late": "{count, plural, one {# pas coché le mois passé} other {# pas cochés le mois passé}}",
+        "pays": "{count, plural, one {# paie à confirmer} other {# paies à confirmer}}",
+        "when": {
+          "late": "{label} pas encore coché",
+          "today": "{label} aujourd’hui",
+          "tomorrow": "{label} demain",
+          "weekday": "{label} {weekday}",
+          "date": "{label} le {day, number}"
+        }
+      },
+      "quick": {
+        "title": "Dépense rapide",
+        "hint": "Choisis l’enveloppe, tape le montant. C’est tout.",
+        "other": "Autre",
+        "expense": "Dépense",
+        "description": "Combien? La dépense est notée aujourd’hui.",
+        "more": "Plus d’options",
+        "income": "Revenu",
+        "transfer": "Virement"
+      },
+      "assignSheet": {
+        "title": "Répartir {month}",
+        "description": "Choisis combien va dans chaque enveloppe. Les montants restent les mêmes les mois suivants.",
+        "suggestion": "Proposer 50/30/20",
+        "moneyPlan": "Ton plan d’argent propose ce mois-ci :",
+        "moneyPlanLink": "Voir le plan d’argent",
+        "fixedLine": "Paiements fixes",
+        "fixedHint": "Ils se modifient dans Factures.",
+        "spentHint": "{amount} déjà sortis",
+        "add": "Nouvelle enveloppe",
+        "save": "Enregistrer",
+        "cancel": "Annuler",
+        "invalid": "Montant invalide",
+        "error": "Les montants n’ont pas été enregistrés. Réessaie."
+      }
     }
   },
   "Workouts": {

@@ -24,10 +24,13 @@ export async function MoneyPlanSection({
   money,
   today,
   currency,
+  first = false,
 }: {
   money: MoneyView;
   today: string;
   currency: string;
+  /** En haut de la page (onglet Objectifs) : sans trait au-dessus. */
+  first?: boolean;
 }) {
   const [t, format] = await Promise.all([
     getTranslations("Budget.money"),
@@ -97,7 +100,10 @@ export async function MoneyPlanSection({
   return (
     <section
       aria-labelledby="money-plan"
-      className="flex flex-col gap-4 border-t border-foreground/8 pt-6"
+      className={cn(
+        "flex flex-col gap-4",
+        !first && "border-t border-foreground/8 pt-6",
+      )}
     >
       <div className="flex flex-col gap-1">
         <h2 id="money-plan" className="caps-label text-muted-foreground">

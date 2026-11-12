@@ -1,6 +1,7 @@
 import { PiggyBank } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 import { loadGoals } from "@/server/budget/accounts";
 import { getMoneyView } from "@/server/budget/money";
 import { getBudget } from "@/server/budget/service";
@@ -11,8 +12,13 @@ import { AccountAddButton } from "./account-dialogs";
 import { BudgetProvider } from "./budget-context";
 import { DebtPlanner } from "./debt-planner";
 import { GoalAddButton, GoalRow } from "./goal-dialogs";
+import { MoneyPlanSection } from "./money-plan-section";
 
-/** Budget › Objectifs : l'épargne pour ce qui compte, et le plan pour finir ses dettes. */
+/**
+ * Budget › Objectifs : le plan d'argent (décision du fondateur, 2026-11-12 : il
+ * quitte les enveloppes), l'épargne pour ce qui compte, et le plan pour finir
+ * ses dettes.
+ */
 export async function GoalsLoader() {
   const [profile, t, format] = await Promise.all([
     getCurrentProfile(),
@@ -45,7 +51,21 @@ export async function GoalsLoader() {
   return (
     <BudgetProvider value={context}>
       <div className="flex flex-col gap-6">
-        <section aria-labelledby="goals-title" className="flex flex-col gap-3">
+        {page.empty ? null : (
+          <MoneyPlanSection
+            money={plan}
+            today={page.today}
+            currency={page.currency}
+            first
+          />
+        )}
+        <section
+          aria-labelledby="goals-title"
+          className={cn(
+            "flex flex-col gap-3",
+            !page.empty && "border-t border-foreground/8 pt-6",
+          )}
+        >
           <h2 id="goals-title" className="caps-label text-muted-foreground">
             {t("title")}
           </h2>

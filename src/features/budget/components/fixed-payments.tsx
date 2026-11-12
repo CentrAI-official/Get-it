@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LoaderCircle, Minus } from "lucide-react";
+import { Check, ChevronDown, LoaderCircle, Minus } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId, useOptimistic, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   type FixedPayment,
   type FixedState,
 } from "../checklist";
+import { dueWhen, fixedSummary } from "../envelopes";
 import { amountField, displayMoney, formatMoney } from "../format";
 import { parseAmount, type BudgetError, type UpcomingItem } from "../rules";
 import { useBudget } from "./budget-context";
@@ -320,7 +321,12 @@ function PaymentDialog({
  * « Paiements fixes » de la vue Mois : les paies à confirmer, les oublis du mois
  * passé, puis chaque dépense et virement fixe du mois, à cocher.
  */
-export function FixedPaymentsSection({
+/**
+ * La carte « Paiements fixes » des enveloppes (décision du fondateur, 2026-11-12) :
+ * ce qui reste à payer ce mois-ci et les prochains paiements. Elle s'ouvre sur
+ * place pour cocher, sans quitter la page.
+ */
+export function FixedPaymentsTile({
   fixed,
   leftover,
   pays,
@@ -330,8 +336,10 @@ export function FixedPaymentsSection({
   pays: UpcomingItem[];
 }) {
   const t = useTranslations("Budget.fixedPayments");
+  const tTile = useTranslations("Budget.envelopes.fixed");
   const format = useFormatter();
   const money = useMoney();
+  const id = useId();
   const { today, currency } = useBudget();
   const [items, apply] = useOptimistic(
     [...leftover, ...fixed],
@@ -342,6 +350,7 @@ export function FixedPaymentsSection({
           : item,
       ),
   );
+  const [expanded, setExpanded] = useState(false);
   const [opened, setOpened] = useState<string | null>(null);
   const [confirming, setConfirming] = useState<UpcomingItem | null>(null);
   const [failed, setFailed] = useState(false);
@@ -351,12 +360,29 @@ export function FixedPaymentsSection({
 
   const thisMonth = items.slice(leftover.length);
   const lastMonth = items.slice(0, leftover.length);
-  const paidCount = thisMonth.filter((item) => item.state === "paid").length;
-  const counted = thisMonth.filter((item) => item.state !== "skipped");
-  const leftCents = counted
-    .filter((item) => item.state !== "paid")
-    .reduce((sum, item) => sum + item.plannedCents, 0);
+  const summary = fixedSummary(thisMonth, lastMonth);
   const openedItem = items.find((item) => keyOf(item) === opened) ?? null;
+
+  /** « Internet demain », « Visa dimanche », « Téléphone le 20 ». */
+  const whenOf = (label: string, day: string) => {
+    const when = dueWhen(day, today);
+    switch (when.kind) {
+      case "late":
+      case "today":
+      case "tomorrow":
+        return tTile(`when.${when.kind}`, { label });
+      case "weekday":
+        return tTile("when.weekday", {
+          label,
+          weekday: format.dateTime(toDbDate(when.day), {
+            weekday: "long",
+            timeZone: "UTC",
+          }),
+        });
+      case "date":
+        return tTile("when.date", { label, day: Number(when.day.slice(8)) });
+    }
+  };
 
   /** Enregistre un changement, affiché tout de suite. */
   async function save(
@@ -380,8 +406,8 @@ export function FixedPaymentsSection({
       day: item.day,
       action,
       amount,
-    });
-    return result.ok;
+    }).catch(() => null);
+    return result?.ok === true;
   }
 
   function toggle(item: FixedPayment) {
@@ -405,91 +431,130 @@ export function FixedPaymentsSection({
     </ul>
   );
 
+  const alerts = [
+    summary.late > 0 ? tTile("late", { count: summary.late }) : null,
+    pays.length > 0 ? tTile("pays", { count: pays.length }) : null,
+  ].filter((text): text is string => text !== null);
+
   return (
-    <section
-      aria-labelledby="budget-fixed"
-      className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-    >
-      <div className="flex flex-col gap-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 id="budget-fixed" className="caps-label text-muted-foreground">
+    <div className="col-span-2 flex flex-col rounded-2xl border border-foreground/8 bg-raised">
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls={`${id}-list`}
+        onClick={() => setExpanded((value) => !value)}
+        className="flex w-full items-center gap-3 rounded-2xl p-3.5 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="flex items-center gap-1.5 text-sm font-semibold">
             {t("title")}
-          </h2>
-          {counted.length > 0 ? (
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {t("count", { paid: paidCount, count: counted.length })}
+            <ChevronDown
+              aria-hidden="true"
+              className={cn(
+                "size-4 text-muted-foreground transition-transform",
+                expanded && "rotate-180",
+              )}
+            />
+          </span>
+          <span className="text-xs text-pretty text-muted-foreground">
+            {summary.open > 0
+              ? tTile("open", {
+                  count: summary.open,
+                  next: summary.next
+                    .map((item) => whenOf(item.label, item.day))
+                    .join(", "),
+                })
+              : summary.count > 0
+                ? t("allPaid")
+                : tTile("none")}
+          </span>
+          {alerts.length > 0 ? (
+            <span className="text-xs font-semibold text-primary">
+              {alerts.join(" · ")}
             </span>
           ) : null}
-        </div>
-        {counted.length > 0 ? (
-          leftCents > 0 ? (
-            <p className="text-sm font-semibold">
-              {t("left", { amount: displayMoney(money(leftCents)) })}
-            </p>
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-0.5">
+          {summary.leftCents > 0 ? (
+            <span className="font-display text-[1.75rem] leading-none tracking-wide whitespace-nowrap tabular-nums">
+              {displayMoney(money(summary.leftCents))}
+            </span>
           ) : (
-            <p className="flex items-center gap-1.5 text-sm font-semibold">
-              <Check aria-hidden="true" className="size-4 text-primary" />
-              {t("allPaid")}
-            </p>
-          )
-        ) : null}
-        <p className="text-xs text-pretty text-muted-foreground">{t("hint")}</p>
-      </div>
+            <Check aria-hidden="true" className="size-7 text-primary" />
+          )}
+          {summary.count > 0 ? (
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {t("count", { paid: summary.paid, count: summary.count })}
+            </span>
+          ) : null}
+        </span>
+      </button>
 
-      {pays.length > 0 ? (
-        <div className="flex flex-col gap-1">
-          <h3 className="text-xs font-semibold text-muted-foreground">
-            {t("paysTitle")}
-          </h3>
-          <ul className="flex flex-col">
-            {pays.map((pay) => (
-              <li
-                key={keyOf(pay)}
-                className="flex items-center gap-3 border-b border-foreground/8 py-2 last:border-b-0"
-              >
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate text-sm font-semibold">
-                    {pay.label}
-                  </span>
-                  <span className="text-xs text-muted-foreground first-letter:uppercase">
-                    {format.dateTime(toDbDate(pay.day), {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                      timeZone: "UTC",
-                    })}
-                  </span>
-                </span>
-                <span className="shrink-0 text-sm font-semibold tabular-nums">
-                  {formatMoney(format, pay.amountCents, currency, "income")}
-                </span>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-10 shrink-0"
-                  onClick={() => setConfirming(pay)}
-                >
-                  {t("confirm")}
-                </Button>
-              </li>
-            ))}
-          </ul>
+      {expanded ? (
+        <div
+          id={`${id}-list`}
+          className="flex flex-col gap-3 border-t border-foreground/8 px-3.5 pt-3 pb-2"
+        >
+          <p className="text-xs text-pretty text-muted-foreground">
+            {t("hint")}
+          </p>
+
+          {pays.length > 0 ? (
+            <div className="flex flex-col gap-1">
+              <h3 className="text-xs font-semibold text-muted-foreground">
+                {t("paysTitle")}
+              </h3>
+              <ul className="flex flex-col">
+                {pays.map((pay) => (
+                  <li
+                    key={keyOf(pay)}
+                    className="flex items-center gap-3 border-b border-foreground/8 py-2 last:border-b-0"
+                  >
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span className="truncate text-sm font-semibold">
+                        {pay.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground first-letter:uppercase">
+                        {format.dateTime(toDbDate(pay.day), {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                          timeZone: "UTC",
+                        })}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-sm font-semibold tabular-nums">
+                      {formatMoney(format, pay.amountCents, currency, "income")}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-10 shrink-0"
+                      onClick={() => setConfirming(pay)}
+                    >
+                      {t("confirm")}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {lastMonth.length > 0 ? (
+            <div className="flex flex-col">
+              <h3 className="text-xs font-semibold text-muted-foreground">
+                {t("lastMonth")}
+              </h3>
+              {renderList(lastMonth)}
+            </div>
+          ) : null}
+
+          {thisMonth.length > 0 ? renderList(thisMonth) : null}
         </div>
       ) : null}
-
-      {lastMonth.length > 0 ? (
-        <div className="flex flex-col">
-          <h3 className="text-xs font-semibold text-muted-foreground">
-            {t("lastMonth")}
-          </h3>
-          {renderList(lastMonth)}
-        </div>
-      ) : null}
-
-      {thisMonth.length > 0 ? renderList(thisMonth) : null}
 
       {failed ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="px-3.5 pb-3 text-sm text-destructive">
           {t("error")}
         </p>
       ) : null}
@@ -511,6 +576,6 @@ export function FixedPaymentsSection({
           onClose={() => setConfirming(null)}
         />
       ) : null}
-    </section>
+    </div>
   );
 }

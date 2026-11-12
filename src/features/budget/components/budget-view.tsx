@@ -9,24 +9,23 @@ import { getMoneyView } from "@/server/budget/money";
 import { getBudget } from "@/server/budget/service";
 import { getCurrentProfile } from "@/server/profile/service";
 import { displayMoney, formatMoney } from "../format";
-import { categoryName } from "../labels";
 import {
   BUDGET_VIEWS,
   monthStart,
   parseDay,
+  periodOf,
   parseView,
   shiftPeriod,
   type BudgetView,
 } from "../rules";
 import { BudgetProvider } from "./budget-context";
-import { BudgetActions, EntryList, EraseBudgetButton } from "./budget-lists";
+import { AssignBanner } from "./assign-sheet";
+import { EntryList, EraseBudgetButton } from "./budget-lists";
 import { BudgetSetupButton } from "./budget-setup";
-import { CategoryIcon } from "./category-icon";
-import { FixedPaymentsSection } from "./fixed-payments";
-import { MoneyPlanSection } from "./money-plan-section";
-import { BarSwatch, MonthBar } from "./month-bar";
-import { PlanSection } from "./plan-section";
-import { ProgressSection } from "./progress-section";
+import { AnnualToPrepare } from "./envelope-dialogs";
+import { EnvelopeTiles, QuickSpend } from "./envelope-tiles";
+import { FixedPaymentsTile } from "./fixed-payments";
+import { ProgressTiles } from "./progress-tiles";
 
 const BUDGET_PATH = "/services/financial/budget";
 
@@ -45,9 +44,11 @@ const periodLink: { scroll: false; transitionTypes: PageTransition[] } = {
 const RECENT_ENTRIES = 5;
 
 /**
- * Financier › Budget : la période choisie (jour, semaine ou mois), ce qui reste à
- * dépenser, la barre du mois, les paiements fixes à cocher, les dettes et
- * l'épargne, le plan par catégorie et les dernières transactions.
+ * Financier › Budget › Enveloppes (décision du fondateur, 2026-11-12, maquette 3) :
+ * les dollars sans enveloppe et « Répartir », une carte par enveloppe avec ce qui
+ * y reste, les paiements fixes à cocher, les dettes et l'épargne, la dépense
+ * rapide et les dernières transactions. Les enveloppes se comptent au mois ; les
+ * vues Jour et Semaine ajoutent ce qui est sorti pendant la période.
  */
 export async function BudgetLoader({
   searchParams,
@@ -99,13 +100,23 @@ export async function BudgetLoader({
   }
 
   const current = today >= start && today <= end;
-  // Le plan d'argent se calcule sur le mois en cours seulement
+  const { plan } = budget;
+  const month = monthStart(start);
+  const currentMonth = today >= month && today <= periodOf("month", month).end;
+  // « Répartir » reprend la suggestion du plan d'argent (mois en cours seulement)
   const moneyView =
     view === "month" && current ? await getMoneyView(profile.id, budget) : null;
-  const income = summary.incomeCents + summary.upcomingIncomeCents;
-  // L'épargne faite, à venir et prévue : la barre s'additionne jusqu'aux revenus
-  const saved =
-    summary.savedCents + summary.upcomingSavedCents + summary.reserveCents;
+  // La destination seulement : le montant est celui qui reste sans enveloppe
+  const first = moneyView?.plan?.thisMonth[0];
+  const target = first
+    ? first.step === "debts"
+      ? t("money.move.debts", {
+          name:
+            moneyView.debts.find((debt) => debt.id === first.debtId)?.name ??
+            "",
+        })
+      : t(`money.move.${first.step}`)
+    : null;
   const label =
     view === "day"
       ? format.dateTime(toDbDate(start), {
@@ -125,10 +136,6 @@ export async function BudgetLoader({
             year: "numeric",
             timeZone: "UTC",
           });
-  const outTotal = Math.max(
-    summary.categories.reduce((sum, line) => sum + line.cents, 0),
-    1,
-  );
   const shownEntries =
     view === "month" ? budget.entries.slice(0, RECENT_ENTRIES) : budget.entries;
 
@@ -192,169 +199,85 @@ export async function BudgetLoader({
           </nav>
         </div>
 
-        {/* Ce qui reste à dépenser, et la barre : où va chaque dollar */}
-        <section
-          aria-labelledby="budget-remaining"
-          className="flex flex-col gap-3"
-        >
-          <div className="flex flex-col gap-1">
-            <h2
-              id="budget-remaining"
-              className="caps-label text-muted-foreground"
-            >
-              {income <= 0
-                ? t("spentHero")
-                : current
-                  ? t(`remaining.${view}`)
-                  : t("remaining.other")}
+        {view === "month" ? (
+          <AssignBanner
+            plan={plan}
+            month={month}
+            elapsed={budget.elapsed}
+            target={target}
+            goalsMonthlyCents={budget.goalsMonthlyCents}
+          />
+        ) : (
+          // Jour et Semaine : ce qui est sorti pendant la période
+          <section
+            aria-labelledby="budget-spent"
+            className="flex flex-col gap-1"
+          >
+            <h2 id="budget-spent" className="caps-label text-muted-foreground">
+              {t(`envelopes.spent.${view}${current ? "" : "Other"}`)}
             </h2>
             <p className="font-display text-6xl leading-none tracking-wide tabular-nums">
-              {displayMoney(
-                money(
-                  income <= 0
-                    ? summary.spentCents + summary.upcomingCents
-                    : summary.remainingCents,
-                ),
-              )}
+              {displayMoney(money(summary.spentCents))}
             </p>
-            {income <= 0 ? (
-              <p className="text-sm text-muted-foreground">{t("noIncome")}</p>
-            ) : summary.remainingCents < 0 ? (
-              <p className="text-sm font-medium">
-                {t("over", { amount: money(-summary.remainingCents) })}
-              </p>
-            ) : view !== "day" && summary.perDayCents !== null ? (
-              <p className="text-sm">
-                {t("perDay", {
-                  amount: money(summary.perDayCents),
-                  days: summary.daysLeft,
+            {summary.upcomingCents > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {t("envelopes.upcoming", {
+                  amount: money(summary.upcomingCents),
                 })}
               </p>
             ) : null}
+          </section>
+        )}
+
+        {/* Les enveloppes du mois, puis les paiements fixes, les dettes et l'épargne */}
+        <section
+          aria-labelledby="budget-envelopes"
+          className="flex flex-col gap-3"
+        >
+          <h2 id="budget-envelopes" className="sr-only">
+            {t("envelopes.title")}
+          </h2>
+          <div className="grid grid-cols-2 gap-2.5">
+            <EnvelopeTiles
+              plan={plan}
+              month={month}
+              elapsed={budget.elapsed}
+              period={
+                view === "month"
+                  ? null
+                  : {
+                      view,
+                      current,
+                      cents: Object.fromEntries(
+                        summary.categories.map((line) => [
+                          line.category,
+                          line.cents,
+                        ]),
+                      ),
+                    }
+              }
+              showEmpty={view === "month"}
+            />
+            <FixedPaymentsTile
+              fixed={budget.fixed}
+              leftover={budget.leftover}
+              pays={currentMonth ? budget.pays : []}
+            />
+            {view === "month" ? (
+              <ProgressTiles
+                debts={budget.progress.debts}
+                goals={budget.progress.goals}
+                currency={currency}
+              />
+            ) : null}
           </div>
-          <MonthBar
-            spentCents={summary.spentCents}
-            upcomingCents={summary.upcomingCents}
-            savedCents={saved}
-            incomeCents={income}
-            label={t("barLabel", {
-              income: money(income),
-              spent: money(summary.spentCents),
-              upcoming: money(summary.upcomingCents),
-              saved: money(saved),
-            })}
-          />
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            {(
-              [
-                ["spent", summary.spentCents, "spent"],
-                ["upcoming", summary.upcomingCents, "upcoming"],
-                ["saved", saved, "saved"],
-                ["left", Math.max(summary.remainingCents, 0), "left"],
-              ] as const
-            ).map(([key, cents, swatch]) => (
-              <div key={key} className="flex min-w-0 items-center gap-2">
-                <BarSwatch kind={swatch} />
-                <dt className="truncate text-muted-foreground">
-                  {t(`totals.${key}`)}
-                </dt>
-                <dd className="ml-auto font-semibold tabular-nums">
-                  {money(cents)}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          {income > 0 ? (
-            <p className="text-xs text-muted-foreground">
-              {t("incomeLine", { amount: money(income) })}
-            </p>
-          ) : null}
         </section>
 
-        <BudgetActions />
-
         {view === "month" ? (
-          <FixedPaymentsSection
-            fixed={budget.fixed}
-            leftover={budget.leftover}
-            pays={current ? budget.pays : []}
-          />
+          <AnnualToPrepare items={budget.annual} month={month} />
         ) : null}
 
-        {view === "month" && current ? (
-          <ProgressSection
-            debts={budget.progress.debts}
-            goals={budget.progress.goals}
-            currency={currency}
-          />
-        ) : null}
-
-        {moneyView ? (
-          <MoneyPlanSection
-            money={moneyView}
-            today={today}
-            currency={currency}
-          />
-        ) : null}
-
-        {budget.plan ? (
-          <PlanSection
-            plan={budget.plan}
-            month={monthStart(start)}
-            elapsed={budget.elapsed}
-            suggestion={budget.suggestion}
-            annual={budget.annual}
-            goalsMonthlyCents={budget.goalsMonthlyCents}
-          />
-        ) : summary.categories.length > 0 ? (
-          <section
-            aria-labelledby="budget-categories"
-            className="flex flex-col gap-3 border-t border-foreground/8 pt-6"
-          >
-            <h2
-              id="budget-categories"
-              className="caps-label text-muted-foreground"
-            >
-              {t("byCategory")}
-            </h2>
-            <ul className="flex flex-col gap-3">
-              {summary.categories.map(({ category, cents }) => {
-                const share = Math.round((cents / outTotal) * 100);
-                return (
-                  <li key={category} className="flex items-center gap-3">
-                    <CategoryIcon
-                      category={category}
-                      categories={categories}
-                      className="size-[18px] shrink-0 text-muted-foreground"
-                    />
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <div className="flex items-baseline justify-between gap-2 text-sm">
-                        <span className="truncate font-medium">
-                          {categoryName(t, categories, category)}
-                        </span>
-                        <span className="shrink-0 tabular-nums">
-                          {money(cents)}
-                          <span className="ml-1.5 text-xs text-muted-foreground">
-                            {t("share", { percent: share })}
-                          </span>
-                        </span>
-                      </div>
-                      <div
-                        aria-hidden="true"
-                        className="h-1.5 overflow-hidden rounded-full bg-foreground/8"
-                      >
-                        <div
-                          className="h-full rounded-full bg-primary"
-                          style={{ width: `${Math.max(share, 2)}%` }}
-                        />
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        ) : null}
+        <QuickSpend plan={plan} elapsed={budget.elapsed} />
 
         <section
           aria-labelledby="budget-entries"

@@ -232,6 +232,7 @@ export function AmountField({
   error,
   label,
   name = "amount",
+  autoFocus,
 }: {
   id: string;
   value: string;
@@ -239,6 +240,7 @@ export function AmountField({
   error: string | null;
   label?: string;
   name?: string;
+  autoFocus?: boolean;
 }) {
   const t = useTranslations("Budget.form");
   return (
@@ -252,6 +254,7 @@ export function AmountField({
           onChange={(change) => onChange(change.target.value)}
           inputMode="decimal"
           autoComplete="off"
+          autoFocus={autoFocus}
           placeholder={t("amountPlaceholder")}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${id}-${name}-error` : undefined}
@@ -324,6 +327,7 @@ export function EntryDialog({
   onOpenChange,
   entry,
   kind,
+  category,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -331,20 +335,35 @@ export function EntryDialog({
   entry: BudgetEntryRow | null;
   /** Type proposé pour une nouvelle transaction. */
   kind: BudgetKind;
+  /**
+   * Dépense rapide (une enveloppe touchée) : la catégorie est choisie, il ne
+   * reste qu'à taper le montant.
+   */
+  category?: string;
 }) {
   const t = useTranslations("Budget.form");
+  const tQuick = useTranslations("Budget.envelopes.quick");
+  const nameOf = useCategoryName();
+  const quick = entry === null && category !== undefined;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {entry ? t(`editTitle.${kind}`) : t(`addTitle.${kind}`)}
+            {quick
+              ? nameOf(category)
+              : entry
+                ? t(`editTitle.${kind}`)
+                : t(`addTitle.${kind}`)}
           </DialogTitle>
-          <DialogDescription>{t("entryDescription")}</DialogDescription>
+          <DialogDescription>
+            {quick ? tQuick("description") : t("entryDescription")}
+          </DialogDescription>
         </DialogHeader>
         <EntryForm
           entry={entry}
           kind={kind}
+          category={category}
           onDone={() => onOpenChange(false)}
         />
       </DialogContent>
@@ -355,10 +374,12 @@ export function EntryDialog({
 function EntryForm({
   entry,
   kind: initialKind,
+  category: initialCategory,
   onDone,
 }: {
   entry: BudgetEntryRow | null;
   kind: BudgetKind;
+  category?: string;
   onDone: () => void;
 }) {
   const t = useTranslations("Budget");
@@ -373,7 +394,11 @@ function EntryForm({
     entry ? amountField(entry.amountCents, locale) : "",
   );
   const [category, setCategory] = useState<string | null>(
-    entry?.category ?? null,
+    entry?.category ?? initialCategory ?? null,
+  );
+  // Dépense rapide : le montant et la note ; le reste sous « Plus d'options »
+  const [quick, setQuick] = useState(
+    entry === null && initialCategory !== undefined,
   );
   const [date, setDate] = useState(entry?.occurredOn ?? today);
   const [note, setNote] = useState(entry?.note ?? "");
@@ -425,6 +450,74 @@ function EntryForm({
       : kind === "expense" && category
         ? nameOf(category)
         : t(`kinds.${kind}`));
+
+  const noteField = (
+    <Field data-invalid={fieldError("note") ? true : undefined}>
+      <FieldLabel htmlFor={`${id}-note`}>
+        {t("form.note")}{" "}
+        <span className="font-normal text-muted-foreground">
+          {t("form.optional")}
+        </span>
+      </FieldLabel>
+      <Input
+        id={`${id}-note`}
+        name="note"
+        value={note}
+        onChange={(change) => setNote(change.target.value)}
+        maxLength={BUDGET_NOTE_MAX}
+        autoComplete="off"
+        placeholder={t(`form.notePlaceholder.${kind}`)}
+        className="h-11"
+      />
+      {fieldError("note") ? (
+        <FieldError>{fieldError("note")}</FieldError>
+      ) : null}
+    </Field>
+  );
+
+  if (quick) {
+    // Les champs cachés ont leur erreur ici : la dépense rapide ne les montre pas
+    const hiddenError =
+      fieldError("category") ?? fieldError("date") ?? fieldError("accountId");
+    return (
+      <form action={formAction} noValidate className="flex flex-col gap-5">
+        <FieldGroup className="gap-5">
+          <input type="hidden" name="kind" value="expense" />
+          <input type="hidden" name="category" value={category ?? ""} />
+          <input type="hidden" name="date" value={date} />
+          <input type="hidden" name="accountId" value={accountId ?? ""} />
+          <AmountField
+            id={id}
+            value={amount}
+            onChange={setAmount}
+            error={fieldError("amount")}
+            autoFocus
+          />
+          {noteField}
+          <button
+            type="button"
+            onClick={() => setQuick(false)}
+            className="flex min-h-11 w-fit items-center text-sm font-semibold text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+          >
+            {t("envelopes.quick.more")}
+          </button>
+        </FieldGroup>
+        {state.error || hiddenError ? (
+          <p role="alert" className="text-sm text-destructive">
+            {state.error ? errorText(state.error) : hiddenError}
+          </p>
+        ) : null}
+        <DialogFooter>
+          <Button type="submit" className="h-11" disabled={pending}>
+            {pending ? (
+              <LoaderCircle aria-hidden="true" className="animate-spin" />
+            ) : null}
+            {t("form.add")}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  }
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-5">
@@ -615,27 +708,7 @@ function EntryForm({
             <FieldError>{fieldError("date")}</FieldError>
           ) : null}
         </Field>
-        <Field data-invalid={fieldError("note") ? true : undefined}>
-          <FieldLabel htmlFor={`${id}-note`}>
-            {t("form.note")}{" "}
-            <span className="font-normal text-muted-foreground">
-              {t("form.optional")}
-            </span>
-          </FieldLabel>
-          <Input
-            id={`${id}-note`}
-            name="note"
-            value={note}
-            onChange={(change) => setNote(change.target.value)}
-            maxLength={BUDGET_NOTE_MAX}
-            autoComplete="off"
-            placeholder={t(`form.notePlaceholder.${kind}`)}
-            className="h-11"
-          />
-          {fieldError("note") ? (
-            <FieldError>{fieldError("note")}</FieldError>
-          ) : null}
-        </Field>
+        {noteField}
         {canRepeat ? (
           <div className="flex flex-col gap-2">
             <Chips

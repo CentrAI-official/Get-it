@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, LoaderCircle, Plus, Trash2 } from "lucide-react";
+import { LoaderCircle, Minus, PiggyBank, Plus, Trash2 } from "lucide-react";
 import { useFormatter, useLocale, useTranslations } from "next-intl";
 import { useId, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import {
-  applyPlanAction,
   createCategoryAction,
   deleteCategoryAction,
   prepareAnnualAction,
@@ -33,12 +32,7 @@ import {
 } from "../categories";
 import { amountField, formatMoney } from "../format";
 import { CUSTOM_ICON_MAP } from "../icons";
-import {
-  isFixedOnly,
-  lineStatus,
-  type MonthPlan,
-  type PlanLine,
-} from "../plan";
+import type { PlanLine } from "../plan";
 import type { BudgetError, BudgetRecurringRow } from "../rules";
 import { useBudget, useCategoryName } from "./budget-context";
 import { CategoryIcon } from "./category-icon";
@@ -49,189 +43,25 @@ function useMoney() {
   return (cents: number) => formatMoney(format, cents, currency);
 }
 
-/** La barre d'une catégorie : ce qui est sorti, ce qui s'en vient, et le temps écoulé du mois. */
-function LineBar({
-  line,
-  elapsed,
-  over,
-}: {
-  line: PlanLine;
-  elapsed: number;
-  over: boolean;
-}) {
-  const budget = Math.max(line.plannedCents + line.carryCents, 1);
-  const spent = Math.min((Math.max(line.spentCents, 0) / budget) * 100, 100);
-  const upcoming = Math.min((line.upcomingCents / budget) * 100, 100 - spent);
-  return (
-    <div aria-hidden="true" className="relative h-2">
-      <div className="flex h-full gap-px overflow-hidden rounded-full bg-foreground/8">
-        <span
-          style={{ width: `${over ? 100 : spent}%` }}
-          className="h-full bg-primary"
-        />
-        {!over && upcoming > 0 ? (
-          <span
-            style={{ width: `${upcoming}%` }}
-            className="h-full budget-hatch"
-          />
-        ) : null}
-      </div>
-      {line.variable && elapsed > 0 && elapsed < 1 ? (
-        // Où en est le mois : au-delà du trait, on dépense plus vite que le temps
-        <span
-          style={{ left: `${elapsed * 100}%` }}
-          className="absolute -top-0.5 -bottom-0.5 w-0.5 -translate-x-1/2 rounded-full bg-foreground"
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function PlanRow({
-  line,
-  elapsed,
-  onOpen,
-}: {
-  line: PlanLine;
-  elapsed: number;
-  onOpen: () => void;
-}) {
-  const t = useTranslations("Budget.plan");
-  const { categories } = useBudget();
-  const nameOf = useCategoryName();
-  const money = useMoney();
-  const status = lineStatus(line, elapsed);
-  const budget = line.plannedCents + line.carryCents;
-  const savings = line.key === "savings";
-  const over = status === "over";
-
-  // Seulement des paiements fixes : pas de barre, ils se cochent plus haut
-  if (isFixedOnly(line) && !over) {
-    return (
-      <li className="border-b border-foreground/8 last:border-b-0">
-        <button
-          type="button"
-          onClick={onOpen}
-          className="flex w-full items-center gap-3 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground/6">
-            <CategoryIcon
-              category={line.key}
-              categories={categories}
-              className="size-[18px] text-muted-foreground"
-            />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="truncate text-sm font-semibold">
-                {nameOf(line.key)}
-              </span>
-              <span className="shrink-0 text-sm font-semibold tabular-nums">
-                {money(line.plannedCents)}
-              </span>
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {line.upcomingCents > 0 ? (
-                t("toPay", { amount: money(line.upcomingCents) })
-              ) : (
-                <span className="flex items-center gap-1 font-medium text-primary">
-                  <Check aria-hidden="true" className="size-3.5" />
-                  {t("allPaid")}
-                </span>
-              )}
-            </span>
-          </span>
-        </button>
-      </li>
-    );
-  }
-
-  return (
-    <li className="border-b border-foreground/8 last:border-b-0">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="flex w-full items-center gap-3 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-foreground/6">
-          <CategoryIcon
-            category={line.key}
-            categories={categories}
-            className="size-[18px] text-muted-foreground"
-          />
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <span className="flex items-baseline justify-between gap-3">
-            <span className="truncate text-sm font-semibold">
-              {nameOf(line.key)}
-            </span>
-            <span
-              className={cn(
-                "shrink-0 text-sm font-semibold tabular-nums",
-                over && "text-primary",
-              )}
-            >
-              {status === "unplanned"
-                ? money(line.spentCents + line.upcomingCents)
-                : over
-                  ? t("over", { amount: money(-line.availableCents) })
-                  : savings
-                    ? money(line.spentCents)
-                    : t("left", { amount: money(line.availableCents) })}
-            </span>
-          </span>
-          {status === "unplanned" ? null : (
-            <LineBar line={line} elapsed={elapsed} over={over} />
-          )}
-          <span className="flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
-            <span className="truncate">
-              {status === "unplanned" ? (
-                t("unplanned")
-              ) : over ? (
-                <span className="flex items-center gap-1 font-medium text-foreground">
-                  <AlertTriangle aria-hidden="true" className="size-3.5" />
-                  {t("overHint")}
-                </span>
-              ) : status === "fast" ? (
-                <span className="font-medium text-foreground">{t("fast")}</span>
-              ) : status === "reached" ? (
-                <span className="flex items-center gap-1 font-medium text-primary">
-                  <Check aria-hidden="true" className="size-3.5" />
-                  {t("reached")}
-                </span>
-              ) : line.upcomingCents > 0 ? (
-                t("upcoming", { amount: money(line.upcomingCents) })
-              ) : line.carryCents !== 0 ? (
-                t("carry", { amount: money(line.carryCents) })
-              ) : null}
-            </span>
-            {status === "unplanned" ? null : (
-              <span className="shrink-0 tabular-nums">
-                {t(savings ? "ofSaved" : "of", { amount: money(budget) })}
-              </span>
-            )}
-          </span>
-        </span>
-      </button>
-    </li>
-  );
-}
-
 function useErrorText() {
   const t = useTranslations("Budget.errors");
   return (key: BudgetError | null) => (key ? t(key) : null);
 }
 
-/** Une catégorie du plan : son montant, le report, et ses transactions. */
-function LineDialog({
+/** Une enveloppe : son montant, le report, une dépense à ajouter et ses transactions. */
+export function LineDialog({
   line,
   month,
   onClose,
+  onSpend,
 }: {
   line: PlanLine;
   month: string;
   onClose: () => void;
+  /** Ajouter une dépense dans cette enveloppe (ou mettre de côté, pour l'épargne). */
+  onSpend?: () => void;
 }) {
+  const tEnvelopes = useTranslations("Budget.envelopes");
   const t = useTranslations("Budget.plan");
   const locale = useLocale();
   const id = useId();
@@ -349,6 +179,21 @@ function LineDialog({
               </span>
             </span>
           </label>
+          {onSpend ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-11 w-full"
+              onClick={onSpend}
+            >
+              {line.key === "savings" ? (
+                <PiggyBank aria-hidden="true" />
+              ) : (
+                <Minus aria-hidden="true" />
+              )}
+              {tEnvelopes(line.key === "savings" ? "putAside" : "spend")}
+            </Button>
+          ) : null}
           <Link
             href={{
               pathname: "/services/financial/budget/transactions",
@@ -390,7 +235,7 @@ function LineDialog({
 }
 
 /** Ajouter une catégorie au plan : une de Get iT, ou une à soi. */
-function AddLineDialog({
+export function AddLineDialog({
   month,
   hidden,
   onClose,
@@ -618,111 +463,8 @@ function AddLineDialog({
   );
 }
 
-/** « À répartir » : les revenus qui n'ont pas encore de job, et la proposition 50/30/20. */
-function ToAssign({
-  plan,
-  month,
-  suggestion,
-  onAdd,
-}: {
-  plan: MonthPlan;
-  month: string;
-  suggestion: { category: string; cents: number }[];
-  onAdd: () => void;
-}) {
-  const t = useTranslations("Budget.plan");
-  const money = useMoney();
-  const nameOf = useCategoryName();
-  const [proposing, setProposing] = useState(false);
-  const [pending, startTransition] = useTransition();
-  if (plan.expectedIncomeCents <= 0) return null;
-  const left = plan.toAssignCents;
-
-  return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-primary/[0.07] p-4">
-      <div className="flex items-center gap-3">
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-sm font-semibold">
-            {left > 0
-              ? t("toAssign", { amount: money(left) })
-              : left === 0
-                ? t("assigned")
-                : t("overAssigned", { amount: money(-left) })}
-          </span>
-          <span className="text-xs text-pretty text-muted-foreground">
-            {left > 0
-              ? t("toAssignHint")
-              : left === 0
-                ? t("assignedHint")
-                : t("overAssignedHint")}
-          </span>
-          {plan.minimumsReserveCents > 0 ? (
-            <span className="text-xs text-pretty text-muted-foreground">
-              {t("minimumsNote", {
-                amount: money(plan.minimumsReserveCents),
-              })}
-            </span>
-          ) : null}
-        </span>
-        {left === 0 ? (
-          <Check aria-hidden="true" className="size-5 shrink-0 text-primary" />
-        ) : left > 0 ? (
-          <Button size="sm" className="h-10 shrink-0" onClick={onAdd}>
-            {t("assign")}
-          </Button>
-        ) : null}
-      </div>
-      {suggestion.length > 0 && left > 0 ? (
-        proposing ? (
-          <div className="flex flex-col gap-2 border-t border-foreground/8 pt-3">
-            <p className="text-xs text-pretty text-muted-foreground">
-              {t("suggestionHint")}
-            </p>
-            <ul className="flex flex-col gap-1 text-sm">
-              {suggestion.map((item) => (
-                <li
-                  key={item.category}
-                  className="flex items-baseline justify-between gap-3"
-                >
-                  <span>{nameOf(item.category)}</span>
-                  <span className="font-semibold tabular-nums">
-                    {money(item.cents)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <Button
-              size="sm"
-              className="mt-1 h-10 w-fit"
-              disabled={pending}
-              onClick={() =>
-                startTransition(async () => {
-                  await applyPlanAction({ month, items: suggestion });
-                })
-              }
-            >
-              {pending ? (
-                <LoaderCircle aria-hidden="true" className="animate-spin" />
-              ) : null}
-              {t("suggestionApply")}
-            </Button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setProposing(true)}
-            className="flex min-h-10 w-fit items-center text-sm font-semibold text-primary outline-none hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
-          >
-            {t("suggestion")}
-          </button>
-        )
-      ) : null}
-    </div>
-  );
-}
-
 /** Les dépenses annuelles : les préparer un peu chaque mois évite la grosse surprise. */
-function AnnualToPrepare({
+export function AnnualToPrepare({
   items,
   month,
 }: {
@@ -779,100 +521,5 @@ function AnnualToPrepare({
         ))}
       </ul>
     </section>
-  );
-}
-
-/** Le plan du mois : les trois groupes, ce qui reste dans chaque catégorie. */
-export function PlanSection({
-  plan,
-  month,
-  elapsed,
-  suggestion,
-  annual,
-  goalsMonthlyCents,
-}: {
-  plan: MonthPlan;
-  /** Le 1er jour du mois affiché. */
-  month: string;
-  elapsed: number;
-  suggestion: { category: string; cents: number }[];
-  annual: { rule: BudgetRecurringRow; monthlyCents: number }[];
-  goalsMonthlyCents: number;
-}) {
-  const t = useTranslations("Budget.plan");
-  const tGroups = useTranslations("Budget.groups");
-  const money = useMoney();
-  const [open, setOpen] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const lines = plan.groups.flatMap((group) => group.lines);
-  const line = lines.find((entry) => entry.key === open) ?? null;
-
-  return (
-    <>
-      <ToAssign
-        plan={plan}
-        month={month}
-        suggestion={suggestion}
-        onAdd={() => setAdding(true)}
-      />
-      {plan.groups.map((group) => (
-        <section
-          key={group.group}
-          aria-label={tGroups(group.group)}
-          className="flex flex-col gap-1 border-t border-foreground/8 pt-6"
-        >
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="caps-label text-muted-foreground">
-              {tGroups(group.group)}
-            </h2>
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {t("groupTotal", {
-                used: money(group.usedCents),
-                planned: money(group.plannedCents),
-              })}
-            </span>
-          </div>
-          <ul className="flex flex-col">
-            {group.lines.map((entry) => (
-              <PlanRow
-                key={entry.key}
-                line={entry}
-                elapsed={elapsed}
-                onOpen={() => setOpen(entry.key)}
-              />
-            ))}
-          </ul>
-          {group.group === "savings" && goalsMonthlyCents > 0 ? (
-            <p className="pt-1 text-xs text-muted-foreground">
-              {t("goalsNeed", { amount: money(goalsMonthlyCents) })}
-            </p>
-          ) : null}
-        </section>
-      ))}
-      <Button
-        variant="outline"
-        className="h-11 w-full"
-        onClick={() => setAdding(true)}
-      >
-        <Plus aria-hidden="true" />
-        {t("addLine")}
-      </Button>
-      <AnnualToPrepare items={annual} month={month} />
-      {line ? (
-        <LineDialog
-          key={line.key}
-          line={line}
-          month={month}
-          onClose={() => setOpen(null)}
-        />
-      ) : null}
-      {adding ? (
-        <AddLineDialog
-          month={month}
-          hidden={lines.map((entry) => entry.key)}
-          onClose={() => setAdding(false)}
-        />
-      ) : null}
-    </>
   );
 }

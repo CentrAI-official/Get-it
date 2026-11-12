@@ -389,15 +389,15 @@ export type BudgetPage = BudgetBase & {
   start: string;
   end: string;
   summary: BudgetSummary;
-  /** Le plan du mois (vue Mois seulement). */
-  plan: MonthPlan | null;
+  /** Le plan du mois qui contient la période : ses enveloppes. */
+  plan: MonthPlan;
   /** La part du mois écoulée, de 0 à 1. */
   elapsed: number;
   /** Les transactions de la période, les plus récentes d'abord. */
   entries: BudgetEntryRow[];
-  /** Les dépenses et virements fixes du mois, à cocher (vue Mois seulement). */
+  /** Les dépenses et virements fixes du mois de la période, à cocher. */
   fixed: FixedPayment[];
-  /** Ceux du mois d'avant pas encore cochés (mois en cours seulement). */
+  /** Ceux du mois d'avant pas encore cochés (le mois en cours seulement). */
   leftover: FixedPayment[];
   /** Les paies arrivées qui attendent d'être confirmées. */
   pays: UpcomingItem[];
@@ -505,8 +505,8 @@ export async function getBudget(
       loadGoalRows(userId),
       hasDebt ? loadDeltas(userId) : Promise.resolve([]),
       // Un mois plus ancien : ses paiements réglés ne sont pas dans la base
-      input.view === "month" && start < base.logFrom
-        ? loadFixedLog(userId, start, end)
+      month < base.logFrom
+        ? loadFixedLog(userId, month, periodOf("month", month).end)
         : Promise.resolve(null),
     ]);
 
@@ -526,7 +526,8 @@ export async function getBudget(
     types,
     minimumsCents: debtMinimums(base.accounts, deltas),
   });
-  const current = today >= start && today <= end;
+  // Le mois en cours : ce qui n'a pas été coché le mois passé s'y ajoute
+  const currentMonth = today >= month && today <= monthEnd;
 
   return {
     ...base,
@@ -544,23 +545,20 @@ export async function getBudget(
       reserveCents:
         input.view === "month" && end >= today ? monthPlan.reserveCents : 0,
     }),
-    plan: input.view === "month" ? monthPlan : null,
+    // Les enveloppes se comptent au mois, quelle que soit la période affichée
+    plan: monthPlan,
     elapsed: monthElapsed(month, today),
     entries: entryRows.map(toEntry),
-    fixed:
-      input.view === "month"
-        ? fixedPayments(outflows, oldLog ?? base.log, start, end, today)
-        : [],
-    leftover:
-      input.view === "month" && current
-        ? fixedPayments(
-            outflows,
-            base.log,
-            checkWindowStart(today),
-            addDays(start, -1),
-            today,
-          ).filter((item) => item.state === "due")
-        : [],
+    fixed: fixedPayments(outflows, oldLog ?? base.log, month, monthEnd, today),
+    leftover: currentMonth
+      ? fixedPayments(
+          outflows,
+          base.log,
+          checkWindowStart(today),
+          addDays(month, -1),
+          today,
+        ).filter((item) => item.state === "due")
+      : [],
     pays: paysToConfirm(rules, settled, today),
     progress: progressBars(base.accounts, deltas, goalRows, today),
     suggestion: monthPlan.groups.some((group) =>

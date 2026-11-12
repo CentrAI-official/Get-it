@@ -4501,27 +4501,6 @@
       "week": "Week",
       "month": "Month"
     },
-    "remaining": {
-      "day": "Left to spend today",
-      "week": "Left to spend this week",
-      "month": "Left to spend this month",
-      "other": "Left for this period"
-    },
-    "over": "You’re {amount} over your income.",
-    "usedLabel": "Share of your income already used",
-    "used": "{percent, number}% of your income used",
-    "noIncome": "No income planned: add your pay to see what you have left.",
-    "totals": {
-      "income": "Income",
-      "fixed": "Fixed expenses",
-      "spent": "Spent",
-      "upcoming": "Coming up",
-      "saved": "Savings",
-      "left": "Left"
-    },
-    "upcoming": "{amount} still to come",
-    "perDay": "You can still spend {amount} a day, for {days, plural, one {the last day} other {the # days left}}.",
-    "byCategory": "Spending by category",
     "share": "{percent, number}%",
     "entries": "Transactions",
     "noEntries": "No transactions for this period.",
@@ -4681,7 +4660,7 @@
     },
     "tabs": {
       "label": "Budget sections",
-      "month": "Month",
+      "month": "Envelopes",
       "transactions": "Transactions",
       "bills": "Bills",
       "accounts": "Accounts",
@@ -4689,8 +4668,6 @@
       "reports": "Reports"
     },
     "addTransfer": "Transfer between accounts",
-    "spentHero": "Spent",
-    "barLabel": "Planned income {income}: {spent} spent, {upcoming} coming up, {saved} saved.",
     "recent": "Latest transactions",
     "seeAll": "See all",
     "noAccount": "No account",
@@ -4719,15 +4696,6 @@
       "coffee": "Coffee"
     },
     "plan": {
-      "over": "Over by {amount}",
-      "left": "{amount} left",
-      "unplanned": "No amount planned",
-      "overHint": "Adjust the amount, or take it from elsewhere",
-      "fast": "Going faster than the month",
-      "upcoming": "{amount} coming up",
-      "carry": "{amount} carried over",
-      "of": "of {amount}",
-      "ofSaved": "of {amount} planned",
       "lineDescription": "The amount planned each month, and what’s left of it.",
       "spentLabel": "Out",
       "upcomingLabel": "Coming up",
@@ -4751,27 +4719,12 @@
       "back": "Back",
       "createCategory": "Create",
       "add": "Add",
-      "toAssign": "{amount} to assign",
-      "toAssignHint": "Give every dollar of your income a job: a category, or savings.",
-      "assigned": "Every dollar has a job",
-      "assignedHint": "All of this month’s income is planned.",
-      "overAssigned": "{amount} more than your income",
-      "overAssignedHint": "Your plan expects more than what comes in this month: lower a category.",
-      "assign": "Assign",
-      "suggestion": "Suggest a 50/30/20 split",
       "suggestionHint": "A starting point: 50% for needs, 30% for wants, 20% for savings, minus your fixed payments. Change anything afterwards.",
-      "suggestionApply": "Apply",
       "annualTitle": "To prepare",
       "annualHint": "Your yearly expenses, a little each month: they no longer land all at once.",
       "annualAmount": "{amount} per year",
       "annualPrepare": "{amount} per month",
-      "groupTotal": "{used} of {planned}",
-      "goalsNeed": "Your savings goals need {amount} per month.",
-      "addLine": "Add a category to the plan",
-      "reached": "This month’s amount reached",
-      "minimumsNote": "After {amount} of minimum debt payments.",
-      "toPay": "{amount} to pay",
-      "allPaid": "Paid"
+      "goalsNeed": "Your savings goals need {amount} per month."
     },
     "setup": {
       "start": "Make my budget",
@@ -5022,7 +4975,6 @@
       "below": "−{delta, number}% vs your average",
       "biggestTitle": "Your biggest expenses"
     },
-    "incomeLine": "Planned income: {amount}",
     "money": {
       "title": "Your money plan",
       "by": "Calculated by Get iT from your budget, without AI: nothing is sent to Get iT AI.",
@@ -5074,7 +5026,6 @@
     "fixedPayments": {
       "title": "Fixed payments",
       "count": "{paid, number} of {count, number} paid",
-      "left": "{amount} left to pay this month",
       "allPaid": "Everything is paid this month",
       "hint": "Check off each payment once it’s made. Get iT reminds you the day before.",
       "lastMonth": "Not checked last month",
@@ -5112,18 +5063,100 @@
       "close": "Close"
     },
     "progress": {
-      "title": "Debts and savings",
-      "owed": "{amount} left",
       "repaid": "{percent, number}% repaid",
       "paidOff": "Paid off",
       "minimum": "Minimum {amount} on the {day, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}",
       "minimumOnly": "Minimum {amount} a month",
       "goal": "{saved} of {target}",
-      "percent": "{percent, number}%",
       "reached": "Reached",
-      "empty": "Add your debts (credit card, loan) and your savings goals to see where you stand.",
       "addDebt": "Add a debt",
       "addGoal": "Add a goal"
+    },
+    "envelopes": {
+      "title": "Envelopes",
+      "unassigned": "<b>{amount}</b> without an envelope",
+      "unassignedHint": "Give every dollar a job.",
+      "assigned": "Every dollar has an envelope",
+      "assignedHint": "All of this month’s income is assigned.",
+      "overAssigned": "<b>{amount}</b> too much in your envelopes",
+      "overAssignedHint": "You planned more than comes in this month: lower an envelope.",
+      "noIncome": "No income yet this month",
+      "noIncomeHint": "Add your pay, then spread it across your envelopes.",
+      "assign": "Assign",
+      "edit": "Edit",
+      "minimumsNote": "After {amount} in minimum debt payments.",
+      "left": "left of {amount}",
+      "untouched": "not touched yet",
+      "over": "over, of {amount}",
+      "overLabel": "Over",
+      "fast": "Going fast",
+      "unplanned": "spent, no amount planned",
+      "savingsLeft": "to set aside ({saved} of {budget})",
+      "savingsReached": "set aside: done",
+      "savingsFree": "set aside this month",
+      "period": {
+        "day": "{amount} today",
+        "week": "{amount} this week",
+        "dayOther": "{amount} that day",
+        "weekOther": "{amount} that week"
+      },
+      "periodNone": {
+        "day": "Nothing today",
+        "week": "Nothing this week",
+        "dayOther": "Nothing that day",
+        "weekOther": "Nothing that week"
+      },
+      "spent": {
+        "day": "Spent today",
+        "week": "Spent this week",
+        "dayOther": "Spent that day",
+        "weekOther": "Spent that week"
+      },
+      "upcoming": "{amount} coming up",
+      "empty": "Your envelopes show up here. Tap “Assign” to give your everyday spending an amount.",
+      "spend": "Add an expense",
+      "putAside": "Set aside",
+      "debtLeft": "left",
+      "goalLeft": "to set aside",
+      "progressEmpty": "Add your debts and savings goals to see where you stand.",
+      "fixed": {
+        "open": "{count, plural, one {# to pay} other {# to pay}} · {next}",
+        "none": "Nothing this month",
+        "late": "{count, plural, one {# not checked last month} other {# not checked last month}}",
+        "pays": "{count, plural, one {# pay to confirm} other {# pays to confirm}}",
+        "when": {
+          "late": "{label} not checked yet",
+          "today": "{label} today",
+          "tomorrow": "{label} tomorrow",
+          "weekday": "{label} {weekday}",
+          "date": "{label} on the {day, selectordinal, one {#st} two {#nd} few {#rd} other {#th}}"
+        }
+      },
+      "quick": {
+        "title": "Quick expense",
+        "hint": "Pick the envelope, type the amount. That’s it.",
+        "other": "Other",
+        "expense": "Expense",
+        "description": "How much? The expense is noted today.",
+        "more": "More options",
+        "income": "Income",
+        "transfer": "Transfer"
+      },
+      "assignSheet": {
+        "title": "Assign {month}",
+        "description": "Choose how much goes in each envelope. The amounts stay the same in the following months.",
+        "suggestion": "Suggest 50/30/20",
+        "moneyPlan": "Your money plan suggests this month:",
+        "moneyPlanLink": "See the money plan",
+        "fixedLine": "Fixed payments",
+        "fixedHint": "Change them in Bills.",
+        "spentHint": "{amount} already spent",
+        "add": "New envelope",
+        "save": "Save",
+        "cancel": "Cancel",
+        "invalid": "Invalid amount",
+        "error": "The amounts weren’t saved. Try again."
+      }
     }
   },
   "Workouts": {

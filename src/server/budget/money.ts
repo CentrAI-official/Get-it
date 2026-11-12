@@ -46,10 +46,7 @@ export type MoneyView = {
 };
 
 const isCurrentMonth = (page: BudgetPage) =>
-  page.view === "month" &&
-  page.plan !== null &&
-  page.start <= page.today &&
-  page.end >= page.today;
+  page.view === "month" && page.start <= page.today && page.end >= page.today;
 
 /** Le plan d'argent, à partir du budget du mois en cours (relu s'il n'est pas fourni). */
 export async function getMoneyView(
@@ -127,7 +124,7 @@ export async function getMoneyView(
   // Ce mois-ci : ce qui est prévu, ou ce qui est déjà sorti et à venir s'il y en a plus
   const plan = budget.plan;
   const plannedOf = (group: "needs" | "wants") =>
-    (plan?.groups ?? [])
+    plan.groups
       .filter((entry) => entry.group === group)
       .flatMap((entry) => entry.lines)
       .reduce(

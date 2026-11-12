@@ -99,11 +99,13 @@ const applyPlanSchema = z.strictObject({
     .array(
       z.strictObject({
         category: z.string().refine(isCategoryKey),
-        cents: z.number().int().min(1).max(100_000_000),
+        // 0 : l'enveloppe est vidée (« Répartir »)
+        cents: z.number().int().min(0).max(100_000_000),
       }),
     )
     .min(1)
-    .max(30),
+    // Les 22 catégories de Get iT et les 30 personnelles
+    .max(60),
 });
 
 /** Applique une proposition de répartition : chaque montant reste modifiable. */
