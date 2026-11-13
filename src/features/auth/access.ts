@@ -7,6 +7,8 @@ export const APP_HOME_PATH = "/community";
 export const ONBOARDING_PATH = "/onboarding";
 /** Renseignements du compte (date de naissance, sexe, région) des comptes créés avant. */
 export const DETAILS_PATH = "/onboarding/details";
+/** Conditions et politique à accepter une fois (membres d'avant leur mise en ligne). */
+export const TERMS_PATH = "/onboarding/terms";
 export const RESET_PASSWORD_PATH = "/reset-password";
 
 /** Pages de l'application, réservées aux utilisateurs connectés. */

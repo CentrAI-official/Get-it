@@ -5,7 +5,11 @@ import {
   momentOfMinute,
   type DayMoment,
 } from "@/config/moments";
-import { occursOn, type CalendarEvent } from "@/features/events/rules";
+import {
+  eventPartOn,
+  type CalendarEvent,
+  type EventPart,
+} from "@/features/events/rules";
 import {
   itemTitleSchema,
   optionalDaySchema,
@@ -163,6 +167,19 @@ const habitActive = (habit: CalendarHabit, day: string) =>
   (habit.until === null || day < habit.until) &&
   habit.weekdays.includes(isoWeekday(day));
 
+/**
+ * Un événement un jour donné : la partie de l'événement (premier jour, milieu,
+ * dernier) et le premier jour de cette répétition.
+ */
+export type DayEvent = CalendarEvent & { part: EventPart; start: string };
+
+/** L'heure d'un événement ce jour-là : le début, la fin le dernier jour, aucune au milieu. */
+export function eventTime(event: DayEvent): number | null {
+  if (event.part === "middle") return null;
+  if (event.part === "last") return event.endMinute;
+  return event.startMinute;
+}
+
 /** Tout ce qui est prévu un jour donné. */
 export function dayEntries(data: CalendarData, day: string) {
   return {
@@ -176,8 +193,11 @@ export function dayEntries(data: CalendarData, day: string) {
       .filter((habit) => habitActive(habit, day))
       .map((habit) => ({ habit, done: habit.doneDays.includes(day) })),
     events: data.events
-      .filter((event) => occursOn(event, day))
-      .sort((a, b) => a.startMinute - b.startMinute),
+      .flatMap((event): DayEvent[] => {
+        const found = eventPartOn(event, day);
+        return found ? [{ ...event, ...found }] : [];
+      })
+      .sort((a, b) => (eventTime(a) ?? -1) - (eventTime(b) ?? -1)),
   };
 }
 
@@ -190,7 +210,7 @@ export function markedDays(data: CalendarData): Set<string> {
   const marked = new Set<string>();
   for (let day = first; day <= last; day = addDays(day, 1)) {
     if (data.plans.some((plan) => sessionOn(plan, day))) marked.add(day);
-    if (data.events.some((event) => occursOn(event, day))) marked.add(day);
+    if (data.events.some((event) => eventPartOn(event, day))) marked.add(day);
   }
   for (const task of data.tasks) marked.add(task.dueDate);
   for (const goal of data.goals) marked.add(goal.targetDate);
@@ -228,7 +248,7 @@ export type TimelineItem =
   | { type: "habit"; key: string; habit: CalendarHabit; done: boolean }
   | { type: "task"; key: string; task: CalendarTask }
   | { type: "goal"; key: string; goal: CalendarGoal }
-  | { type: "event"; key: string; event: CalendarEvent };
+  | { type: "event"; key: string; event: DayEvent };
 
 export type TimelineGroup = {
   /** Null : « dans la journée », sans moment choisi. */
@@ -248,7 +268,7 @@ export function timeOfItem(item: TimelineItem): number | null {
     case "goal":
       return null;
     case "event":
-      return item.event.startMinute;
+      return eventTime(item.event);
   }
 }
 

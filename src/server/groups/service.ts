@@ -480,7 +480,7 @@ export async function deleteGroup(
     select: { visibility: true },
   });
   if (!group) return { ok: false, error: "notFound" };
-  const [postMedia, messageMedia] = await Promise.all([
+  const [postMedia, messageMedia, events] = await Promise.all([
     db.postMedia.findMany({
       where: { post: { groupId } },
       select: { path: true, posterPath: true },
@@ -489,12 +489,20 @@ export async function deleteGroup(
       where: { message: { conversation: { groupId } } },
       select: { path: true, posterPath: true },
     }),
+    // Les événements du groupe partent avec lui, et leurs photos de couverture
+    db.communityEvent.findMany({
+      where: { groupId, coverPath: { not: null } },
+      select: { coverPath: true },
+    }),
   ]);
   await db.group.delete({ where: { id: groupId } });
-  const paths = [...postMedia, ...messageMedia].flatMap((row) => [
-    row.path,
-    ...(row.posterPath ? [row.posterPath] : []),
-  ]);
+  const paths = [
+    ...[...postMedia, ...messageMedia].flatMap((row) => [
+      row.path,
+      ...(row.posterPath ? [row.posterPath] : []),
+    ]),
+    ...events.flatMap((event) => (event.coverPath ? [event.coverPath] : [])),
+  ];
   if (paths.length > 0) {
     await removeFiles(paths).catch((error: unknown) => {
       console.error("Fichiers d'un groupe non supprimés", error);

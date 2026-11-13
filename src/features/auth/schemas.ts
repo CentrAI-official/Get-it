@@ -46,6 +46,8 @@ export const signUpSchema = z
       .string(error("inviteInvalid"))
       .max(64, error("inviteInvalid"))
       .optional(),
+    // Conditions et politique (Loi 25) : exigées par le serveur quand elles sont en ligne
+    terms: z.literal("on").optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     ...error("passwordMismatch"),

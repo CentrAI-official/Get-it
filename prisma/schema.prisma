@@ -228,6 +228,9 @@ model UserSettings {
   dayPanelSeenOn           DateTime?       @map("day_panel_seen_on") @db.Date
   /// Rappel la veille de chaque paiement fixe pas encore coché (Budget › Factures).
   billReminders            Boolean         @default(true) @map("bill_reminders")
+  /// Conditions d'utilisation et politique de confidentialité acceptées (Loi 25) ;
+  /// null : pas encore (inscription, ou écran unique pour les membres d'avant).
+  termsAcceptedAt          DateTime?       @map("terms_accepted_at") @db.Timestamptz(3)
   createdAt                DateTime        @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt                DateTime        @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -407,22 +410,27 @@ enum EventRepeat {
 /// Événement du calendrier personnel (job, souper, cuisiner les lunchs…) : privé,
 /// sans XP. Jours et heures tels qu'affichés, dans le fuseau de la personne.
 model CalendarEvent {
-  id          String      @id @default(uuid(7)) @db.Uuid
-  userId      String      @map("user_id") @db.Uuid
-  title       String
-  location    String?
-  startsOn    DateTime    @map("starts_on") @db.Date
+  id               String      @id @default(uuid(7)) @db.Uuid
+  userId           String      @map("user_id") @db.Uuid
+  title            String
+  location         String?
+  startsOn         DateTime    @map("starts_on") @db.Date
   /// Minutes depuis minuit (0 à 1439).
-  startMinute Int         @map("start_minute") @db.SmallInt
-  endsOn      DateTime?   @map("ends_on") @db.Date
-  endMinute   Int?        @map("end_minute") @db.SmallInt
-  repeat      EventRepeat @default(none)
-  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  startMinute      Int         @map("start_minute") @db.SmallInt
+  endsOn           DateTime?   @map("ends_on") @db.Date
+  endMinute        Int?        @map("end_minute") @db.SmallInt
+  repeat           EventRepeat @default(none)
+  /// Copie d'un événement de la Communauté (« Ajouter à mon calendrier ») : elle
+  /// suit ses changements et part avec lui.
+  communityEventId String?     @map("community_event_id") @db.Uuid
+  createdAt        DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  profile Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile        Profile         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  communityEvent CommunityEvent? @relation(fields: [communityEventId], references: [id], onDelete: Cascade)
 
   @@index([userId, startsOn])
+  @@index([communityEventId])
   @@map("calendar_events")
 }
 
@@ -2175,12 +2183,14 @@ model CommunityEvent {
   createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
-  host      Profile                  @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  page      Page?                    @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  group     Group?                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  attendees CommunityEventAttendee[]
-  comments  CommunityEventComment[]
-  reports   ContentReport[]
+  host           Profile                  @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  page           Page?                    @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  group          Group?                   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  attendees      CommunityEventAttendee[]
+  comments       CommunityEventComment[]
+  /// Les copies dans les calendriers personnels (« Ajouter à mon calendrier »).
+  calendarCopies CalendarEvent[]
+  reports        ContentReport[]
 
   @@index([startsAt])
   @@index([hostId, startsAt])

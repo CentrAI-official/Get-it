@@ -19,6 +19,8 @@ type ProfilePreferences = {
   locale?: unknown;
   /** Fuseau du navigateur, transmis à l'inscription. */
   timeZone?: unknown;
+  /** Conditions et politique acceptées à l'inscription (date ISO). */
+  termsAcceptedAt?: unknown;
 };
 
 /**
@@ -37,11 +39,20 @@ export async function ensureProfile(
   const timeZone = isValidTimeZone(preferences.timeZone)
     ? preferences.timeZone
     : undefined;
+  const accepted =
+    typeof preferences.termsAcceptedAt === "string"
+      ? new Date(preferences.termsAcceptedAt)
+      : null;
+  const termsAcceptedAt =
+    accepted && !Number.isNaN(accepted.getTime()) ? accepted : undefined;
 
   const profile = await db.profile.upsert({
     where: { id: userId },
     update: {},
-    create: { id: userId, settings: { create: { locale, timeZone } } },
+    create: {
+      id: userId,
+      settings: { create: { locale, timeZone, termsAcceptedAt } },
+    },
     select: { onboardedAt: true, settings: { select: { locale: true } } },
   });
 
@@ -108,6 +119,8 @@ export type CurrentProfile = {
   avatarPath: string | null;
   /** Date de naissance, sexe, pays et région remplis (sinon : écran unique). */
   detailsComplete: boolean;
+  /** Conditions et politique de confidentialité acceptées (Loi 25). */
+  termsAccepted: boolean;
 };
 
 /**
@@ -130,7 +143,14 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
       bio: true,
       avatarPath: true,
       ...detailsSelect,
-      settings: { select: { timeZone: true, dailyMinutes: true, theme: true } },
+      settings: {
+        select: {
+          timeZone: true,
+          dailyMinutes: true,
+          theme: true,
+          termsAcceptedAt: true,
+        },
+      },
     },
   });
 
@@ -154,6 +174,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile> => {
     bio: profile.bio,
     avatarPath: profile.avatarPath,
     detailsComplete: detailsComplete(toDetailsDraft(profile)),
+    termsAccepted: Boolean(profile.settings?.termsAcceptedAt),
   };
 });
 

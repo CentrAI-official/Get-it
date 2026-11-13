@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { hasLocale, type Locale } from "next-intl";
 import type { z } from "zod";
 import { redirect } from "@/i18n/navigation";
@@ -11,7 +12,14 @@ import {
   signUpWithPassword,
   updatePassword,
 } from "@/server/auth/service";
-import { inviteAccepted } from "@/server/auth/invite";
+import {
+  deviceKey,
+  inviteAccepted,
+  inviteFailed,
+  inviteLocked,
+  inviteRequired,
+} from "@/server/auth/invite";
+import { legalReady } from "@/server/legal/service";
 import { APP_HOME_PATH, getPostLoginPath } from "./access";
 import { toFieldErrors, type AuthFormState } from "./form-state";
 import { safeNextPath } from "./redirect";
@@ -67,16 +75,43 @@ export async function signUpAction(
 ): Promise<AuthFormState> {
   const parsed = signUpSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return invalidInput(parsed.error, formData);
-  // Bêta privée : sans le bon code, aucun compte n'est créé
-  if (!inviteAccepted(parsed.data.inviteCode)) {
+  // Bêta privée : sans le bon code, aucun compte n'est créé ; les essais ratés
+  // sont limités par appareil
+  if (inviteRequired()) {
+    const requestHeaders = await headers();
+    const device = deviceKey(
+      requestHeaders.get("x-forwarded-for"),
+      requestHeaders.get("x-real-ip"),
+    );
+    if (inviteLocked(device)) {
+      return {
+        status: "error",
+        error: "rateLimited",
+        email: parsed.data.email,
+      };
+    }
+    if (!inviteAccepted(parsed.data.inviteCode)) {
+      await inviteFailed(device);
+      return {
+        status: "error",
+        fieldErrors: { inviteCode: "inviteInvalid" },
+        email: parsed.data.email,
+      };
+    }
+  }
+
+  // Loi 25 : les conditions et la politique s'acceptent avant de créer le compte
+  if (legalReady() && parsed.data.terms !== "on") {
     return {
       status: "error",
-      fieldErrors: { inviteCode: "inviteInvalid" },
+      fieldErrors: { terms: "termsRequired" },
       email: parsed.data.email,
     };
   }
-
-  const result = await signUpWithPassword(parsed.data);
+  const result = await signUpWithPassword({
+    ...parsed.data,
+    termsAccepted: parsed.data.terms === "on",
+  });
   if (!result.ok) {
     return { status: "error", error: result.error, email: parsed.data.email };
   }

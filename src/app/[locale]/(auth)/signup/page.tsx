@@ -5,6 +5,7 @@ import { AuthHeader } from "@/features/auth/components/auth-header";
 import { SignupForm } from "@/features/auth/components/signup-form";
 import { Link } from "@/i18n/navigation";
 import { inviteRequired } from "@/server/auth/invite";
+import { legalReady } from "@/server/legal/service";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Auth.signup");
@@ -17,7 +18,10 @@ export default function SignupPage() {
   return (
     <div className="flex flex-col gap-8">
       <AuthHeader title={t("title")} description={t("description")} />
-      <SignupForm inviteRequired={inviteRequired()} />
+      <SignupForm
+        inviteRequired={inviteRequired()}
+        termsRequired={legalReady()}
+      />
       <p className="text-center text-sm text-muted-foreground">
         {t("hasAccount")}{" "}
         <Link

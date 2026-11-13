@@ -14,7 +14,13 @@ import {
 import type { PostMediaInput } from "@/features/community/media";
 import type { Pillar } from "@/config/pillars";
 import type { Prisma } from "@/generated/prisma/client";
-import { addDays, minuteOfDay, toCalendarDay, zonedInstant } from "@/lib/dates";
+import {
+  addDays,
+  minuteOfDay,
+  toCalendarDay,
+  zonedInstant,
+  toDbDate,
+} from "@/lib/dates";
 import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { verifyMedia } from "@/server/community/media";
 import { contactIds } from "@/server/contacts/service";
@@ -757,6 +763,7 @@ export async function updateCommunityEvent(
   if (changed) {
     await notifyAttendees(event, userId, "event_update", input.title);
   }
+  await syncCalendarCopies(eventId);
   return { ok: true };
 }
 
@@ -768,10 +775,14 @@ export async function cancelCommunityEvent(
   const event = await hostedEvent(userId, eventId);
   if (!event) return { ok: false, error: "notFound" };
   if (event.cancelledAt) return { ok: true };
-  await db.communityEvent.update({
-    where: { id: eventId },
-    data: { cancelledAt: new Date() },
-  });
+  await db.$transaction([
+    db.communityEvent.update({
+      where: { id: eventId },
+      data: { cancelledAt: new Date() },
+    }),
+    // Annulé : il quitte les calendriers personnels
+    db.calendarEvent.deleteMany({ where: { communityEventId: eventId } }),
+  ]);
   await notifyAttendees(event, userId, "event_cancelled", event.title);
   return { ok: true };
 }
@@ -959,9 +970,26 @@ export async function sendEventReminders(now = new Date()) {
   return { events, notified };
 }
 
+/** Les jours et minutes d'une copie, tels qu'affichés dans le fuseau de la personne. */
+function copyTimes(start: Date, end: Date | null, timeZone: string) {
+  const startsOn = toCalendarDay(start, timeZone);
+  const startMinute = minuteOfDay(start, timeZone);
+  const endsOn = end ? toCalendarDay(end, timeZone) : null;
+  const endMinute = end ? minuteOfDay(end, timeZone) : null;
+  const sameMinute = endsOn === startsOn && endMinute === startMinute;
+  return {
+    startsOn,
+    startMinute,
+    endsOn: sameMinute ? null : endsOn,
+    endMinute: sameMinute ? null : endMinute,
+  };
+}
+
 /**
  * Ajoute l'événement à mon calendrier personnel (Mon développement), à l'heure
- * de mon fuseau : une copie privée, que je modifie ou supprime à part.
+ * de mon fuseau : une copie privée, liée à l'événement (analyse du 2026-11-12) :
+ * elle suit la date, l'heure et le lieu choisis par l'hôte, et part si
+ * l'événement est annulé ou supprimé.
  */
 export async function addCommunityEventToCalendar(
   userId: string,
@@ -971,35 +999,82 @@ export async function addCommunityEventToCalendar(
   const event = await getCommunityEvent(userId, eventId);
   if (!event || event.cancelled) return { ok: false, error: "notFound" };
   const timeZone = await getUserTimeZone(userId);
-  const start = new Date(event.startsAt);
-  const end = event.endsAt ? new Date(event.endsAt) : null;
-  const startsOn = toCalendarDay(start, timeZone);
-  const startMinute = minuteOfDay(start, timeZone);
+  const times = copyTimes(
+    new Date(event.startsAt),
+    event.endsAt ? new Date(event.endsAt) : null,
+    timeZone,
+  );
   const already = await db.calendarEvent.findFirst({
     where: {
       userId,
-      title: event.title,
-      startsOn: new Date(`${startsOn}T00:00:00.000Z`),
-      startMinute,
+      OR: [
+        { communityEventId: eventId },
+        // Les copies faites avant le lien : même titre, même heure
+        {
+          communityEventId: null,
+          title: event.title,
+          startsOn: toDbDate(times.startsOn),
+          startMinute: times.startMinute,
+        },
+      ],
     },
     select: { id: true },
   });
-  if (already) return { ok: true, day: startsOn };
-  const endsOn = end ? toCalendarDay(end, timeZone) : null;
-  const endMinute = end ? minuteOfDay(end, timeZone) : null;
-  const sameMinute = endsOn === startsOn && endMinute === startMinute;
-  const created = await createCalendarEvent(userId, {
-    locale,
-    title: event.title,
-    location: event.location,
-    startsOn,
-    startMinute,
-    endsOn: sameMinute ? null : endsOn,
-    endMinute: sameMinute ? null : endMinute,
-    repeat: "none",
-  });
+  if (already) return { ok: true, day: times.startsOn };
+  const created = await createCalendarEvent(
+    userId,
+    {
+      locale,
+      title: event.title,
+      location: event.location,
+      ...times,
+      repeat: "none",
+    },
+    eventId,
+  );
   if (!created.ok) return { ok: false, error: "unexpected" };
-  return { ok: true, day: startsOn };
+  return { ok: true, day: times.startsOn };
+}
+
+/**
+ * L'hôte a changé son événement : chaque copie dans un calendrier personnel
+ * suit (titre, lieu, date et heure dans le fuseau de sa propriétaire).
+ */
+async function syncCalendarCopies(eventId: string) {
+  const [event, copies] = await Promise.all([
+    db.communityEvent.findUnique({
+      where: { id: eventId },
+      select: { title: true, location: true, startsAt: true, endsAt: true },
+    }),
+    db.calendarEvent.findMany({
+      where: { communityEventId: eventId },
+      select: {
+        id: true,
+        profile: { select: { settings: { select: { timeZone: true } } } },
+      },
+    }),
+  ]);
+  if (!event || copies.length === 0) return;
+  await db.$transaction(
+    copies.map((copy) => {
+      const times = copyTimes(
+        event.startsAt,
+        event.endsAt,
+        copy.profile.settings?.timeZone ?? "America/Toronto",
+      );
+      return db.calendarEvent.update({
+        where: { id: copy.id },
+        data: {
+          title: event.title,
+          location: event.location,
+          startsOn: toDbDate(times.startsOn),
+          startMinute: times.startMinute,
+          endsOn: times.endsOn ? toDbDate(times.endsOn) : null,
+          endMinute: times.endMinute,
+        },
+      });
+    }),
+  );
 }
 
 /** L'événement à modifier, pour le formulaire de l'hôte (dans son fuseau). */

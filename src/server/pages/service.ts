@@ -179,9 +179,15 @@ export async function deletePage(userId: string) {
           media: { select: { path: true, posterPath: true } },
         },
       },
+      // Partent aussi avec la page : ses événements et sa boîte (photos des membres compris)
+      events: { select: { coverPath: true } },
     },
   });
   if (!page) return false;
+  const messageMedia = await db.messageMedia.findMany({
+    where: { message: { conversation: { pageId: page.id } } },
+    select: { path: true, posterPath: true },
+  });
   const files = [
     page.logoPath,
     page.coverPath,
@@ -191,6 +197,8 @@ export async function deletePage(userId: string) {
     ...page.posts.flatMap((post) =>
       post.media.flatMap((media) => [media.path, media.posterPath]),
     ),
+    ...page.events.map((event) => event.coverPath),
+    ...messageMedia.flatMap((media) => [media.path, media.posterPath]),
   ].filter((path): path is string => Boolean(path));
   await db.$transaction([
     db.page.deleteMany({ where: { id: page.id, ownerId: userId } }),

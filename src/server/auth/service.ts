@@ -51,6 +51,7 @@ async function openSession(
     const session = await ensureProfile(user.id, {
       locale: user.user_metadata["locale"] ?? fallbackLocale,
       timeZone: user.user_metadata["time_zone"],
+      termsAcceptedAt: user.user_metadata["terms_accepted_at"],
     });
     return { ok: true, data: session };
   } catch (error) {
@@ -90,6 +91,8 @@ export async function signUpWithPassword(input: {
   locale: Locale;
   timeZone?: string;
   inviteCode?: string;
+  /** Conditions et politique acceptées (case cochée) : gardé à la création du profil. */
+  termsAccepted?: boolean;
 }): Promise<
   AuthResult<
     { needsConfirmation: true } | ({ needsConfirmation: false } & OpenedSession)
@@ -108,6 +111,9 @@ export async function signUpWithPassword(input: {
         // Revérifié à la création du profil (bêta privée)
         ...(input.inviteCode
           ? { invite_code: normalizeInviteCode(input.inviteCode) }
+          : {}),
+        ...(input.termsAccepted
+          ? { terms_accepted_at: new Date().toISOString() }
           : {}),
       },
     },

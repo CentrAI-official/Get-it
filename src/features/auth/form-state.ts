@@ -7,6 +7,7 @@ const AUTH_FIELDS = [
   "password",
   "confirmPassword",
   "inviteCode",
+  "terms",
 ] as const;
 export type AuthField = (typeof AUTH_FIELDS)[number];
 

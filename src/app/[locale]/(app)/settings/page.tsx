@@ -30,6 +30,7 @@ import {
   AiSettings,
   AiSettingsSkeleton,
 } from "@/features/settings/components/ai-settings";
+import { DataSettings } from "@/features/settings/components/data-settings";
 import { DeleteAccountDialog } from "@/features/settings/components/delete-account-dialog";
 import {
   DetailsSettings,
@@ -129,6 +130,8 @@ export default function SettingsPage() {
         <MusicCatalogLink />
         <LibraryAdminLink />
       </Suspense>
+      {/* Loi 25 : télécharger ses données, et les pages Confidentialité et Conditions */}
+      <DataSettings />
       <Card className="max-w-2xl border-destructive/30!">
         <CardHeader>
           <CardTitle>{t("deleteAccount.title")}</CardTitle>

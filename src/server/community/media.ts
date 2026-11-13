@@ -55,6 +55,34 @@ async function dropStaleUploads(userId: string) {
   });
 }
 
+/**
+ * Les envois jamais utilisés de plus d'un jour, pour tout le monde (tâche
+ * planifiée de la nuit, analyse du 2026-11-12) : une photo choisie puis
+ * abandonnée ne reste plus dans le stockage. Par lots de 500.
+ */
+export async function purgeStaleUploads(
+  now = new Date(),
+  // Tests de bout en bout : un seul compte (la base est partagée)
+  { userId }: { userId?: string } = {},
+) {
+  const stale = await db.mediaUpload.findMany({
+    where: {
+      ...(userId ? { userId } : {}),
+      usedAt: null,
+      createdAt: { lt: new Date(now.getTime() - UPLOAD_TTL_MS) },
+    },
+    orderBy: { createdAt: "asc" },
+    take: 500,
+    select: { id: true, path: true },
+  });
+  if (stale.length === 0) return { removed: 0 };
+  await removeFiles(stale.map((upload) => upload.path));
+  await db.mediaUpload.deleteMany({
+    where: { id: { in: stale.map((upload) => upload.id) }, usedAt: null },
+  });
+  return { removed: stale.length };
+}
+
 /** Autorisations d'envoi pour les fichiers d'une future publication. */
 export async function requestUploads(
   userId: string,

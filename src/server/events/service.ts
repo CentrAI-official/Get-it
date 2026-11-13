@@ -54,7 +54,8 @@ function toEventData(input: EventInput) {
 
 /**
  * Événements qui peuvent tomber entre `from` et `to` : ceux qui commencent dans
- * la période, et ceux qui se répètent et ont commencé avant sa fin.
+ * la période, ceux qui ont commencé avant et finissent dedans (plusieurs jours),
+ * et ceux qui se répètent et ont commencé avant sa fin.
  */
 export async function listEventsBetween(
   userId: string,
@@ -65,7 +66,11 @@ export async function listEventsBetween(
     where: {
       userId,
       startsOn: { lte: toDbDate(to) },
-      OR: [{ repeat: { not: "none" } }, { startsOn: { gte: toDbDate(from) } }],
+      OR: [
+        { repeat: { not: "none" } },
+        { startsOn: { gte: toDbDate(from) } },
+        { endsOn: { gte: toDbDate(from) } },
+      ],
     },
     orderBy: [{ startMinute: "asc" }, { createdAt: "asc" }],
     take: MAX_EVENTS,
@@ -83,13 +88,21 @@ export async function getEvent(userId: string, eventId: string) {
   return row ? toEvent(row) : null;
 }
 
+/**
+ * Ajoute un événement. `communityEventId` : une copie d'un événement de la
+ * Communauté, qui suit ses changements (date, heure, lieu) et part s'il est
+ * annulé ou supprimé.
+ */
 export async function createEvent(
   userId: string,
   input: EventInput,
+  communityEventId: string | null = null,
 ): Promise<{ ok: true } | { ok: false; error: EventError }> {
   const count = await db.calendarEvent.count({ where: { userId } });
   if (count >= MAX_EVENTS) return { ok: false, error: "eventLimit" };
-  await db.calendarEvent.create({ data: { userId, ...toEventData(input) } });
+  await db.calendarEvent.create({
+    data: { userId, communityEventId, ...toEventData(input) },
+  });
   return { ok: true };
 }
 

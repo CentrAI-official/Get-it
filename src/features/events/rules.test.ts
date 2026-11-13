@@ -8,6 +8,7 @@ import {
   EVENT_TITLE_MAX,
   eventFieldErrors,
   eventFormSchema,
+  eventPartOn,
   occursOn,
 } from "./rules";
 import { momentOfMinute } from "@/config/moments";
@@ -200,5 +201,53 @@ describe("migration", () => {
     expect(created).toContain(`AS ENUM (${values})`);
     const block = /enum EventRepeat \{([^}]*)\}/.exec(schema)?.[1] ?? "";
     expect(block.trim().split(/\s+/)).toEqual([...EVENT_REPEATS]);
+  });
+});
+
+describe("eventPartOn (événement de plusieurs jours)", () => {
+  // Du jeudi 12 au dimanche 15 novembre 2026
+  const trip = {
+    startsOn: "2026-11-12",
+    endsOn: "2026-11-15",
+    repeat: "none" as const,
+  };
+
+  it("chaque jour de l'événement, du premier au dernier", () => {
+    expect(eventPartOn(trip, "2026-11-11")).toBeNull();
+    expect(eventPartOn(trip, "2026-11-12")).toEqual({
+      part: "first",
+      start: "2026-11-12",
+    });
+    expect(eventPartOn(trip, "2026-11-13")?.part).toBe("middle");
+    expect(eventPartOn(trip, "2026-11-14")?.part).toBe("middle");
+    expect(eventPartOn(trip, "2026-11-15")?.part).toBe("last");
+    expect(eventPartOn(trip, "2026-11-16")).toBeNull();
+  });
+
+  it("un événement d'un jour, ou sans fin, est seul", () => {
+    expect(
+      eventPartOn({ ...trip, endsOn: "2026-11-12" }, "2026-11-12")?.part,
+    ).toBe("single");
+    expect(eventPartOn({ ...trip, endsOn: null }, "2026-11-12")?.part).toBe(
+      "single",
+    );
+    expect(eventPartOn({ ...trip, endsOn: null }, "2026-11-13")).toBeNull();
+  });
+
+  it("une répétition de plusieurs jours : chaque semaine, du samedi au dimanche", () => {
+    const weekend = {
+      startsOn: "2026-11-14",
+      endsOn: "2026-11-15",
+      repeat: "weekly" as const,
+    };
+    expect(eventPartOn(weekend, "2026-11-21")).toEqual({
+      part: "first",
+      start: "2026-11-21",
+    });
+    expect(eventPartOn(weekend, "2026-11-22")).toEqual({
+      part: "last",
+      start: "2026-11-21",
+    });
+    expect(eventPartOn(weekend, "2026-11-23")).toBeNull();
   });
 });

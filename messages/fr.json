@@ -343,6 +343,14 @@
           "switch": "Passer à {city}",
           "error": "Le fuseau n’a pas été changé. Réessaie."
         }
+      },
+      "data": {
+        "title": "Tes données",
+        "description": "Télécharge tout ce que Get iT garde sur toi, dans un fichier que tu peux ouvrir ou transférer ailleurs.",
+        "download": "Télécharger mes données",
+        "hint": "Un fichier JSON : ton profil, tes objectifs, habitudes, journal, plans, budget, publications et messages envoyés. Les photos et vidéos n’y sont pas.",
+        "privacy": "Politique de confidentialité",
+        "terms": "Conditions d’utilisation"
       }
     },
     "refresh": {
@@ -387,7 +395,8 @@
       "loginLink": "Se connecter",
       "successTitle": "Vérifie ta boîte de réception",
       "successDescription": "Nous avons envoyé un lien de confirmation à {email}. Ouvre-le pour activer ton compte.",
-      "successHint": "Rien reçu? Regarde dans tes courriels indésirables."
+      "successHint": "Rien reçu? Regarde dans tes courriels indésirables.",
+      "terms": "J’accepte les <terms>conditions d’utilisation</terms> et la <privacy>politique de confidentialité</privacy>."
     },
     "forgotPassword": {
       "metaTitle": "Mot de passe oublié",
@@ -427,7 +436,8 @@
       "linkInvalid": "Ce lien n’est plus valide ou a déjà servi. Si ton adresse est confirmée, connecte-toi simplement.",
       "inviteInvalid": "Ce code d’invitation n’est pas valide.",
       "inviteRequired": "Get iT est en test privé : il faut un code d’invitation pour créer un compte.",
-      "unexpected": "Une erreur est survenue. Réessaie dans un instant."
+      "unexpected": "Une erreur est survenue. Réessaie dans un instant.",
+      "termsRequired": "Accepte les conditions d’utilisation et la politique de confidentialité pour créer ton compte."
     }
   },
   "Onboarding": {
@@ -2191,7 +2201,9 @@
         "session": "La séance du {weekday} sera retirée de chaque semaine du plan.",
         "cancel": "Annuler",
         "confirm": "Supprimer"
-      }
+      },
+      "allDay": "Toute la journée",
+      "endsHere": "fin"
     },
     "hub": {
       "updated": "Mis à jour le {date}",
@@ -5890,5 +5902,24 @@
   "Offline": {
     "title": "Pas de connexion.",
     "description": "Ce que tu fais partira dès que le réseau revient."
+  },
+  "Legal": {
+    "updated": "Version du {date}",
+    "contactTitle": "Nous joindre",
+    "privacy": {
+      "metaTitle": "Politique de confidentialité"
+    },
+    "terms": {
+      "metaTitle": "Conditions d’utilisation"
+    },
+    "accept": {
+      "metaTitle": "Nos conditions",
+      "title": "Nos conditions et notre politique",
+      "description": "Get iT publie ses conditions d’utilisation et sa politique de confidentialité. Lis-les, puis accepte-les pour continuer.",
+      "checkbox": "J’ai lu et j’accepte les <terms>conditions d’utilisation</terms> et la <privacy>politique de confidentialité</privacy>.",
+      "submit": "Continuer",
+      "required": "Coche la case pour continuer.",
+      "error": "Ton acceptation n’a pas été enregistrée. Réessaie."
+    }
   }
 }

@@ -343,6 +343,14 @@
           "switch": "Switch to {city}",
           "error": "The time zone wasn’t changed. Try again."
         }
+      },
+      "data": {
+        "title": "Your data",
+        "description": "Download everything Get iT keeps about you, in a file you can open or move elsewhere.",
+        "download": "Download my data",
+        "hint": "A JSON file: your profile, goals, habits, journal, plans, budget, posts and sent messages. Photos and videos aren’t included.",
+        "privacy": "Privacy policy",
+        "terms": "Terms of use"
       }
     },
     "refresh": {
@@ -387,7 +395,8 @@
       "loginLink": "Log in",
       "successTitle": "Check your inbox",
       "successDescription": "We sent a confirmation link to {email}. Open it to activate your account.",
-      "successHint": "Nothing yet? Check your spam folder."
+      "successHint": "Nothing yet? Check your spam folder.",
+      "terms": "I accept the <terms>terms of use</terms> and the <privacy>privacy policy</privacy>."
     },
     "forgotPassword": {
       "metaTitle": "Forgot password",
@@ -427,7 +436,8 @@
       "linkInvalid": "This link is no longer valid or has already been used. If your address is confirmed, just log in.",
       "inviteInvalid": "This invitation code isn’t valid.",
       "inviteRequired": "Get iT is in private testing: you need an invitation code to create an account.",
-      "unexpected": "Something went wrong. Try again in a moment."
+      "unexpected": "Something went wrong. Try again in a moment.",
+      "termsRequired": "Accept the terms of use and the privacy policy to create your account."
     }
   },
   "Onboarding": {
@@ -2191,7 +2201,9 @@
         "session": "The {weekday} session will be removed from every week of the plan.",
         "cancel": "Cancel",
         "confirm": "Delete"
-      }
+      },
+      "allDay": "All day",
+      "endsHere": "ends"
     },
     "hub": {
       "updated": "Updated on {date}",
@@ -5890,5 +5902,24 @@
   "Offline": {
     "title": "No connection.",
     "description": "What you do will go through as soon as you’re back online."
+  },
+  "Legal": {
+    "updated": "Version of {date}",
+    "contactTitle": "Contact us",
+    "privacy": {
+      "metaTitle": "Privacy policy"
+    },
+    "terms": {
+      "metaTitle": "Terms of use"
+    },
+    "accept": {
+      "metaTitle": "Our terms",
+      "title": "Our terms and our policy",
+      "description": "Get iT publishes its terms of use and privacy policy. Read them, then accept them to continue.",
+      "checkbox": "I have read and accept the <terms>terms of use</terms> and the <privacy>privacy policy</privacy>.",
+      "submit": "Continue",
+      "required": "Check the box to continue.",
+      "error": "Your acceptance wasn’t saved. Try again."
+    }
   }
 }

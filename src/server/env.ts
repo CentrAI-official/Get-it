@@ -74,6 +74,18 @@ const serverEnvSchema = z.object({
       .min(16, { error: "doit contenir au moins 16 caractères" })
       .optional(),
   ),
+  // Loi 25 : la personne responsable de la protection des renseignements
+  // personnels, publiée sur la page Confidentialité. Facultatifs : sans eux, les
+  // pages Confidentialité et Conditions, la case à cocher de l'inscription et
+  // l'écran d'acceptation restent éteints.
+  PRIVACY_OFFICER_NAME: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.string().trim().min(2).max(100).optional(),
+  ),
+  PRIVACY_OFFICER_EMAIL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.email({ error: "doit être une adresse courriel" }).optional(),
+  ),
   // « fake » : réponses factices pour les tests de bout en bout, sans appel payant
   AI_PROVIDER: z.preprocess(
     (value) => (value === "" ? undefined : value),

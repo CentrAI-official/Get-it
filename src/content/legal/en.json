@@ -1,0 +1,173 @@
+{
+  "privacy": {
+    "title": "Privacy policy",
+    "intro": "Get iT is a personal development platform. This policy explains what personal information we collect, why, who it is shared with and how to exercise your rights, under Québec’s Act respecting the protection of personal information in the private sector (Law 25).",
+    "officer": "Person in charge of the protection of personal information: {name}, {email}.",
+    "sections": [
+      {
+        "title": "Who is responsible",
+        "paragraphs": [
+          "Get iT is responsible for the personal information collected by the app. For any question or request, write to the person in charge of the protection of personal information (see “Contact us”)."
+        ]
+      },
+      {
+        "title": "What we collect",
+        "paragraphs": [
+          "Your account: your email address and your password, kept encrypted by our sign-in provider and never readable by the team.",
+          "Your profile: your name, username, photo and bio, if you add them.",
+          "Your account details: your date of birth, sex at birth, country, province or state and region. They are used to check the minimum age and to calculate levels; they are never shown to other members.",
+          "What you add: your goals, habits, tasks, check-ins, journal pages, plans, workouts, measurements and budget.",
+          "What you share in the Community: posts, comments, messages, stories, groups and events.",
+          "If you create a pro page or a listing: your page’s details and, for a regulated profession, your licence number, seen only by the team.",
+          "How you use the app: the time spent in each section and the features used, never the text you write, and technical errors, stripped of any email address or identifier.",
+          "Your device: your time zone and, if you turn them on, this phone’s notification subscription."
+        ]
+      },
+      {
+        "title": "Why",
+        "paragraphs": [
+          "To run Get iT: your account, plans, streaks, reminders and the Community.",
+          "For safety and moderation: handling reports, stopping abuse and protecting members.",
+          "To improve the app: the team looks at totals (how many members use a feature), not at one person’s details.",
+          "To personalize your experience, only if you turn it on in Settings (off by default).",
+          "We never sell your information and we don’t show ads."
+        ]
+      },
+      {
+        "title": "Get iT AI",
+        "paragraphs": [
+          "Get iT AI receives nothing without your consent, which you give and withdraw in Settings.",
+          "With your consent, a summary of what is useful for your request (for example your goals and habits) is sent to our artificial intelligence provider, Anthropic, in the United States. Your journal, messages and budget are never sent to it.",
+          "Nothing Get iT AI suggests is added to your account without your click."
+        ]
+      },
+      {
+        "title": "Who we share it with",
+        "paragraphs": [
+          "Other members: only what you make visible (your public profile, your posts, what you share). Your goals, habits, check-ins, journal, measurements and budget stay private; your levels are public only if you turn on Ranked mode.",
+          "A professional you choose (pro page): only the plans you agree to share, and you can stop at any time.",
+          "Our providers, who process information for us and on our instructions: Supabase (database, sign-in and photo storage, in Canada), Vercel (hosting, in Montréal), Anthropic (Get iT AI, in the United States, only with your consent) and browser notification services (Google, Apple or Mozilla, only if you turn on notifications; they receive the notification’s short text).",
+          "External services, only when you use them: YouTube, when you tap “Play” on a demo, and OpenStreetMap (Photon), which receives only the text of an address you type, never your name.",
+          "Before sharing information outside Québec, we assess that it will be adequately protected there."
+        ]
+      },
+      {
+        "title": "How long we keep it",
+        "paragraphs": [
+          "As long as your account exists. When you delete your account, your information and files are erased.",
+          "Some data goes sooner: stories after 24 hours, read notifications after 60 days, usage measurements after 13 months."
+        ]
+      },
+      {
+        "title": "Your rights",
+        "paragraphs": [
+          "Access your information and get it in a structured format: Settings › Your data › “Download my data”.",
+          "Correct it: in your profile and in Settings.",
+          "Withdraw your consent (Get iT AI, personalization, notifications): in Settings.",
+          "Delete your account and everything with it: Settings › “Delete my account”.",
+          "For any other request, write to the person in charge. We answer within 30 days. You can also file a complaint with Québec’s Commission d’accès à l’information."
+        ]
+      },
+      {
+        "title": "Automated decisions",
+        "paragraphs": [
+          "Your physical and financial levels are calculated automatically from the measurements you enter and fixed thresholds. In “My levels” you see the measurements and thresholds used, you can correct a measurement and you can ask a team member to review the result."
+        ]
+      },
+      {
+        "title": "Security",
+        "paragraphs": [
+          "Connections are encrypted, access to data is limited to what is needed and the team signs in with two-factor authentication. If an incident creates a risk of serious harm, we notify you and the Commission d’accès à l’information."
+        ]
+      },
+      {
+        "title": "Minimum age",
+        "paragraphs": ["Get iT is for people aged 16 and over."]
+      },
+      {
+        "title": "Cookies",
+        "paragraphs": [
+          "Get iT only uses the cookies it needs to work: your session, language, theme and active account (personal or page). No advertising or third-party analytics tools."
+        ]
+      },
+      {
+        "title": "Changes",
+        "paragraphs": [
+          "Before any significant change to this policy, we let you know in the app."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of use",
+    "intro": "By using Get iT, you accept these terms. They explain what you can expect from us and what we expect from you.",
+    "contact": "A question about these terms: {email}.",
+    "sections": [
+      {
+        "title": "Your account",
+        "paragraphs": [
+          "You must be 16 or older and give accurate information.",
+          "You are responsible for your password and for what is done with your account.",
+          "Get iT is in private beta: features may change or be interrupted."
+        ]
+      },
+      {
+        "title": "What Get iT is not",
+        "paragraphs": [
+          "Get iT helps you set goals and make progress, but it doesn’t replace a professional. Plans, Get iT AI answers, levels and the budget are not medical or psychological advice, nor financial or legal advice.",
+          "Before starting a training program or changing your diet, consult a health professional if needed. In an emergency, call 911. In distress, call or text 9-8-8."
+        ]
+      },
+      {
+        "title": "Your content",
+        "paragraphs": [
+          "What you post belongs to you. You allow us to display it in Get iT, to the people you show it to, while it is online.",
+          "You must have the right to post what you post: photos, videos, music and text."
+        ]
+      },
+      {
+        "title": "Community rules",
+        "paragraphs": [
+          "No harassment, threats, hateful remarks, sexual or violent content, dangerous misinformation, spam, or personal information about other people.",
+          "The team may remove content, suspend or close an account that breaks these rules. You can report anything that seems to break them."
+        ]
+      },
+      {
+        "title": "Marketplace and pro pages",
+        "paragraphs": [
+          "Services are offered by the professionals themselves. Get iT is not a party to agreements between a member and a professional.",
+          "A professional in a regulated profession must hold a valid licence and follow their order’s rules."
+        ]
+      },
+      {
+        "title": "Get iT AI",
+        "paragraphs": [
+          "Get iT AI answers are generated automatically and may be incomplete or inaccurate: check them before acting."
+        ]
+      },
+      {
+        "title": "Availability and liability",
+        "paragraphs": [
+          "We do our best to keep Get iT running without interruption, but we can’t guarantee it.",
+          "To the extent permitted by law, Get iT is not responsible for the decisions you make based on the app. Nothing in these terms limits your rights under Québec’s Consumer Protection Act."
+        ]
+      },
+      {
+        "title": "Closing your account",
+        "paragraphs": ["You can delete your account at any time in Settings."]
+      },
+      {
+        "title": "Governing law",
+        "paragraphs": [
+          "These terms are governed by the laws of Québec and Canada."
+        ]
+      },
+      {
+        "title": "Changes",
+        "paragraphs": [
+          "Before any significant change, we let you know in the app. If you keep using Get iT after the change, you accept the new terms."
+        ]
+      }
+    ]
+  }
+}

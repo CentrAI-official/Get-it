@@ -154,6 +154,7 @@ export const ROUTE_RULES = [
   { pattern: "/notifications", section: "notifications.list" },
   { pattern: "/onboarding", section: "onboarding.flow" },
   { pattern: "/onboarding/details", section: "onboarding.flow" },
+  { pattern: "/onboarding/terms", section: "onboarding.flow" },
 ] as const satisfies readonly RouteRule[];
 
 /** Fenêtres sans adresse propre, mesurées à part. */

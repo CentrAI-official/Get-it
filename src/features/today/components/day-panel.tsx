@@ -1,9 +1,14 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { DETAILS_PATH, ONBOARDING_PATH } from "@/features/auth/access";
+import {
+  DETAILS_PATH,
+  ONBOARDING_PATH,
+  TERMS_PATH,
+} from "@/features/auth/access";
 import { redirect } from "@/i18n/navigation";
 import { getDayPeriod } from "@/lib/day-period";
 import { getDayPlan, isDayPanelDue } from "@/server/day/service";
 import { avatarUrl } from "@/server/profile/avatar";
+import { legalReady } from "@/server/legal/service";
 import { getActingPage } from "@/server/pages/identity";
 import { getCurrentProfile } from "@/server/profile/service";
 import { formatDayStamp } from "../day-stamp";
@@ -23,6 +28,10 @@ export async function DayPanel() {
   // Comptes créés avant : date de naissance, sexe et région demandés une fois
   if (!profile.detailsComplete) {
     redirect({ href: DETAILS_PATH, locale: await getLocale() });
+  }
+  // Loi 25 : les conditions et la politique, acceptées une fois (si elles sont en ligne)
+  if (legalReady() && !profile.termsAccepted) {
+    redirect({ href: TERMS_PATH, locale: await getLocale() });
   }
   // « Ma journée » est au compte personnel : rien sur sa page
   if (await getActingPage(profile.id)) return null;

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { routing } from "@/i18n/routing";
-import { daysBetween, isoWeekday, parseClock } from "@/lib/dates";
+import { daysBetween, isoWeekday, parseClock, addDays } from "@/lib/dates";
 import { fieldErrorsFrom } from "@/lib/form-errors";
 
 // Calendrier personnel : les événements de la personne (job, souper, cuisiner
@@ -184,4 +184,37 @@ export function occursOn(
 /** Nombre de jours entre le début et la fin d'un événement (0 : le même jour ou sans fin). */
 export function eventSpan(event: Pick<CalendarEvent, "startsOn" | "endsOn">) {
   return event.endsOn === null ? 0 : daysBetween(event.startsOn, event.endsOn);
+}
+
+/** Un jour d'un événement : le seul, le premier, un jour du milieu ou le dernier. */
+export type EventPart = "single" | "first" | "middle" | "last";
+
+/**
+ * L'événement est-il là ce jour-là, et quelle partie (analyse du 2026-11-12 :
+ * un événement de plusieurs jours n'apparaissait que le premier jour) ? On
+ * cherche la répétition qui a commencé ce jour-là ou dans les jours d'avant
+ * (au plus la durée de l'événement, et un mois suffit : une répétition revient
+ * au moins une fois par mois). `start` : le premier jour de cette répétition.
+ */
+export function eventPartOn(
+  event: Pick<CalendarEvent, "startsOn" | "endsOn" | "repeat">,
+  day: string,
+): { part: EventPart; start: string } | null {
+  if (day < event.startsOn) return null;
+  const span = eventSpan(event);
+  for (let back = 0; back <= Math.min(span, 31); back += 1) {
+    const start = addDays(day, -back);
+    if (start < event.startsOn) break;
+    if (!occursOn(event, start)) continue;
+    const part: EventPart =
+      span === 0
+        ? "single"
+        : back === 0
+          ? "first"
+          : back === span
+            ? "last"
+            : "middle";
+    return { part, start };
+  }
+  return null;
 }

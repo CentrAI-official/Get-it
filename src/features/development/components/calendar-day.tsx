@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { momentIcons } from "@/config/moments";
-import { eventSpan, type CalendarEvent } from "@/features/events/rules";
+import { eventSpan } from "@/features/events/rules";
 import { Link } from "@/i18n/navigation";
 import { addDays, clockDate, toDbDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,7 @@ import {
   type CalendarTarget,
   type TimelineGroup,
   type TimelineItem,
+  type DayEvent,
 } from "../calendar";
 import { colorsOf } from "../colors";
 import type { DevelopmentKind } from "../questionnaires";
@@ -137,7 +138,6 @@ type CalendarDayProps = {
  * pour le modifier (son heure) ou le supprimer.
  */
 export function CalendarDay({
-  day,
   groups,
   showPlan,
   stateOf,
@@ -225,7 +225,7 @@ export function CalendarDay({
                   <li key={item.key}>
                     <SwipeRow actions={actionsOf(item)}>
                       {item.type === "event" ? (
-                        <EventItem event={item.event} day={day} />
+                        <EventItem event={item.event} />
                       ) : (
                         <DayItem
                           item={item}
@@ -341,11 +341,19 @@ function HourColumn({ minute, below }: { minute: number; below?: string }) {
 }
 
 /** Un événement du calendrier personnel, avec son heure en grand. */
-function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
+function EventItem({ event }: { event: DayEvent }) {
   const t = useTranslations("Development.calendar");
   const tEvents = useTranslations("Events");
   const format = useFormatter();
   const span = eventSpan(event);
+  // Le dernier jour de cette répétition (un événement de plusieurs jours)
+  const untilDay = t("untilDay", {
+    date: format.dateTime(toDbDate(addDays(event.start, span)), {
+      day: "numeric",
+      month: "short",
+      timeZone: "UTC",
+    }),
+  });
   const meta = [
     t("event"),
     event.location,
@@ -356,29 +364,38 @@ function EventItem({ event, day }: { event: CalendarEvent; day: string }) {
 
   return (
     <div className="flex min-h-14 items-center gap-3 rounded-2xl bg-foreground/5 py-2 pr-3 pl-3.5">
-      <HourColumn
-        minute={event.startMinute}
-        below={
-          // Sans fin : seulement l'heure de début
-          event.endMinute === null
-            ? undefined
-            : span > 0
-              ? t("untilDay", {
-                  date: format.dateTime(toDbDate(addDays(day, span)), {
-                    day: "numeric",
-                    month: "short",
-                    timeZone: "UTC",
-                  }),
-                })
-              : t("until", {
-                  time: format.dateTime(clockDate(event.endMinute), {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    timeZone: "UTC",
-                  }),
-                })
-        }
-      />
+      {event.part === "middle" ? (
+        // Un jour du milieu : tout le jour, jusqu'au dernier
+        <span className="flex w-[4.75rem] shrink-0 flex-col">
+          <span className="text-sm leading-tight font-semibold text-primary">
+            {t("allDay")}
+          </span>
+          <span className="mt-1 text-[11px] whitespace-nowrap text-muted-foreground">
+            {untilDay}
+          </span>
+        </span>
+      ) : event.part === "last" && event.endMinute !== null ? (
+        // Le dernier jour : l'heure où il finit
+        <HourColumn minute={event.endMinute} below={t("endsHere")} />
+      ) : (
+        <HourColumn
+          minute={event.startMinute}
+          below={
+            // Sans fin : seulement l'heure de début
+            event.endMinute === null
+              ? undefined
+              : span > 0
+                ? untilDay
+                : t("until", {
+                    time: format.dateTime(clockDate(event.endMinute), {
+                      hour: "numeric",
+                      minute: "2-digit",
+                      timeZone: "UTC",
+                    }),
+                  })
+          }
+        />
+      )}
       <span className="flex min-w-0 flex-1 flex-col gap-0.5 py-1">
         <span className="font-semibold break-words">{event.title}</span>
         <span className="text-xs break-words text-muted-foreground">

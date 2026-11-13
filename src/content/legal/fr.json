@@ -1,0 +1,175 @@
+{
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "intro": "Get iT est une plateforme de développement personnel. Cette politique explique quels renseignements personnels nous recueillons, pourquoi, avec qui ils sont partagés et comment exercer tes droits, selon la Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).",
+    "officer": "Responsable de la protection des renseignements personnels : {name}, {email}.",
+    "sections": [
+      {
+        "title": "Qui est responsable",
+        "paragraphs": [
+          "Get iT est responsable des renseignements personnels recueillis par l’application. Pour toute question ou demande, écris à la personne responsable de la protection des renseignements personnels (voir « Nous joindre »)."
+        ]
+      },
+      {
+        "title": "Ce que nous recueillons",
+        "paragraphs": [
+          "Ton compte : ton adresse courriel et ton mot de passe, gardé chiffré par notre fournisseur de connexion et jamais lisible par l’équipe.",
+          "Ton profil : ton nom, ton nom d’utilisateur, ta photo et ta présentation, si tu les ajoutes.",
+          "Tes renseignements du compte : ta date de naissance, ton sexe à la naissance, ton pays, ta province ou ton État et ta région. Ils servent à vérifier l’âge minimum et à calculer les niveaux ; ils ne sont jamais montrés aux autres membres.",
+          "Ce que tu ajoutes : tes objectifs, habitudes, tâches, check-ins, pages de journal, plans, séances d’entraînement, mesures et budget.",
+          "Ce que tu partages dans la Communauté : publications, commentaires, messages, stories, groupes et événements.",
+          "Si tu crées une page pro ou une annonce : les renseignements de ta page et, pour une profession réglementée, ton numéro de permis, vu seulement par l’équipe.",
+          "L’utilisation de l’application : le temps passé dans chaque section et les fonctions utilisées, jamais le texte que tu écris, et les erreurs techniques, nettoyées de toute adresse courriel ou identifiant.",
+          "Ton appareil : ton fuseau horaire et, si tu les actives, l’abonnement aux notifications de ce téléphone."
+        ]
+      },
+      {
+        "title": "Pourquoi",
+        "paragraphs": [
+          "Pour faire fonctionner Get iT : ton compte, tes plans, tes séries, tes rappels et la Communauté.",
+          "Pour la sécurité et la modération : traiter les signalements, bloquer les abus et protéger les membres.",
+          "Pour améliorer l’application : l’équipe regarde des totaux (combien de membres utilisent une fonction), pas le détail d’une personne.",
+          "Pour personnaliser ton expérience, seulement si tu l’actives dans Réglages (désactivé par défaut).",
+          "Nous ne vendons jamais tes renseignements et nous n’affichons pas de publicité."
+        ]
+      },
+      {
+        "title": "Get iT AI",
+        "paragraphs": [
+          "Get iT AI ne reçoit rien sans ton accord, que tu donnes et retires dans Réglages.",
+          "Avec ton accord, un résumé de ce qui est utile à ta demande (par exemple tes objectifs et tes habitudes) est envoyé à notre fournisseur d’intelligence artificielle, Anthropic, aux États-Unis. Ton journal, tes messages et ton budget ne lui sont jamais envoyés.",
+          "Ce que Get iT AI propose n’est jamais ajouté à ton compte sans ton clic."
+        ]
+      },
+      {
+        "title": "Avec qui nous les partageons",
+        "paragraphs": [
+          "Avec les autres membres : seulement ce que tu rends visible (ton profil public, tes publications, ce que tu partages). Tes objectifs, habitudes, check-ins, journal, mesures et budget restent privés ; tes niveaux sont publics seulement si tu actives le mode Ranked.",
+          "Avec un professionnel que tu choisis (page pro) : seulement les plans que tu acceptes de lui partager, et tu peux arrêter en tout temps.",
+          "Avec nos fournisseurs, qui traitent les renseignements pour nous et selon nos instructions : Supabase (base de données, connexion et stockage des photos, au Canada), Vercel (hébergement, à Montréal), Anthropic (Get iT AI, aux États-Unis, seulement avec ton accord) et les services de notifications des navigateurs (Google, Apple ou Mozilla, seulement si tu actives les notifications ; ils reçoivent le court texte de la notification).",
+          "Avec des services externes, seulement quand tu les utilises : YouTube, quand tu touches « Lire » sur une démonstration, et OpenStreetMap (Photon), qui reçoit seulement le texte d’une adresse que tu tapes, jamais ton nom.",
+          "Avant de communiquer des renseignements à l’extérieur du Québec, nous évaluons qu’ils y seront protégés de façon adéquate."
+        ]
+      },
+      {
+        "title": "Combien de temps nous les gardons",
+        "paragraphs": [
+          "Tant que ton compte existe. Quand tu supprimes ton compte, tes renseignements et tes fichiers sont effacés.",
+          "Certaines données partent plus tôt : les stories après 24 heures, les notifications lues après 60 jours, les mesures d’utilisation après 13 mois."
+        ]
+      },
+      {
+        "title": "Tes droits",
+        "paragraphs": [
+          "Accéder à tes renseignements et les obtenir dans un format structuré : Réglages › Tes données › « Télécharger mes données ».",
+          "Les corriger : dans ton profil et dans Réglages.",
+          "Retirer ton consentement (Get iT AI, personnalisation, notifications) : dans Réglages.",
+          "Supprimer ton compte et tout ce qui va avec : Réglages › « Supprimer mon compte ».",
+          "Pour toute autre demande, écris à la personne responsable. Nous répondons dans les 30 jours. Tu peux aussi porter plainte auprès de la Commission d’accès à l’information du Québec."
+        ]
+      },
+      {
+        "title": "Décisions automatisées",
+        "paragraphs": [
+          "Tes niveaux physique et financier sont calculés automatiquement, à partir des mesures que tu entres et de seuils fixes. Dans « Mes niveaux », tu vois les mesures et les seuils utilisés, tu peux corriger une mesure et tu peux demander qu’une personne de l’équipe revoie le résultat."
+        ]
+      },
+      {
+        "title": "Sécurité",
+        "paragraphs": [
+          "Les échanges sont chiffrés, l’accès aux données est limité à ce qui est nécessaire et l’équipe se connecte avec une double authentification. En cas d’incident qui présente un risque de préjudice sérieux, nous te prévenons, ainsi que la Commission d’accès à l’information."
+        ]
+      },
+      {
+        "title": "Âge minimum",
+        "paragraphs": ["Get iT est réservé aux personnes de 16 ans et plus."]
+      },
+      {
+        "title": "Témoins (cookies)",
+        "paragraphs": [
+          "Get iT utilise seulement les témoins nécessaires à son fonctionnement : ta session, ta langue, ton thème et le compte actif (personnel ou page). Aucun outil de publicité ni d’analytique d’une autre entreprise."
+        ]
+      },
+      {
+        "title": "Changements",
+        "paragraphs": [
+          "Avant tout changement important de cette politique, nous te prévenons dans l’application."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Conditions d’utilisation",
+    "intro": "En utilisant Get iT, tu acceptes ces conditions. Elles expliquent ce que tu peux attendre de nous et ce que nous attendons de toi.",
+    "contact": "Une question sur ces conditions : {email}.",
+    "sections": [
+      {
+        "title": "Ton compte",
+        "paragraphs": [
+          "Tu dois avoir 16 ans ou plus et donner des renseignements exacts.",
+          "Tu es responsable de ton mot de passe et de ce qui se fait avec ton compte.",
+          "Get iT est en bêta privée : des fonctions peuvent changer ou être interrompues."
+        ]
+      },
+      {
+        "title": "Ce que Get iT n’est pas",
+        "paragraphs": [
+          "Get iT t’aide à te fixer des objectifs et à progresser, mais ne remplace pas un professionnel. Les plans, les réponses de Get iT AI, les niveaux et le budget ne sont ni un avis médical ou psychologique, ni un conseil financier ou juridique.",
+          "Avant de commencer un programme d’entraînement ou de changer ton alimentation, consulte au besoin un professionnel de la santé. En cas d’urgence, appelle le 911. En détresse, appelle ou texte le 9-8-8."
+        ]
+      },
+      {
+        "title": "Ton contenu",
+        "paragraphs": [
+          "Ce que tu publies t’appartient. Tu nous permets de l’afficher dans Get iT, aux personnes à qui tu le montres, tant qu’il est en ligne.",
+          "Tu dois avoir le droit de publier ce que tu publies : photos, vidéos, musique et textes."
+        ]
+      },
+      {
+        "title": "Les règles de la Communauté",
+        "paragraphs": [
+          "Pas de harcèlement, de menaces, de propos haineux, de contenu sexuel ou violent, de fausses informations dangereuses, de pourriel, ni de renseignements personnels sur d’autres personnes.",
+          "L’équipe peut retirer un contenu, suspendre ou fermer un compte qui ne respecte pas ces règles. Tu peux signaler ce qui te semble contraire aux règles."
+        ]
+      },
+      {
+        "title": "Marketplace et pages pro",
+        "paragraphs": [
+          "Les services sont offerts par les professionnels eux-mêmes. Get iT n’est pas partie aux ententes entre un membre et un professionnel.",
+          "Un professionnel d’une profession réglementée doit détenir un permis valide et respecter les règles de son ordre."
+        ]
+      },
+      {
+        "title": "Get iT AI",
+        "paragraphs": [
+          "Les réponses de Get iT AI sont produites automatiquement et peuvent être incomplètes ou inexactes : vérifie-les avant d’agir."
+        ]
+      },
+      {
+        "title": "Disponibilité et responsabilité",
+        "paragraphs": [
+          "Nous faisons de notre mieux pour que Get iT fonctionne sans interruption, sans pouvoir le garantir.",
+          "Dans les limites permises par la loi, Get iT n’est pas responsable des décisions que tu prends à partir de l’application. Rien dans ces conditions ne limite les droits que te donne la Loi sur la protection du consommateur."
+        ]
+      },
+      {
+        "title": "Fermer ton compte",
+        "paragraphs": [
+          "Tu peux supprimer ton compte en tout temps dans Réglages."
+        ]
+      },
+      {
+        "title": "Loi applicable",
+        "paragraphs": [
+          "Ces conditions sont régies par les lois du Québec et du Canada."
+        ]
+      },
+      {
+        "title": "Changements",
+        "paragraphs": [
+          "Avant tout changement important, nous te prévenons dans l’application. Si tu continues d’utiliser Get iT après le changement, tu acceptes les nouvelles conditions."
+        ]
+      }
+    ]
+  }
+}
