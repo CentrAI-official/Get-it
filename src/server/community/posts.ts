@@ -12,6 +12,7 @@ import { computeStreaks } from "@/features/habits/streak";
 import { dayStreak, MIN_SHARED_DAY_STREAK } from "@/features/streaks/rules";
 import { fromDbDate, toCalendarDay } from "@/lib/dates";
 import { db } from "@/server/db";
+import { lockFor } from "@/server/locks";
 import { getUserTimeZone } from "@/server/profile/service";
 import { frozenPact, listSuccessfulPacts } from "@/server/messages/pacts";
 import { removeFiles } from "@/server/storage/service";
@@ -431,13 +432,19 @@ export async function addComment(
   if (post.groupId && !(await inGroupForum(post.groupId, userId))) {
     return { ok: false, error: "groupJoinRequired" };
   }
-  const count = await db.postComment.count({
-    where: { userId, createdAt: { gte: since24h() } },
+  // Un commentaire à la fois par personne : des envois simultanés ne passent pas la limite
+  const added = await db.$transaction(async (tx) => {
+    await lockFor(tx, `comments:${userId}`);
+    const count = await tx.postComment.count({
+      where: { userId, createdAt: { gte: since24h() } },
+    });
+    if (count >= DAILY_COMMENT_LIMIT) return false;
+    await tx.postComment.create({
+      data: { postId, userId, body, pageId: asPageId },
+    });
+    return true;
   });
-  if (count >= DAILY_COMMENT_LIMIT) return { ok: false, error: "commentLimit" };
-  await db.postComment.create({
-    data: { postId, userId, body, pageId: asPageId },
-  });
+  if (!added) return { ok: false, error: "commentLimit" };
   await notify({
     userId: post.userId,
     kind: "comment",

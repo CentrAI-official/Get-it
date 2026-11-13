@@ -70,6 +70,15 @@ export async function updateTheme(userId: string, theme: ThemePreference) {
   await db.userSettings.updateMany({ where: { userId }, data: { theme } });
 }
 
+/**
+ * Change le fuseau du compte (Réglages, ou en voyage) : les journées, les séries,
+ * les rappels et les séances se comptent ensuite à cette heure. Le passé ne
+ * bouge pas (les jours déjà enregistrés restent les mêmes).
+ */
+export async function updateTimeZone(userId: string, timeZone: string) {
+  await db.userSettings.updateMany({ where: { userId }, data: { timeZone } });
+}
+
 /** Fuseau de l'utilisateur (Server Actions : getCurrentProfile y est indisponible). */
 export async function getUserTimeZone(userId: string) {
   const settings = await db.userSettings.findUnique({

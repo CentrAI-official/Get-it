@@ -5,6 +5,7 @@ import {
 } from "@/features/community/rules";
 import {
   DAILY_MESSAGE_LIMIT,
+  MINUTE_MESSAGE_LIMIT,
   DAILY_NEW_CONVERSATION_LIMIT,
   directKey,
   INBOX_SIZE,
@@ -36,6 +37,7 @@ import {
   type ProgressSource,
 } from "@/server/community/posts";
 import { db } from "@/server/db";
+import { LimitReached, lockFor } from "@/server/locks";
 import type { ContactState } from "@/features/contacts/rules";
 import { topicOf, type GroupTopic } from "@/features/groups/rules";
 import {
@@ -1158,13 +1160,22 @@ export async function sendMessage(
 ): Promise<{ ok: true; message: ChatMessage } | Fail> {
   const allowed = await canWrite(viewerId);
   if (!allowed.ok) return allowed;
-  const [access, recent] = await Promise.all([
+  const [access, recent, burst] = await Promise.all([
     sendAccess(viewerId, conversationId, input.kind),
     db.message.count({
       where: { senderId: viewerId, createdAt: { gte: since24h() } },
     }),
+    db.message.count({
+      where: {
+        senderId: viewerId,
+        createdAt: { gte: new Date(Date.now() - 60_000) },
+      },
+    }),
   ]);
   if (access !== "ok") return { ok: false, error: access };
+  if (burst >= MINUTE_MESSAGE_LIMIT) {
+    return { ok: false, error: "messageBurst" };
+  }
   if (recent >= DAILY_MESSAGE_LIMIT) {
     return { ok: false, error: "messageLimit" };
   }
@@ -1211,45 +1222,63 @@ export async function sendMessage(
   }
 
   const now = new Date();
-  const message = await db.$transaction(
-    async (tx) => {
-      const created = await tx.message.create({
-        data: {
-          conversationId,
-          senderId: viewerId,
-          kind: input.kind,
-          body: input.body,
-          progress: progress ?? Prisma.DbNull,
-          postId,
-          storyId,
-          mediaCount: mediaRows.length,
-          createdAt: now,
-        },
-        select: messageSelect,
-      });
-      if (mediaRows.length > 0) {
-        await tx.messageMedia.createMany({
-          data: mediaRows.map((row) => ({ ...row, messageId: created.id })),
+  const message = await db
+    .$transaction(
+      async (tx) => {
+        // Un envoi à la fois par personne : recompté ici, des envois
+        // simultanés ne passent pas la limite de la minute
+        await lockFor(tx, `messages:${viewerId}`);
+        const sent = await tx.message.count({
+          where: {
+            senderId: viewerId,
+            createdAt: { gte: new Date(now.getTime() - 60_000) },
+          },
         });
-        const { count } = await tx.mediaUpload.updateMany({
-          where: { id: { in: uploadIds }, userId: viewerId, usedAt: null },
-          data: { usedAt: now },
+        if (sent >= MINUTE_MESSAGE_LIMIT) throw new LimitReached();
+        const created = await tx.message.create({
+          data: {
+            conversationId,
+            senderId: viewerId,
+            kind: input.kind,
+            body: input.body,
+            progress: progress ?? Prisma.DbNull,
+            postId,
+            storyId,
+            mediaCount: mediaRows.length,
+            createdAt: now,
+          },
+          select: messageSelect,
         });
-        // Un même envoi ne sert qu'une fois
-        if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
-      }
-      await tx.conversation.update({
-        where: { id: conversationId },
-        data: { lastMessageAt: now },
-      });
-      await tx.conversationMember.update({
-        where: { conversationId_userId: { conversationId, userId: viewerId } },
-        data: { lastReadAt: now },
-      });
-      return created;
-    },
-    { maxWait: 10_000, timeout: 20_000 },
-  );
+        if (mediaRows.length > 0) {
+          await tx.messageMedia.createMany({
+            data: mediaRows.map((row) => ({ ...row, messageId: created.id })),
+          });
+          const { count } = await tx.mediaUpload.updateMany({
+            where: { id: { in: uploadIds }, userId: viewerId, usedAt: null },
+            data: { usedAt: now },
+          });
+          // Un même envoi ne sert qu'une fois
+          if (count !== uploadIds.length) throw new Error("Média déjà utilisé");
+        }
+        await tx.conversation.update({
+          where: { id: conversationId },
+          data: { lastMessageAt: now },
+        });
+        await tx.conversationMember.update({
+          where: {
+            conversationId_userId: { conversationId, userId: viewerId },
+          },
+          data: { lastReadAt: now },
+        });
+        return created;
+      },
+      { maxWait: 10_000, timeout: 20_000 },
+    )
+    .catch((error: unknown) => {
+      if (error instanceof LimitReached) return null;
+      throw error;
+    });
+  if (!message) return { ok: false, error: "messageBurst" };
   const [posts, media, stories] = await Promise.all([
     sharedPostsFor(viewerId, postId ? [postId] : []),
     messageMediaFor(mediaRows.length > 0 ? [message.id] : []),

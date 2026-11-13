@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    // Réseau coupé (au gym, dans le métro) : une action ou une navigation attend
+    // le retour du réseau et repart toute seule, au lieu d'afficher une erreur ;
+    // `useOffline` (next/offline) affiche le bandeau « Pas de connexion »
+    useOffline: true,
+  },
   poweredByHeader: false,
   // Développement seulement : ouvrir le serveur de dev depuis un téléphone du
   // même réseau Wi-Fi (npm run dev:mobile). Sans effet en production.

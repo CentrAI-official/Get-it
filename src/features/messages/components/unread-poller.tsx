@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { countUnreadAction } from "../actions";
 import { UNREAD_POLL_MS } from "../rules";
+import { reloadIfOutdated } from "@/lib/outdated";
 import { onUnreadRefresh, setUnreadCount } from "../unread-store";
 
 /**
@@ -12,9 +13,16 @@ import { onUnreadRefresh, setUnreadCount } from "../unread-store";
 export function UnreadPoller() {
   useEffect(() => {
     let active = true;
+    // Une demande à la fois : réseau coupé, elle attend et les suivantes ne s'empilent pas
+    let busy = false;
     async function refresh() {
-      if (document.visibilityState !== "visible") return;
-      const next = await countUnreadAction().catch(() => null);
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const next = await countUnreadAction().catch((error: unknown) => {
+        reloadIfOutdated(error);
+        return null;
+      });
+      busy = false;
       if (active && next !== null) setUnreadCount(next);
     }
     void refresh();

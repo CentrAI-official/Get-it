@@ -13,6 +13,7 @@ import {
   type PlanLogInput,
   type PlanLogRow,
 } from "../rules";
+import { reloadIfOutdated } from "@/lib/outdated";
 
 /** Un élément de la séance affichée : où le noter, et son nom. */
 export type LogTarget = {
@@ -46,7 +47,8 @@ export function usePlanLogs(initial: readonly PlanLogRow[]) {
     try {
       const result = await action();
       if (!result.ok) setError(result.error);
-    } catch {
+    } catch (error) {
+      reloadIfOutdated(error);
       setError("unexpected");
     }
   }

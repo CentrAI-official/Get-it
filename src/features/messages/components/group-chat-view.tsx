@@ -36,6 +36,7 @@ import {
 import { refreshUnreadCount } from "../unread-store";
 import { GroupPactNote, GroupPactPanel } from "./group-pact-panel";
 import { MessageBubble } from "./message-bubble";
+import { reloadIfOutdated } from "@/lib/outdated";
 import { ProposePactDialog } from "./propose-pact-dialog";
 
 type LocalMessage = ChatMessage & { pending?: boolean };
@@ -104,11 +105,24 @@ export function GroupChatView({
   // Rafraîchissement toutes les 3 secondes, quand la page est visible
   useEffect(() => {
     let active = true;
+    // Une demande à la fois : réseau coupé, elle attend et les suivantes ne s'empilent pas
+    let busy = false;
     const timer = window.setInterval(async () => {
-      if (document.visibilityState !== "visible" || sending.current > 0) {
+      if (
+        busy ||
+        document.visibilityState !== "visible" ||
+        sending.current > 0
+      ) {
         return;
       }
-      const next = await getGroupChatAction(initial.id).catch(() => null);
+      busy = true;
+      const next = await getGroupChatAction(initial.id).catch(
+        (error: unknown) => {
+          reloadIfOutdated(error);
+          return null;
+        },
+      );
+      busy = false;
       if (!active || !next) return;
       setChat(next);
       setMessages((current) => merge(current, next.messages));

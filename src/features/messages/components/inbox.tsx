@@ -17,6 +17,7 @@ import type { GroupTopic } from "@/features/groups/rules";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { reloadIfOutdated } from "@/lib/outdated";
 import type { InboxPact } from "@/server/messages/pacts";
 import type { InboxItem, OnlineContact } from "@/server/messages/service";
 import { listInboxAction, startConversationAction } from "../actions";
@@ -76,9 +77,16 @@ export function Inbox({
   // bloquée ou supprimée), puis toutes les 10 secondes
   useEffect(() => {
     let active = true;
+    // Une demande à la fois : réseau coupé, elle attend et les suivantes ne s'empilent pas
+    let busy = false;
     async function refresh() {
-      if (document.visibilityState !== "visible") return;
-      const next = await listInboxAction().catch(() => null);
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const next = await listInboxAction().catch((error: unknown) => {
+        reloadIfOutdated(error);
+        return null;
+      });
+      busy = false;
       if (!active || !next) return;
       setItems(next.items);
       setOnline(next.online);

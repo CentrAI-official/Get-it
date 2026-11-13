@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { reloadIfOutdated } from "@/lib/outdated";
 import { countUnreadNotificationsAction } from "../actions";
 import { NOTIFICATION_POLL_MS } from "../rules";
 import { setNotificationCount, useNotificationCount } from "../store";
@@ -43,9 +44,18 @@ export function NotificationBell({ active }: { active: boolean }) {
 export function NotificationPoller() {
   useEffect(() => {
     let active = true;
+    // Une demande à la fois : réseau coupé, elle attend et les suivantes ne s'empilent pas
+    let busy = false;
     async function refresh() {
-      if (document.visibilityState !== "visible") return;
-      const next = await countUnreadNotificationsAction().catch(() => null);
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const next = await countUnreadNotificationsAction().catch(
+        (error: unknown) => {
+          reloadIfOutdated(error);
+          return null;
+        },
+      );
+      busy = false;
       if (active && next !== null) setNotificationCount(next);
     }
     void refresh();

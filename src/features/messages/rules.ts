@@ -4,8 +4,14 @@ import { z } from "zod";
 // limites sont garanties en base (contraintes de la migration « messages »).
 
 export const MESSAGE_MAX_LENGTH = 2000;
-/** Messages envoyés par 24 heures (anti-spam). */
-export const DAILY_MESSAGE_LIMIT = 200;
+/**
+ * Anti-spam des messages (décision du fondateur, 2026-11-12) : 200 par jour
+ * bloquait une vraie conversation. Une rafale est freinée à la minute ; la
+ * limite du jour ne sert plus qu'à arrêter un envoi automatique.
+ */
+export const MINUTE_MESSAGE_LIMIT = 20;
+/** Messages envoyés par 24 heures, toutes conversations confondues. */
+export const DAILY_MESSAGE_LIMIT = 1000;
 /** Nouvelles conversations commencées par 24 heures. */
 export const DAILY_NEW_CONVERSATION_LIMIT = 20;
 /** Messages chargés à la fois dans une conversation. */
@@ -72,6 +78,7 @@ export const MESSAGE_ERRORS = [
   "acceptFirst",
   "requestPending",
   "messageLimit",
+  "messageBurst",
   "conversationLimit",
   "mediaUnavailable",
   "mediaTooMany",

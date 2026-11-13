@@ -9,6 +9,7 @@ import { inviteAccepted, inviteRequired } from "@/server/auth/invite";
 import { getSessionUser } from "@/server/auth/session";
 import { ensureProfile, hasProfile } from "@/server/profile/service";
 import { createSupabaseServerClient } from "@/server/supabase/server";
+import { recordServerError } from "@/server/errors/service";
 
 export type AuthResult<T = undefined> =
   { ok: true; data: T } | { ok: false; error: AuthErrorKey };
@@ -142,8 +143,17 @@ export async function sendPasswordResetEmail(input: {
   if (key === "rateLimited" || key === "emailInvalid") {
     return { ok: false, error: key };
   }
-  if (error)
+  if (error) {
     console.error("Envoi du lien de réinitialisation impossible", error);
+    // Visible dans le dashboard de l'équipe (Erreurs) : sans SMTP à soi, Supabase
+    // n'envoie qu'aux adresses de l'équipe. Le code seulement, jamais l'adresse.
+    await recordServerError(
+      new Error(
+        `Lien de mot de passe non envoyé (${error.code ?? error.status ?? "inconnu"})`,
+      ),
+      "/[locale]/forgot-password",
+    );
+  }
   return { ok: true, data: undefined };
 }
 

@@ -9,6 +9,7 @@ import { listPageInboxAction } from "@/features/messages/actions";
 import { InboxRow } from "@/features/messages/components/inbox";
 import { INBOX_POLL_MS } from "@/features/messages/rules";
 import { Link } from "@/i18n/navigation";
+import { reloadIfOutdated } from "@/lib/outdated";
 import type { InboxItem } from "@/server/messages/service";
 
 /**
@@ -33,9 +34,16 @@ export function PageInbox({
 
   useEffect(() => {
     let active = true;
+    // Une demande à la fois : réseau coupé, elle attend et les suivantes ne s'empilent pas
+    let busy = false;
     async function refresh() {
-      if (document.visibilityState !== "visible") return;
-      const next = await listPageInboxAction().catch(() => null);
+      if (busy || document.visibilityState !== "visible") return;
+      busy = true;
+      const next = await listPageInboxAction().catch((error: unknown) => {
+        reloadIfOutdated(error);
+        return null;
+      });
+      busy = false;
       if (!active || !next) return;
       setItems(next);
       setNow(Date.now());

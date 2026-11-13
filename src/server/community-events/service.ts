@@ -19,6 +19,7 @@ import { getBlockedIds, getCommunityMember } from "@/server/community/members";
 import { verifyMedia } from "@/server/community/media";
 import { contactIds } from "@/server/contacts/service";
 import { db } from "@/server/db";
+import { lockFor } from "@/server/locks";
 import { createEvent as createCalendarEvent } from "@/server/events/service";
 import { isActiveMember } from "@/server/groups/service";
 import { notify } from "@/server/notifications/service";
@@ -819,21 +820,30 @@ export async function setEventAttendance(
   const end =
     event.endsAt ?? new Date(event.startsAt.getTime() + OPEN_ENDED_MS);
   if (end < now) return { ok: false, error: "ended" };
-  const before = await db.communityEventAttendee.findUnique({
-    where: { eventId_userId: { eventId, userId } },
-    select: { status: true },
-  });
-  if (status === "going" && before?.status !== "going" && event.capacity) {
-    const going = await db.communityEventAttendee.count({
-      where: { eventId, status: "going" },
+  // Une réponse à la fois par événement : deux « J'y vais » simultanés ne
+  // dépassent pas le nombre de places
+  const capacity = event.capacity;
+  const saved = await db.$transaction(async (tx) => {
+    await lockFor(tx, `event:${eventId}`);
+    const previous = await tx.communityEventAttendee.findUnique({
+      where: { eventId_userId: { eventId, userId } },
+      select: { status: true },
     });
-    if (going >= event.capacity) return { ok: false, error: "full" };
-  }
-  await db.communityEventAttendee.upsert({
-    where: { eventId_userId: { eventId, userId } },
-    create: { eventId, userId, status },
-    update: { status },
+    if (status === "going" && previous?.status !== "going" && capacity) {
+      const going = await tx.communityEventAttendee.count({
+        where: { eventId, status: "going" },
+      });
+      if (going >= capacity) return null;
+    }
+    await tx.communityEventAttendee.upsert({
+      where: { eventId_userId: { eventId, userId } },
+      create: { eventId, userId, status },
+      update: { status },
+    });
+    return { before: previous };
   });
+  if (!saved) return { ok: false, error: "full" };
+  const { before } = saved;
   if (status === "going" && before?.status !== "going") {
     await notify({
       userId: event.hostId,

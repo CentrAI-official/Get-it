@@ -328,6 +328,21 @@
         "label": "Personalize my experience",
         "hint": "Get iT may analyze your interests (the sections and content you look at) to suggest what helps you most. Off by default; you can turn it off at any time.",
         "error": "The setting couldn’t be saved. Try again."
+      },
+      "timeZone": {
+        "title": "Time zone",
+        "description": "Get iT counts your days, streaks, reminders and workouts in this time zone.",
+        "label": "Your account’s time zone",
+        "device": "Your phone is set to {zone}.",
+        "useDevice": "Use the phone’s time",
+        "error": "The time zone wasn’t saved. Try again.",
+        "prompt": {
+          "title": "Did you change time zones?",
+          "description": "Your phone is set to {device}, your account to {account}. Get iT counts your days, streaks and reminders in your account’s time zone.",
+          "keep": "Keep {city}",
+          "switch": "Switch to {city}",
+          "error": "The time zone wasn’t changed. Try again."
+        }
       }
     },
     "refresh": {
@@ -1546,7 +1561,7 @@
       "notFound": "This content is no longer available.",
       "acceptFirst": "Accept the request first to reply.",
       "requestPending": "Your request hasn’t been accepted yet.",
-      "messageLimit": "You’ve reached the limit of 200 messages per 24 hours.",
+      "messageLimit": "You’ve reached the limit of 1,000 messages per 24 hours.",
       "conversationLimit": "You’ve started 20 new conversations today: that’s the limit.",
       "mediaUnavailable": "Adding photos and videos isn’t available yet.",
       "mediaTooMany": "Up to 4 photos, or a single video, per message.",
@@ -1561,7 +1576,8 @@
       "habitRequired": "Choose the habit to link to the pact.",
       "titleRequired": "Give the challenge a name.",
       "titleTooLong": "The challenge name is too long (60 characters max).",
-      "futureTime": "Pick a time that has already passed: your part can’t be done later than now."
+      "futureTime": "Pick a time that has already passed: your part can’t be done later than now.",
+      "messageBurst": "You’re sending a lot of messages at once: wait a minute before continuing."
     },
     "pacts": {
       "propose": "Propose a pact",
@@ -2990,9 +3006,20 @@
     "backHome": "Back to home"
   },
   "Error": {
-    "title": "Something went wrong",
-    "description": "An unexpected error occurred. You can try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "other": {
+      "title": "Something went wrong",
+      "description": "An unexpected error occurred. You can try again: the Get iT team has been notified."
+    },
+    "offline": {
+      "title": "No connection",
+      "description": "Get iT can’t reach the internet. Check your network, then try again."
+    },
+    "update": {
+      "title": "Get iT was updated",
+      "description": "A new version is live. Reload the page to continue."
+    },
+    "reload": "Reload"
   },
   "Journal": {
     "title": "Journal",
@@ -3008,7 +3035,9 @@
         "locked": "This page can no longer be edited (older than 7 days).",
         "invalid": "Your page is too long (10,000 characters at most).",
         "unexpected": "Something went wrong. Try again in a moment."
-      }
+      },
+      "offline": "No connection: your page will save as soon as you’re back online.",
+      "retrying": "Not saved yet: trying again in a moment."
     },
     "media": {
       "label": "Page photos and video",
@@ -5857,5 +5886,9 @@
       "going": "{count, plural, =0 {nobody going yet} one {# going} other {# going}}"
     },
     "linkHintPage": "The link is shown to members who answer the event."
+  },
+  "Offline": {
+    "title": "No connection.",
+    "description": "What you do will go through as soon as you’re back online."
   }
 }

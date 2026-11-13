@@ -1,15 +1,19 @@
 "use client";
 
-import { Check, CircleAlert, LoaderCircle } from "lucide-react";
+import { Check, CircleAlert, LoaderCircle, WifiOff } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useOffline } from "next/offline";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { saveJournalAction } from "../actions";
 import { journalFont } from "../font";
 import { JOURNAL_BODY_MAX_LENGTH, countWords } from "../rules";
+import { reloadIfOutdated } from "@/lib/outdated";
 
 /** Délai sans frappe avant l'enregistrement automatique. */
 const AUTOSAVE_DELAY = 1200;
+/** Après un enregistrement qui a échoué : un nouvel essai, tant qu'il reste du texte à enregistrer. */
+const RETRY_DELAY = 5000;
 /** Le compteur de caractères n'apparaît qu'à l'approche de la limite. */
 const SHOW_COUNT_FROM = JOURNAL_BODY_MAX_LENGTH - 1000;
 
@@ -18,6 +22,8 @@ type Status =
   | { kind: "saving" }
   | { kind: "saved" }
   | { kind: "cleared" }
+  /** L'envoi a échoué (serveur) : on réessaie tout seul. */
+  | { kind: "retrying" }
   | { kind: "error"; error: "locked" | "invalid" | "unexpected" };
 
 /**
@@ -42,15 +48,30 @@ export function JournalEditor({
   const saving = useRef(false);
   const latest = useRef(text);
   latest.current = text;
+  const saved = useRef(savedText);
+  saved.current = savedText;
   const dirty = text !== savedText;
+  // Réseau coupé : l'envoi attend le retour du réseau (useOffline de Next)
+  const offline = useOffline();
 
   async function save() {
     if (saving.current) return;
     const value = latest.current;
     saving.current = true;
     setStatus({ kind: "saving" });
-    const result = await saveJournalAction({ day, body: value });
-    saving.current = false;
+    // Jamais bloqué : une erreur libère l'envoi suivant
+    const result = await saveJournalAction({ day, body: value })
+      .catch((error: unknown) => {
+        reloadIfOutdated(error);
+        return null;
+      })
+      .finally(() => {
+        saving.current = false;
+      });
+    if (!result) {
+      setStatus({ kind: "retrying" });
+      return;
+    }
     if (!result.ok) {
       setStatus({ kind: "error", error: result.error });
       return;
@@ -69,6 +90,37 @@ export function JournalEditor({
     // `save` lit la dernière valeur par référence
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, dirty]);
+
+  // Un envoi raté se refait tout seul quelques secondes plus tard
+  useEffect(() => {
+    if (status.kind !== "retrying") return;
+    const timer = setTimeout(() => {
+      if (latest.current !== saved.current) void save();
+    }, RETRY_DELAY);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // L'appli passe en arrière-plan ou la page se ferme : on enregistre tout de suite
+  useEffect(() => {
+    const flush = () => {
+      if (
+        document.visibilityState === "hidden" &&
+        latest.current !== saved.current
+      ) {
+        void save();
+      }
+    };
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", flush);
+      // La page quitte l'écran (autre catégorie) : ce qui reste part aussi
+      if (latest.current !== saved.current) void save();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // La page grandit avec le texte, comme un carnet
   useLayoutEffect(() => {
@@ -116,7 +168,17 @@ export function JournalEditor({
 
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 pl-6 text-sm">
         <p role="status" className="flex min-h-5 items-center gap-1.5">
-          {status.kind === "saving" ? (
+          {offline && (dirty || status.kind === "saving") ? (
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <WifiOff aria-hidden="true" className="size-4" />
+              {t("offline")}
+            </span>
+          ) : status.kind === "retrying" ? (
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <CircleAlert aria-hidden="true" className="size-4" />
+              {t("retrying")}
+            </span>
+          ) : status.kind === "saving" ? (
             <span className="flex items-center gap-1.5 text-muted-foreground">
               <LoaderCircle
                 aria-hidden="true"

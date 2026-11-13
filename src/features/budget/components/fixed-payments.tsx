@@ -27,6 +27,7 @@ import { amountField, displayMoney, formatMoney } from "../format";
 import { parseAmount, type BudgetError, type UpcomingItem } from "../rules";
 import { useBudget } from "./budget-context";
 import { PayDialog } from "./pay-check";
+import { reloadIfOutdated } from "@/lib/outdated";
 
 // Les paiements fixes du mois (décision du fondateur, 2026-11-10) : pas de
 // barre, une case à cocher quand c'est payé. Toucher la ligne permet de changer
@@ -406,7 +407,10 @@ export function FixedPaymentsTile({
       day: item.day,
       action,
       amount,
-    }).catch(() => null);
+    }).catch((error: unknown) => {
+      reloadIfOutdated(error);
+      return null;
+    });
     return result?.ok === true;
   }
 

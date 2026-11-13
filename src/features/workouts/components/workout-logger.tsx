@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useOffline } from "next/offline";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -165,7 +166,10 @@ export function WorkoutLogger({
   );
   const [rest, setRest] = useState<Timer | null>(null);
   const [hold, setHold] = useState<Hold | null>(null);
-  const [offline, setOffline] = useState(false);
+  const [failed, setOffline] = useState(false);
+  // Réseau coupé : l'envoi attend le retour du réseau (useOffline de Next) au
+  // lieu d'échouer ; le brouillon reste sur le téléphone en attendant
+  const offline = useOffline() || failed;
   const [failure, setFailure] = useState<WorkoutError | null>(null);
   const [retry, setRetry] = useState(0);
   const { prime, ring } = useAlarm();

@@ -1,16 +1,22 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { hasLocale } from "next-intl";
 import { isThemePreference } from "@/config/theme";
 import type { ConfirmState } from "@/components/confirm-dialog";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
+import { isValidTimeZone } from "@/lib/time-zone";
 import { deleteAccount } from "@/server/account/service";
 import { setPersonalization } from "@/server/analytics/personalization";
 import { signOut } from "@/server/auth/service";
 import { getSessionUser, requireUser } from "@/server/auth/session";
 import { setShowPresence } from "@/server/presence/service";
-import { updateLocale, updateTheme } from "@/server/profile/service";
+import {
+  updateLocale,
+  updateTheme,
+  updateTimeZone,
+} from "@/server/profile/service";
 
 /** Enregistre la langue choisie dans le compte. Sans session, ne fait rien : le cookie suffit. */
 export async function saveLocalePreferenceAction(locale: unknown) {
@@ -76,4 +82,19 @@ export async function setPresenceAction(show: unknown) {
     console.error("Réglage de présence impossible", error);
     return false;
   }
+}
+
+/** Le fuseau du compte : tout ce qui se compte « par jour » suit la nouvelle heure. */
+export async function saveTimeZoneAction(timeZone: unknown) {
+  if (!isValidTimeZone(timeZone)) return false;
+  const user = await requireUser();
+  try {
+    await updateTimeZone(user.id, timeZone);
+  } catch (error) {
+    console.error("Fuseau horaire non enregistré", error);
+    return false;
+  }
+  // Les journées, les séries, le budget et le calendrier changent de jour
+  revalidatePath("/", "layout");
+  return true;
 }

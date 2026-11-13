@@ -4,12 +4,14 @@ import { AppMobileNav } from "@/components/layout/app-mobile-nav";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { NavigationMemory } from "@/components/layout/navigation-memory";
+import { OfflineBanner } from "@/components/layout/offline-banner";
 import { PullToRefresh } from "@/components/layout/pull-to-refresh";
 import { ActivityTracker } from "@/features/analytics/components/activity-tracker";
 import { WeekQuestion } from "@/features/feedback/components/week-question";
 import { UnreadPoller } from "@/features/messages/components/unread-poller";
 import { NotificationPoller } from "@/features/notifications/components/notification-bell";
 import { AccountThemeSync } from "@/features/settings/components/account-theme";
+import { TimeZoneCheck } from "@/features/settings/components/time-zone-settings";
 import { DayPanel } from "@/features/today/components/day-panel";
 
 // L'espace personnel n'a pas à être indexé par les moteurs de recherche
@@ -48,6 +50,8 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
         </main>
       </div>
       <AppMobileNav />
+      {/* Réseau coupé : les gestes attendent et repartent tout seuls */}
+      <OfflineBanner />
       {/* Tirer vers le bas en haut de la page : rechargement (téléphone) */}
       <PullToRefresh />
       {/* « Ma journée » : popup quotidien, ouvert aussi depuis la navigation */}
@@ -67,6 +71,10 @@ export default function AppLayout({ children }: LayoutProps<"/[locale]">) {
       {/* Pages vues : « Retour » revient à la page d'avant s'il y en a une */}
       <Suspense fallback={null}>
         <NavigationMemory />
+      </Suspense>
+      {/* Le téléphone n'est plus à l'heure du compte : proposer de changer */}
+      <Suspense fallback={null}>
+        <TimeZoneCheck />
       </Suspense>
       {/* Thème choisi sur un autre appareil */}
       <Suspense fallback={null}>

@@ -48,6 +48,10 @@ import {
   PresenceSettings,
   PresenceSettingsSkeleton,
 } from "@/features/settings/components/presence-settings";
+import {
+  TimeZoneSettings,
+  TimeZoneSettingsSkeleton,
+} from "@/features/settings/components/time-zone-settings";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("App.settings");
@@ -96,6 +100,9 @@ export default function SettingsPage() {
       </Card>
       <Suspense fallback={<AccountThemeSettingsSkeleton />}>
         <AccountThemeSettings />
+      </Suspense>
+      <Suspense fallback={<TimeZoneSettingsSkeleton />}>
+        <TimeZoneSettings />
       </Suspense>
       <PushSettingsCard />
       <Suspense fallback={<DetailsSettingsSkeleton />}>

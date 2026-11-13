@@ -3,6 +3,7 @@ import { AI_DAILY_LIMIT } from "@/features/coach/limits";
 import type { AiRequestKind } from "@/generated/prisma/client";
 import { toCalendarDay, toDbDate } from "@/lib/dates";
 import { db } from "@/server/db";
+import { lockFor } from "@/server/locks";
 import type { AiUsage } from "./types";
 
 // Chaque fonction reçoit l'userId de la session et filtre dessus.
@@ -71,6 +72,8 @@ export async function reserveAiRequest(
 ) {
   const day = toDbDate(toCalendarDay(new Date(), timeZone));
   return db.$transaction(async (tx) => {
+    // Une réservation à la fois : des demandes simultanées ne passent pas la limite
+    await lockFor(tx, `ai:${userId}`);
     const used = await tx.aiRequest.count({ where: { userId, day } });
     if (used >= AI_DAILY_LIMIT) return null;
     const request = await tx.aiRequest.create({
